@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.*
+!.env.production.example
+!.env.example
+coverage
+out
+*.log
+*.tsbuildinfo
+.DS_Store
