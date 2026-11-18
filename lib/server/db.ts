@@ -52,6 +52,7 @@ export function checkOrigin(request:Request) {
 }
 export function responseError(e:unknown) {
   if(e instanceof ApiError)return Response.json({error:e.message},{status:e.status});
+  if(e instanceof SyntaxError)return Response.json({error:"Solicitud JSON no válida."},{status:400});
   const err=e as {code?:string;message?:string};
   if(err.code==="42501")return Response.json({error:"No tienes permisos para realizar esa operación."},{status:403});
   if(err.code==="23505")return Response.json({error:"Ya existe un registro con esos datos."},{status:409});
