@@ -95,6 +95,14 @@ jobs:
           set -euo pipefail
           cd /opt/lp
           test -f .env.production
+          # Las claves del servicio y autenticación se generan SOLO en el VPS
+          # en el primer despliegue; nunca se imprimen en Actions.
+          chmod 600 .env.production
+          for key in APP_DB_PASSWORD AUTH_DB_PASSWORD; do
+            if ! grep -q "^$key=" .env.production; then
+              printf '%s=%s\n' "$key" "$(openssl rand -hex 32)" >> .env.production
+            fi
+          done
           git fetch --no-tags origin main
           if git show-ref --verify --quiet refs/heads/main; then
             git switch main
