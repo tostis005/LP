@@ -28,11 +28,11 @@ function OwnerBilling({account}:{account:Account}){
  async function action(kind:"checkout"|"portal"){
   if(!selected)return;setBusy(true);setError("");setNotice("");
   const {data}=await db().auth.getSession();
-  const token=data.session?.access_token;
+  const token=data?.session?.access_token;
   if(!token){setBusy(false);setError("Inicia sesión de nuevo para continuar.");return}
   try{
    const res=await fetch("/api/billing/"+kind,{
-    method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
+    method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({business_id:selected})
    });
    const payload=await res.json() as {url?:string;error?:string};
