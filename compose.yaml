@@ -1,0 +1,55 @@
+# Este Compose NO despliega Supabase. PostgreSQL es nativo y privado.
+# No exponer el puerto 5432, ni enlazar 80/443: HOME conserva su proxy.
+name: lp
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Configura POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Configura POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    stop_grace_period: 60s
+    networks:
+      - lp_private
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Configura NEXT_PUBLIC_SITE_URL}
+    restart: unless-stopped
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Configura NEXT_PUBLIC_SITE_URL}
+      AUTH_SECRET: ${AUTH_SECRET:?Configura AUTH_SECRET}
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB:?Configura POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER:?Configura POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:3100:3000"
+    networks:
+      - lp_private
+
+networks:
+  lp_private:
+
+volumes:
+  postgres_data:
