@@ -22,7 +22,7 @@ export async function POST(request:Request) {
       const email=String(input.email||"").trim().toLowerCase(),password=String(input.password||"");
       const name=String(input.full_name||"").trim();
        const whatsapp=String(input.whatsapp||"").trim();
-      if(!validateEmail(email)||password.length<10||password.length>128||name.length<2||name.length>120||(whatsapp!==""&&!/^\[+\][1-9][0-9]{7,14}$/.test(whatsapp)))throw new ApiError("Introduce un email válido, un nombre y una contraseña de al menos 10 caracteres.");
+      if(!validateEmail(email)||password.length<10||password.length>128||name.length<2||name.length>120||(whatsapp!==""&&!/^[+][1-9][0-9]{7,14}$/.test(whatsapp)))throw new ApiError("Introduce un email válido, un nombre, apellidos, WhatsApp y una contraseña de al menos 10 caracteres.");
       await rateLimit("signup:"+email,4,60);
       const exists=await authPool.query("SELECT id,email_confirmed_at FROM auth.users WHERE lower(email)=$1",[email]);
       if(exists.rowCount){
