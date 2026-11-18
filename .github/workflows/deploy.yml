@@ -66,37 +66,60 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Configurar clave SSH y host verificado
+      - name: Configurar acceso SSH con los secretos existentes del repositorio
         env:
-          LP_SSH_PRIVATE_KEY: ${{ secrets.LP_SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
           LP_SSH_KNOWN_HOSTS: ${{ secrets.LP_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          test -n "$LP_SSH_PRIVATE_KEY"
-          test -n "$LP_SSH_KNOWN_HOSTS"
+          if [[ -z "$VPS_HOST" || -z "$VPS_USER" || -z "$VPS_SSH_KEY" ]]; then
+            echo "::error::Falta VPS_HOST, VPS_USER o VPS_SSH_KEY en Repository secrets o en el entorno production."
+            exit 1
+          fi
+          PORT="${VPS_SSH_PORT:-22}"
           install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$LP_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
-          chmod 600 "$HOME/.ssh/id_ed25519"
-          printf '%s\n' "$LP_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          # La clave del secreto puede incluir CRLF al copiarse desde Windows.
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$HOME/.ssh/id_deploy"
+          chmod 600 "$HOME/.ssh/id_deploy"
+          if ! ssh-keygen -y -P "" -f "$HOME/.ssh/id_deploy" >/dev/null 2>&1; then
+            echo "::error::VPS_SSH_KEY no es una clave privada SSH válida sin frase de paso."
+            exit 1
+          fi
+          # Opción recomendada: verificar y fijar previamente la clave de host
+          # en LP_SSH_KNOWN_HOSTS. Si no está configurada, se utiliza TOFU
+          # mediante ssh-keyscan (confianza en el primer contacto).
+          if [[ -n "$LP_SSH_KNOWN_HOSTS" ]]; then
+            printf '%s\n' "$LP_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          else
+            echo "::notice::LP_SSH_KNOWN_HOSTS no configurado: se comprueba la clave de host mediante ssh-keyscan sin huella prevalidada. Para mayor seguridad, fija la huella verificada."
+            ssh-keyscan -T 15 -p "$PORT" "$VPS_HOST" > "$HOME/.ssh/known_hosts" 2>/dev/null
+          fi
           chmod 600 "$HOME/.ssh/known_hosts"
+          if ! [[ -s "$HOME/.ssh/known_hosts" ]]; then
+            echo "::error::No fue posible obtener la clave pública SSH del VPS."
+            exit 1
+          fi
+          echo "Identidad SSH configurada. Conexión a Contabo preparada."
 
-      - name: Publicar únicamente LP en Contabo
+      - name: Publicar únicamente Loyally en Contabo
         env:
-          LP_SSH_HOST: ${{ secrets.LP_SSH_HOST }}
-          LP_SSH_USER: ${{ secrets.LP_SSH_USER }}
-          LP_SSH_PORT: ${{ secrets.LP_SSH_PORT }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
         run: |
           set -euo pipefail
-          test -n "$LP_SSH_HOST"
-          test -n "$LP_SSH_USER"
-          PORT="${LP_SSH_PORT:-22}"
-          ssh -p "$PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=15 "$LP_SSH_USER@$LP_SSH_HOST" 'bash -se' <<'REMOTE'
+          PORT="${VPS_SSH_PORT:-22}"
+          ssh -i "$HOME/.ssh/id_deploy" -p "$PORT" \
+            -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" 'bash -se' <<'REMOTE'
           set -euo pipefail
           cd /opt/lp
           test -f .env.production
-          # Las claves del servicio y autenticación se generan SOLO en el VPS
-          # en el primer despliegue; nunca se imprimen en Actions.
           chmod 600 .env.production
           for key in APP_DB_PASSWORD AUTH_DB_PASSWORD; do
             if ! grep -q "^$key=" .env.production; then
@@ -114,12 +137,12 @@ jobs:
           docker compose --env-file .env.production up -d --build --remove-orphans
           for i in $(seq 1 40); do
             if curl -fsS --max-time 5 http://127.0.0.1:3100/api/health >/dev/null; then
-              echo "LP responde correctamente en el puerto 3100."
+              echo "Loyally responde correctamente en el puerto 3100."
               exit 0
             fi
             sleep 3
           done
-          echo "LP no superó la comprobación de salud."
+          echo "Loyally no superó la comprobación de salud."
           docker compose --env-file .env.production ps
           docker compose --env-file .env.production logs --tail 100 web
           exit 1
