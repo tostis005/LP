@@ -47,7 +47,7 @@ try {
     }
   }
   await client.query("GRANT USAGE ON SCHEMA public TO authenticated,anon,lp_auth");
-  await client.query("GRANT USAGE ON SCHEMA auth TO lp_auth,authenticated,anon");
+  await client.query("GRANT USAGE ON SCHEMA auth TO lp_auth,authenticated,anon,authenticated,anon");
   await client.query("GRANT USAGE ON SCHEMA storage TO authenticated");
   await client.query("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA auth TO lp_auth");
   await client.query("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA storage TO authenticated");
