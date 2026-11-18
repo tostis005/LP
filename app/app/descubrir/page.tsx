@@ -11,7 +11,7 @@ import {BUSINESS_CATEGORIES,PROGRAM_TYPES,categoryIcon} from "@/lib/business-cat
 import {initials} from "@/lib/format";
 type Entry=Location&{businesses:Business;visible?:boolean};
 type ProgramChoice={business_id:string;type:ProgramType;reward_label?:string};
-const Map=dynamic(()=>import("@/components/DirectoryMap"),{ssr:false,loading:()=> <div className="map-placeholder">Cargando mapa...</div>});
+const DirectoryMapView=dynamic(()=>import("@/components/DirectoryMap"),{ssr:false,loading:()=> <div className="map-placeholder">Cargando mapa...</div>});
 const TIJUANA:[number,number]=[32.5234,-117.0382];
 function Discover({account}:{account:Account}){
  const [entries,setEntries]=useState<Entry[]>([]);
@@ -56,7 +56,7 @@ function Discover({account}:{account:Account}){
   <div className="directory-filter-group"><strong>Tipo de negocio</strong><div className="chip-row">{categories.map(c=><button className={"filter-chip"+(category===c?" selected":"")} aria-pressed={category===c} key={c} onClick={()=>setCategory(c)}>{c!=="Todos"&&<span aria-hidden="true">{categoryIcon(c)} </span>}{c}</button>)}</div></div>
   <div className="directory-filter-group"><strong>Tipo de recompensa</strong><div className="chip-row">{["Todos",...PROGRAM_TYPES.map(x=>x.id)].map(t=><button className={"filter-chip"+(rewardType===t?" selected":"")} key={t} aria-pressed={rewardType===t} onClick={()=>setRewardType(t)}>{t==="Todos"?"Todas las recompensas":PROGRAM_TYPES.find(x=>x.id===t)?.label}</button>)}</div></div>
   {error&&<div className="alert error" role="alert">{error}</div>}
-  <div className="directory-map directory-map-primary"><Map locations={filtered} center={hasLocation?center:(filtered.length?[filtered[0].lat,filtered[0].lng]:TIJUANA)}/></div>
+  <div className="directory-map directory-map-primary"><DirectoryMapView locations={filtered} center={hasLocation?center:(filtered.length?[filtered[0].lat,filtered[0].lng]:TIJUANA)}/></div>
   <div className="content-heading spaced"><div><h2>{filtered.length} negocios para descubrir</h2><p>Ordenados por distancia {hasLocation?"a tu ubicación":"al centro de Tijuana"}. El mapa y el listado comparten los filtros.</p></div></div>
   <div className="directory-results-grid">
    {filtered.length===0?<div className="empty-state compact"><Compass size={29}/><h3>Sin resultados</h3><p>Cambia alguno de los filtros para ver más negocios.</p></div>:
