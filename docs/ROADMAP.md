@@ -38,3 +38,6 @@ El panel permite inspeccionar cada negocio (clientes, personal, operaciones, loc
 - Reversión auditable por responsable (máximo 72 horas) y superadmin, sin borrar movimientos.
 - Una operación original solo se puede revertir una vez. La devolución respeta el saldo mínimo 0.
 - Resumen de actividad por empleado en informes. El límite no verifica automáticamente tickets reales: para eso hará falta TPV.
+
+## Facturación preparatoria
+Incluida migración de suscripción por negocio con período de prueba, acceso exclusivo de propietario, Checkout, portal de Stripe y eventos idempotentes. No se hacen cobros sin credenciales y no se bloquean negocios por pago hasta activar `billing_enforced` después de las pruebas.

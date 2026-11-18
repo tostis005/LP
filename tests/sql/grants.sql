@@ -5,3 +5,6 @@ grant select,insert,update,delete on all tables in schema public to authenticate
 grant usage,select on all sequences in schema public to authenticated;
 grant execute on function test.assert(boolean,text),test.expect_error(text,text) to authenticated;
 grant select,insert,update,delete on storage.objects to authenticated;
+
+grant usage on schema public,auth,storage,test to service_role;
+grant select on all tables in schema public to service_role;

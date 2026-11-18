@@ -120,4 +120,30 @@ select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 update public.businesses set active=false where id=current_setting('test.business')::uuid;
 select test.assert((select not active from public.businesses where id=current_setting('test.business')::uuid),
  'superadmin suspende negocio');
+-- Validación de altas, estados y eventos de Stripe (sin cobros reales).
+reset role;
+select test.assert((select billing_enforced=false from public.platform_billing_settings where id),'cobros desactivados por defecto');
+select test.assert((select count(*)=2 from public.business_billing),'cuenta de facturación automática por negocio');
+set role authenticated;
+select set_config('request.jwt.claim.role','authenticated',false);
+select test.expect_error(
+ 'select public.record_billing_event(''evt_fake_123'',current_setting(''test.business2'')::uuid,null,null,''active'',1234)',
+ 'permission denied');
+reset role;
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+select public.record_billing_event('evt_first_123',current_setting('test.business2')::uuid,'cus_demo','sub_demo','active',1234);
+select public.record_billing_event('evt_first_123',current_setting('test.business2')::uuid,'cus_demo','sub_demo','past_due',1234);
+reset role;
+select test.assert((select status='active' from public.business_billing
+ where business_id=current_setting('test.business2')::uuid),'reintento de webhook idempotente');
+update public.platform_billing_settings set billing_enforced=true where id;
+update public.business_billing set status='past_due' where business_id=current_setting('test.business2')::uuid;
+set role authenticated;
+select set_config('request.jwt.claim.role','authenticated',false);
+select set_config('request.jwt.claim.sub','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',false);
+select test.expect_error(
+ 'select public.join_program(current_setting(''test.business2'')::uuid)',
+ 'no acepta nuevas inscripciones');
+reset role;
 \echo '=== LP SQL integration: OK ==='

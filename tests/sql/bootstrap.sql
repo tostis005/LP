@@ -2,6 +2,7 @@
 -- contra PostgreSQL real en CI. No sustituye la prueba final en Supabase.
 create role authenticated nologin;
 create role anon nologin;
+create role service_role nologin bypassrls;
 create schema if not exists auth;
 create schema if not exists storage;
 create schema if not exists test;
