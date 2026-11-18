@@ -8,7 +8,7 @@ type Row=Record<string,any>;
 type DemoState={tables:Record<string,Row[]>;assets:Record<string,string>};
 type DemoResult<T=any>={data:T;error:Error|null;count?:number};
 type Filter={op:"eq"|"in"|"is";field:string;value:any};
-const ROLE_KEY="loyally_role_session_v2",DATA_KEY="loyally_role_sample_tijuana_v3";
+const ROLE_KEY="loyally_role_session_v2",DATA_KEY="loyally_role_sample_tijuana_v4";
 export const DEMO_BUSINESS_ID="11111111-1111-4111-8111-111111111111";
 export const DEMO_CARD_TOKEN="99999999-9999-4999-8999-999999999999";
 const IDs={
@@ -30,7 +30,7 @@ const DEMO_SHOPS=[
  {name:"Pan Mar",slug:"pan-mar",category:"Panadería",color:"#94704a",icon:"croissant",reward:"Pan artesanal de regalo",cost:10,type:"stamps",zone:"Playas de Tijuana",lat:32.533,lng:-117.117,description:"Pan de masa madre y bollería."},
  {name:"Dulce Frontera",slug:"dulce-frontera",category:"Heladería y postres",color:"#ab647e",icon:"icecream",reward:"Helado de cortesía",cost:7,type:"stamps",zone:"Otay",lat:32.538,lng:-116.958,description:"Postres y sabores de temporada."},
  {name:"Punto Fit",slug:"punto-fit",category:"Gimnasio",color:"#294b72",icon:"gym",reward:"Clase gratuita con 500 puntos",cost:500,type:"points",zone:"Las Palmas",lat:32.485,lng:-116.986,description:"Entrena y acumula puntos por cada peso de compra."},
- {name:"Lavanda Spa",slug:"lavanda-spa",category:"Spa y bienestar",color:"#8163a4",icon:"spa",reward:"100 MXN de descuento",cost:100,type:"cashback",zone:"La Cacho",lat:32.516,lng:-117.039,description:"Bienestar, masajes y cuidado personal."},
+ {name:"Lavanda Spa",slug:"lavanda-spa",category:"Spa y bienestar",color:"#8163a4",icon:"spa",reward:"100 MXN de descuento",cost:10000,type:"cashback",zone:"La Cacho",lat:32.516,lng:-117.039,description:"Bienestar, masajes y cuidado personal."},
  {name:"Marea Pets",slug:"marea-pets",category:"Mascotas",color:"#287d79",icon:"pet",reward:"Accesorio para tu mascota",cost:350,type:"points",zone:"Playas de Tijuana",lat:32.525,lng:-117.109,description:"Accesorios y cuidado para animales."}
 ] as const;
 const roles:DemoRole[]=["administrador","gestor","empleado","cliente"];
@@ -76,15 +76,16 @@ function seed():DemoState{
   {business_id:businessIds[0],user_id:IDs.empleado,role:"employee",active:true}
  ];
  const cardDefs=[
-  {id:"11111111-aaaa-4aaa-8aaa-111111111111",business_id:businessIds[0],customer_id:IDs.cliente,card_token:DEMO_CARD_TOKEN,balance:4,total_earned:12},
+  {id:"11111111-aaaa-4aaa-8aaa-111111111111",business_id:businessIds[0],customer_id:IDs.cliente,card_token:DEMO_CARD_TOKEN,balance:8,total_earned:12},
   {id:"11111111-bbbb-4bbb-8bbb-111111111111",business_id:businessIds[1],customer_id:IDs.cliente,card_token:"99999999-9999-4999-8999-999999999998",balance:2,total_earned:2},
   {id:"11111111-cccc-4ccc-8ccc-111111111111",business_id:businessIds[0],customer_id:IDs.alvaro,card_token:"99999999-9999-4999-8999-999999999997",balance:2,total_earned:2},
   {id:"11111111-dddd-4ddd-8ddd-111111111111",business_id:businessIds[0],customer_id:IDs.lucia,card_token:"99999999-9999-4999-8999-999999999996",balance:5,total_earned:5},
   {id:"11111111-eeee-4eee-8eee-111111111111",business_id:businessIds[2],customer_id:IDs.alvaro,card_token:"99999999-9999-4999-8999-999999999995",balance:5,total_earned:5},
   {id:"11111111-ffff-4fff-8fff-111111111111",business_id:businessIds[0],customer_id:IDs.otra,card_token:"99999999-9999-4999-8999-999999999994",balance:1,total_earned:1},
   {id:uuid(),business_id:businessIds[7],customer_id:IDs.cliente,card_token:uuid(),balance:200,total_earned:200},
-  {id:uuid(),business_id:businessIds[8],customer_id:IDs.cliente,card_token:uuid(),balance:40,total_earned:40}
+  {id:uuid(),business_id:businessIds[8],customer_id:IDs.cliente,card_token:uuid(),balance:4000,total_earned:4000}
  ].map(x=>({...x,created_at:days(18)}));
+ const vouchers:Row[]=[{id:uuid(),token:"80808080-8080-4808-8808-808080808080",membership_id:cardDefs[0].id,business_id:businessIds[0],reward_label:"Un café gratis",status:"issued",issued_at:now(),redeemed_at:null}];
  const movements:Row[]=[
   {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(0)},
   {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:2,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(2)},
@@ -100,7 +101,7 @@ function seed():DemoState{
  return {assets:{},tables:{
   profiles:people,platform_admins:[{user_id:IDs.administrador}],businesses,
   business_members:members,business_invitations:[],loyalty_programs:programs,loyalty_memberships:cardDefs,
-  loyalty_transactions:movements,business_locations:locations,marketing_consents:[],marketing_campaigns:[],
+  loyalty_transactions:movements,reward_vouchers:vouchers,business_locations:locations,marketing_consents:[{id:uuid(),business_id:businessIds[0],customer_id:IDs.cliente,opted_in:true}],marketing_campaigns:[],marketing_deliveries:[],marketing_usage_ledger:[],business_marketing_rates:[],
   platform_billing_settings:[],business_billing:businessIds.map(id=>({business_id:id,plan:"business",status:"trialing",trial_ends_at:days(-20),stripe_customer_id:null,stripe_subscription_id:null,updated_at:now()})),
   business_leads:[{id:uuid(),business_name:"La Casa del Pan",contact_name:"Rosa Martín",contact_email:"rosa@ejemplo.test",category:"Panadería",city:"Ciudad de México",message:"Me interesan las tarjetas digitales",status:"new",created_at:days(1)}]
  }};
@@ -131,6 +132,7 @@ function authorize(table:string,mode:string,rows:Row[]):Row[]{
  if(table==="platform_admins")return [];
  if(table==="loyalty_memberships")return rows.filter(r=>role==="cliente"?r.customer_id===actor():role==="empleado"||role==="gestor"?r.business_id===DEMO_BUSINESS_ID:false);
  if(table==="loyalty_transactions")return rows.filter(r=>role==="gestor"||role==="empleado"?r.business_id===DEMO_BUSINESS_ID:role==="cliente"?load().tables.loyalty_memberships.some(m=>m.customer_id===actor()&&m.id===r.membership_id):false);
+ if(table==="reward_vouchers")return mode==="select"?rows.filter(r=>role==="cliente"?load().tables.loyalty_memberships.some(m=>m.id===r.membership_id&&m.customer_id===actor()):(role==="empleado"||role==="gestor")&&r.business_id===DEMO_BUSINESS_ID):[];
  if(table==="profiles")return rows.filter(r=>r.id===actor());
  if(["business_invitations","marketing_campaigns","business_billing"].includes(table))return role==="gestor"?rows.filter(r=>r.business_id===DEMO_BUSINESS_ID):[];
  if(table==="marketing_consents")return rows.filter(r=>r.customer_id===actor());
@@ -252,6 +254,15 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     const row={id:uuid(),business_id:biz,customer_id:actor(),card_token:uuid(),balance:0,total_earned:0,created_at:now()};
     table.loyalty_memberships.push(row);persist();result=ok(row.id);break;
    }
+   case "staff_lookup_voucher":{
+    const v=table.reward_vouchers.find(v=>v.token===String(args.p_token||"")&&v.status==="issued");
+    const m=v&&table.loyalty_memberships.find(m=>m.id===v.membership_id);
+    const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
+    const b=m&&table.businesses.find(b=>b.id===m.business_id);
+    const name=m&&table.profiles.find(x=>x.id===m.customer_id)?.full_name;
+    result=ok(canStaff&&v&&m&&p&&b?[{membership_id:m.id,business_id:m.business_id,business_name:b.name,customer_name:name||"Cliente",program_type:p.type,balance:m.balance,reward_label:v.reward_label,reward_cost:p.reward_cost,voucher_id:v.id}]:[]);
+    break;
+   }
    case "staff_lookup_card":{
     const m=membershipByToken();
     const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
@@ -259,6 +270,15 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     const name=m&&table.profiles.find(x=>x.id===m.customer_id)?.full_name;
     result=ok(canStaff&&m&&p&&b?[{membership_id:m.id,business_id:m.business_id,business_name:b.name,customer_name:name||"Cliente",program_type:p.type,balance:m.balance,reward_label:p.reward_label,reward_cost:p.reward_cost}]:[]);
     break;
+   }
+   case "staff_redeem_voucher":{
+    if(!canStaff){result=fail("No autorizado");break}
+    const v=table.reward_vouchers.find(v=>v.token===String(args.p_token||"")&&v.status==="issued");
+    const m=v&&table.loyalty_memberships.find(m=>m.id===v.membership_id);
+    const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
+    if(!v||!m||!p||m.balance<p.reward_cost){result=fail("El QR está canjeado o el saldo es insuficiente.");break}
+    m.balance-=p.reward_cost;v.status="redeemed";v.redeemed_at=now();
+    table.loyalty_transactions.unshift({id:uuid(),business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:"redeem",amount_delta:-p.reward_cost,created_at:now()});persist();result=ok(m.balance);break;
    }
    case "staff_award_card":
    case "staff_redeem_card":{
@@ -273,6 +293,9 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     if(name==="staff_redeem_card"&&m.balance+delta<0){result=fail("Saldo insuficiente para canjear.");break}
     if(args.p_ticket_ref&&table.loyalty_transactions.some(t=>t.business_id===m.business_id&&t.ticket_ref===args.p_ticket_ref)){result=fail("El ticket ya se ha utilizado.");break}
     m.balance+=delta;if(delta>0)m.total_earned+=delta;
+    const existing=table.reward_vouchers.find(v=>v.membership_id===m.id&&v.status==="issued");
+    if(m.balance<p.reward_cost&&existing)existing.status="cancelled";
+    if(m.balance>=p.reward_cost&&!existing)table.reward_vouchers.push({id:uuid(),token:uuid(),membership_id:m.id,business_id:m.business_id,reward_label:p.reward_label,status:"issued",issued_at:now()});
     table.loyalty_transactions.unshift({id:uuid(),business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:delta>0?"earn":"redeem",amount_delta:delta,purchase_cents:args.p_purchase_cents||null,ticket_ref:args.p_ticket_ref||null,reversal_of:null,reversal_reason:null,created_at:now()});
     persist();result=ok(m.balance);break;
    }
