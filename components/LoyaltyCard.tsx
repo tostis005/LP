@@ -31,7 +31,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
  <div className="wallet-notice"><Wallet size={18}/> Apple Wallet y Google Wallet estarán disponibles al configurar la emisión oficial de pases.</div>
  <div className="check-control modal-consent"><input type="checkbox" id={"business-marketing-"+membership.id} checked={consent} disabled={consentBusy} onChange={e=>changeConsent(e.target.checked)}/>
  <label htmlFor={"business-marketing-"+membership.id}><strong>Quiero recibir novedades de {business.name}</strong><small>Consentimiento independiente y revocable en cualquier momento. Por ahora no se envían campañas.</small></label></div>
- {consentError&&<div className="alert error">{consentError}</div>
+ {consentError&&<div className="alert error">{consentError}</div>}
  </div></div>}
  </>;
 }
