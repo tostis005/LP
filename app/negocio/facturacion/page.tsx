@@ -57,7 +57,7 @@ function OwnerBilling({account}:{account:Account}){
     </>}
    </section>
    <section className="panel-card"><div className="panel-icon peach"><ShieldCheck size={23}/></div><h2>Facturación sin sorpresas</h2>
-    <p className="muted">Los pagos se realizan en Stripe. LoiaG no almacena los números completos de tu tarjeta bancaria.</p>
+    <p className="muted">Los pagos se realizan en Stripe. Loyally no almacena los números completos de tu tarjeta bancaria.</p>
     <div className="privacy-item"><Check size={19}/> Acceso a facturación reservado al propietario del negocio.</div>
     <div className="privacy-item"><Check size={19}/> Confirmación del estado mediante webhooks firmados, no por la pantalla de éxito.</div>
     <div className="privacy-item"><Check size={19}/> El lanzamiento comercial requiere configurar el precio y las claves privadas del servidor.</div>
