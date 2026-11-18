@@ -14,7 +14,7 @@ const tables=new Set([
  "marketing_consents","marketing_campaigns","platform_billing_settings","reward_vouchers",
  "business_billing","billing_webhook_events","business_leads"
 ]);
-const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads"]);
+const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads","business_marketing_rates"]);
 function ident(value:string) {
  if(!/^[a-z_][a-z0-9_]*$/.test(value))throw new ApiError("Campo o tabla no válida.");
  return '"'+value+'"';
