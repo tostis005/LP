@@ -24,7 +24,11 @@ export async function POST(request:Request) {
       if(!validateEmail(email)||password.length<10||password.length>128||name.length<2||name.length>120)throw new ApiError("Introduce un email válido, un nombre y una contraseña de al menos 10 caracteres.");
       await rateLimit("signup:"+email,4,60);
       const exists=await authPool.query("SELECT id,email_confirmed_at FROM auth.users WHERE lower(email)=$1",[email]);
-      if(exists.rowCount)throw new ApiError("Este email ya tiene una cuenta. Accede o utiliza la recuperación.",409);
+      if(exists.rowCount){
+        if(exists.rows[0].email_confirmed_at)throw new ApiError("Este email ya tiene una cuenta. Accede o utiliza la recuperación.",409);
+        await emailToken(exists.rows[0].id,"verify",email);
+        return Response.json({data:{user:{id:exists.rows[0].id,email},session:null},error:null});
+      }
       const pass=await hashPassword(password);
       const r=await authPool.query("INSERT INTO auth.users(email,password_hash,raw_user_meta_data) VALUES($1,$2,$3::jsonb) RETURNING id",[email,pass,JSON.stringify({full_name:name})]);
       await emailToken(r.rows[0].id,"verify",email);
