@@ -1,7 +1,7 @@
 export type ProgramType = "stamps" | "points" | "cashback";
 export type Business = {
   id: string; name: string; slug: string; description: string | null; logo_url: string | null;
-  category: string | null; accent_color: string; card_background: string | null;
+  category: string | null; accent_color: string; card_text_color?:string; stamp_color?:string; card_background: string | null;
   card_text: string | null; stamp_icon?: string; stamp_image_url?: string | null; public_listing: boolean; active: boolean;
 };
 export type Program = {
