@@ -25,7 +25,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    try{
     const auth=await db().auth.getUser(); if(auth.error) throw auth.error;
     if(!auth.data.user){if(live){setLoading(false);router.replace("/acceder")}return}
-    await db().rpc("claim_invitations").then(()=>{}).catch(()=>{});
+    try { await db().rpc("claim_invitations"); } catch { /* invitaciones opcionales */ }
     const [members,admins]=await Promise.all([
       db().from("business_members").select("business_id,role,active,businesses(id,name,slug)").eq("user_id",auth.data.user.id).eq("active",true),
       db().from("platform_admins").select("user_id").eq("user_id",auth.data.user.id).maybeSingle()

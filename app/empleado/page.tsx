@@ -17,11 +17,19 @@ function StaffMain({account}:{account:Account}){
   if(error){setError(error.message);setCard(null)}else if(!data?.length){setError("Tarjeta no encontrada o sin permiso para este negocio.");setCard(null)}else setCard(data[0] as Found);
  },[]);
  useEffect(()=>{const code=params.get("code");if(code)lookup(code)},[lookup,params]);
- async function startCamera(){setError("");setScanner(true);try{const reader=new BrowserQRCodeReader();
-  controls.current=await reader.decodeFromVideoDevice(undefined,video.current!,result=>{if(result){controls.current?.stop();controls.current=null;setScanner(false);lookup(result.getText())}});
- }catch(e){setScanner(false);setError("No se ha podido abrir la cámara. Revisa los permisos del navegador o introduce el código manualmente.")}}
- function stopCamera(){controls.current?.stop();controls.current=null;setScanner(false)}
- useEffect(()=>()=>{controls.current?.stop()},[]);
+ function startCamera(){setError("");setScanner(true)}
+ function stopCamera(){setScanner(false)}
+ useEffect(()=>{
+  if(!scanner||!video.current)return;
+  let cancelled=false;
+  const reader=new BrowserQRCodeReader();
+  reader.decodeFromVideoDevice(undefined,video.current,result=>{
+   if(result&&!cancelled){const value=result.getText();setScanner(false);lookup(value)}
+  }).then(c=>{if(cancelled)c.stop();else controls.current=c}).catch(()=>{
+   if(!cancelled){setScanner(false);setError("No se ha podido abrir la cámara. Revisa los permisos del navegador o introduce el código manualmente.")}
+  });
+  return()=>{cancelled=true;controls.current?.stop();controls.current=null}
+ },[scanner,lookup]);
  async function transact(kind:"earn"|"redeem"){if(!card)return;setBusy(true);setError("");setSuccess("");
   let result;
   if(kind==="earn"){result=await db().rpc("staff_award_card",{p_token:input,p_purchase_cents:Math.round(Number(amount)*100)||0,p_stamps:stamps,p_ticket_ref:receipt.trim()||null});}
