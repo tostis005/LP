@@ -78,14 +78,13 @@ export default function BusinessWorkspace({account}:{account:Account}){
    stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
   }).eq("id",selected);
   if(visualError){setBusy(false);setError(visualError.message);return}
+  const programChanges:Record<string,unknown>={reward_label:prog.reward_label};
   if(prog.type==="stamps"){
-   const {error:programError}=await db().from("loyalty_programs").update({
-    reward_cost:Math.min(30,Math.max(2,Number(prog.reward_cost)||8)),
-    max_stamps_per_action:Math.min(100,Math.max(1,Number(prog.max_stamps_per_action)||1)),
-    reward_label:prog.reward_label
-   }).eq("business_id",selected);
-   if(programError){setBusy(false);setError("El diseño se guardó, pero no se actualizó el programa: "+programError.message);return}
+   programChanges.reward_cost=Math.min(30,Math.max(2,Number(prog.reward_cost)||8));
+   programChanges.max_stamps_per_action=Math.min(100,Math.max(1,Number(prog.max_stamps_per_action)||1));
   }
+  const {error:programError}=await db().from("loyalty_programs").update(programChanges).eq("business_id",selected);
+  if(programError){setBusy(false);setError("El diseño se guardó, pero no se actualizó el programa: "+programError.message);return}
   setBusy(false);success("Tarjeta y configuración guardadas. Los clientes verán el diseño actualizado.");await reload();
  }
  async function reverseTransaction(transaction:Tx){
@@ -164,7 +163,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
     </section>
     <section className="panel-card designer-preview-wrap lp-designer-live">
      <span className="eyebrow">VISTA PREVIA EN DIRECTO</span>
-     <StampCard name={biz.name} color={biz.accent_color} reward={prog.reward_label} total={prog.type==="stamps"?prog.reward_cost:8} earned={Math.min(previewEarned,prog.type==="stamps"?prog.reward_cost:8)} icon={biz.stamp_icon} imageUrl={biz.stamp_image_url} logoUrl={biz.logo_url} backgroundUrl={biz.card_background} message={biz.card_text} qrValue={(siteOrigin||process.env.NEXT_PUBLIC_SITE_URL||"")+"/unirse/"+biz.slug}/>
+     {prog.type==="stamps"?<StampCard name={biz.name} color={biz.accent_color} reward={prog.reward_label} total={prog.type==="stamps"?prog.reward_cost:8} earned={Math.min(previewEarned,prog.type==="stamps"?prog.reward_cost:8)} icon={biz.stamp_icon} imageUrl={biz.stamp_image_url} logoUrl={biz.logo_url} backgroundUrl={biz.card_background} message={biz.card_text} qrValue={(siteOrigin||process.env.NEXT_PUBLIC_SITE_URL||"")+"/unirse/"+biz.slug}/>:<div className="lp-other-program-preview" style={{backgroundColor:biz.accent_color}}><span>{biz.card_text||"GRACIAS POR VOLVER"}</span><h3>{biz.name}</h3><strong>{prog.type==="points"?"Programa de puntos":"Programa de cashback"}</strong><p>{prog.reward_label}</p></div>}
      {prog.type==="stamps"&&<label className="lp-preview-range">Sellos en la vista previa: <strong>{Math.min(previewEarned,prog.reward_cost)} de {prog.reward_cost}</strong><input type="range" min={0} max={prog.reward_cost} value={Math.min(previewEarned,prog.reward_cost)} onChange={e=>setPreviewEarned(Number(e.target.value))}/></label>}
      <p className="tiny-note">Los huecos vacíos son blancos. Cada sello ganado utiliza el icono elegido. El QR de inscripción es del negocio; cada cliente tiene otro QR personal para validar sus compras.</p>
      <a className="button button-outline button-full" href={"/unirse/"+biz.slug} target="_blank" rel="noreferrer">Ver página de inscripción <ArrowUpRight size={17}/></a>
