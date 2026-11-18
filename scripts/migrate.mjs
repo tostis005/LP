@@ -16,7 +16,7 @@ const client = await pool.connect();
 const root = process.cwd();
 try {
   // Papel de login sin privilegios, capaz de asumir anon/authenticated para aplicar RLS.
-  for (const role of ["anon", "authenticated", "lp_api", "lp_auth"]) {
+  for (const role of ["anon", "authenticated", "service_role", "lp_api", "lp_auth"]) {
     const exists = await client.query("SELECT 1 FROM pg_roles WHERE rolname=$1",[role]);
     if (!exists.rowCount) await client.query("CREATE ROLE " + role + (role.startsWith("lp_") ? " LOGIN NOINHERIT" : " NOLOGIN"));
   }
