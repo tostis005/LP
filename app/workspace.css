@@ -50,3 +50,5 @@
 .billing-status span{color:#8b9c8d}.billing-status strong{color:#365843}
 .billing-plan .button{margin-top:22px}
 @media(max-width:900px){.billing-grid{grid-template-columns:1fr}}@media(max-width:480px){.billing-price{font-size:31px}.billing-plan h2{font-size:24px}}
+
+.lead-actions{display:flex;gap:7px;flex-wrap:nowrap}.lead-actions .inline-table-button{font-size:10px;padding:7px 9px}
