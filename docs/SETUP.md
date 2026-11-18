@@ -8,7 +8,7 @@
 
 ## Pasos
 1. `npm install`
-2. En Supabase SQL Editor ejecuta las migraciones `001_initial.sql`, `002_directories.sql`, `003_guardrails.sql`, `004_join_links.sql`, `005_invite_privacy.sql` y `006_admin_fields.sql` y `007_reversals_and_limits.sql` y `008_billing.sql` **en ese orden**, una vez en un proyecto vacío.
+2. En Supabase SQL Editor ejecuta las migraciones `001_initial.sql`, `002_directories.sql`, `003_guardrails.sql`, `004_join_links.sql`, `005_invite_privacy.sql` y `006_admin_fields.sql` y `007_reversals_and_limits.sql` y `008_billing.sql` y `009_leads.sql` **en ese orden**, una vez en un proyecto vacío.
 3. Copia `.env.example` a `.env.local` y configura URL y anon key.
 4. Configura Supabase Auth: email + confirmación obligatoria. En la lista de URL de redirección añade `http://localhost:3000/auth/callback` y `http://localhost:3000/auth/callback?next=password` (y sus equivalentes de producción).
 5. `npm run dev` y abre `http://localhost:3000`.
@@ -50,3 +50,8 @@ Las ubicaciones (latitud y longitud) son configurables por el negocio. Se muestr
 - El propietario puede crear la sesión de Checkout y gestionar su cuenta desde `/negocio/facturacion`. Stripe confirma el estado mediante webhooks firmados. El retorno a la web no confirma un pago.
 - No actives `billing_enforced` antes de comprobar webhooks, estados, reversión de pagos y pruebas de suscripciones. Después, un operador de confianza debe habilitarlo explícitamente por SQL.
 - Los secretos nunca se envían al navegador ni se almacenan en el repositorio.
+
+## Captación de negocios sin alta automática
+- Página pública: `/solicitar-acceso`. El formulario necesita una `SUPABASE_SERVICE_ROLE_KEY` **solo en el servidor**.
+- Las solicitudes se guardan en `business_leads` y son visibles únicamente al superadministrador. Un mismo correo no puede enviar dos solicitudes en 24 horas; antes del lanzamiento debería añadirse protección de bots/CAPTCHA y políticas legales.
+- En `/admin` > Solicitudes, el superadministrador revisa, marca como contactada, archiva o convierte una solicitud en negocio. Convertir crea la invitación de responsable de forma transaccional, pero no envía email automáticamente.

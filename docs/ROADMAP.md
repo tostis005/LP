@@ -41,3 +41,6 @@ El panel permite inspeccionar cada negocio (clientes, personal, operaciones, loc
 
 ## Facturación preparatoria
 Incluida migración de suscripción por negocio con período de prueba, acceso exclusivo de propietario, Checkout, portal de Stripe y eventos idempotentes. No se hacen cobros sin credenciales y no se bloquean negocios por pago hasta activar `billing_enforced` después de las pruebas.
+
+## Captación y solicitudes
+Landing pública y formulario accesible; tabla con RLS y limitación de duplicados; panel de solicitudes, estado y conversión manual (negocio + invitación). Pendiente envío transaccional de aviso y protección anti-bot adicional.

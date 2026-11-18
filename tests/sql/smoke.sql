@@ -146,4 +146,34 @@ select test.expect_error(
  'select public.join_program(current_setting(''test.business2'')::uuid)',
  'no acepta nuevas inscripciones');
 reset role;
+-- Solicitudes públicas: tabla privada, sin alta automática de negocios.
+reset role;
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+insert into public.business_leads(business_name,contact_name,contact_email,category,city,message,consent_contact)
+values('Barbería Sol','Alex Solicitud','newlead@example.test','Barbería','Valencia','Quiero comenzar',true);
+select test.expect_error(
+ 'insert into public.business_leads(business_name,contact_name,contact_email,city,consent_contact) values(''Barbería Sol'',''Alex Solicitud'',''newlead@example.test'',''Valencia'',true)',
+ 'últimas 24 horas');
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.role','authenticated',false);
+select set_config('request.jwt.claim.sub','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',false);
+select test.assert((select count(*)=0 from public.business_leads),'negocios no consultan solicitudes de otros');
+select test.expect_error(
+ 'select public.admin_convert_lead((select id from public.business_leads limit 1),''barberia-sol'')',
+ 'No autorizado');
+select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
+select public.admin_convert_lead((select id from public.business_leads
+ where contact_email='newlead@example.test'),'barberia-sol') as lead_business \gset
+select test.assert((select count(*)=1 from public.businesses where slug='barberia-sol'),'lead crea negocio');
+select test.assert((select status='converted' from public.business_leads where contact_email='newlead@example.test'),
+ 'lead convertido en una sola transacción');
+select test.assert((select count(*)=1 from public.business_invitations
+ where business_id=:'lead_business'::uuid and email='newlead@example.test'),
+ 'conversión crea invitación al responsable');
+select test.expect_error(
+ 'select public.admin_convert_lead((select id from public.business_leads where contact_email=''newlead@example.test''),''barberia-sol-2'')',
+ 'ya convertida');
+reset role;
 \echo '=== LP SQL integration: OK ==='
