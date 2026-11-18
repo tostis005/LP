@@ -2,7 +2,7 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {useParams,useRouter} from "next/navigation";
-import {ArrowUpRight,Check,Gifts,Gift,Heart,LogIn,Sparkles} from "lucide-react";
+import {ArrowUpRight,Gift,Heart} from "lucide-react";
 import {Brand} from "@/components/Brand";
 import {db,configured} from "@/lib/supabase";
 type Offer={business_id:string;business_name:string;description:string|null;accent_color:string;reward_label:string;program_type:string};

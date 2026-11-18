@@ -8,7 +8,7 @@
 
 ## Pasos
 1. `npm install`
-2. En Supabase SQL Editor ejecuta las migraciones `001_initial.sql`, `002_directories.sql`, `003_guardrails.sql` y `004_join_links.sql` **en ese orden**, una vez en un proyecto vacío.
+2. En Supabase SQL Editor ejecuta las migraciones `001_initial.sql`, `002_directories.sql`, `003_guardrails.sql`, `004_join_links.sql` y `005_invite_privacy.sql` **en ese orden**, una vez en un proyecto vacío.
 3. Copia `.env.example` a `.env.local` y configura URL y anon key.
 4. Configura Supabase Auth: email + confirmación obligatoria. En la lista de URL de redirección añade `http://localhost:3000/auth/callback`.
 5. `npm run dev` y abre `http://localhost:3000`.
