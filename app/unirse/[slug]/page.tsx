@@ -23,4 +23,5 @@ export default function JoinPage(){
   <div className="join-visual" style={{background:offer.accent_color||"#264d3e"}}><span>LOYALTY CLUB ♡</span><div><small>UNA TARJETA PARA VOLVER</small><h1>{offer.business_name}</h1></div><span>● ● ● ○ ○ ○</span></div>
   {success?<><h2>¡Ya formas parte! ♡</h2><p>Tu tarjeta personal te está esperando.</p><Link className="button button-dark button-full" href="/app">Ver mis tarjetas <ArrowUpRight size={17}/></Link></>:<><h2>Unirte tiene recompensa.</h2><p>{offer.description||"Cada visita es una oportunidad de recibir algo especial."}</p><div className="join-reward"><Gift size={19}/><span>{offer.reward_label}</span></div>{error&&<div className="alert error">{error}</div>}<button disabled={busy} onClick={join} className="button button-dark button-full">{busy?"Inscribiendo...":signed?"Quiero mi tarjeta":"Entrar para conseguir mi tarjeta"} <ArrowUpRight size={17}/></button><div className="tiny-note">Una cuenta para todos tus negocios favoritos. El consentimiento para recibir marketing es opcional y se configura por separado.</div></>}
   </>}
- </div></div>
+ </div></div>;
+}

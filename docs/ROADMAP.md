@@ -24,3 +24,8 @@
 - Subscripciones Stripe, facturación, límites y suspensión por impago.
 - Auditoría extendida de cambios administrativos, alertas y métricas de adquisición del directorio.
 - Pruebas E2E, CI/CD separado de HOME y copia/restore.
+
+## Aclaración de primera entrega
+- Alta por enlace propio de negocio (/unirse/[slug]) aunque el negocio no figure en mapa.
+- La experiencia mobile tiene un manifiesto web; funcionamiento offline y notificaciones push quedan para otra fase.
+- El control de RGPD deberá completarse antes del lanzamiento con textos legales, exportación/supresión de datos y acuerdos con proveedores.
