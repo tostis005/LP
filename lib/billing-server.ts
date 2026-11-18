@@ -35,10 +35,15 @@ export function billingService() {
  return {async rpc(name:string,args:Record<string,unknown>){
   if(name!=="record_billing_event")return {error:{message:"Operación no autorizada",code:"403"}};
   try {
-   await authPool.query(
-    "SELECT public.record_billing_event($1::text,$2::uuid,$3::text,$4::text,$5::text,$6::bigint)",
-    [args.p_event_id,args.p_business,args.p_customer,args.p_subscription,args.p_status,args.p_event_created]
-   );
+   const client=await authPool.connect();
+   try{
+    await client.query("BEGIN");
+    await client.query("SELECT set_config(\u0027request.jwt.claim.role\u0027,\u0027service_role\u0027,true)");
+    await client.query("SELECT public.record_billing_event($1::text,$2::uuid,$3::text,$4::text,$5::text,$6::bigint)",
+      [args.p_event_id,args.p_business,args.p_customer,args.p_subscription,args.p_status,args.p_event_created]);
+    await client.query("COMMIT");
+   }catch(e){await client.query("ROLLBACK").catch(()=>{});throw e}
+   finally{client.release()}
    return {error:null};
   }catch(e){return {error:{message:"No se pudo guardar el evento",code:(e as {code?:string}).code||"unknown"}}}
  }};
