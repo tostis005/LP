@@ -110,14 +110,22 @@ Cada push a `main` ejecuta `.github/workflows/deploy.yml`:
    después comprueba `http://127.0.0.1:3100/api/health`.
 5. Si fallan las pruebas, la acción de deploy no se ejecuta.
 
-Se esperan secretos del repositorio GitHub (o del entorno `production`):
-- `LP_SSH_HOST`: IP del VPS (169.58.121.198).
-- `LP_SSH_USER`: usuario SSH con acceso a `/opt/lp` y Docker.
-- `LP_SSH_PRIVATE_KEY`: clave privada de despliegue.
-- `LP_SSH_KNOWN_HOSTS`: host key **verificada** de Contabo.
-- `LP_SSH_PORT`: opcional; por defecto puerto 22.
+Se utilizan los **tres secretos ya existentes** del repositorio GitHub (también
+pueden definirse en el entorno `production`):
+- `VPS_HOST`: IP del VPS (169.58.121.198).
+- `VPS_USER`: usuario SSH con acceso a `/opt/lp` y Docker.
+- `VPS_SSH_KEY`: clave privada SSH sin frase de paso, con acceso autorizado en el VPS.
 
-Si elegiste otros nombres de secretos, cambia sus referencias en el YAML.
+Opcionales:
+- `VPS_SSH_PORT`: puerto SSH, por defecto 22.
+- `LP_SSH_KNOWN_HOSTS`: clave pública de host **contrastada previamente** con
+  la huella obtenida en el VPS. Este valor fija la identidad del servidor
+  y protege contra suplantaciones. Cuando no existe, el workflow hace
+  `ssh-keyscan` y aplica confianza en el primer contacto (TOFU), que **no
+  verifica de forma independiente la identidad del VPS**. Configurar el
+  secreto de huella verificada antes de usar datos de producción sensibles.
+
+Si cambian los nombres de los secretos, hay que actualizar también las referencias en el workflow.
 El repositorio debe tener los GitHub Actions habilitados y el SSH
 debe permitir autenticarse con la clave correspondiente.
 El workflow usa el entorno `production`, que se puede proteger
