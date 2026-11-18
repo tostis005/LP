@@ -1,158 +1,97 @@
-# Despliegue independiente de LP en Contabo con PostgreSQL nativo
+# LP en Contabo: Docker y PostgreSQL nativo
 
-> **Estado**: infraestructura preparada, aplicación TODAVÍA NO migrada desde Supabase.
-> No activar el despliegue real para clientes hasta completar `docs/MIGRACION_POSTGRES.md`.
-> `docker compose up` puede levantar PostgreSQL aunque las pantallas privadas no funcionen.
+LP no necesita Supabase y NO modifica HOME ni otros proyectos. Caddy sigue
+sirviendo los puertos 80/443; LP escucha solo en 127.0.0.1:3100.
 
-## Arquitectura
+## Actualizar el código en el servidor
 
-- **LP web**: Next.js 15 en Docker, accesible en el servidor solo por `127.0.0.1:3100`.
-- **LP db**: PostgreSQL 17 en Docker con volumen persistente `lp_postgres_data`, sin puerto publicado.
-- **HTTPS**: se aprovecha el reverse proxy existente que ya usa HOME; no abrir un segundo 80/443.
-- **Despliegue**: GitHub Actions por SSH, independiente del proyecto HOME.
-- **Almacenamiento de ficheros**: pendiente de la migración; no depender de Supabase Storage.
+    cd /opt/lp
+    git fetch origin
+    git switch infra/postgresql-docker
+    git pull --ff-only origin infra/postgresql-docker
 
-## 1. Preparar el VPS
+Cuando los cambios pasen las pruebas y se integren a main, cambia a main.
 
-Necesitas un VPS Linux con Docker Engine + Docker Compose plugin, git, un dominio/subdominio
-con registro DNS A hacia la IP del VPS y acceso por SSH con usuario de despliegue.
-Antes de instalar nada, identifica quién ocupa 80 y 443:
+## Completar /opt/lp/.env.production
 
-```bash
-sudo ss -lntp | grep -E ':(80|443)\\b'
-docker ps --format 'table {{.Names}}\\t{{.Ports}}'
-docker compose version
-```
+Conserva exactamente el POSTGRES_PASSWORD que ya utilizaste al crear
+el volumen lp_postgres_data. Añade DOS contraseñas nuevas, diferentes:
 
-**No detengas ni sustituyas el proxy de HOME.**
-Si falta Docker, sigue la instalación oficial para la distribución de tu VPS:
-https://docs.docker.com/engine/install/
+    APP_DB_PASSWORD=(64 dígitos hexadecimales)
+    AUTH_DB_PASSWORD=(64 dígitos hexadecimales)
 
-## 2. Instalar LP en carpeta independiente
+Genera cada una ejecutando openssl rand -hex 32.
+La URL se configura como NEXT_PUBLIC_SITE_URL=https://169.58.121.198.
+Nunca publiques este archivo ni cambies POSTGRES_PASSWORD de una DB
+existente pensando que Docker rotará la clave: no lo hace.
 
-Ejecuta como usuario de despliegue con permisos para ejecutar Docker (trata el
-grupo `docker` como equivalente a administrador del servidor):
+Para registros de clientes y recuperación de contraseña, configura
+SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASSWORD y SMTP_FROM
+de tu servidor de correo. Sin SMTP, solo se habilitan cuentas verificadas
+por bootstrap de administración; NO se confirman emails sin verificar.
 
-```bash
-sudo mkdir -p /opt/lp
-sudo chown "$USER":"$USER" /opt/lp
-git clone https://github.com/tostis005/LP.git /opt/lp
-cd /opt/lp
-cp .env.production.example .env.production
-chmod 600 .env.production
-```
+## Iniciar aplicación y migraciones
 
-Edita `.env.production` en el VPS, nunca en GitHub:
+    cd /opt/lp
+    docker compose --env-file .env.production config --quiet
+    docker compose --env-file .env.production up -d --build
+    docker compose --env-file .env.production ps
+    docker compose --env-file .env.production logs --tail=100 migrate
+    docker compose --env-file .env.production logs --tail=100 web
 
-```bash
-nano .env.production
-```
+El servicio migrate crea roles de SQL limitados y ejecuta una sola vez
+000_bootstrap y migraciones 001 a 009 junto con 010_native.sql.
+web arranca solo tras migración correcta. PostgreSQL no expone 5432.
 
-Variables: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`,
-`AUTH_SECRET`, `NEXT_PUBLIC_SITE_URL`.
-Genera claves distintas con `openssl rand -hex 32`.
-En `NEXT_PUBLIC_SITE_URL` introduce `https://tu-subdominio`.
-Los GitHub Secrets de SSH no sustituyen estas variables que deben existir en el servidor.
+Comprueba el backend ANTES de recargar Caddy:
 
-## 3. Contenedores
+    curl -i http://127.0.0.1:3100/api/health
+    curl -I http://127.0.0.1:3100
 
-Solo después de que la migración a PostgreSQL esté lista:
+El endpoint /api/health devuelve status ok y database connected.
 
-```bash
-cd /opt/lp
-docker compose --env-file .env.production config --quiet
-docker compose --env-file .env.production up -d --build
-docker compose --env-file .env.production ps
-docker compose --env-file .env.production logs -f web
-```
+## Crear primer superadministrador
 
-Si necesitas arrancar **solo PostgreSQL durante el desarrollo** sin lanzar la aplicación
-todavía dependiente de Supabase:
+Con la imagen de migrate creada:
 
-```bash
-docker compose --env-file .env.production up -d db
-```
+    cd /opt/lp
+    read -rp 'Correo del administrador: ' LP_ADMIN_EMAIL
+    read -srp 'Contraseña nueva (12 o más caracteres): ' LP_ADMIN_PASSWORD; echo
+    export LP_ADMIN_EMAIL LP_ADMIN_PASSWORD
+    docker compose --env-file .env.production run --rm -e LP_ADMIN_EMAIL -e LP_ADMIN_PASSWORD migrate node scripts/bootstrap-admin.mjs
+    unset LP_ADMIN_EMAIL LP_ADMIN_PASSWORD
 
-Desde `web`, la DB estará en `db:5432` con variables `PGHOST`,
-`PGPORT`, `PGDATABASE`, `PGUSER` y `PGPASSWORD`.
-**No publiques PostgreSQL en internet.**
+Accede a /acceder y utiliza /admin para gestionar negocios. Si existe
+el usuario, bootstrap-admin no cambiará su contraseña.
 
-## 4. Reverse proxy y HTTPS
+## Configurar Caddy para la IP
 
-Si HOME usa **Nginx instalado en el host**, crea otro `server` independiente
-(por ejemplo `/etc/nginx/sites-available/lp`) adaptando el dominio:
+En /etc/caddy/Caddyfile, cambia SOLO las líneas reverse_proxy de los
+bloques que ya existen para http://169.58.121.198 y
+https://169.58.121.198 hacia 127.0.0.1:3100. Conserva el bloque tls
+y TODOS los dominios existentes. Valida y recarga:
 
-```nginx
-server {
-    listen 80;
-    server_name lp.tudominio.com;
+    sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.backup-lp
+    sudo caddy validate --config /etc/caddy/Caddyfile
+    sudo systemctl reload caddy
 
-    location / {
-        proxy_pass http://127.0.0.1:3100;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 60s;
-    }
-}
-```
+Usar HTTPS solo si la IP dispone de certificado válido en el navegador.
 
-Habilita el sitio sin tocar la configuración de HOME, valida y recarga:
+## Estado funcional
 
-```bash
-sudo ln -s /etc/nginx/sites-available/lp /etc/nginx/sites-enabled/lp
-sudo nginx -t
-sudo systemctl reload nginx
-sudo certbot --nginx -d lp.tudominio.com
-```
+- Landing, solicitudes de acceso, cuentas y sesiones locales.
+- Programas de sellos, puntos y cashback en PostgreSQL con control
+  de permisos y límites antifraude.
+- Gestión de negocios, empleados, clientes, tarjetas QR, reversión,
+  estadísticas, directorio, consentimientos y campañas como borradores.
+- Upload de logos y fondos a volumen Docker persistente.
+- Facturación Stripe opcional con webhook firmado; cobro obligatorio
+  DESACTIVADO hasta configuración y pruebas reales.
+- Google/Apple OAuth y envío masivo de campañas aún no implementados.
 
-Esto supone que Nginx y Certbot ya están instalados/configurados.
-Si HOME usa **Traefik, Caddy, Nginx Proxy Manager o Nginx en Docker**, NO
-copies esta configuración: añade LP al proxy existente y adapta la red/ruta.
-El contenedor solo está publicado en el loopback del host.
+## Seguridad operativa
 
-## 5. GitHub Actions (despliegue manual inicialmente)
-
-Se incluye `.github/workflows/deploy.yml` solo con `workflow_dispatch`.
-Se podrá activar `push: main` una vez que la migración a PostgreSQL y los tests pasen.
-Confirma que en **Settings > Secrets and variables > Actions** existen
-estos cuatro secretos (ajusta nombres en el workflow si los tuyos son distintos):
-
-- `LP_SSH_HOST`: IP o host público del VPS.
-- `LP_SSH_USER`: usuario de despliegue.
-- `LP_SSH_PRIVATE_KEY`: clave SSH privada de despliegue.
-- `LP_SSH_KNOWN_HOSTS`: línea `known_hosts` del VPS, **tras comprobar su huella**
-  por un canal confiable (p. ej. consola de Contabo).
-
-El VPS debe permitir autenticación por la correspondiente clave pública, y `/opt/lp`
-debe contener un clone en la rama `main`.
-El workflow hace `git pull --ff-only` y luego `docker compose up -d --build`.
-No utiliza los secretos de HOME.
-
-## 6. Copias de seguridad
-
-El volumen de PostgreSQL no es una copia de seguridad. Programa copias
-automáticas cifradas **fuera del VPS** y comprueba restauraciones periódicamente.
-Ejemplo manual:
-
-```bash
-cd /opt/lp
-mkdir -p backups
-docker compose --env-file .env.production exec -T db \
-  sh -c 'exec pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
-  | gzip > "backups/lp-$(date +%F-%H%M).sql.gz"
-```
-
-Protege `backups/` (y cópialo a almacenamiento externo), supervisa espacio,
-monitoriza DB, actualiza imágenes y planifica recuperación ante fallos.
-
-## 7. Criterios antes del lanzamiento
-
-- Reemplazar autenticación, llamadas a Supabase y RPC de Supabase.
-- Aplicar nuevo esquema y migraciones PostgreSQL nativas.
-- Verificar aislamiento entre negocios y controles de permisos.
-- Probar operaciones concurrentes de puntos/canje y reversión.
-- Probar backups y restauraciones, HTTPS, email, Stripe y protección antiabuso.
-- Crear `package-lock.json` y versionarlo para compilaciones reproducibles.
+Hacer backups externos y comprobar restauración de DOS volúmenes:
+lp_postgres_data y lp_uploads. Monitoriza espacio, logs y certificados.
+No publiques el puerto de DB. No admitas cuentas reales antes de probar
+SSL, SMTP, autenticación, permisos de negocio y operaciones concurrentes.
