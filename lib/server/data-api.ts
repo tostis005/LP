@@ -92,7 +92,7 @@ export async function queryData(client:PoolClient,input:QueryInput) {
   const columns=selection(input.fields||"*");
   const result=await client.query("SELECT "+columns+" FROM "+table+" t"+where+order+" LIMIT "+limit,params);
   if(input.single){
-   if(result.rowCount>1)throw new ApiError("Se encontraron varios registros.",406);
+   if((result.rowCount||0)>1)throw new ApiError("Se encontraron varios registros.",406);
    return {data:result.rows[0]||null,error:null};
   }
   return {data:result.rows,error:null};
