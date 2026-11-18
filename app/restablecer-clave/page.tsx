@@ -37,3 +37,5 @@ export default function ResetPasswordPage(){
    <button disabled={!verified||busy} className="button button-dark button-full">{busy?"Actualizando...":"Guardar nueva contraseña"} <ArrowRight size={17}/></button></form>
    <Link className="text-link recovery-return" href="/acceder">Volver al acceso</Link></>}
  </main></div>;
+
+}
