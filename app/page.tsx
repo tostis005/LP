@@ -36,7 +36,7 @@ export default function Home(){
      <div className="loi-hero-copy">
       <span className="loi-overline"><span className="loi-status-dot"/> LA FIDELIZACIÓN, COMO DEBERÍA SER</span>
       <h1>Haz que cada visita <em>invite a volver.</em></h1>
-      <p>LoiaG transforma las tarjetas de sellos de toda la vida en una experiencia digital sencilla, bonita y hecha para los negocios de barrio.</p>
+      <p>Loyally transforma las tarjetas de sellos de toda la vida en una experiencia digital sencilla, bonita y hecha para los negocios de barrio.</p>
       <div className="loi-hero-actions">
        <Link href="/acceder" className="loi-button loi-button-main">Acceder <ArrowUpRight size={19}/></Link>
        <Link href="/#como-funciona" className="loi-button loi-button-light">Descubre cómo funciona <ArrowRight size={18}/></Link>
@@ -98,8 +98,8 @@ export default function Home(){
     </div>
    </section>
 
-   <section className="loi-final-section" id="empezar"><div className="container"><div className="loi-final-card"><div><span className="loi-overline">PEQUEÑOS NEGOCIOS, GRANDES RELACIONES</span><h2>Que te recuerden.<br/><em>Que quieran volver.</em></h2><p>Conoce LoiaG desde dentro y descubre cómo sería un programa de fidelización propio para tu negocio.</p><div className="loi-final-actions"><Link href="/acceder" className="loi-button loi-button-cream">Acceder a LoiaG <ArrowUpRight size={19}/></Link><Link href="/solicitar-acceso" className="loi-final-secondary">Solicitar información <ArrowRight size={17}/></Link></div></div><div className="loi-final-deco" aria-hidden="true"><Heart size={170} strokeWidth={.8}/><Sparkles size={58} strokeWidth={1.3}/></div></div></div></section>
+   <section className="loi-final-section" id="empezar"><div className="container"><div className="loi-final-card"><div><span className="loi-overline">PEQUEÑOS NEGOCIOS, GRANDES RELACIONES</span><h2>Que te recuerden.<br/><em>Que quieran volver.</em></h2><p>Conoce Loyally desde dentro y descubre cómo sería un programa de fidelización propio para tu negocio.</p><div className="loi-final-actions"><Link href="/acceder" className="loi-button loi-button-cream">Acceder a Loyally <ArrowUpRight size={19}/></Link><Link href="/solicitar-acceso" className="loi-final-secondary">Solicitar información <ArrowRight size={17}/></Link></div></div><div className="loi-final-deco" aria-hidden="true"><Heart size={170} strokeWidth={.8}/><Sparkles size={58} strokeWidth={1.3}/></div></div></div></section>
   </main>
-  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand/><p>Pequeños gestos. Grandes relaciones.<br/>La fidelización que se siente cercana.</p></div><nav aria-label="Enlaces de pie de página"><Link href="/#funcionalidades">Funcionalidades</Link><Link href="/#como-funciona">Cómo funciona</Link><Link href="/solicitar-acceso">Contacto</Link><Link href="/acceder">Acceder</Link></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} LoiaG · Nombre provisional</span><span>Hecho para negocios que dejan huella. ♡</span></div></footer>
+  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand/><p>Pequeños gestos. Grandes relaciones.<br/>La fidelización que se siente cercana.</p></div><nav aria-label="Enlaces de pie de página"><Link href="/#funcionalidades">Funcionalidades</Link><Link href="/#como-funciona">Cómo funciona</Link><Link href="/solicitar-acceso">Contacto</Link><Link href="/acceder">Acceder</Link></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} Loyally</span><span>Hecho para negocios que dejan huella. ♡</span></div></footer>
  </div>;
 }
