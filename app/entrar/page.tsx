@@ -4,7 +4,7 @@ import {useRouter} from "next/navigation";
 import {configured,db} from "@/lib/supabase";
 export default function Enter(){const router=useRouter(),[error,setError]=useState("");
 useEffect(()=>{async function route(){try{
- if(!configured()){setError("Supabase no está configurado");return}
+ if(!configured()){setError("No se ha podido conectar con el servidor LP");return}
  const {data:{user}}=await db().auth.getUser();
  if(!user){router.replace("/acceder");return}
  await db().rpc("claim_invitations");
