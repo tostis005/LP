@@ -102,7 +102,7 @@ export default function DemoPage(){
  const pageSubtitle=role==="administrador"?"Controla negocios, personas y resultados desde un único lugar.":role==="gestor"?"Configura las recompensas y conoce a tus clientes.":role==="empleado"?"Escanea, añade sellos y entrega recompensas en segundos.":"Tus lugares favoritos y tus próximas recompensas, siempre contigo.";
  return <main className="role-demo-page">
   <header className="role-demo-topbar">
-   <Link href="/acceder" className="role-demo-brand"><Brand/></Link>
+   <span className="role-demo-brand"><Brand/></span>
    <span className="role-demo-mode"><span/> ENTORNO DE PRUEBA · SIN DATOS REALES</span>
    <Link href="/acceder" className="role-demo-back"><ArrowLeft size={16}/> Volver al acceso</Link>
   </header>
@@ -193,7 +193,7 @@ export default function DemoPage(){
      <div className="role-demo-customer-info"><section className="role-demo-section"><div className="role-demo-reward-icon"><Gift size={26}/></div><span className="role-demo-eyebrow">TU PRÓXIMO PREMIO</span><h2>{data.reward}</h2><p>{complete?"¡Enhorabuena! Ya puedes canjear tu recompensa en el local.":"Solo te faltan "+(data.total-data.balance)+" sellos para conseguirlo."}</p><div className="role-demo-progress"><div style={{width:Math.min(100,(data.balance/data.total)*100)+"%"}}/></div><strong>{Math.min(data.balance,data.total)} / {data.total} sellos</strong></section><section className="role-demo-section"><h2>Tu actividad reciente</h2><ActivityList entries={data.activity}/></section></div>
     </div>}
     {note&&role!=="empleado"&&<div className="role-demo-global-notice"><Check size={17}/>{note}<button aria-label="Cerrar" onClick={()=>setNote("")}><X size={16}/></button></div>}
-    <p className="role-demo-bottom-note">Esta es una demostración local para evaluar el diseño. Las cuentas reales, los permisos y los movimientos se gestionan en el entorno protegido de LP.</p>
+    <p className="role-demo-bottom-note">Esta es una demostración local para evaluar el diseño. Las cuentas reales, los permisos y los movimientos se gestionan en el entorno protegido de Loyally.</p>
    </section>
   </div>
   {qrOpen&&role==="cliente"&&<div className="role-demo-overlay" onMouseDown={()=>setQrOpen(false)}><div className="role-demo-qr-modal" role="dialog" aria-modal="true" aria-label="Tu QR personal" onMouseDown={e=>e.stopPropagation()}><button className="role-demo-close" aria-label="Cerrar" onClick={()=>setQrOpen(false)}><X size={23}/></button><span className="role-demo-eyebrow">MI TARJETA PERSONAL</span><h2>Martina López</h2><p>Muéstralo al personal de {data.name}</p><div className="role-demo-qr-big"><QRCodeSVG value={personalQr} size={205} includeMargin level="M"/></div><strong>{data.balance} de {data.total} sellos</strong><small>QR de prueba · no corresponde a una cuenta real</small><button className="button button-dark button-full" onClick={()=>{setQrOpen(false);selectRole("empleado");setScanned(true);setNote("QR personal de Martina identificado.")}}>Probar escaneo como empleado <ArrowRight size={17}/></button></div></div>}

@@ -1,59 +1,105 @@
 import Link from "next/link";
-import { ArrowUpRight, ArrowRight, BadgeCheck, BarChart3, Check, ChevronRight, CircleDot, Gift, Heart, Layers3, MapPin, MousePointerClick, ScanLine, ShieldCheck, Smartphone, Sparkles, Star, Wallet, Zap } from "lucide-react";
-import { PublicHeader } from "@/components/PublicHeader";
-import { Brand } from "@/components/Brand";
+import {
+ ArrowRight, ArrowUpRight, BadgeCheck, BarChart3, Check, Coffee, Gift,
+ Heart, Menu, Palette, QrCode, ScanLine, Scissors, ShieldCheck, Smartphone,
+ Sparkles, Store, Ticket, Users, UtensilsCrossed
+} from "lucide-react";
+import {PublicHeader} from "@/components/PublicHeader";
+import {Brand} from "@/components/Brand";
+import {StampCard} from "@/components/StampCard";
+import {StampMark} from "@/components/StampMarks";
+import "./landing.css";
 
-const features = [
-  { icon: <Wallet size={23}/>, title: "Una tarjeta que va contigo", text: "Tus clientes llevan sus tarjetas en el móvil, sin descargar ninguna app." },
-  { icon: <Gift size={23}/>, title: "Recompensas a tu manera", text: "Sellos, puntos o cashback. Configura un programa que encaje con tu negocio." },
-  { icon: <ScanLine size={23}/>, title: "Un escaneo y listo", text: "Tu equipo valida compras con su teléfono o un lector. Sin cambiar de caja." },
-  { icon: <BarChart3 size={23}/>, title: "Entiende quién vuelve", text: "Mide visitas, clientes recurrentes, canjes y actividad en tiempo real." },
-  { icon: <MapPin size={23}/>, title: "También te descubren", text: "Aparece en un directorio local para conectar con nuevos clientes cerca de ti." },
-  { icon: <ShieldCheck size={23}/>, title: "Control en cada movimiento", text: "Permisos de empleados, límites antifraude e historial auditable." }
+const features=[
+ {icon:<Palette size={23}/>,title:"Cada negocio, su propia tarjeta",text:"Colores, recompensa, logotipo y sellos que reflejan la personalidad de tu marca."},
+ {icon:<QrCode size={23}/>,title:"Todo empieza con un QR",text:"El cliente se une desde el móvil. En sus próximas visitas, el personal valida los sellos."},
+ {icon:<BarChart3 size={23}/>,title:"Entiende las visitas",text:"Consulta clientes, recompensas canjeadas y actividad de tu programa desde un único panel."},
+ {icon:<ShieldCheck size={23}/>,title:"Un equipo, permisos claros",text:"El dueño administra el negocio y el personal puede asignar o canjear sellos con su propia cuenta."}
 ];
-export default function Home() {
- return <div className="site"><PublicHeader/>
+const steps=[
+ {num:"01",title:"Diseña tu programa",text:"Elige el premio, cuántos sellos necesita el cliente y qué icono aparecerá en su tarjeta."},
+ {num:"02",title:"Comparte tu QR",text:"Colócalo en el mostrador o en la mesa. El cliente se registra y guarda su tarjeta digital."},
+ {num:"03",title:"Premia cada regreso",text:"El empleado escanea el QR personal del cliente, añade los sellos y valida las recompensas."}
+];
+const roles=[
+ {icon:<ShieldCheck size={24}/>,number:"01",name:"Administrador",text:"Visión global de negocios, usuarios e informes."},
+ {icon:<Store size={24}/>,number:"02",name:"Dueño del negocio",text:"Configura la tarjeta y consulta su actividad."},
+ {icon:<ScanLine size={24}/>,number:"03",name:"Personal de atención",text:"Escanea tarjetas y registra sellos en segundos."},
+ {icon:<Heart size={24}/>,number:"04",name:"Cliente",text:"Lleva sus sellos y premios en el teléfono."}
+];
+export default function Home(){
+ return <div className="loi-site">
+  <PublicHeader/>
   <main>
-   <section className="hero-section"><div className="container hero-grid">
-    <div className="hero-copy">
-      <div className="eyebrow"><span className="eyebrow-pulse"/> FIDELIZACIÓN HECHA FÁCIL</div>
-      <h1>Que vuelvan.<br/><em>Una y otra vez.</em></h1>
-      <p>Convierte una compra en una relación. Recompensa a tus clientes, crea conexiones reales y haz crecer tu negocio. Sin complicaciones.</p>
-      <div className="hero-buttons"><Link href="/solicitar-acceso" className="button button-dark">Quiero empezar <ArrowUpRight size={19}/></Link><Link href="/demo" className="button button-outline">Explorar la demo <ArrowRight size={18}/></Link></div>
-      <div className="hero-proof"><div className="avatar-stack"><i>A</i><i>M</i><i>J</i></div><span>Creado para los negocios<br/><strong>que dejan huella.</strong></span></div>
-    </div>
-    <div className="hero-visual">
-      <div className="visual-orb orb-one"/><div className="visual-orb orb-two"/>
-      <div className="visual-caption caption-top"><Sparkles size={17}/> Pequeños detalles, grandes relaciones</div>
-      <div className="hero-card hero-card-back"><div className="decor-loop"/></div>
-      <div className="hero-card hero-card-front">
-        <div className="demo-card-head"><div className="demo-card-logo">n<span>·</span></div><span className="pill-light">MI TARJETA</span></div>
-        <div className="demo-card-body"><small>Tu próximo café está cerca</small><strong>Un café más,<br/>una sonrisa más.</strong></div>
-        <div className="stamp-row">{Array.from({length:8},(_,i)=><span className={i<6?"stamp earned":"stamp"} key={i}>{i<6?<Check size={18}/>:<CircleDot size={14}/>}</span>)}</div>
-        <div className="demo-card-foot"><span>6 de 8 sellos</span><span>CAFÉ NOMA ↗</span></div>
+   <section className="loi-hero" id="inicio">
+    <div className="container loi-hero-layout">
+     <div className="loi-hero-copy">
+      <span className="loi-overline"><span className="loi-status-dot"/> LA FIDELIZACIÓN, COMO DEBERÍA SER</span>
+      <h1>Haz que cada visita <em>invite a volver.</em></h1>
+      <p>Loyally transforma las tarjetas de sellos de toda la vida en una experiencia digital sencilla, bonita y hecha para los negocios de barrio.</p>
+      <div className="loi-hero-actions">
+       <Link href="/acceder" className="loi-button loi-button-main">Acceder <ArrowUpRight size={19}/></Link>
+       <Link href="/#como-funciona" className="loi-button loi-button-light">Descubre cómo funciona <ArrowRight size={18}/></Link>
       </div>
-      <div className="floating-reward"><div className="floating-icon"><Gift size={21}/></div><div><strong>¡Recompensa conseguida!</strong><span>Otro motivo para volver ✨</span></div><BadgeCheck className="floating-check" size={20}/></div>
-      <div className="visual-caption caption-bottom">Más clientes felices. Más veces. ♡</div>
+      <div className="loi-hero-foot"><div className="loi-hero-foot-icons"><span><QrCode size={17}/></span><span><Smartphone size={17}/></span><span><Gift size={17}/></span></div><span>Un QR. Una tarjeta digital.<br/><strong>Muchos motivos para regresar.</strong></span></div>
+     </div>
+     <div className="loi-hero-showcase" aria-label="Ejemplo ilustrativo de la tarjeta digital de fidelización">
+      <div className="loi-hero-orbit orbit-a"/><div className="loi-hero-orbit orbit-b"/>
+      <div className="loi-showcase-caption"><Sparkles size={17}/> Tu marca, sus recompensas.</div>
+      <div className="loi-showcase-phone">
+       <div className="loi-phone-status"><span>9:41</span><span>●●●</span></div>
+       <div className="loi-phone-heading"><span>Mi tarjeta</span><span className="loi-phone-mini-icon"><Heart size={17}/></span></div>
+       <div className="loi-phone-greeting">Hola, Martina <span>✳</span></div>
+       <p>Tu próxima recompensa está más cerca.</p>
+       <StampCard name="Café Noma" color="#23503b" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/>
+       <div className="loi-phone-progress"><span><Gift size={17}/> ¡Ya queda poco!</span><strong>3 sellos para tu premio</strong></div>
+       <div className="loi-phone-nav"><span className="active"><Ticket size={17}/> Tarjetas</span><span><Store size={17}/> Negocios</span><span><Users size={17}/> Perfil</span></div>
+      </div>
+      <div className="loi-showcase-floating"><span className="loi-floating-icon"><BadgeCheck size={23}/></span><div><strong>Una visita que cuenta</strong><small>+1 sello en tu tarjeta</small></div></div>
+      <span className="loi-demo-disclaimer">VISTA ILUSTRATIVA · DATOS FICTICIOS</span>
+     </div>
     </div>
-   </div></section>
-   <section className="trust-ribbon"><div className="container ribbon-inner"><span>HECHO PARA LOCALES CON PERSONALIDAD</span><span><Star size={17}/> Cafeterías</span><span><Star size={17}/> Restaurantes</span><span><Star size={17}/> Barberías</span><span><Star size={17}/> Tiendas</span></div></section>
-   <section className="section-pad" id="funcionalidades"><div className="container">
-     <div className="section-heading"><div><div className="eyebrow">TODO EN UN MISMO LUGAR</div><h2>Toda la magia de<br/><em>hacer que vuelvan.</em></h2></div><p>Lo suficientemente potente para crecer. Lo suficientemente sencillo para usarlo cada día.</p></div>
-     <div className="feature-grid">{features.map((f,i)=><article className={"feature-card feature-"+i} key={f.title}><div className="feature-icon">{f.icon}</div><h3>{f.title}</h3><p>{f.text}</p><span className="feature-index">0{i+1}</span></article>)}</div>
-   </div></section>
-   <section className="how-section" id="como-funciona"><div className="container how-grid">
-    <div className="how-illustration"><div className="how-blob"/><div className="how-phone"><div className="phone-notch"/><div className="phone-top">09:41 <span>●●●</span></div><small>Tus tarjetas</small><h3>Hola, Martina 👋</h3><p>Tus sitios favoritos, en un lugar.</p><div className="mini-business-card">☕ <div><b>Café Noma</b><small>6 / 8 sellos</small></div><ChevronRight size={16}/></div><div className="mini-business-card lilac">✂️ <div><b>Studio Norte</b><small>80 puntos</small></div><ChevronRight size={16}/></div><div className="phone-bottom">Inicio <span>Descubrir</span> Perfil</div></div><div className="how-note"><Heart size={20} fill="currentColor"/> Fácil para ti. Genial para ellos.</div></div>
-    <div className="how-copy"><div className="eyebrow">ASÍ DE SIMPLE</div><h2>La fidelidad<br/>no debería ser<br/><em>complicada.</em></h2>
-     <div className="step"><span>01</span><div><h3>Crea tu programa</h3><p>Personaliza tu tarjeta, elige cómo recompensar y listo. Todo a tu estilo.</p></div></div>
-     <div className="step"><span>02</span><div><h3>Comparte tu tarjeta</h3><p>Un código QR es todo lo que necesitan tus clientes para unirse.</p></div></div>
-     <div className="step"><span>03</span><div><h3>Haz que quieran volver</h3><p>Tu equipo valida cada compra. Tú sigues los resultados desde un panel precioso.</p></div></div>
-     <Link href="/demo" className="text-link">Conoce la experiencia <ArrowUpRight size={18}/></Link>
+   </section>
+   <div className="loi-audience-strip"><div className="container"><span>HECHO PARA LUGARES CON PERSONALIDAD</span><span><Coffee size={19}/> Cafeterías</span><span><UtensilsCrossed size={19}/> Restaurantes</span><span><Scissors size={19}/> Barberías</span><span><Store size={19}/> Comercios locales</span></div></div>
+
+   <section className="loi-section" id="funcionalidades">
+    <div className="container">
+     <div className="loi-section-lead"><div><span className="loi-overline">TODO LO QUE NECESITAS</span><h2>Lo sencillo enamora.<br/><em>Lo útil hace volver.</em></h2></div><p>La experiencia que espera el cliente, con las herramientas que necesita quien está al frente de un negocio.</p></div>
+     <div className="loi-feature-grid">{features.map((f,i)=><article className="loi-feature" key={f.title}><div className="loi-feature-icon">{f.icon}</div><span className="loi-feature-index">0{i+1}</span><h3>{f.title}</h3><p>{f.text}</p></article>)}</div>
     </div>
-   </div></section>
-   <section className="mid-cta"><div className="container"><div className="mid-cta-inner"><div><div className="eyebrow">CRECE SIN COMPLICARTE</div><h2>Tu negocio merece<br/><em>clientes que regresen.</em></h2><p>Más cerca de tus clientes. Más control de tu negocio. Menos herramientas sueltas.</p><Link href="/precios" className="button button-cream">Descubre nuestros planes <ArrowUpRight size={18}/></Link></div><div className="cta-star"><Sparkles size={90} strokeWidth={1}/></div></div></div></section>
-   <section className="section-pad pricing-preview"><div className="container"><div className="section-heading"><div><div className="eyebrow">PRECIOS SIN SORPRESAS</div><h2>Potente por dentro.<br/><em>Ligero en tu bolsillo.</em></h2></div><p>Sin hardware, sin letras pequeñas. Empieza con lo esencial y crece a tu ritmo.</p></div><div className="pricing-strip"><div><span>PLAN BUSINESS</span><strong>19,90 € <small>/mes</small></strong><p>Tarjetas, programas de fidelización, clientes, analítica y equipo.</p></div><Link href="/precios" className="button button-dark">Ver todos los detalles <ArrowUpRight size={17}/></Link></div></div></section>
-   <section className="contact-section" id="contacto"><div className="container contact-grid"><div><div className="eyebrow">¿HABLAMOS?</div><h2>Tu próxima gran<br/>idea empieza <em>aquí.</em></h2><p>Estamos preparando el lanzamiento. Explora el producto y contacta cuando quieras para conocer las opciones.</p></div><div className="contact-actions"><Link href="/solicitar-acceso" className="button button-dark">Solicitar acceso <ArrowUpRight size={18}/></Link><Link href="/acceder" className="button button-outline">Acceder a mi cuenta</Link></div></div></section>
+   </section>
+
+   <section className="loi-process" id="como-funciona">
+    <div className="container loi-process-layout">
+     <div className="loi-process-copy"><span className="loi-overline">EN TRES PASOS</span><h2>Tu próximo cliente fiel empieza <em>con un escaneo.</em></h2><p>Sin tarjetas de papel que se pierden. Sin pedirle al cliente que descargue una aplicación distinta por cada local.</p><Link href="/acceder" className="loi-text-link">Explorar los cuatro perfiles <ArrowUpRight size={18}/></Link></div>
+     <div className="loi-process-steps">{steps.map(s=><article className="loi-step" key={s.num}><span>{s.num}</span><div><h3>{s.title}</h3><p>{s.text}</p></div><Check size={19}/></article>)}</div>
+    </div>
+   </section>
+
+   <section className="loi-design-section" id="personalizacion">
+    <div className="container loi-design-layout">
+     <div className="loi-design-preview">
+      <div className="loi-design-preview-label"><span className="loi-status-dot"/> TU TARJETA, TUS REGLAS</div>
+      <StampCard name="Casa Buena" color="#7452a3" reward="Un almuerzo de regalo" total={6} earned={4} icon="burger" message="GRACIAS POR VOLVER"/>
+      <div className="loi-stamp-library"><span>ALGUNOS DE TUS SELLOS</span><div>{["coffee","burger","beard","hair","star","gift"].map(kind=><span key={kind}><StampMark kind={kind} size={25}/></span>)}</div></div>
+     </div>
+     <div className="loi-design-copy"><span className="loi-overline">UN PROGRAMA QUE ES TUYO</span><h2>Tu estilo. <em>Tu comunidad.</em></h2><p>¿Café, hamburguesa o un corte de pelo? Personaliza cada sello con una biblioteca de ilustraciones o sube tu propia imagen. Elige los colores, el premio y el número de visitas.</p>
+      <div className="loi-design-points"><div><Check size={17}/> Sellos con ilustraciones SVG o imagen propia</div><div><Check size={17}/> Huecos y progreso visibles al instante</div><div><Check size={17}/> Código QR individual por cliente</div></div>
+      <Link href="/acceder" className="loi-button loi-button-main">Probar el configurador <ArrowUpRight size={18}/></Link>
+     </div>
+    </div>
+   </section>
+
+   <section className="loi-section loi-roles-section" id="para-quien">
+    <div className="container">
+     <div className="loi-section-lead"><div><span className="loi-overline">UNA PLATAFORMA. CUATRO EXPERIENCIAS.</span><h2>Todo el mundo sabe <em>dónde tocar.</em></h2></div><p>Pensado para un móvil en la mano, una tablet en el mostrador y un panel cómodo para gestionar el negocio.</p></div>
+     <div className="loi-role-grid">{roles.map(role=><article className="loi-role-card" key={role.name}><div className="loi-role-top"><span>{role.icon}</span><small>{role.number}</small></div><h3>{role.name}</h3><p>{role.text}</p></article>)}</div>
+     <div className="loi-role-action"><span><Smartphone size={18}/> Adaptado a móvil, tablet y escritorio</span><Link href="/acceder" className="loi-text-link">Entrar y elegir perfil <ArrowRight size={18}/></Link></div>
+    </div>
+   </section>
+
+   <section className="loi-final-section" id="empezar"><div className="container"><div className="loi-final-card"><div><span className="loi-overline">PEQUEÑOS NEGOCIOS, GRANDES RELACIONES</span><h2>Que te recuerden.<br/><em>Que quieran volver.</em></h2><p>Conoce Loyally desde dentro y descubre cómo sería un programa de fidelización propio para tu negocio.</p><div className="loi-final-actions"><Link href="/acceder" className="loi-button loi-button-cream">Acceder a Loyally <ArrowUpRight size={19}/></Link><Link href="/solicitar-acceso" className="loi-final-secondary">Solicitar información <ArrowRight size={17}/></Link></div></div><div className="loi-final-deco" aria-hidden="true"><Heart size={170} strokeWidth={.8}/><Sparkles size={58} strokeWidth={1.3}/></div></div></div></section>
   </main>
-  <footer className="footer"><div className="container footer-main"><div><Brand/><p>Pequeñas recompensas.<br/>Grandes relaciones.</p></div><div className="footer-links"><Link href="/precios">Precios</Link><Link href="/demo">Demo</Link><Link href="/acceder">Acceder</Link></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Loyally. Hecho para volver.</span><span>Más cerca, cada día. ♡</span></div></footer>
+  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand/><p>Pequeños gestos. Grandes relaciones.<br/>La fidelización que se siente cercana.</p></div><nav aria-label="Enlaces de pie de página"><Link href="/#funcionalidades">Funcionalidades</Link><Link href="/#como-funciona">Cómo funciona</Link><Link href="/solicitar-acceso">Contacto</Link><Link href="/acceder">Acceder</Link></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} Loyally</span><span>Hecho para negocios que dejan huella. ♡</span></div></footer>
  </div>;
 }

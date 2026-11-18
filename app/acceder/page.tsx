@@ -38,7 +38,7 @@ export default function Login(){
  function changeView(next:"profiles"|"account"){setView(next);setError("");setMessage("")}
  return <main className="auth-layout auth-compact">
   <aside className="auth-story auth-story-compact">
-   <Link href="/" aria-label="Volver al inicio"><Brand light/></Link>
+   <Brand light/>
    <div className="auth-story-inner">
     <div className="auth-story-label"><Sparkles size={16}/> UNA VISITA MÁS, UNA HISTORIA MÁS</div>
     <h1>Un detalle.<br/><em>Mil motivos<br/>para volver.</em></h1>
