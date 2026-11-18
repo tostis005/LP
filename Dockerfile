@@ -1,7 +1,7 @@
 # LP / Next.js y PostgreSQL nativo. Dos imágenes: migración y aplicación.
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
+COPY package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 FROM deps AS migrator
