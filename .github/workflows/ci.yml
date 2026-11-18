@@ -60,3 +60,43 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/sql/smoke.sql
 
 # No production deploys, no contact with HOME or Contabo.
+
+
+  native-postgres:
+    name: PostgreSQL local, migraciones y aislamiento
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: lp
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: lp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lp -d lp_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      POSTGRES_USER: lp
+      POSTGRES_PASSWORD: local_test_only
+      POSTGRES_DB: lp_test
+      APP_DB_PASSWORD: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      AUTH_DB_PASSWORD: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Dependencias
+        run: npm install --no-audit --no-fund
+      - name: Aplicar migraciones nativas
+        run: node scripts/migrate.mjs
+      - name: Verificar idempotencia
+        run: node scripts/migrate.mjs
+      - name: Probar roles y aislamiento multiempresa
+        run: node scripts/test-native.mjs
