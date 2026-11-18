@@ -19,32 +19,34 @@ const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
 ];
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
 type Employee={user_id:string;full_name:string;email:string;role:string;active:boolean};
-type Tx={id:string;kind:string;amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;membership_id:string};
+type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;membership_id:string;employee_id:string|null;reversal_of:string|null;reversal_reason:string|null};
 type Draft={id:string;subject:string;body_text:string;created_at:string};
 export default function BusinessWorkspace({account}:{account:Account}){
  const manageable=account.businesses.filter(b=>b.role!=="employee");
  const [selected,setSelected]=useState(manageable[0]?.business_id||""),[tab,setTab]=useState<Tab>("overview");
  const [biz,setBiz]=useState<Business|null>(null),[prog,setProg]=useState<Program|null>(null),[customers,setCustomers]=useState<Customer[]>([]),[staff,setStaff]=useState<Employee[]>([]),[invites,setInvites]=useState<{id:string;email:string;role:string;created_at:string}[]>([]),[locations,setLocations]=useState<Location[]>([]),[transactions,setTransactions]=useState<Tx[]>([]),[drafts,setDrafts]=useState<Draft[]>([]);
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
+ const [activity,setActivity]=useState<{user_id:string;employee_name:string;operations:number;awarded_units:number}[]>([]);
  const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee");
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState(""),[country,setCountry]=useState("España"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState("");
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
-  const [b,p,c,s,i,l,t,d]=await Promise.all([
+  const [b,p,c,s,i,l,t,d,a]=await Promise.all([
    db().from("businesses").select("*").eq("id",selected).maybeSingle(),
    db().from("loyalty_programs").select("*").eq("business_id",selected).maybeSingle(),
    db().rpc("business_customer_directory",{p_business:selected}),
    db().rpc("business_staff_directory",{p_business:selected}),
    db().from("business_invitations").select("id,email,role,created_at").eq("business_id",selected).is("claimed_at",null),
    db().from("business_locations").select("*").eq("business_id",selected),
-   db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id").eq("business_id",selected).order("created_at",{ascending:false}).limit(250),
-   db().from("marketing_campaigns").select("id,subject,body_text,created_at").eq("business_id",selected).order("created_at",{ascending:false})
+   db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id,employee_id,reversal_of,reversal_reason").eq("business_id",selected).order("created_at",{ascending:false}).limit(250),
+   db().from("marketing_campaigns").select("id,subject,body_text,created_at").eq("business_id",selected).order("created_at",{ascending:false}),
+   db().rpc("business_employee_activity",{p_business:selected,p_days:30})
   ]);
   setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
   setStaff((s.data||[]) as Employee[]);setInvites(i.data||[]);setLocations((l.data||[]) as Location[]);
-  setTransactions((t.data||[]) as Tx[]);setDrafts((d.data||[]) as Draft[]);
-  const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error;
+  setTransactions((t.data||[]) as Tx[]);setDrafts((d.data||[]) as Draft[]);setActivity((a.data||[]) as {user_id:string;employee_name:string;operations:number;awarded_units:number}[]);
+  const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error;
   if(failure)setError(failure.message);setLoading(false);
  },[selected]);
  useEffect(()=>{reload()},[reload]);
@@ -57,9 +59,20 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const {error}=await db().from("loyalty_programs").update({
   type:prog.type,reward_label:prog.reward_label,reward_cost:Number(prog.reward_cost),cashback_bps:Number(prog.cashback_bps),
   points_per_euro:Number(prog.points_per_euro),max_stamps_per_action:Number(prog.max_stamps_per_action),
-  max_ticket_cents:Number(prog.max_ticket_cents),min_seconds_between_awards:Number(prog.min_seconds_between_awards),updated_at:new Date().toISOString()
+  max_ticket_cents:Number(prog.max_ticket_cents),min_seconds_between_awards:Number(prog.min_seconds_between_awards),
+  max_daily_awards_per_employee:Number(prog.max_daily_awards_per_employee),require_ticket_reference:prog.require_ticket_reference,updated_at:new Date().toISOString()
  }).eq("id",prog.id);
  setBusy(false);if(error){setError(error.message);return}success("Programa actualizado. Los saldos existentes se mantienen; evita cambiar de modalidad después de admitir clientes.");await reload()
+ }
+ async function reverseTransaction(transaction:Tx){
+  if(transaction.kind==="reversal" || transactions.some(t=>t.reversal_of===transaction.id))return;
+  const reason=window.prompt("Motivo de la corrección (8-300 caracteres). La operación original seguirá visible en el historial:");
+  if(reason===null)return;
+  if(reason.trim().length<8||reason.trim().length>300){setError("Indica un motivo entre 8 y 300 caracteres.");return}
+  setBusy(true);setError("");setNotice("");
+  const {error}=await db().rpc("manager_reverse_transaction",{p_transaction:transaction.id,p_reason:reason.trim()});
+  setBusy(false);if(error){setError(error.message);return}
+  success("Movimiento revertido. El saldo del cliente y el historial se han actualizado.");await reload();
  }
  async function upload(file:File|null,field:"logo_url"|"card_background"){if(!file||!selected)return;
   if(file.size>5*1024*1024 || !["image/png","image/jpeg","image/webp"].includes(file.type)){setError("Solo imágenes JPG, PNG o WEBP de hasta 5 MB.");return}
@@ -113,13 +126,45 @@ export default function BusinessWorkspace({account}:{account:Account}){
    {prog.type==="points"&&<div className="form-two"><label>Puntos por cada euro<input type="number" min={0.01} max={100} step=".01" value={prog.points_per_euro} onChange={e=>setProg({...prog,points_per_euro:Number(e.target.value)})}/></label><label>Puntos para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label></div>}
    {prog.type==="cashback"&&<label>Porcentaje de cashback<input type="number" min={0.01} max={100} step=".01" value={prog.cashback_bps/100} onChange={e=>setProg({...prog,cashback_bps:Math.round(Number(e.target.value)*100)})}/><small>El cashback queda guardado en céntimos para evitar errores de redondeo.</small></label>}
    <div className="form-two"><label>Máximo importe por ticket (€)<input type="number" min={1} step=".01" value={prog.max_ticket_cents/100} onChange={e=>setProg({...prog,max_ticket_cents:Math.round(Number(e.target.value)*100)})}/></label><label>Espera mínima entre compras (segundos)<input type="number" min={0} max={86400} value={prog.min_seconds_between_awards} onChange={e=>setProg({...prog,min_seconds_between_awards:Number(e.target.value)})}/></label></div>
+   <div className="form-two"><label>Máx. compras por empleado al día<input type="number" min={1} max={250} value={prog.max_daily_awards_per_employee} onChange={e=>setProg({...prog,max_daily_awards_per_employee:Number(e.target.value)})}/></label>
+   <div className="check-control"><input id="require-ticket" type="checkbox" checked={prog.require_ticket_reference} onChange={e=>setProg({...prog,require_ticket_reference:e.target.checked})}/><label htmlFor="require-ticket"><strong>Exigir referencia de ticket</strong><small>Evita reutilizar el mismo identificador de venta dentro del negocio.</small></label></div></div>
    <div className="info-callout"><ShieldCheck size={18}/> Las operaciones se validan en el servidor. Se registra el empleado, la hora, el saldo y la referencia de ticket si se facilita. Esto reduce el abuso, pero no sustituye una conexión al TPV.</div>
    <button disabled={busy} className="button button-dark">Guardar programa <Check size={17}/></button></div></form>}
    {tab==="team"&&<div className="admin-grid"><section className="panel-card"><h2>Tu equipo</h2><p className="muted">Cada empleado opera bajo su cuenta y queda registrado en cada movimiento.</p>{staff.map(x=><div className="activity-row team-row" key={x.user_id}><div className="person-initial">{initials(x.full_name||x.email)}</div><div><strong>{x.full_name||x.email}</strong><span>{x.email} · {x.role==="owner"?"Propietario":x.role==="manager"?"Manager":"Empleado"}</span></div>{x.role!=="owner"&&<button disabled={busy} onClick={()=>toggleStaff(x.user_id,!x.active)} className={"table-pill "+(x.active?"":"inactive")}>{x.active?"Activo":"Inactivo"}</button>}</div>)}<h3 className="subheading">Invitaciones pendientes</h3>{invites.map(x=><div className="activity-row" key={x.id}><div className="activity-icon positive"><Mail size={17}/></div><div><strong>{x.email}</strong><span>{x.role} · Pendiente de registro/verificación</span></div></div>)}{!invites.length&&<p className="muted">No hay invitaciones pendientes.</p>}</section>
    <form className="panel-card" onSubmit={invite}><div className="panel-icon"><Users size={22}/></div><h2>Añadir un empleado</h2><p className="muted">Invita por email. La cuenta tendrá acceso solo a los negocios asignados.</p><div className="form-stack"><label>Email del empleado<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="empleado@negocio.com" required/></label><label>Permiso<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="employee">Empleado: escanear y canjear</option>{account.businesses.find(x=>x.business_id===selected)?.role==="owner"&&<option value="manager">Manager: también gestionar negocio</option>}</select></label><button className="button button-dark" disabled={busy}>Crear invitación <Plus size={17}/></button></div><p className="tiny-note">La invitación queda registrada en LP. No se envía un email automáticamente hasta integrar un servicio transaccional; puedes avisar al empleado por tu cuenta.</p></form></div>}
    {tab==="customers"&&<section className="panel-card"><div className="content-heading"><div><h2>Tu comunidad</h2><p>Solo clientes inscritos en tu programa.</p></div><span className="table-pill">{customers.length} clientes</span></div><div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>{customers.map(x=><tr key={x.user_id}><td><strong>{x.full_name||"Sin nombre"}</strong></td><td>{x.email}</td><td><b>{formatBalance(x.balance)}</b></td><td>{x.visits}</td><td>{x.marketing_ok?<span className="table-pill">Aceptado</span>:<span className="table-pill inactive">No</span>}</td><td>{dateShort(x.joined_at)}</td></tr>)}</tbody></table></div>{customers.length===0&&<p className="muted">Comparte tu programa para conseguir tus primeros clientes.</p>}</section>}
    {tab==="locations"&&<div className="admin-grid"><section className="panel-card"><h2>Locales y sucursales</h2><p className="muted">Las ubicaciones visibles aparecerán en el mapa si también activas el directorio público.</p>{locations.map(l=><div className="activity-row" key={l.id}><div className="activity-icon positive"><MapPin size={19}/></div><div><strong>{l.name}</strong><span>{l.address}, {l.city}, {l.country}</span><small className="muted">Lat. {l.lat}, lng. {l.lng}</small></div><button className="icon-button" aria-label="Eliminar ubicación" onClick={()=>removeLocation(l.id)}><Trash2 size={18}/></button></div>)}{!locations.length&&<p className="muted">Añade una ubicación para aparecer en el directorio.</p>}</section><form className="panel-card" onSubmit={addLocation}><div className="panel-icon"><MapPin size={22}/></div><h2>Añadir ubicación</h2><p className="muted">Usa coordenadas verificadas del local. La búsqueda automática por dirección llegará con la integración geográfica.</p><div className="form-stack"><label>Nombre del local<input required value={locationName} onChange={e=>setLocationName(e.target.value)} placeholder="Local principal"/></label><label>Dirección<input required value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle y número"/></label><div className="form-two"><label>Ciudad<input required value={city} onChange={e=>setCity(e.target.value)}/></label><label>País<input required value={country} onChange={e=>setCountry(e.target.value)}/></label></div><div className="form-two"><label>Latitud<input required type="number" min={-90} max={90} step="any" value={lat} onChange={e=>setLat(e.target.value)}/></label><label>Longitud<input required type="number" min={-180} max={180} step="any" value={lng} onChange={e=>setLng(e.target.value)}/></label></div><button className="button button-dark" disabled={busy}>Guardar local <Plus size={16}/></button></div></form></div>}
-   {tab==="reports"&&<><div className="kpi-grid three"><KPI icon={<Users/>} theme="green" title="Clientes únicos" value={customers.length} helper="Inscritos"/><KPI icon={<Activity/>} theme="peach" title="Recurrentes" value={repeatCount} helper="Con al menos 2 compras"/><KPI icon={<Gift/>} theme="purple" title="Canjes registrados" value={transactions.filter(t=>t.kind==="redeem").length} helper="Últimas 250 operaciones"/></div><div className="panel-card"><h2>Últimas operaciones</h2><p className="muted">Auditoría de movimientos. La lista se limita a las 250 transacciones más recientes de este negocio.</p><div className="table-wrap"><table className="data-table"><thead><tr><th>Fecha</th><th>Acción</th><th>Movimiento</th><th>Ticket</th><th>Compra</th></tr></thead><tbody>{transactions.map(t=><tr key={t.id}><td>{dateShort(t.created_at)}</td><td>{t.kind==="earn"?"Compra":"Canje"}</td><td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td><td>{t.ticket_ref||"—"}</td><td>{t.purchase_cents==null?"—":(t.purchase_cents/100).toFixed(2)+" €"}</td></tr>)}</tbody></table></div></div></>}
+   {tab==="reports"&&<>
+   <div className="kpi-grid three">
+     <KPI icon={<Users/>} theme="green" title="Clientes únicos" value={customers.length} helper="Inscritos"/>
+     <KPI icon={<Activity/>} theme="peach" title="Recurrentes" value={repeatCount} helper="Con al menos 2 compras"/>
+     <KPI icon={<Gift/>} theme="purple" title="Canjes registrados" value={transactions.filter(t=>t.kind==="redeem").length} helper="Últimas 250 operaciones"/>
+   </div>
+   <div className="panel-card"><h2>Actividad por empleado · últimos 30 días</h2>
+    <p className="muted">Total de operaciones de compra verificadas manualmente. Los reembolsos se detallan en el historial.</p>
+    <div className="table-wrap"><table className="data-table"><thead><tr><th>Empleado</th><th>Compras registradas</th><th>Unidades asignadas</th></tr></thead>
+    <tbody>{activity.map(a=><tr key={a.user_id}><td><strong>{a.employee_name}</strong></td><td>{a.operations}</td><td>{a.awarded_units}</td></tr>)}</tbody></table></div>
+    {activity.length===0&&<p className="muted">Todavía no hay compras registradas por el equipo.</p>}
+   </div>
+   <div className="panel-card" style={{marginTop:20}}><h2>Historial y correcciones</h2>
+    <p className="muted">Últimas 250 operaciones. Un responsable puede revertir movimientos de las últimas 72 horas, siempre que el saldo lo permita. No se borran los registros originales.</p>
+    <div className="table-wrap"><table className="data-table"><thead><tr><th>Fecha</th><th>Acción</th><th>Unidades</th><th>Ticket</th><th>Compra</th><th>Empleado</th><th>Acción</th></tr></thead>
+    <tbody>{transactions.map(t=>{
+      const reversed=transactions.some(v=>v.reversal_of===t.id);
+      const actor=staff.find(s=>s.user_id===t.employee_id);
+      return <tr key={t.id}>
+        <td>{dateShort(t.created_at)}</td>
+        <td>{t.kind==="earn"?"Compra":t.kind==="redeem"?"Canje":"Corrección"}{reversed?" · Revertida":""}</td>
+        <td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td>
+        <td>{t.ticket_ref||"—"}</td>
+        <td>{t.purchase_cents==null?"—":(t.purchase_cents/100).toFixed(2)+" €"}</td>
+        <td>{actor?.full_name||actor?.email||"—"}</td>
+        <td>{t.kind!=="reversal"&&!reversed?
+         <button type="button" disabled={busy||new Date(t.created_at).getTime()<Date.now()-72*60*60*1000} className="inline-table-button" onClick={()=>reverseTransaction(t)}>Revertir</button>:
+         <span title={t.reversal_reason||"Movimiento ya corregido"} className="table-pill inactive">{t.kind==="reversal"?"Registrado":"Corregido"}</span>}</td>
+      </tr>})}</tbody></table></div>
+   </div>
+ </>}
    {tab==="marketing"&&<div className="admin-grid"><form className="panel-card" onSubmit={saveDraft}><div className="panel-icon"><Mail size={22}/></div><h2>Tu próxima campaña</h2><p className="muted">Redacta un borrador para tus clientes. El envío real y el editor HTML estarán disponibles en el módulo premium.</p><div className="marketing-eligible"><Mail size={19}/><div><strong>{canvassed} clientes con consentimiento</strong><small>De {customers.length} clientes registrados</small></div></div><div className="form-stack"><label>Asunto<input value={mailSubject} required maxLength={180} onChange={e=>setMailSubject(e.target.value)} placeholder="¡Esta semana hay algo especial!"/></label><label>Mensaje<textarea value={mailBody} required rows={9} onChange={e=>setMailBody(e.target.value)} placeholder="Hola, queremos contarte..."/></label><button className="button button-dark" disabled={busy}>Guardar borrador <FileText size={17}/></button></div><p className="tiny-note">Sin integración de mailing no se envía nada. Las bajas y cuotas por correo se implementarán antes de activar el envío.</p></form><section className="panel-card"><h2>Borradores del negocio</h2>{drafts.map(d=><div className="activity-row" key={d.id}><div className="activity-icon positive"><Mail size={18}/></div><div><strong>{d.subject}</strong><span>{dateShort(d.created_at)} · Guardado, no enviado</span></div></div>)}{!drafts.length&&<p className="muted">Todavía no hay borradores.</p>}</section></div>}
    </>}
   </>}

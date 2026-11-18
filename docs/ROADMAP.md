@@ -32,3 +32,9 @@
 
 ## Superadministración ampliada
 El panel permite inspeccionar cada negocio (clientes, personal, operaciones, locales y modalidad), suspender/reactivar un negocio y consultar las tarjetas de cada usuario en el ecosistema. Son operaciones protegidas por RLS y permisos de administrador.
+
+## Controles adicionales (007)
+- Límite diario configurable por empleado y negocio; referencia de ticket obligatoria opcional.
+- Reversión auditable por responsable (máximo 72 horas) y superadmin, sin borrar movimientos.
+- Una operación original solo se puede revertir una vez. La devolución respeta el saldo mínimo 0.
+- Resumen de actividad por empleado en informes. El límite no verifica automáticamente tickets reales: para eso hará falta TPV.
