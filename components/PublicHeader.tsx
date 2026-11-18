@@ -10,7 +10,7 @@ export function PublicHeader() {
       <Link href="/precios">Precios</Link>
     </nav>
     <div className="header-actions"><Link href="/acceder" className="nav-login">Iniciar sesión</Link>
-      <Link href="/#contacto" className="button button-dark button-sm">Solicitar acceso <ArrowUpRight size={16}/></Link></div>
+      <Link href="/solicitar-acceso" className="button button-dark button-sm">Solicitar acceso <ArrowUpRight size={16}/></Link></div>
     <Link className="mobile-menu" href="/precios" aria-label="Ver planes"><Menu/></Link>
   </div></header>;
 }
