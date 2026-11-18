@@ -13,7 +13,7 @@ function Discover({account}:{account:Account}){
  const [entries,setEntries]=useState<Entry[]>([]),[memberIds,setMemberIds]=useState<string[]>([]),[filter,setFilter]=useState(""),[category,setCategory]=useState("Todos"),[center,setCenter]=useState<[number,number]>([40.4168,-3.7038]),[hasLocation,setHasLocation]=useState(false),[error,setError]=useState(""),[busy,setBusy]=useState("");
  useEffect(()=>{async function load(){const [loc,members]=await Promise.all([db().from("business_locations").select("*,businesses(*)").eq("visible",true),db().from("loyalty_memberships").select("business_id").eq("customer_id",account.user.id)]);
   if(loc.error)setError(loc.error.message);else setEntries((loc.data||[]) as Entry[]);
-  setMemberIds((members.data||[]).map(x=>x.business_id));
+  setMemberIds(((members.data||[]) as {business_id:string}[]).map(x=>x.business_id));
  }load()},[account.user.id]);
  function locate(){if(!navigator.geolocation){setError("Tu navegador no admite geolocalización.");return}
  navigator.geolocation.getCurrentPosition(p=>{setCenter([p.coords.latitude,p.coords.longitude]);setHasLocation(true);setError("")},()=>setError("No se ha podido obtener tu ubicación. Puedes buscar por nombre o ciudad."),{enableHighAccuracy:false,timeout:8000})}
