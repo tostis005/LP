@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { actorFromRequest,authPool,cookieToken,hashToken,ApiError,checkOrigin,responseError } from "@/lib/server/db";
 import { hashPassword,passwordMatches,validateEmail,emailToken,rateLimit,createSession,setSessionCookie,clearSessionCookie,publicUser,smtpReady } from "@/lib/server/auth";
 export const runtime="nodejs";
