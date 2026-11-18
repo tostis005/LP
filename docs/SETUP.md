@@ -1,0 +1,44 @@
+# LP — configuración sin afectar a HOME
+
+## Requisitos
+- Node.js 20+ y npm.
+- Proyecto Supabase independiente (no reutilizar una base de WordPress).
+- Entorno .env.local con URL y anon key públicos de Supabase.
+- No introducir secretos de servidor en NEXT_PUBLIC_.
+
+## Pasos
+1. `npm install`
+2. En Supabase SQL Editor ejecuta `supabase/migrations/001_initial.sql` una vez en un proyecto vacío.
+3. Copia `.env.example` a `.env.local` y configura URL y anon key.
+4. Configura Supabase Auth: email + confirmación obligatoria. En la lista de URL de redirección añade `http://localhost:3000/auth/callback`.
+5. `npm run dev` y abre `http://localhost:3000`.
+6. Registra tu cuenta y confirma el email. Desde el SQL Editor, identifica el UUID del usuario en Authentication > Users y ejecuta **manualmente**:
+   ```sql
+   insert into public.platform_admins(user_id) values ('UUID_DE_TU_USUARIO');
+   ```
+7. Entra en /admin y crea un negocio indicando el email de su responsable. No hay alta pública de negocios: el superadministrador lo crea.
+8. El responsable verifica su email e inicia sesión; al acceder se reclaman sus invitaciones pendientes. Puede configurar su programa y dar de alta empleados.
+
+## Configuración opcional de login social
+En Supabase Auth habilita Google y/o Apple. Configura credenciales del proveedor, callback y URLs permitidas en ambos lados. La UI puede mostrar estos botones, pero no serán operativos hasta configurarlos. No se incluyen secretos.
+
+## Diseño y activos
+Colores iniciales: verde profundo, salvia y crema, con tonos melocotón. Los fondos de tarjeta y logos se almacenan en bucket público business-assets por carpeta del ID del negocio; el programa valida que la subida procede de un owner/manager.
+
+## Directorio y mapa
+Las ubicaciones (latitud y longitud) son configurables por el negocio. Se muestran solo si public_listing=true, active=true y location.visible=true. La geolocalización del navegador es opt-in; no se persiste en base de datos. Mapa Leaflet con teselas OpenStreetMap. Para tráfico comercial elevado usar proveedor de mapas con SLA y términos adecuados.
+
+## Fidelización / seguridad
+- Un QR único por tarjeta cliente-negocio. No acredita ninguna compra.
+- Solo un empleado autenticado puede consultar una tarjeta y registrar puntos/sellos/cashback mediante RPC con comprobaciones en PostgreSQL.
+- Tope por operación y tiempo mínimo configurable.
+- Ticket de referencia opcional, único por negocio si se indica.
+- Saldo y libro de operaciones quedan sincronizados dentro de una misma transacción PostgreSQL.
+- No se puede garantizar la honestidad de un empleado sin transacción real del TPV. La integración TPV y la conciliación de tickets se planifican aparte.
+
+## Pendiente de integración comercial
+- Emisión y actualización de Apple Wallet: requiere certificados y servicio para firmar .pkpass, endpoints de actualizaciones.
+- Google Wallet: requiere cuenta issuer y credenciales de su API.
+- Stripe: cuenta, webhook seguro y suscripción por negocio.
+- Emails masivos: proveedor transaccional, verificación de dominio, bajas, límites, facturación por consumo. De momento se guardan borradores, **no** se envían campañas.
+- Infraestructura: Docker, proxy y dominio de Contabo. HOME permanece intacto.
