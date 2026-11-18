@@ -8,6 +8,7 @@ import {dateShort,initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {StampCard} from "@/components/StampCard";
+import {demoRole} from "@/lib/demo-local";
 import {BUSINESS_CATEGORIES} from "@/lib/business-categories";
 type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
@@ -24,7 +25,7 @@ const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
 type Employee={user_id:string;full_name:string;email:string;role:string;active:boolean};
 type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;membership_id:string;employee_id:string|null;reversal_of:string|null;reversal_reason:string|null};
-type Draft={id:string;subject:string;body_text:string;created_at:string};
+type Draft={id:string;subject:string;body_text:string;created_at:string;status:string;recipient_count?:number;sent_count?:number;failed_count?:number};
 type MailQuote={contacts:number;price_cents:number;total_cents:number;currency:string};
 const COLOR_PRESETS=["#264d3e","#7760a5","#c9784f","#273550","#a14460","#1d1d1d","#367666","#a35f75","#2c73ac","#dfac5c","#b33c3c","#134e4a","#6d28d9","#f97316","#0f172a","#edf4e9","#f4e8db","#f9cadf","#ffffff","#000000"];
 export default function BusinessWorkspace({account}:{account:Account}){
@@ -48,7 +49,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    db().from("business_invitations").select("id,email,role,created_at").eq("business_id",selected).is("claimed_at",null),
    db().from("business_locations").select("*").eq("business_id",selected),
    db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id,employee_id,reversal_of,reversal_reason").eq("business_id",selected).order("created_at",{ascending:false}).limit(250),
-   db().from("marketing_campaigns").select("id,subject,body_text,created_at").eq("business_id",selected).order("created_at",{ascending:false}),
+   db().from("marketing_campaigns").select("id,subject,body_text,status,recipient_count,sent_count,failed_count,created_at").eq("business_id",selected).order("created_at",{ascending:false}),
    db().rpc("business_employee_activity",{p_business:selected,p_days:30})
   ]);
   setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
@@ -133,6 +134,20 @@ export default function BusinessWorkspace({account}:{account:Account}){
  async function saveDraft(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setNotice("");
   const {error}=await db().from("marketing_campaigns").insert({business_id:selected,created_by:account.user.id,subject:mailSubject,body_text:mailBody,status:"draft"});
   setBusy(false);if(error){setError(error.message);return}setMailSubject("");setMailBody("");success("Borrador guardado, sin enviar emails.");await reload()
+ }
+ async function sendCampaign(draft:Draft){
+  if(!quote){setError("No se pudo confirmar la tarifa. Recarga la página.");return}
+  if(draft.status==="draft"&&quote.contacts===0){setError("Ningún cliente ha aceptado recibir correos comerciales.");return}
+  const estimate=new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(quote.total_cents/100);
+  if(!window.confirm(draft.status==="draft"?"¿Enviar esta campaña a "+quote.contacts+" contactos? Coste estimado: "+estimate+". Solo se factura cada correo aceptado por SMTP.":"¿Continuar los envíos pendientes de esta campaña?"))return;
+  setBusy(true);setError("");setNotice("");
+  try{
+   const resp=await fetch("/api/local/marketing/send",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({campaign_id:draft.id,expected_total_cents:quote.total_cents})});
+   const value=await resp.json() as {error?:string;sent?:number;failed?:number;remaining?:number};
+   if(!resp.ok||value.error)throw Error(value.error||"No se pudo enviar la campaña.");
+   success("Campaña procesada: "+(value.sent||0)+" correos aceptados, "+(value.failed||0)+" fallidos y "+(value.remaining||0)+" pendientes. Solo los aceptados se contabilizan como uso.");
+   await reload();
+  }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
  const repeatCount=customers.filter(c=>Number(c.visits)>=2).length,canvassed=customers.filter(c=>c.marketing_ok).length;
  const programType=prog?.type;
@@ -222,7 +237,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
       </tr>})}</tbody></table></div>
    </div>
  </>}
-   {tab==="marketing"&&<div className="admin-grid"><form className="panel-card" onSubmit={saveDraft}><div className="panel-icon"><Mail size={22}/></div><h2>Tu próxima campaña</h2><p className="muted">Prepara un correo para clientes que hayan aceptado recibir campañas. Las direcciones se mantienen protegidas por Loyally.</p><div className="marketing-eligible"><Mail size={19}/><div><strong>{quote?.contacts??canvassed} destinatarios autorizados</strong><small>{quote?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(quote.total_cents/100)+" estimados · "+quote.price_cents+" centavos/contacto":"Calculando presupuesto en el servidor..."} · De {customers.length} clientes</small></div></div><div className="form-stack"><label>Asunto<input value={mailSubject} required maxLength={180} onChange={e=>setMailSubject(e.target.value)} placeholder="¡Esta semana hay algo especial!"/></label><label>Mensaje<textarea value={mailBody} required rows={9} onChange={e=>setMailBody(e.target.value)} placeholder="Hola, queremos contarte..."/></label><button className="button button-dark" disabled={busy}>Guardar borrador <FileText size={17}/></button></div><p className="tiny-note">El presupuesto es informativo: guardar un borrador no envía correos ni genera cargos. Los envíos se habilitarán cuando estén configurados SMTP, las bajas y la facturación de entregas.</p></form><section className="panel-card"><h2>Borradores del negocio</h2>{drafts.map(d=><div className="activity-row" key={d.id}><div className="activity-icon positive"><Mail size={18}/></div><div><strong>{d.subject}</strong><span>{dateShort(d.created_at)} · Guardado, no enviado</span></div></div>)}{!drafts.length&&<p className="muted">Todavía no hay borradores.</p>}</section></div>}
+   {tab==="marketing"&&<div className="admin-grid"><form className="panel-card" onSubmit={saveDraft}><div className="panel-icon"><Mail size={22}/></div><h2>Tu próxima campaña</h2><p className="muted">Prepara un correo para clientes que hayan aceptado recibir campañas. Las direcciones se mantienen protegidas por Loyally.</p><div className="marketing-eligible"><Mail size={19}/><div><strong>{quote?.contacts??canvassed} destinatarios autorizados</strong><small>{quote?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(quote.total_cents/100)+" estimados · "+quote.price_cents+" centavos/contacto":"Calculando presupuesto en el servidor..."} · De {customers.length} clientes</small></div></div><div className="form-stack"><label>Asunto<input value={mailSubject} required maxLength={180} onChange={e=>setMailSubject(e.target.value)} placeholder="¡Esta semana hay algo especial!"/></label><label>Mensaje<textarea value={mailBody} required rows={9} onChange={e=>setMailBody(e.target.value)} placeholder="Hola, queremos contarte..."/></label><button className="button button-dark" disabled={busy}>Guardar borrador <FileText size={17}/></button></div><p className="tiny-note">Guardar un borrador no envía ni cobra. Para enviar debe habilitarse SMTP y el módulo de campañas en el servidor. Solo se contabilizan los correos aceptados por SMTP; las bajas se gestionan mediante un enlace individual.</p></form><section className="panel-card"><h2>Borradores del negocio</h2>{drafts.map(d=><div className="activity-row" key={d.id}><div className="activity-icon positive"><Mail size={18}/></div><div><strong>{d.subject}</strong><span>{dateShort(d.created_at)} · {d.status==="draft"?"Borrador":d.status==="sent"?"Envío terminado":d.status==="partial"?"Envío parcial":d.status==="failed"?"Envío fallido":"En proceso"}{d.status!=="draft"?" · "+(d.sent_count||0)+" correos enviados":""}</span></div>{!demoRole()&&(["draft","queued","sending"].includes(d.status))&&<button type="button" className="button button-outline button-sm" disabled={busy||(d.status==="draft"&&(!quote||quote.contacts===0))} onClick={()=>sendCampaign(d)}>{d.status==="draft"?"Enviar campaña":"Continuar envío"}</button>}</div>)}{!drafts.length&&<p className="muted">Todavía no hay borradores.</p>}</section></div>}
    </>}
   </div></div></>}
  </div>;
