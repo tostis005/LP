@@ -6,6 +6,8 @@ import type {Account} from "@/components/AppFrame";
 import type {Business,Program,Location} from "@/lib/types";
 import {dateShort,initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
+import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
+import {StampCard} from "@/components/StampCard";
 type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Resumen",icon:<BarChart3 size={17}/>},
@@ -31,6 +33,8 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee");
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState(""),[country,setCountry]=useState("España"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState("");
+ const [previewEarned,setPreviewEarned]=useState(3),[siteOrigin,setSiteOrigin]=useState("");
+ useEffect(()=>{setSiteOrigin(window.location.origin)},[]);
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
   const [b,p,c,s,i,l,t,d,a]=await Promise.all([
@@ -65,6 +69,25 @@ export default function BusinessWorkspace({account}:{account:Account}){
  }).eq("id",prog.id);
  setBusy(false);if(error){setError(error.message);return}success("Programa actualizado. Los saldos existentes se mantienen; evita cambiar de modalidad después de admitir clientes.");await reload()
  }
+
+ async function saveDesigner(){
+  if(!biz||!prog)return;
+  setBusy(true);setError("");setNotice("");
+  const {error:visualError}=await db().from("businesses").update({
+   accent_color:biz.accent_color,card_text:biz.card_text,
+   stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
+  }).eq("id",selected);
+  if(visualError){setBusy(false);setError(visualError.message);return}
+  if(prog.type==="stamps"){
+   const {error:programError}=await db().from("loyalty_programs").update({
+    reward_cost:Math.min(30,Math.max(2,Number(prog.reward_cost)||8)),
+    max_stamps_per_action:Math.min(100,Math.max(1,Number(prog.max_stamps_per_action)||1)),
+    reward_label:prog.reward_label
+   }).eq("business_id",selected);
+   if(programError){setBusy(false);setError("El diseño se guardó, pero no se actualizó el programa: "+programError.message);return}
+  }
+  setBusy(false);success("Tarjeta y configuración guardadas. Los clientes verán el diseño actualizado.");await reload();
+ }
  async function reverseTransaction(transaction:Tx){
   if(transaction.kind==="reversal" || transactions.some(t=>t.reversal_of===transaction.id))return;
   const reason=window.prompt("Motivo de la corrección (8-300 caracteres). La operación original seguirá visible en el historial:");
@@ -75,7 +98,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setBusy(false);if(error){setError(error.message);return}
   success("Movimiento revertido. El saldo del cliente y el historial se han actualizado.");await reload();
  }
- async function upload(file:File|null,field:"logo_url"|"card_background"){if(!file||!selected)return;
+ async function upload(file:File|null,field:"logo_url"|"card_background"|"stamp_image_url"){if(!file||!selected)return;
   if(file.size>5*1024*1024 || !["image/png","image/jpeg","image/webp"].includes(file.type)){setError("Solo imágenes JPG, PNG o WEBP de hasta 5 MB.");return}
   setBusy(true);setError("");const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]/g,"-");
   const key=selected+"/"+Date.now()+"-"+safe;
