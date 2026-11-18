@@ -380,3 +380,11 @@
 @media(max-width:1100px){.workspace-section-layout{grid-template-columns:160px minmax(0,1fr);gap:14px}.workspace-section-menu{padding:8px}}
 @media(max-width:850px){.workspace-section-layout{display:block}.workspace-section-menu{position:relative;top:auto;display:flex;overflow-x:auto;gap:7px;margin-bottom:20px;padding:8px}.workspace-section-menu>strong{display:none}.workspace-section-menu button{white-space:nowrap;flex:none}.directory-results-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.directory-map.directory-map-primary{height:350px}.directory-results-grid .directory-card{min-height:150px}}
+
+
+/* Recompensas desbloqueadas: QR independiente de la tarjeta personal */
+.reward-claim-panel{padding:19px 18px;margin:17px 0;border:1px solid #c9dece;background:linear-gradient(140deg,#e9f5eb,#fafdf7);border-radius:18px;text-align:center;box-shadow:0 8px 20px #17462c0b}
+.reward-claim-panel>.eyebrow{font-size:10px;font-weight:900;letter-spacing:.11em;color:#36704c;margin-bottom:7px}
+.reward-claim-panel>strong{display:block;font-size:clamp(18px,2.3vw,25px);font-weight:950;line-height:1.15;letter-spacing:-.035em;color:#1d5034}
+.reward-claim-panel>p{font-size:12px;line-height:1.55;color:#567662;margin:10px auto 13px;max-width:275px}
+.reward-claim-panel .qr-box{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:15px;border:1px solid #dbe7dc;width:max-content;max-width:100%;margin:auto}
