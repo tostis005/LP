@@ -45,12 +45,12 @@ export default function Login(){
     <p>La fidelización que pone a las personas y a los pequeños negocios en el centro.</p>
     <div className="auth-stamp-illustration"><StampCard name="Café Noma" color="#31654c" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/></div>
    </div>
-   <div className="auth-story-foot">LoiaG ♡ · Tan sencillo como volver.</div>
+   <div className="auth-story-foot">Loyally ♡ · Tan sencillo como volver.</div>
   </aside>
   <section className="auth-right auth-right-compact">
    <div className="auth-mobile-logo"><Brand/></div>
    <div className="auth-form-wrap auth-choice-wrap">
-    <div className="eyebrow">BIENVENIDO A LOIAG</div>
+    <div className="eyebrow">BIENVENIDO A LOYALLY</div>
     <h2>{view==="profiles"?"Entra y explora.":mode==="login"?"Qué alegría verte.":mode==="signup"?"Encantados de conocerte.":"Recupera tu acceso."}</h2>
     <p className="auth-intro">{view==="profiles"?"Descubre la experiencia desde cada uno de los cuatro perfiles. Un toque y estarás dentro.":mode==="login"?"Accede a tu espacio con tu cuenta real.":mode==="signup"?"Crea tu cuenta para guardar tarjetas y recompensas.":"Te enviaremos las instrucciones a tu correo."}</p>
     <div className="auth-view-tabs" role="group" aria-label="Tipo de acceso">
