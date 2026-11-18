@@ -259,3 +259,8 @@
 .admin-report-row span{font-size:10px;color:#8da190;white-space:nowrap}
 .admin-report-track{height:8px;border-radius:100px;background:#edf3ec;overflow:hidden}
 .admin-report-track>div{height:100%;background:#76b184;border-radius:100px;min-width:2px}
+
+/* QR personal legible en la propia tarjeta */
+.lc-qr-live{display:flex;align-items:center;justify-content:center;flex:none;border-radius:8px;background:#fff;padding:3px;letter-spacing:0}
+.lc-qr-live svg{width:44px;height:44px;display:block}
+@media(max-width:700px){.lc-qr-live{padding:4px}.lc-qr-live svg{width:50px;height:50px}}
