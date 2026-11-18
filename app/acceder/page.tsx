@@ -18,9 +18,19 @@ export default function Login(){
  const [mode,setMode]=useState<"login"|"signup"|"forgot">("login");
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[surname,setSurname]=useState(""),[whatsapp,setWhatsapp]=useState("");
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
- function selectProfile(role:DemoRole,route:string){
-  // No se expone ningún usuario administrador real: se usa un conjunto de
-  // datos de prueba en el navegador, con los componentes de la app verdadera.
+ async function selectProfile(role:DemoRole,route:string){
+  const sandbox=process.env.NEXT_PUBLIC_LP_SANDBOX_MODE==="true";
+  const sandboxPassword=process.env.NEXT_PUBLIC_LP_SANDBOX_PASSWORD||"";
+  if(sandbox&&sandboxPassword){
+   // Solo en una base de datos aislada: los cuatro perfiles son usuarios de auth.users.
+   const email=role==="administrador"?"admin@demo.loyally.test":role==="gestor"?"gestor@demo.loyally.test":role==="empleado"?"empleado@demo.loyally.test":"cliente@demo.loyally.test";
+   leaveDemo();setMode("login");setEmail(email);setPassword(sandboxPassword);setError("");setBusy(true);
+   const {error}=await db().auth.signInWithPassword({email,password:sandboxPassword});
+   setBusy(false);if(error){setError("No se pudo iniciar la sesión de prueba: "+error.message);return}
+   router.push(route);return;
+  }
+  // En la aplicación de producción no se comparte ninguna clave de administrador.
+  // El acceso de un toque conserva un sandbox ficticio SOLO del navegador.
   enterDemo(role);router.push(route);
  }
  async function submit(e:React.FormEvent){
@@ -71,13 +81,13 @@ export default function Login(){
     <div className="auth-account-switch">{mode==="login"?<>¿Todavía no tienes cuenta? <button onClick={()=>switchMode("signup")}>Regístrate</button></>:<>¿Ya tienes cuenta? <button onClick={()=>switchMode("login")}>Iniciar sesión</button></>}</div>
     <div className="auth-quick-divider"><span>O ENTRA CON UN PERFIL DE PRUEBA</span></div>
     <div className="auth-profile-grid auth-real-routes" role="group" aria-label="Acceso rápido al interior de Loyally">
-     {profiles.map(p=><button type="button" key={p.id} onClick={()=>selectProfile(p.id,p.route)} className="auth-profile-card">
+     {profiles.map(p=><button type="button" key={p.id} onClick={()=>selectProfile(p.id,p.route)} disabled={busy} className="auth-profile-card">
       <span className={"auth-profile-icon "+p.shade}><p.icon size={23} strokeWidth={1.9}/></span>
       <span className="auth-profile-copy"><strong>{p.name}</strong><small>{p.detail}</small></span>
       <ArrowRight className="auth-profile-arrow" size={17}/>
      </button>)}
     </div>
-    <p className="auth-demo-note"><ShieldCheck size={16}/> Abre los paneles reales con información de ejemplo. Los cambios de esta prueba se quedan en tu navegador.</p>
+    <p className="auth-demo-note"><ShieldCheck size={16}/> En producción exploras datos locales ficticios. En una instalación sandbox aislada, los perfiles inician sesión contra usuarios auténticos de PostgreSQL.</p>
    </div>
   </section>
  </main>;
