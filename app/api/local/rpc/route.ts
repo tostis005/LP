@@ -1,5 +1,6 @@
 import {actorFromRequest,asActor,checkOrigin,responseError,ApiError} from "@/lib/server/db";
 import {callRpc} from "@/lib/server/data-api";
+import {notifyReward} from "@/lib/server/reward-mail";
 export const runtime="nodejs";
 export async function POST(request:Request){
  try{
@@ -9,6 +10,9 @@ export async function POST(request:Request){
   const input=JSON.parse(body) as {name:string;args:Record<string,unknown>};
   const actor=await actorFromRequest(request);
   const result=await asActor(actor,c=>callRpc(c,input.name,input.args||{}));
+  if(input.name==="staff_award_card"&&typeof input.args?.p_token==="string"){
+   try{await notifyReward(input.args.p_token)}catch(e){console.warn("Notificación de premio pendiente",e instanceof Error?e.message:"Error SMTP")}
+  }
   return Response.json(result,{"headers":{"Cache-Control":"no-store"}});
  }catch(e){return responseError(e)}
 }
