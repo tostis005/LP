@@ -32,7 +32,7 @@ export default function ResetPasswordPage(){
    <button className="button button-dark button-full" onClick={()=>router.replace("/entrar")}>Ir a mi espacio <ArrowRight size={17}/></button></>:
    <><div className="eyebrow">SEGURIDAD DE TU CUENTA</div><h1>Elige una nueva contraseña.</h1><p>Por seguridad, utiliza una contraseña que no hayas usado anteriormente.</p>
    <form className="form-stack" onSubmit={save}><label>Nueva contraseña<div className="password-input"><input required minLength={10} type={visible?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} autoComplete="new-password" placeholder="Mínimo 10 caracteres"/><button type="button" aria-label="Mostrar contraseña" onClick={()=>setVisible(v=>!v)}>{visible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>
-   <label>Repite la contraseña<input required minLength={8} type={visible?"text":"password"} value={again} onChange={e=>setAgain(e.target.value)} autoComplete="new-password" placeholder="Repite tu nueva contraseña"/></label>
+   <label>Repite la contraseña<input required minLength={10} type={visible?"text":"password"} value={again} onChange={e=>setAgain(e.target.value)} autoComplete="new-password" placeholder="Repite tu nueva contraseña"/></label>
    {error&&<div className="alert error" role="alert">{error}</div>}
    <button disabled={!verified||busy} className="button button-dark button-full">{busy?"Actualizando...":"Guardar nueva contraseña"} <ArrowRight size={17}/></button></form>
    <Link className="text-link recovery-return" href="/acceder">Volver al acceso</Link></>}
