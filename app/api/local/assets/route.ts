@@ -1,4 +1,4 @@
-import { mkdir,writeFile,unlink } from "node:fs/promises";
+import { mkdir,writeFile } from "node:fs/promises";
 import path from "node:path";
 import {actorFromRequest,asActor,ApiError,checkOrigin,responseError} from "@/lib/server/db";
 export const runtime="nodejs";
@@ -30,7 +30,7 @@ export async function POST(request:Request) {
    await client.query("INSERT INTO storage.objects(bucket_id,name) VALUES($1,$2)",[bucket,key]);
    await mkdir(dir,{recursive:true});
    try{await writeFile(full,image,{flag:"wx",mode:0o640})}
-   catch(e){await unlink(full).catch(()=>{});throw e}
+   catch(e){throw e}
   });
   return Response.json({path:key});
  }catch(e){return responseError(e)}
