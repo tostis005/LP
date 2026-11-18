@@ -38,6 +38,7 @@ export async function POST(request:Request) {
     if(action==="signInWithPassword") {
       const email=String(input.email||"").trim().toLowerCase(),password=String(input.password||"");
       if(!validateEmail(email)||!password)throw new ApiError("Email o contraseña incorrectos.",401);
+       if(email.endsWith("@demo.loyally.test")&&process.env.LP_SANDBOX_MODE!=="true")throw new ApiError("Las cuentas de prueba reales solo están habilitadas en el entorno sandbox.",403);
       await rateLimit("login:"+email,10,15);
       const r=await authPool.query("SELECT id,email,password_hash,email_confirmed_at,raw_user_meta_data FROM auth.users WHERE lower(email)=$1",[email]);
       const u=r.rows[0];
