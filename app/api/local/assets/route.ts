@@ -21,7 +21,8 @@ export async function POST(request:Request) {
   if(!match||match[2].includes(".."))throw new ApiError("Nombre de archivo no permitido.");
   if(file.size>5242880||file.size<8||!allowed.has(file.type))throw new ApiError("Solo imágenes JPG, PNG y WEBP de hasta 5 MB.");
   const ext=path.extname(match[2]).toLowerCase();
-  if(![".jpg",".jpeg",".png",".webp"].includes(ext))throw new ApiError("Extensión de archivo no permitida.");
+  const expected:Record<string,string[]>={"image/png":[".png"],"image/jpeg":[".jpg",".jpeg"],"image/webp":[".webp"]};
+  if(!expected[file.type]?.includes(ext))throw new ApiError("La extensión no coincide con el tipo de imagen.");
   const image=Buffer.from(await file.arrayBuffer());
   if(!genuine(image,file.type))throw new ApiError("El contenido no corresponde al tipo de imagen indicado.");
   const dir=path.join(process.cwd(),"uploads","business-assets",match[1]);
