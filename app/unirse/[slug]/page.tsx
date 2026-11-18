@@ -8,7 +8,7 @@ import {db,configured} from "@/lib/supabase";
 type Offer={business_id:string;business_name:string;description:string|null;accent_color:string;reward_label:string;program_type:string};
 export default function JoinPage(){
  const params=useParams<{slug:string}>(),router=useRouter(),[offer,setOffer]=useState<Offer|null>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState(false),[signed,setSigned]=useState(false);
- useEffect(()=>{async function load(){if(!configured()){setError("Supabase no configurado");setLoading(false);return}
+ useEffect(()=>{async function load(){if(!configured()){setError("No se ha podido conectar con LP");setLoading(false);return}
   const [o,u]=await Promise.all([db().rpc("find_join_business",{p_slug:params.slug}),db().auth.getUser()]);
   setSigned(!!u.data.user);if(o.error||!o.data?.length)setError("No hemos encontrado un programa activo con este enlace.");else setOffer(o.data[0] as Offer);setLoading(false)
  }load()},[params.slug]);
