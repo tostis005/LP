@@ -120,7 +120,10 @@ jobs:
           set -euo pipefail
           cd /opt/lp
           test -f .env.production
-          chmod 600 .env.production
+          if ! test -r .env.production; then
+            echo "ERROR: el usuario de despliegue no tiene permisos de lectura sobre /opt/lp/.env.production."
+            exit 1
+          fi
           for key in APP_DB_PASSWORD AUTH_DB_PASSWORD; do
             if ! grep -q "^$key=" .env.production; then
               printf '%s=%s\n' "$key" "$(openssl rand -hex 32)" >> .env.production
