@@ -6,6 +6,8 @@ import type {Account} from "@/components/AppFrame";
 import type {Business,Program,Location} from "@/lib/types";
 import {dateShort,initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
+import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
+import {StampCard} from "@/components/StampCard";
 type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Resumen",icon:<BarChart3 size={17}/>},
@@ -31,6 +33,8 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee");
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState(""),[country,setCountry]=useState("España"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState("");
+ const [previewEarned,setPreviewEarned]=useState(3),[siteOrigin,setSiteOrigin]=useState("");
+ useEffect(()=>{setSiteOrigin(window.location.origin)},[]);
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
   const [b,p,c,s,i,l,t,d,a]=await Promise.all([
@@ -65,6 +69,24 @@ export default function BusinessWorkspace({account}:{account:Account}){
  }).eq("id",prog.id);
  setBusy(false);if(error){setError(error.message);return}success("Programa actualizado. Los saldos existentes se mantienen; evita cambiar de modalidad después de admitir clientes.");await reload()
  }
+
+ async function saveDesigner(){
+  if(!biz||!prog)return;
+  setBusy(true);setError("");setNotice("");
+  const {error:visualError}=await db().from("businesses").update({
+   accent_color:biz.accent_color,card_text:biz.card_text,
+   stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
+  }).eq("id",selected);
+  if(visualError){setBusy(false);setError(visualError.message);return}
+  const programChanges:Record<string,unknown>={reward_label:prog.reward_label};
+  if(prog.type==="stamps"){
+   programChanges.reward_cost=Math.min(30,Math.max(2,Number(prog.reward_cost)||8));
+   programChanges.max_stamps_per_action=Math.min(100,Math.max(1,Number(prog.max_stamps_per_action)||1));
+  }
+  const {error:programError}=await db().from("loyalty_programs").update(programChanges).eq("business_id",selected);
+  if(programError){setBusy(false);setError("El diseño se guardó, pero no se actualizó el programa: "+programError.message);return}
+  setBusy(false);success("Tarjeta y configuración guardadas. Los clientes verán el diseño actualizado.");await reload();
+ }
  async function reverseTransaction(transaction:Tx){
   if(transaction.kind==="reversal" || transactions.some(t=>t.reversal_of===transaction.id))return;
   const reason=window.prompt("Motivo de la corrección (8-300 caracteres). La operación original seguirá visible en el historial:");
@@ -75,7 +97,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setBusy(false);if(error){setError(error.message);return}
   success("Movimiento revertido. El saldo del cliente y el historial se han actualizado.");await reload();
  }
- async function upload(file:File|null,field:"logo_url"|"card_background"){if(!file||!selected)return;
+ async function upload(file:File|null,field:"logo_url"|"card_background"|"stamp_image_url"){if(!file||!selected)return;
   if(file.size>5*1024*1024 || !["image/png","image/jpeg","image/webp"].includes(file.type)){setError("Solo imágenes JPG, PNG o WEBP de hasta 5 MB.");return}
   setBusy(true);setError("");const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]/g,"-");
   const key=selected+"/"+Date.now()+"-"+safe;
@@ -119,8 +141,34 @@ export default function BusinessWorkspace({account}:{account:Account}){
     <section className="panel-card overview-card"><div className="panel-icon"><Gift size={23}/></div><h2>Tu programa en una mirada</h2><p className="muted">Recompensas que hablan de tu negocio.</p><div className="overview-stat"><span>Modalidad</span><strong>{programType==="stamps"?"Sellos":programType==="points"?"Puntos":"Cashback"}</strong></div><div className="overview-stat"><span>Recompensa</span><strong>{prog.reward_label}</strong></div><div className="overview-stat"><span>Clientes con consentimiento comercial</span><strong>{canvassed}</strong></div><a className="button button-outline button-full" href={"/unirse/"+biz.slug} target="_blank" rel="noreferrer">Ver enlace de inscripción <ArrowUpRight size={16}/></a><Link href="/negocio/facturacion" className="button button-outline button-full">Facturación y suscripción <CreditCard size={16}/></Link><button className="button button-outline button-full" onClick={()=>setTab("program")}>Configurar programa <ArrowUpRight size={16}/></button></section></div>
    </>}
    {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>Categoría<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{["Cafetería","Restaurante","Barbería","Belleza","Tienda","Salud y bienestar","Otros"].map(v=><option key={v}>{v}</option>)}</select></label><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form><section className="panel-card"><h2>Tu identidad de marca</h2><p className="muted">Sube un logo para personalizar la tarjeta y la ficha de tu negocio.</p><div className="upload-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logo del negocio"/>:<div className="upload-logo" style={{background:biz.accent_color}}>{initials(biz.name)}</div>}</div><label className="file-input"><ImagePlus size={18}/> Subir logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label><div className="info-callout"><ShieldCheck size={18}/> Se aceptan imágenes JPG, PNG y WEBP de hasta 5 MB. Los archivos son públicos para que los clientes puedan ver la tarjeta.</div></section></div>}
-   {tab==="designer"&&<div className="designer-grid"><section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseña tu tarjeta</h2><p className="muted">Ajusta colores, frase e imagen. Todos los clientes verán el diseño actualizado en la web.</p><div className="form-stack"><label>Mensaje en la tarjeta<input value={biz.card_text||""} maxLength={60} placeholder="GRACIAS POR VOLVER" onChange={e=>setBiz({...biz,card_text:e.target.value})}/></label><div className="settings-label">Color corporativo <input type="color" value={biz.accent_color} onChange={e=>setBiz({...biz,accent_color:e.target.value})}/></div><div className="preset-palette">{["#264d3e","#7760a5","#c9784f","#273550","#a14460","#1d1d1d"].map(c=><button title={c} aria-label={"Elegir color "+c} onClick={()=>setBiz({...biz,accent_color:c})} style={{background:c}} key={c}/>)}</div><label className="file-input"><ImagePlus size={18}/> Subir imagen de fondo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"card_background")}/></label><small className="muted">La zona QR se genera individualmente y mantiene siempre un área blanca legible.</small><button className="button button-dark" disabled={busy} onClick={()=>saveBusiness({accent_color:biz.accent_color,card_text:biz.card_text})}>Guardar diseño <Check size={16}/></button></div></section>
-   <section className="panel-card designer-preview-wrap"><div className="eyebrow">VISTA PREVIA EN DIRECTO</div><div className="designer-preview" style={{backgroundColor:biz.accent_color,backgroundImage:biz.card_background?"linear-gradient(0deg,rgba(0,0,0,.4),rgba(0,0,0,.12)),url("+biz.card_background+")":undefined}}><div className="designer-card-top">{biz.logo_url?<img src={biz.logo_url} alt="Logo"/>:<span>{initials(biz.name)}</span>}<small>LOYALTY CLUB ♡</small></div><div className="designer-card-center"><small>{biz.card_text||"GRACIAS POR VOLVER"}</small><h3>{biz.name}</h3></div><div className="designer-card-bottom"><span>● ● ● ○ ○ ○</span><div className="designer-qr">▦</div></div></div><p className="tiny-note">Esta es una previsualización. Cada cliente tendrá su propio QR real al unirse. Las tarjetas de Apple/Google Wallet tendrán un diseño adaptado a las reglas de cada proveedor cuando se integren.</p></section></div>}
+
+   {tab==="designer"&&<div className="designer-grid lp-new-designer">
+    <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseña tu tarjeta</h2><p className="muted">Personaliza los sellos y sus colores. Tus clientes verán los cambios en sus tarjetas.</p>
+     <div className="form-stack">
+      <label>Mensaje en la tarjeta<input value={biz.card_text||""} maxLength={60} placeholder="GRACIAS POR VOLVER" onChange={e=>setBiz({...biz,card_text:e.target.value})}/></label>
+      <label>Nombre de la recompensa<input value={prog.reward_label} maxLength={150} onChange={e=>setProg({...prog,reward_label:e.target.value})}/></label>
+      {prog.type==="stamps"&&<div className="form-two"><label>Sellos necesarios<input type="number" min={2} max={30} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Math.min(30,Math.max(2,Number(e.target.value)||2))})}/></label><label>Máximo por compra<input type="number" min={1} max={100} value={prog.max_stamps_per_action} onChange={e=>setProg({...prog,max_stamps_per_action:Math.min(100,Math.max(1,Number(e.target.value)||1))})}/></label></div>}
+      <div className="settings-label">Color corporativo <input type="color" value={biz.accent_color} onChange={e=>setBiz({...biz,accent_color:e.target.value})}/></div>
+      <div className="preset-palette">{["#264d3e","#7760a5","#c9784f","#273550","#a14460","#1d1d1d","#367666","#a35f75"].map(c=><button type="button" title={c} aria-label={"Elegir color "+c} onClick={()=>setBiz({...biz,accent_color:c})} style={{background:c}} key={c}/>)}</div>
+      {prog.type==="stamps"&&<>
+       <strong className="lp-icon-heading">Selecciona el dibujo de los sellos</strong>
+       <div className="role-demo-icon-grid lp-real-icon-grid">{STAMP_OPTIONS.map(option=><button type="button" key={option.id} className={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url?"selected":""} aria-label={"Sello de "+option.label} aria-pressed={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url} onClick={()=>setBiz({...biz,stamp_icon:option.id,stamp_image_url:null})}><StampMark kind={option.id} size={28}/><span>{option.label}</span></button>)}</div>
+       <label className="file-input"><ImagePlus size={18}/> Subir sello propio <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"stamp_image_url")}/></label>
+       {biz.stamp_image_url&&<button type="button" className="role-demo-textbutton" onClick={()=>setBiz({...biz,stamp_image_url:null})}>Quitar imagen personalizada</button>}
+       <small className="muted">Incluye 14 iconos SVG monocromos. También puedes subir un sello en PNG, JPG o WEBP hasta 5 MB.</small>
+      </>}
+      <label className="file-input"><ImagePlus size={18}/> Subir fondo opcional <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"card_background")}/></label>
+      <button className="button button-dark button-full" disabled={busy} type="button" onClick={saveDesigner}>{busy?"Guardando...":"Guardar diseño y sellos"} <Check size={17}/></button>
+     </div>
+    </section>
+    <section className="panel-card designer-preview-wrap lp-designer-live">
+     <span className="eyebrow">VISTA PREVIA EN DIRECTO</span>
+     {prog.type==="stamps"?<StampCard name={biz.name} color={biz.accent_color} reward={prog.reward_label} total={prog.type==="stamps"?prog.reward_cost:8} earned={Math.min(previewEarned,prog.type==="stamps"?prog.reward_cost:8)} icon={biz.stamp_icon} imageUrl={biz.stamp_image_url} logoUrl={biz.logo_url} backgroundUrl={biz.card_background} message={biz.card_text} qrValue={(siteOrigin||process.env.NEXT_PUBLIC_SITE_URL||"")+"/unirse/"+biz.slug}/>:<div className="lp-other-program-preview" style={{backgroundColor:biz.accent_color}}><span>{biz.card_text||"GRACIAS POR VOLVER"}</span><h3>{biz.name}</h3><strong>{prog.type==="points"?"Programa de puntos":"Programa de cashback"}</strong><p>{prog.reward_label}</p></div>}
+     {prog.type==="stamps"&&<label className="lp-preview-range">Sellos en la vista previa: <strong>{Math.min(previewEarned,prog.reward_cost)} de {prog.reward_cost}</strong><input type="range" min={0} max={prog.reward_cost} value={Math.min(previewEarned,prog.reward_cost)} onChange={e=>setPreviewEarned(Number(e.target.value))}/></label>}
+     <p className="tiny-note">Los huecos vacíos son blancos. Cada sello ganado utiliza el icono elegido. El QR de inscripción es del negocio; cada cliente tiene otro QR personal para validar sus compras.</p>
+     <a className="button button-outline button-full" href={"/unirse/"+biz.slug} target="_blank" rel="noreferrer">Ver página de inscripción <ArrowUpRight size={17}/></a>
+    </section>
+   </div>}
    {tab==="program"&&<form className="panel-card program-form" onSubmit={saveProgram}><div className="panel-icon"><Gift size={22}/></div><h2>Tu programa de fidelización</h2><p className="muted">Elige cómo recompensar. Para evitar confusiones, configura la modalidad antes de que haya clientes inscritos.</p><div className="program-type-grid">{([{id:"stamps",label:"Sellos",desc:"Cada compra suma sellos",icon:<Ticket/>},{id:"points",label:"Puntos",desc:"Puntos por importe gastado",icon:<StarIcon/>},{id:"cashback",label:"Cashback",desc:"Porcentaje como saldo",icon:<Wallet/>}] as const).map(x=><button type="button" key={x.id} className={"program-type"+(prog.type===x.id?" selected":"")} disabled={customers.length>0&&prog.type!==x.id} onClick={()=>setProg({...prog,type:x.id})}><span>{x.icon}</span><strong>{x.label}</strong><small>{x.desc}</small></button>)}</div><div className="form-stack">
    <label>Nombre de la recompensa<input value={prog.reward_label} required onChange={e=>setProg({...prog,reward_label:e.target.value})} placeholder="Café gratis"/></label>
    {prog.type==="stamps"&&<div className="form-two"><label>Sellos necesarios para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label><label>Máx. sellos por operación<input type="number" min={1} max={100} value={prog.max_stamps_per_action} onChange={e=>setProg({...prog,max_stamps_per_action:Number(e.target.value)})}/></label></div>}

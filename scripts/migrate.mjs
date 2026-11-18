@@ -29,7 +29,8 @@ try {
   const files = [
     resolve(root,"db/migrations/000_bootstrap.sql"),
     ...readdirSync(resolve(root,"supabase/migrations")).filter(n => /^\d+_.+\.sql$/.test(n)).sort().map(n=>resolve(root,"supabase/migrations",n)),
-    resolve(root,"db/migrations/010_native.sql")
+    resolve(root,"db/migrations/010_native.sql"),
+    resolve(root,"db/migrations/020_stamp_design.sql")
   ];
   for (const path of files) {
     const name = path.split("/").at(-1);
