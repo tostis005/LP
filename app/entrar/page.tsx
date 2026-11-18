@@ -15,8 +15,8 @@ useEffect(()=>{async function route(){try{
  }
  const [admins,members]=await Promise.all([db().from("platform_admins").select("user_id").eq("user_id",user.id).maybeSingle(),db().from("business_members").select("role").eq("user_id",user.id).eq("active",true)]);
  if(admins.data){router.replace("/admin");return}
- if((members.data||[]).some(x=>x.role==="owner"||x.role==="manager")){router.replace("/negocio");return}
- if((members.data||[]).some(x=>x.role==="employee")){router.replace("/empleado");return}
+ if(((members.data||[]) as {role:string}[]).some(x=>x.role==="owner"||x.role==="manager")){router.replace("/negocio");return}
+ if(((members.data||[]) as {role:string}[]).some(x=>x.role==="employee")){router.replace("/empleado");return}
  router.replace("/app");
  }catch(e){setError((e as Error).message)}}route()},[router]);
 return <div className="loading-screen">{error||"Preparando tu espacio..."}</div>}
