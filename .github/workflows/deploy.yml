@@ -1,0 +1,41 @@
+name: Deploy LP (manual hasta completar PostgreSQL)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: lp-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configurar SSH con host verificado
+        env:
+          LP_SSH_PRIVATE_KEY: ${{ secrets.LP_SSH_PRIVATE_KEY }}
+          LP_SSH_KNOWN_HOSTS: ${{ secrets.LP_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$LP_SSH_PRIVATE_KEY"
+          test -n "$LP_SSH_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$LP_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$LP_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Actualizar LP en Contabo
+        env:
+          LP_SSH_HOST: ${{ secrets.LP_SSH_HOST }}
+          LP_SSH_USER: ${{ secrets.LP_SSH_USER }}
+        run: |
+          set -euo pipefail
+          test -n "$LP_SSH_HOST"
+          test -n "$LP_SSH_USER"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$LP_SSH_USER@$LP_SSH_HOST" \
+            "set -eu; cd /opt/lp; git checkout main; git pull --ff-only origin main; docker compose --env-file .env.production config --quiet; docker compose --env-file .env.production up -d --build --remove-orphans"
