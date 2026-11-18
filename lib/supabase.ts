@@ -2,6 +2,7 @@
 
 // Ruta histórica de importación; NO utiliza SDK, Auth ni Storage de Supabase.
 // Todas las operaciones pasan por el backend local, que aplica RLS en PostgreSQL.
+import {demoDb,demoRole} from "@/lib/demo-local";
 export type User={id:string;email?:string;user_metadata?:{full_name?:string}};
 type Result<T=any>={data:T;error:Error|null;count?:number};
 type Filter={op:"eq"|"is"|"in";field:string;value:unknown};
@@ -67,4 +68,4 @@ const storage={
 };
 const localDb={auth,storage,from:(table:string)=>new Query(table),rpc:(name:string,args:Record<string,unknown>={})=>post("/api/local/rpc",{name,args})};
 export function configured(){return true}
-export function db(){return localDb}
+export function db(){return demoRole()?(demoDb as unknown as typeof localDb):localDb}
