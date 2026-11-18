@@ -40,3 +40,13 @@
 .recovery-card h1{font-size:31px;line-height:1.18;margin-bottom:12px}.recovery-card>p{font-size:13px;line-height:1.8;color:#829084;margin-bottom:25px}
 .recovery-return{margin-top:24px;display:inline-flex}
 @media(max-width:520px){.recovery-page{padding:18px}.recovery-card{margin:55px auto;padding:26px}.recovery-card h1{font-size:27px}}
+
+.billing-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:20px;align-items:start}
+.billing-plan{background:linear-gradient(145deg,#fff,#f4f8f2);border-color:#d6e7d5}
+.billing-plan h2{font-size:29px;max-width:470px;line-height:1.24}
+.billing-price{font-size:39px;font-weight:800;letter-spacing:-.07em;margin:19px 0 16px;color:#254d38}
+.billing-price span{font-size:12px;letter-spacing:0;color:#849789;font-weight:600}
+.billing-status{display:flex;justify-content:space-between;align-items:center;gap:20px;border-top:1px solid #e3ebe0;padding:17px 0;font-size:12px}
+.billing-status span{color:#8b9c8d}.billing-status strong{color:#365843}
+.billing-plan .button{margin-top:22px}
+@media(max-width:900px){.billing-grid{grid-template-columns:1fr}}@media(max-width:480px){.billing-price{font-size:31px}.billing-plan h2{font-size:24px}}
