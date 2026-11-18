@@ -16,7 +16,7 @@ const profiles=[
 export default function Login(){
  const router=useRouter();
  const [mode,setMode]=useState<"login"|"signup"|"forgot">("login");
- const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState("");
+ const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[surname,setSurname]=useState(""),[whatsapp,setWhatsapp]=useState("");
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
  function selectProfile(role:DemoRole,route:string){
   // No se expone ningún usuario administrador real: se usa un conjunto de
@@ -32,7 +32,7 @@ export default function Login(){
     const {error}=await db().auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/auth/callback?next=password"});
     if(error)throw error;setMessage("Te hemos enviado un email para recuperar tu contraseña.");
    }else if(mode==="signup"){
-    const {data,error}=await db().auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:window.location.origin+"/auth/callback"}});
+    const {data,error}=await db().auth.signUp({email,password,options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim()},emailRedirectTo:window.location.origin+"/auth/callback"}});
     if(error)throw error;
     if(data.session)router.push("/entrar");else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");
    }else{
@@ -58,9 +58,9 @@ export default function Login(){
    <div className="auth-form-wrap auth-choice-wrap auth-full-login">
     <div className="eyebrow">BIENVENIDO A LOYALLY</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
-    <p className="auth-intro">{mode==="login"?"Inicia sesión con tu cuenta o explora cualquiera de los cuatro perfiles con un solo toque.":mode==="signup"?"Guarda tus tarjetas y descubre recompensas cerca de ti.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
+    <p className="auth-intro">{mode==="login"?"Inicia sesión con tu cuenta o explora cualquiera de los cuatro perfiles de demostración.":mode==="signup"?"Un registro sirve para todas tus tarjetas. Tu correo y WhatsApp nos ayudarán a avisarte cuando tengas una recompensa.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
     <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
-     {mode==="signup"&&<label>Nombre completo<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Tu nombre"/></label>}
+     {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div><label>WhatsApp (con prefijo de país)<input value={whatsapp} type="tel" inputMode="tel" autoComplete="tel" onChange={e=>setWhatsapp(e.target.value)} placeholder="+52 664 123 4567" required pattern="\\+[1-9][0-9]{7,14}" title="Escribe + y entre 8 y 15 dígitos, sin espacios"/><small>Utilizaremos estos datos para avisarte de las recompensas y premios que consigas. Las comunicaciones comerciales son opcionales.</small></label></>}
      <label>Correo electrónico<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>
      {mode!=="forgot"&&<label>Contraseña<div className="password-input"><input value={password} type={visible?"text":"password"} onChange={e=>setPassword(e.target.value)} required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} placeholder="Tu contraseña"/><button type="button" aria-label={visible?"Ocultar contraseña":"Mostrar contraseña"} onClick={()=>setVisible(v=>!v)}>{visible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>}
      {mode==="login"&&<button className="inline-action forgot-action" type="button" onClick={()=>switchMode("forgot")}>¿Olvidaste la contraseña?</button>}
