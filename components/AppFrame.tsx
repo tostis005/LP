@@ -43,6 +43,11 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  if(!user)return <div className="loading-screen">Redirigiendo al acceso...</div>;
  if(!allowed)return <div className="empty-page"><h2>Esta zona es privada</h2><p>No tienes permisos para acceder a esta sección.</p><Link className="button button-dark" href="/app">Volver a mis tarjetas</Link></div>;
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
+ const mobileItems=[
+  ...menus.customer,
+  ...(roles.some(x=>x.role!=="employee")?[{href:"/negocio",label:"Negocio",icon:<Store size={19}/>}]:roles.length?[{href:"/empleado",label:"Escáner",icon:<ScanLine size={19}/>}]:[]),
+  ...(admin?[{href:"/admin",label:"Admin",icon:<Shield size={19}/>}]:[])
+ ];
  return <div className="workspace">
   <aside className="sidebar"><div className="sidebar-brand"><Brand/></div><div className="sidebar-caption">TU ESPACIO</div><nav className="side-links">
    {menus[area].map(i=><Link key={i.href} href={i.href} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
@@ -52,6 +57,9 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
   </aside>
   <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> LP / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user"><span>{user.email||"Mi cuenta"}</span><div className="user-avatar">{(user.email||"U").slice(0,1).toUpperCase()}</div></div></header>
    <div className="workspace-content"><div className="workspace-title"><div><p className="page-eyebrow">TU ESPACIO, A TU MANERA</p><h1>{title}</h1><p>{subtitle}</p></div></div>{children(account)}</div>
+   <nav className="mobile-bottom-nav" aria-label="Navegación de la aplicación">
+    {mobileItems.map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"mobile-bottom-link"+(pathname===i.href?" active":"")}>{i.icon}<span>{i.label}</span></Link>)}
+   </nav>
   </div>
  </div>;
 }
