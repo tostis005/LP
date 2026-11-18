@@ -12,7 +12,7 @@ type Found={membership_id:string;business_id:string;business_name:string;custome
 function StaffMain({account}:{account:Account}){
  const params=useSearchParams(),[input,setInput]=useState(""),[card,setCard]=useState<Found|null>(null),[receipt,setReceipt]=useState(""),[stamps,setStamps]=useState(1),[amount,setAmount]=useState(""),[cash,setCash]=useState(""),[busy,setBusy]=useState(false),[scanner,setScanner]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
  const video=useRef<HTMLVideoElement>(null),controls=useRef<IScannerControls|null>(null);
- const lookup=useCallback(async(raw:string)=>{const voucherUrl=raw.match(/\\/p\\/([a-f0-9-]{36})/i);
+ const lookup=useCallback(async(raw:string)=>{const voucherUrl=raw.match(/\/p\/([a-f0-9-]{36})/i);
   const token=voucherUrl?.[1]||normalizeToken(raw);setError("");setSuccess("");
   if(!token){setError("El código QR o identificador no es válido.");return}
   setInput(token);
