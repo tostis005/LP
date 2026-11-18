@@ -4,6 +4,8 @@ out
 .env
 .env.*
 !.env.example
+!.env.production.example
 *.tsbuildinfo
 .DS_Store
 coverage
+backups/

@@ -1,0 +1,84 @@
+# LP es independiente de HOME. PostgreSQL privado, sin puertos 5432 públicos.
+name: lp
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Falta POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Falta POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    stop_grace_period: 60s
+    networks: [lp_private]
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    restart: "no"
+    environment:
+      PGHOST: db
+      POSTGRES_DB: ${POSTGRES_DB:?Falta POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Falta POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD}
+      AUTH_DB_PASSWORD: ${AUTH_DB_PASSWORD:?Falta AUTH_DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [lp_private]
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Falta NEXT_PUBLIC_SITE_URL}
+    restart: unless-stopped
+    init: true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Falta NEXT_PUBLIC_SITE_URL}
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB:?Falta POSTGRES_DB}
+      PGUSER: lp_api
+      PGPASSWORD: ${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD}
+      AUTH_PGUSER: lp_auth
+      AUTH_PGPASSWORD: ${AUTH_DB_PASSWORD:?Falta AUTH_DB_PASSWORD}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_BUSINESS: ${STRIPE_PRICE_BUSINESS:-}
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "127.0.0.1:3100:3000"
+    networks: [lp_private]
+
+networks:
+  lp_private:
+
+volumes:
+  postgres_data:
+  uploads:

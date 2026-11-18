@@ -1,62 +1,59 @@
-name: LP — Typecheck, build and SQL integrity
+name: LP - Calidad y PostgreSQL nativo
 
 on:
   push:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Node 22
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - name: Install dependencies
+          node-version: "22"
+      - name: Instalar dependencias
         run: npm install --no-audit --no-fund
-      - name: TypeScript
+      - name: Comprobar TypeScript
         run: npm run typecheck
-      - name: Next.js build
+      - name: Construir Next.js
         run: npm run build
 
-  database:
+  postgres:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17-alpine
         env:
+          POSTGRES_DB: lp_test
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: loyalty_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d loyalty_test"
+          --health-cmd "pg_isready -U postgres -d lp_test"
           --health-interval 5s
           --health-timeout 5s
-          --health-retries 10
+          --health-retries 15
     env:
       PGHOST: 127.0.0.1
-      PGPORT: 5432
-      PGUSER: postgres
-      PGPASSWORD: postgres
-      PGDATABASE: loyalty_test
+      PGPORT: "5432"
+      POSTGRES_DB: lp_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      APP_DB_PASSWORD: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      AUTH_DB_PASSWORD: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     steps:
       - uses: actions/checkout@v4
-      - name: Install PostgreSQL client
-        run: |
-          command -v psql || (sudo apt-get update -qq && sudo apt-get install -y postgresql-client)
-      - name: Supabase schema fixtures
-        run: psql -v ON_ERROR_STOP=1 -f tests/sql/bootstrap.sql
-      - name: Apply all database migrations
-        run: |
-          for sql in supabase/migrations/*.sql; do
-            echo "Applying ${sql}"
-            psql -v ON_ERROR_STOP=1 -f "$sql"
-          done
-          psql -v ON_ERROR_STOP=1 -f tests/sql/grants.sql
-      - name: Exercise roles, purchases, limits and reversals
-        run: psql -v ON_ERROR_STOP=1 -f tests/sql/smoke.sql
-
-# No production deploys, no contact with HOME or Contabo.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Instalar cliente PostgreSQL
+        run: npm install --no-audit --no-fund
+      - name: Aplicar migraciones nativas
+        run: npm run db:migrate
+      - name: Verificar aislamiento de roles
+        run: node tests/native/smoke.mjs

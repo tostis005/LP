@@ -2,7 +2,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
+import type { User } from "@/lib/supabase";
 import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, Store, UserRound, ArrowUpRight } from "lucide-react";
 import { Brand } from "@/components/Brand";
 import { configured, db } from "@/lib/supabase";
@@ -21,7 +21,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[version,setVersion]=useState(0);
  useEffect(()=>{let live=true;
   async function load(){
-   if(!configured()){if(live){setError("Configura Supabase para activar las funciones reales. Consulta docs/SETUP.md o entra en la demo.");setLoading(false)}return}
+   if(!configured()){if(live){setError("No se ha podido conectar con el servidor LP. Comprueba la base de datos.");setLoading(false)}return}
    try{
     const auth=await db().auth.getUser(); if(auth.error) throw auth.error;
     if(!auth.data.user){if(live){setLoading(false);router.replace("/acceder")}return}

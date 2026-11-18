@@ -1,0 +1,126 @@
+name: Desplegar LP automaticamente en Contabo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lp-production
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Build de Next.js
+        run: npm run build
+
+  verificar-postgresql:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: lp_test
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d lp_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      POSTGRES_DB: lp_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      APP_DB_PASSWORD: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      AUTH_DB_PASSWORD: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install --no-audit --no-fund
+      - name: Migraciones
+        run: npm run db:migrate
+      - name: Comprobar aislamiento de datos
+        run: node tests/native/smoke.mjs
+
+  desplegar:
+    if: github.ref == 'refs/heads/main'
+    needs: [verificar, verificar-postgresql]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Configurar clave SSH y host verificado
+        env:
+          LP_SSH_PRIVATE_KEY: ${{ secrets.LP_SSH_PRIVATE_KEY }}
+          LP_SSH_KNOWN_HOSTS: ${{ secrets.LP_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$LP_SSH_PRIVATE_KEY"
+          test -n "$LP_SSH_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$LP_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$LP_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Publicar únicamente LP en Contabo
+        env:
+          LP_SSH_HOST: ${{ secrets.LP_SSH_HOST }}
+          LP_SSH_USER: ${{ secrets.LP_SSH_USER }}
+          LP_SSH_PORT: ${{ secrets.LP_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          test -n "$LP_SSH_HOST"
+          test -n "$LP_SSH_USER"
+          PORT="${LP_SSH_PORT:-22}"
+          ssh -p "$PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 "$LP_SSH_USER@$LP_SSH_HOST" 'bash -se' <<'REMOTE'
+          set -euo pipefail
+          cd /opt/lp
+          test -f .env.production
+          # Las claves del servicio y autenticación se generan SOLO en el VPS
+          # en el primer despliegue; nunca se imprimen en Actions.
+          chmod 600 .env.production
+          for key in APP_DB_PASSWORD AUTH_DB_PASSWORD; do
+            if ! grep -q "^$key=" .env.production; then
+              printf '%s=%s\n' "$key" "$(openssl rand -hex 32)" >> .env.production
+            fi
+          done
+          git fetch --no-tags origin main
+          if git show-ref --verify --quiet refs/heads/main; then
+            git switch main
+          else
+            git switch -c main --track origin/main
+          fi
+          git pull --ff-only origin main
+          docker compose --env-file .env.production config --quiet
+          docker compose --env-file .env.production up -d --build --remove-orphans
+          for i in $(seq 1 40); do
+            if curl -fsS --max-time 5 http://127.0.0.1:3100/api/health >/dev/null; then
+              echo "LP responde correctamente en el puerto 3100."
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "LP no superó la comprobación de salud."
+          docker compose --env-file .env.production ps
+          docker compose --env-file .env.production logs --tail 100 web
+          exit 1
+          REMOTE
