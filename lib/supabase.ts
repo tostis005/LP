@@ -6,7 +6,7 @@ export type User={id:string;email?:string;user_metadata?:{full_name?:string}};
 type Result<T=any>={data:T;error:Error|null;count?:number};
 type Filter={op:"eq"|"is"|"in";field:string;value:unknown};
 function err(message:string):Error{return new Error(message)}
-async function post<T=any>(endpoint:string,payload:Record<string,unknown>):Promise<Result<T>>{
+async function post<T=any>(endpoint:string,payload:object):Promise<Result<T>>{
  try{
   const response=await fetch(endpoint,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),cache:"no-store"});
   const body=await response.json() as {data?:T;error?:string;count?:number};
