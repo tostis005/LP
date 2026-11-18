@@ -252,3 +252,10 @@
  .auth-compact .auth-story h1{font-size:42px}
  .auth-compact .auth-profile-card{min-height:82px}
 }
+
+.admin-report-row{display:grid;gap:7px;padding:14px 0;border-bottom:1px solid #edf1ed}
+.admin-report-row>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.admin-report-row strong{font-size:12px;color:#31503a;line-height:1.4}
+.admin-report-row span{font-size:10px;color:#8da190;white-space:nowrap}
+.admin-report-track{height:8px;border-radius:100px;background:#edf3ec;overflow:hidden}
+.admin-report-track>div{height:100%;background:#76b184;border-radius:100px;min-width:2px}
