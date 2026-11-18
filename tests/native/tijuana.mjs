@@ -22,8 +22,8 @@ try{
  const gone=await a.query("SELECT * FROM public.staff_lookup_voucher($1)",[voucher.rows[0].token]);
  check(gone.rowCount===0,"QR no se puede volver a utilizar");
  await a.query("COMMIT");
- await a.query("BEGIN");await a.query("SET LOCAL ROLE authenticated");
  const admin=await a.query("SELECT id FROM auth.users WHERE email='admin@demo.loyally.test'");
+ await a.query("BEGIN");await a.query("SET LOCAL ROLE authenticated");
  await a.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[admin.rows[0].id]);
  const dir=await a.query("SELECT * FROM public.business_customer_directory($1)",[voucher.rows[0].business_id]);
  check(dir.rows.some(x=>x.email.includes("***")),"los emails de clientes deben estar enmascarados");
