@@ -11,7 +11,7 @@ export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; 
 type Area = "customer" | "business" | "staff" | "admin";
 const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
  customer:[{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<Compass size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<UserRound size={18}/>}],
- business:[{href:"/negocio",label:"Mi negocio",icon:<LayoutDashboard size={18}/>},{href:"/empleado",label:"Escáner",icon:<ScanLine size={18}/>},{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>}],
+ business:[{href:"/negocio",label:"Mi negocio",icon:<LayoutDashboard size={18}/>},{href:"/negocio/facturacion",label:"Facturación",icon:<CreditCard size={18}/>},{href:"/empleado",label:"Escáner",icon:<ScanLine size={18}/>},{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>}],
  staff:[{href:"/empleado",label:"Escanear tarjetas",icon:<ScanLine size={18}/>},{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>}],
  admin:[{href:"/admin",label:"Administración",icon:<Shield size={18}/>},{href:"/negocio",label:"Negocios",icon:<Store size={18}/>},{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>}]
 };
