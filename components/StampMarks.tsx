@@ -30,12 +30,12 @@ export function StampMark({kind=DEFAULT_STAMP,size=30}:{kind?:string|null;size?:
   {k==="donut"&&<><circle cx="32" cy="32" r="25"/><circle cx="32" cy="32" r="9"/><path d="M12 20c5-6 8 3 14-3 4-4 7-2 11 0 5 3 7-4 14 2M11 40c8 2 7-5 13-4m18 6c5-1 7-5 10-8M22 52l3-4m18-19 4-2"/></>}
  </svg>;
 }
-export function StampGrid({total,earned,kind=DEFAULT_STAMP,imageUrl,className=""}:{total:number;earned:number;kind?:string|null;imageUrl?:string|null;className?:string}){
+export function StampGrid({total,earned,kind=DEFAULT_STAMP,imageUrl,color,className=""}:{total:number;earned:number;kind?:string|null;imageUrl?:string|null;color?:string|null;className?:string}){
  const count=Math.min(30,Math.max(1,Math.floor(Number(total)||8)));
  const filled=Math.max(0,Math.floor(Number(earned)||0));
  const cols=count<=6?count:Math.min(6,Math.ceil(count/Math.ceil(count/6)));
  return <div className={"stamp-grid "+className} role="img" aria-label={Math.min(filled,count)+" de "+count+" sellos"} style={{"--stamp-columns":String(cols)} as CSSProperties}>
-  {Array.from({length:count},(_,i)=><div className={"stamp-slot"+(i<filled?" is-filled":"")} key={i}>
+  {Array.from({length:count},(_,i)=><div className={"stamp-slot"+(i<filled?" is-filled":"")} key={i} style={i<filled&&color?{color}:undefined}>
    {i<filled&&(imageUrl?<img src={imageUrl} alt="" loading="lazy"/>:<StampMark kind={kind} size={24}/>)}
   </div>)}
  </div>;
