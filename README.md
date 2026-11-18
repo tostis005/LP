@@ -1,22 +1,31 @@
-# LP — Loyalty Platform
+# LP — Loyally
 
-Plataforma SaaS multiempresa de fidelización. Repositorio independiente de HOME.
+Plataforma de fidelización SaaS multiempresa, alojada en tu propio servidor
+con Next.js 15, PostgreSQL 17 local y Docker. No requiere Supabase.
 
-## Stack
-Next.js (App Router) + TypeScript + Supabase (Auth, PostgreSQL, RLS) + React + CSS moderno.
+Incluye landing comercial, tarjetas QR, programas de sellos, puntos y
+cashback; paneles de negocio, empleado, cliente y superadministración;
+invitaciones, directorio geográfico, estadísticas, reversión auditable
+de operaciones, activos de negocio y facturación Stripe opcional.
 
-## Estado
-Primera fase: experiencia visual, autenticación, paneles de cliente/negocio/empleado/superadministración, programas de sellos/puntos/cashback, historial, control de operaciones, directorio geográfico, estructura de permisos y campañas.
+La base de datos utiliza funciones PostgreSQL transaccionales y políticas
+RLS por negocio. La API de Next.js emplea dos roles de conexión sin
+privilegios de superusuario, y la autenticación utiliza sesiones HttpOnly
+y contraseñas scrypt, con verificación y recuperación mediante SMTP.
 
-## Inicio
-1. Copia `.env.example` a `.env.local` y configura Supabase.
-2. Ejecuta las migraciones SQL de `supabase/migrations` en orden desde Supabase SQL Editor.
-3. `npm install && npm run dev`.
-4. Registra un usuario y asígnale superadministración desde el SQL Editor usando el comando indicado en `docs/SETUP.md`.
-5. Abre `/demo` para explorar el diseño sin conexión ni datos reales.
+La carpeta supabase/migrations conserva el modelo SQL original, que el
+migrador combina con un bootstrap nativo para auth y storage, pero no
+despliega ni se conecta al servicio Supabase.
 
-### Seguridad
-No almacenar claves privadas en Git. Las operaciones de fidelización usan funciones PostgreSQL con comprobaciones de rol y límites. El código QR identifica una tarjeta, pero **no verifica una compra**: siempre se valida por un empleado autenticado; integraciones TPV son una mejora futura.
+## Despliegue
 
-### Entorno de producción
-Por ahora **NO se despliega nada**. HOME, su WordPress, sus datos y su GitHub Action permanecen intactos. LP tendrá un Docker y despliegue independientes en una fase posterior.
+Lee docs/DEPLOY_POSTGRES.md para los pasos de Contabo, migraciones, Caddy,
+configuración SMTP, credenciales del primer administrador, copias de
+seguridad y verificación de salud del servicio.
+
+## Pendiente antes del lanzamiento comercial
+
+Configurar SMTP, validar HTTPS sobre la IP, comprobar tests e integración,
+configurar Stripe si se van a cobrar suscripciones y planificar backups
+externos. Google/Apple OAuth y el envío masivo de campañas no están
+implementados; el mailing solo guarda borradores.
