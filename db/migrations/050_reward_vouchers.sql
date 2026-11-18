@@ -84,6 +84,5 @@ END $$;
 REVOKE ALL ON FUNCTION public.staff_redeem_voucher(uuid) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.staff_redeem_voucher(uuid) TO authenticated;
 
--- El servicio transaccional solamente puede leer los datos necesarios para los avisos.
-GRANT SELECT,UPDATE(email_sent_at,email_reserved_at) ON public.reward_vouchers TO lp_auth;
-GRANT SELECT ON public.loyalty_memberships,public.businesses TO lp_auth;
+-- El rol de autenticación NO tiene acceso directo al catálogo ni a los datos comerciales.
+-- Las notificaciones utilizarán funciones SECURITY DEFINER de alcance mínimo.
