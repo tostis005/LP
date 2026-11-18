@@ -59,3 +59,10 @@ jobs:
         run: npm run db:migrate
       - name: Verificar aislamiento de roles
         run: node tests/native/smoke.mjs
+      - name: Crear sandbox real de Tijuana y verificar QR, privacidad y tarifas
+        env:
+          LP_SANDBOX_MODE: "true"
+          LP_DEMO_PASSWORD: "Prueba-Loyally-2026-Solo-CI!"
+        run: |
+          npm run db:seed:tijuana
+          node tests/native/tijuana.mjs
