@@ -228,6 +228,12 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
    case "admin_user_directory":result=role==="administrador"?ok(userDirectory(state)):fail("Solo disponible para administración.");break;
    case "business_customer_directory":result=manager?ok(customerDirectory(state,biz)):fail("Acceso denegado.");break;
    case "business_staff_directory":result=manager?ok(memberDirectory(state,biz)):fail("Acceso denegado.");break;
+   case "business_mail_quote":{
+    if(!manager){result=fail("Acceso denegado.");break}
+    const contacts=customerDirectory(state,biz).filter(v=>v.marketing_ok).length;
+    result=ok([{contacts,price_cents:1,total_cents:contacts,currency:"MXN"}]);
+    break;
+   }
    case "business_employee_activity":{
     const tx=table.loyalty_transactions.filter(t=>t.business_id===biz&&t.kind==="earn");
     const memberIds=[...new Set(tx.map(t=>t.employee_id))];
