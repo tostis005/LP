@@ -1,25 +1,31 @@
 "use client";
 import {useState} from "react";
-import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {ArrowRight,CheckCircle2,Eye,EyeOff,LockKeyhole,ScanLine,ShieldCheck,Sparkles,Store,UserRound} from "lucide-react";
 import {Brand} from "@/components/Brand";
 import {StampCard} from "@/components/StampCard";
+import {enterDemo,leaveDemo,type DemoRole} from "@/lib/demo-local";
 import {configured,db} from "@/lib/supabase";
 
 const profiles=[
- {id:"administrador",name:"Administrador",detail:"Todos los negocios, usuarios e informes",icon:ShieldCheck,shade:"mint"},
- {id:"gestor",name:"Dueño del negocio",detail:"Clientes, tarjetas y configuración",icon:Store,shade:"sand"},
- {id:"empleado",name:"Personal de atención",detail:"Escanear QR, dar sellos y canjear",icon:ScanLine,shade:"lavender"},
- {id:"cliente",name:"Cliente final",detail:"Mis tarjetas, sellos y premios",icon:UserRound,shade:"rose"}
-] as const;
+ {id:"administrador" as const,name:"Administrador",detail:"Negocios, usuarios y reportes",icon:ShieldCheck,shade:"mint",route:"/admin"},
+ {id:"gestor" as const,name:"Dueño del negocio",detail:"Panel, tarjetas y clientes",icon:Store,shade:"sand",route:"/negocio"},
+ {id:"empleado" as const,name:"Personal del local",detail:"Escanear QR y entregar sellos",icon:ScanLine,shade:"lavender",route:"/empleado"},
+ {id:"cliente" as const,name:"Cliente",detail:"Mis tarjetas y recompensas",icon:UserRound,shade:"rose",route:"/app"}
+];
 export default function Login(){
  const router=useRouter();
- const [view,setView]=useState<"profiles"|"account">("profiles"),[mode,setMode]=useState<"login"|"signup"|"forgot">("login");
+ const [mode,setMode]=useState<"login"|"signup"|"forgot">("login");
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState("");
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
+ function selectProfile(role:DemoRole,route:string){
+  // No se expone ningún usuario administrador real: se usa un conjunto de
+  // datos de prueba en el navegador, con los componentes de la app verdadera.
+  enterDemo(role);router.push(route);
+ }
  async function submit(e:React.FormEvent){
   e.preventDefault();setBusy(true);setError("");setMessage("");
+  leaveDemo(); // El login por email siempre debe utilizar el servidor real.
   try{
    if(!configured())throw new Error("El servidor todavía no está disponible.");
    if(mode==="forgot"){
@@ -35,8 +41,8 @@ export default function Login(){
    }
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
- function changeView(next:"profiles"|"account"){setView(next);setError("");setMessage("")}
- return <main className="auth-layout auth-compact">
+ function switchMode(next:typeof mode){setMode(next);setError("");setMessage("")}
+ return <main className="auth-layout auth-compact auth-all-access">
   <aside className="auth-story auth-story-compact">
    <Brand light/>
    <div className="auth-story-inner">
@@ -49,29 +55,29 @@ export default function Login(){
   </aside>
   <section className="auth-right auth-right-compact">
    <div className="auth-mobile-logo"><Brand/></div>
-   <div className="auth-form-wrap auth-choice-wrap">
+   <div className="auth-form-wrap auth-choice-wrap auth-full-login">
     <div className="eyebrow">BIENVENIDO A LOYALLY</div>
-    <h2>{view==="profiles"?"Entra y explora.":mode==="login"?"Qué alegría verte.":mode==="signup"?"Encantados de conocerte.":"Recupera tu acceso."}</h2>
-    <p className="auth-intro">{view==="profiles"?"Descubre la experiencia desde cada uno de los cuatro perfiles. Un toque y estarás dentro.":mode==="login"?"Accede a tu espacio con tu cuenta real.":mode==="signup"?"Crea tu cuenta para guardar tarjetas y recompensas.":"Te enviaremos las instrucciones a tu correo."}</p>
-    <div className="auth-view-tabs" role="group" aria-label="Tipo de acceso">
-     <button className={view==="profiles"?"active":""} onClick={()=>changeView("profiles")} type="button">Probar perfiles</button>
-     <button className={view==="account"?"active":""} onClick={()=>changeView("account")} type="button"><LockKeyhole size={14}/> Mi cuenta</button>
+    <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
+    <p className="auth-intro">{mode==="login"?"Inicia sesión con tu cuenta o explora cualquiera de los cuatro perfiles con un solo toque.":mode==="signup"?"Guarda tus tarjetas y descubre recompensas cerca de ti.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
+    <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
+     {mode==="signup"&&<label>Nombre completo<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Tu nombre"/></label>}
+     <label>Correo electrónico<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>
+     {mode!=="forgot"&&<label>Contraseña<div className="password-input"><input value={password} type={visible?"text":"password"} onChange={e=>setPassword(e.target.value)} required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} placeholder="Tu contraseña"/><button type="button" aria-label={visible?"Ocultar contraseña":"Mostrar contraseña"} onClick={()=>setVisible(v=>!v)}>{visible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>}
+     {mode==="login"&&<button className="inline-action forgot-action" type="button" onClick={()=>switchMode("forgot")}>¿Olvidaste la contraseña?</button>}
+     {error&&<div className="alert error" role="alert">{error}</div>}
+     {message&&<div className="alert success"><CheckCircle2 size={18}/>{message}</div>}
+     <button type="submit" disabled={busy} className="button button-dark button-full">{busy?"Procesando...":mode==="login"?"Iniciar sesión":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"} <ArrowRight size={18}/></button>
+    </form>
+    <div className="auth-account-switch">{mode==="login"?<>¿Todavía no tienes cuenta? <button onClick={()=>switchMode("signup")}>Regístrate</button></>:<>¿Ya tienes cuenta? <button onClick={()=>switchMode("login")}>Iniciar sesión</button></>}</div>
+    <div className="auth-quick-divider"><span>O ENTRA CON UN PERFIL DE PRUEBA</span></div>
+    <div className="auth-profile-grid auth-real-routes" role="group" aria-label="Acceso rápido al interior de Loyally">
+     {profiles.map(p=><button type="button" key={p.id} onClick={()=>selectProfile(p.id,p.route)} className="auth-profile-card">
+      <span className={"auth-profile-icon "+p.shade}><p.icon size={23} strokeWidth={1.9}/></span>
+      <span className="auth-profile-copy"><strong>{p.name}</strong><small>{p.detail}</small></span>
+      <ArrowRight className="auth-profile-arrow" size={17}/>
+     </button>)}
     </div>
-    {view==="profiles"?<>
-     <div className="auth-profile-grid">{profiles.map(p=><Link key={p.id} href={"/demo?perfil="+p.id} className="auth-profile-card"><span className={"auth-profile-icon "+p.shade}><p.icon size={24} strokeWidth={1.9}/></span><span className="auth-profile-copy"><strong>{p.name}</strong><small>{p.detail}</small></span><ArrowRight className="auth-profile-arrow" size={17}/></Link>)}</div>
-     <p className="auth-demo-note"><ShieldCheck size={16}/> Accesos de prueba con datos ficticios. No conceden permisos reales ni registran compras.</p>
-    </>:<>
-     <form onSubmit={submit} className="form-stack auth-login-form">
-      {mode==="signup"&&<label>Nombre completo<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Tu nombre"/></label>}
-      <label>Email<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>
-      {mode!=="forgot"&&<label>Contraseña<div className="password-input"><input value={password} type={visible?"text":"password"} onChange={e=>setPassword(e.target.value)} required minLength={mode==="login"?1:10} autoComplete={mode==="signup"?"new-password":"current-password"} placeholder="Tu contraseña"/><button type="button" aria-label={visible?"Ocultar contraseña":"Mostrar contraseña"} onClick={()=>setVisible(!visible)}>{visible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>}
-      {mode==="login"&&<button className="inline-action forgot-action" type="button" onClick={()=>{setMode("forgot");setError("");setMessage("")}}>¿Olvidaste tu contraseña?</button>}
-      {error&&<div className="alert error" role="alert">{error}</div>}{message&&<div className="alert success"><CheckCircle2 size={18}/>{message}</div>}
-      <button type="submit" disabled={busy} className="button button-dark button-full">{busy?"Procesando...":mode==="login"?"Entrar en mi cuenta":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"} <ArrowRight size={18}/></button>
-     </form>
-     <div className="auth-bottom">{mode==="login"?<>¿No tienes cuenta? <button onClick={()=>setMode("signup")}>Regístrate</button></>:<>¿Ya tienes una cuenta? <button onClick={()=>setMode("login")}>Inicia sesión</button></>}</div>
-     <p className="auth-legal">El alta de negocios requiere invitación. El uso de datos para promociones es opcional y requiere consentimiento.</p>
-    </>}
+    <p className="auth-demo-note"><ShieldCheck size={16}/> Abre los paneles reales con información de ejemplo. Los cambios de esta prueba se quedan en tu navegador.</p>
    </div>
   </section>
  </main>;
