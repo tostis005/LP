@@ -29,3 +29,6 @@
 - Alta por enlace propio de negocio (/unirse/[slug]) aunque el negocio no figure en mapa.
 - La experiencia mobile tiene un manifiesto web; funcionamiento offline y notificaciones push quedan para otra fase.
 - El control de RGPD deberá completarse antes del lanzamiento con textos legales, exportación/supresión de datos y acuerdos con proveedores.
+
+## Superadministración ampliada
+El panel permite inspeccionar cada negocio (clientes, personal, operaciones, locales y modalidad), suspender/reactivar un negocio y consultar las tarjetas de cada usuario en el ecosistema. Son operaciones protegidas por RLS y permisos de administrador.
