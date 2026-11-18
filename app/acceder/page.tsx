@@ -10,7 +10,7 @@ export default function Login(){
  async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setMessage("");
   try{
    if(!configured()) throw new Error("Falta configurar Supabase. Mientras tanto puedes explorar la demo.");
-   if(mode==="forgot"){const {error}=await db().auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/auth/callback"});if(error)throw error;setMessage("Te hemos enviado un email para recuperar tu contraseña.");}
+   if(mode==="forgot"){const {error}=await db().auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/auth/callback?next=password"});if(error)throw error;setMessage("Te hemos enviado un email para recuperar tu contraseña.");}
    if(mode==="signup"){const {data,error}=await db().auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:window.location.origin+"/auth/callback"}});if(error)throw error;if(data.session)router.push("/entrar");else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");}
    if(mode==="login"){const {error}=await db().auth.signInWithPassword({email,password});if(error)throw error;router.push("/entrar");}
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}

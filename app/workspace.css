@@ -30,3 +30,13 @@
  .mobile-bottom-link.active{color:#245c41;background:#e9f4e8}
  .mobile-bottom-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 }
+
+.mobile-logout{display:none}
+@media(max-width:700px){.mobile-logout{display:grid;place-items:center;border:0;background:#f2f5f1;border-radius:12px;color:#57725e;width:38px;height:38px;margin-left:2px}}
+
+.recovery-page{min-height:100vh;background:radial-gradient(circle at 88% 10%,#e0eee1,transparent 39%),#f7f8f4;padding:30px}
+.recovery-header{max-width:1120px;margin:0 auto}
+.recovery-card{max-width:480px;margin:90px auto;background:#fff;border:1px solid #e3ebe0;padding:38px;border-radius:26px;box-shadow:0 30px 80px #223f2a10}
+.recovery-card h1{font-size:31px;line-height:1.18;margin-bottom:12px}.recovery-card>p{font-size:13px;line-height:1.8;color:#829084;margin-bottom:25px}
+.recovery-return{margin-top:24px;display:inline-flex}
+@media(max-width:520px){.recovery-page{padding:18px}.recovery-card{margin:55px auto;padding:26px}.recovery-card h1{font-size:27px}}

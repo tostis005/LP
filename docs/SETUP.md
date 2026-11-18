@@ -10,7 +10,7 @@
 1. `npm install`
 2. En Supabase SQL Editor ejecuta las migraciones `001_initial.sql`, `002_directories.sql`, `003_guardrails.sql`, `004_join_links.sql`, `005_invite_privacy.sql` y `006_admin_fields.sql` y `007_reversals_and_limits.sql` **en ese orden**, una vez en un proyecto vacío.
 3. Copia `.env.example` a `.env.local` y configura URL y anon key.
-4. Configura Supabase Auth: email + confirmación obligatoria. En la lista de URL de redirección añade `http://localhost:3000/auth/callback`.
+4. Configura Supabase Auth: email + confirmación obligatoria. En la lista de URL de redirección añade `http://localhost:3000/auth/callback` y `http://localhost:3000/auth/callback?next=password` (y sus equivalentes de producción).
 5. `npm run dev` y abre `http://localhost:3000`.
 6. Registra tu cuenta y confirma el email. Desde el SQL Editor, identifica el UUID del usuario en Authentication > Users y ejecuta **manualmente**:
    ```sql
