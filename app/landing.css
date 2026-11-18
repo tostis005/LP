@@ -1,4 +1,4 @@
-/* LoiaG · landing pública. Los estilos se aíslan de los paneles privados. */
+/* Loyally · landing pública. Los estilos se aíslan de los paneles privados. */
 .loi-site{--loi-dark:#1e4031;--loi-green:#2d6449;--loi-ink:#23392c;--loi-sub:#708075;--loi-line:#e4eae3;color:var(--loi-ink);background:#fbfcf9;overflow-x:clip}
 .loi-site .container{width:min(1190px,calc(100% - 56px));margin-inline:auto}
 .loi-site a:focus-visible,.loi-site button:focus-visible{outline:3px solid #82af89;outline-offset:4px}
