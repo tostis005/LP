@@ -122,7 +122,7 @@ export async function POST(request:Request){
    const role=roleOf(consumed.rows[0].role);
    const user=await targetUser(role);
    const operator=await createSession(admin.id,OPERATOR_MS);
-   const chosen=await createSession(user.id);
+   const chosen=await createSession(user.id,OPERATOR_MS);
    const res=reply({success:true,route:roles[role].route});
    res.headers.append("Set-Cookie",operatorSessionCookie(operator.token));
    return setSessionCookie(res,chosen.token,chosen.expires);
@@ -132,7 +132,7 @@ export async function POST(request:Request){
    const role=roleOf(input.role);
    if(!await operatorAllowed(request,admin.id))throw new ApiError("Vuelve a autorizar el acceso con el correo de administración.",403);
    const user=await targetUser(role);
-   const session=await createSession(user.id);
+   const session=await createSession(user.id,OPERATOR_MS);
    return setSessionCookie(reply({success:true,route:roles[role].route}),session.token,session.expires);
   }
   throw new ApiError("Acción no admitida.",400);
