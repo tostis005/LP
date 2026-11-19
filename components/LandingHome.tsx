@@ -26,7 +26,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
       <div className="loi-hero-actions">
        <Link href="/solicitar-acceso" className="loi-button loi-button-main">{t.hero.primary} <ArrowUpRight size={19}/></Link>
        <Link href={landingHref(lang,"como-funciona")} className="loi-button loi-button-light">{t.hero.secondary} <ArrowRight size={18}/></Link>
-       <Link href={landingHref(lang,"instalar")} className="loi-button loi-button-install"><Download size={18}/>{lang==="en"?"Download the app":"Descargar la app"}</Link>
+       <Link href={landingHref(lang,"instalar")} className="loi-button loi-button-install"><Download size={18}/>{lang==="en"?"Loyally on my phone":"Loyally en mi móvil"}</Link>
       </div>
       <div className="loi-hero-foot"><div className="loi-hero-foot-icons"><span><Heart size={17}/></span><span><Coffee size={17}/></span><span><Gift size={17}/></span></div><span>{t.hero.foot}<br/><strong>{t.hero.footBold}</strong></span></div>
      </div>
@@ -81,6 +81,6 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
 
    <section className="loi-final-section" id="empezar"><div className="container"><div className="loi-final-card"><div><span className="loi-overline">{t.final.eyebrow}</span><h2>{t.final.first}<br/><em>{t.final.second}</em></h2><p>{t.final.description}</p><div className="loi-final-actions"><Link href="/solicitar-acceso" className="loi-button loi-button-cream">{t.final.primary} <ArrowUpRight size={19}/></Link><Link href="/acceder" className="loi-final-secondary">{t.final.secondary} <ArrowRight size={17}/></Link></div></div><div className="loi-final-deco" aria-hidden="true"><Heart size={170} strokeWidth={.8}/><Sparkles size={58} strokeWidth={1.3}/></div></div></div></section>
   </main>
-  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand href={landingHref(lang)}/><p>{t.footer.tagline}<br/>{t.footer.description}</p></div><nav aria-label={lang==="en"?"Footer links":"Enlaces del pie de página"}><Link href={landingHref(lang,"beneficios")}>{t.footer.benefits}</Link><Link href={landingHref(lang,"como-funciona")}>{t.footer.how}</Link><Link href="/solicitar-acceso">{t.footer.contact}</Link><Link href="/acceder">{t.footer.access}</Link><Link href={landingHref(lang,"instalar")}>{lang==="en"?"Install the app":"Instalar la app"}</Link></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} Loyally</span><span>{t.footer.goodbye}</span></div></footer>
+  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand href={landingHref(lang)}/><p>{t.footer.tagline}<br/>{t.footer.description}</p></div><nav aria-label={lang==="en"?"Footer links":"Enlaces del pie de página"}><Link href={landingHref(lang,"beneficios")}>{t.footer.benefits}</Link><Link href={landingHref(lang,"como-funciona")}>{t.footer.how}</Link><Link href="/solicitar-acceso">{t.footer.contact}</Link><Link href="/acceder">{t.footer.access}</Link><Link href={landingHref(lang,"instalar")}>{lang==="en"?"The app":"La app"}</Link></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} Loyally</span><span>{t.footer.goodbye}</span></div></footer>
  </div>;
 }

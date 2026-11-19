@@ -3,7 +3,7 @@ export default function manifest(): MetadataRoute.Manifest {
  return {
   id:"/app",name:"Loyally",short_name:"Loyally",
   description:"Tus tarjetas, sellos y premios de tus negocios favoritos",
-  start_url:"/app",scope:"/",display:"standalone",
+  start_url:"/mi-loyally",scope:"/",display:"standalone",
   background_color:"#fbf7f8",theme_color:"#571c32",
   categories:["shopping","lifestyle"],
   icons:[

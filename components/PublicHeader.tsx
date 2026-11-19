@@ -11,7 +11,7 @@ export function PublicHeader({lang="es"}:{lang?:LandingLanguage}){
    <Link href={landingHref(lang,"beneficios")}>{t.benefits}</Link>
    <Link href={landingHref(lang,"como-funciona")}>{t.how}</Link>
    <Link href={landingHref(lang,"personalizacion")}>{t.design}</Link>
-   <Link href={landingHref(lang,"instalar")} className="loi-nav-install">{lang==="en"?"Install app":"Instalar app"}</Link>
+   <Link href={landingHref(lang,"instalar")} className="loi-nav-install">{lang==="en"?"The app":"La app"}</Link>
   </nav>
   <div className="header-actions loi-header-actions">
    <nav className="loi-language-switch" aria-label={t.language}>

@@ -51,15 +51,29 @@ assert.doesNotMatch(landingCss,/#214936|#2d6449|#1e4031|#23503b/i,"Old green bra
 assert.match(landingUi,/name="Café Noma" color="#571c32"/,"The mock customer card also uses the new palette");
 
 
-// El enlace de instalación debe estar siempre en la home, independientemente del navegador.
+// La home vende una experiencia para personas, no instrucciones técnicas.
 const headerUi=readFileSync(new URL("../../components/PublicHeader.tsx",import.meta.url),"utf8");
 const installUi=readFileSync(new URL("../../components/InstallGuide.tsx",import.meta.url),"utf8");
-assert.match(landingUi,/Descargar la app/,"Visible install CTA must exist in the hero");
-assert.match(landingUi,/<InstallGuide lang=\{lang\}\/>/,"Install guide must appear on the homepage");
-assert.match(headerUi,/Instalar app/,"Header must link to PWA installation");
-assert.match(installUi,/beforeinstallprompt/,"Direct install prompt should be supported");
-assert.match(installUi,/Añadir a pantalla de inicio/,"iOS manual installation instructions required");
-assert.match(installUi,/Instalar aplicación/,"Android manual installation instructions required");
-assert.match(installUi,/QRCodeSVG/,"Desktop QR scan flow required");
+const appEntry=readFileSync(new URL("../../app/mi-loyally/page.tsx",import.meta.url),"utf8");
+const manifest=readFileSync(new URL("../../app/manifest.ts",import.meta.url),"utf8");
+const rootLayout=readFileSync(new URL("../../app/layout.tsx",import.meta.url),"utf8");
+
+assert.match(landingUi,/Loyally en mi móvil/,"Consumer-friendly action in the landing");
+assert.match(landingUi,/<InstallGuide lang=\{lang\}\/>/,"The install section stays on the landing");
+assert.match(headerUi,/"La app"/,"The top navigation links to the app");
+assert.match(installUi,/Tus próximos premios/,"The install section is customer-focused");
+assert.match(installUi,/beforeinstallprompt/,"Native browser install prompts still work");
+assert.match(installUi,/mi-loyally\?instalar=1/,"Installation leads to customer app entry");
+assert.match(installUi,/QRCodeSVG/,"QR code opens the customer-first app");
+for(const copy of [/"APK"/,/sin App Store/i,/sin Google Play/i,/sin coste/i,/PWA/i,/No APK/i,/gratis/i,/una aplicación web/i]){
+ assert.doesNotMatch(installUi,copy,"Technical/commercial language must not appear in consumer installation copy");
+}
+assert.match(appEntry,/display-mode: standalone/,"Installed app must detect standalone mode");
+assert.match(appEntry,/Abrir como app web/,"iPhone must enable the app launch mode");
+assert.match(appEntry,/router\.replace\("\/app"\)/,"Returning customers must reach their cards");
+assert.match(appEntry,/Añadir a mi móvil/,"Customers can install from app entry");
+assert.match(manifest,/start_url:"\/mi-loyally"/,"The installed icon opens the customer-first experience");
+assert.match(manifest,/display:"standalone"/,"The app has a standalone window");
+assert.doesNotMatch(rootLayout,/<InstallLoyally\/>/,"Remove the old floating install widget");
 
 console.log("Commercial landing: ES/EN copy parity, 24-icon collection and logo verified.");

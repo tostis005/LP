@@ -219,3 +219,29 @@
 @media(max-width:1100px){.loi-install-layout{gap:34px}.loi-install-card{padding:22px}}
 @media(max-width:900px){.loi-install-layout{grid-template-columns:1fr}.loi-install-intro{text-align:center}.loi-install-intro>p:not(.loi-install-confirmation),.loi-install-intro .loi-install-note{margin-left:auto;margin-right:auto}.loi-install-confirmation{justify-content:center}}
 @media(max-width:650px){.loi-install-section{padding:64px 0}.loi-install-card{border-radius:20px;padding:17px}.loi-install-steps{grid-template-columns:1fr}.loi-install-intro h2{font-size:clamp(32px,8vw,44px)}.loi-install-intro .loi-install-primary{width:100%}.loi-install-platform{padding:18px}.loi-install-platform ol{gap:10px}.loi-install-platform li p{font-size:12px}.loi-install-qr{padding-top:16px;margin-top:16px}.loi-install-qr .loi-qr-box{display:none}}
+
+
+/* Portada para clientes: sustituye el antiguo tutorial técnico de instalación. */
+.loi-install-benefits{display:flex;flex-wrap:wrap;gap:9px;margin:23px 0 29px}
+.loi-install-benefits span{display:flex;align-items:center;gap:7px;background:#fff9fb;border:1px solid #e6cfda;border-radius:999px;color:#71314b;font-size:12px;font-weight:800;padding:9px 13px}
+.loi-install-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.loi-install-actions .loi-button{margin:0}
+.loi-install-app-preview{max-width:520px;width:100%;margin:0 auto;padding:33px 35px 25px;background:#fff}
+.loi-install-app-top{display:flex;align-items:center;gap:10px;margin-bottom:30px;color:#2d1823;font-family:Manrope,sans-serif;font-size:19px;font-weight:900}
+.loi-install-app-icon{width:41px;height:41px;border-radius:13px;display:grid;place-items:center;background:#571c32;color:white;font-size:25px;font-weight:900}
+.loi-install-app-love{margin-left:auto;color:#93445f;font-size:27px}
+.loi-install-app-caption{display:block;letter-spacing:.15em;font-size:10px;font-weight:900;color:#a2788d;margin-bottom:15px}
+.loi-install-app-reward{background:linear-gradient(135deg,#6d2742,#30121e);border-radius:22px;color:#fff;padding:24px 23px 21px;box-shadow:0 16px 38px #571c3227}
+.loi-install-app-reward-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:21px;letter-spacing:-.04em}
+.loi-install-app-reward p{font-size:11px;color:#f3c9d9;margin:15px 0 14px}
+.loi-install-app-stamps{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;margin-bottom:12px}
+.loi-install-app-stamps span{display:grid;place-items:center;aspect-ratio:1;border:1px dashed #bf98a9;border-radius:50%;color:#bf98a9}
+.loi-install-app-stamps span.filled{background:#f0c7d8;border-color:#f0c7d8;color:#722640}
+.loi-install-app-reward small{font-size:11px;color:#f1cedb}
+.loi-install-app-nav{display:flex;justify-content:space-around;gap:12px;padding:21px 8px 0}
+.loi-install-app-nav span{display:grid;justify-items:center;gap:6px;color:#85435c;font-size:10px;font-weight:800}
+.loi-install-app-nav span svg{color:#7b3550}
+.loi-install-app-preview .loi-install-qr{margin-top:26px;padding-top:22px}
+.loi-install-note{font-size:12px;line-height:1.6;color:#846a77}
+@media(max-width:900px){.loi-install-benefits,.loi-install-actions{justify-content:center}.loi-install-note{text-align:center}}
+@media(max-width:650px){.loi-install-actions{flex-direction:column}.loi-install-actions .loi-button{width:100%}.loi-install-app-preview{padding:22px 20px 16px}.loi-install-app-reward{padding:19px 16px}.loi-install-app-stamps{gap:4px}.loi-install-app-stamps svg{height:12px;width:12px}.loi-install-app-preview .loi-install-qr{margin-top:14px}.loi-install-app-top{margin-bottom:22px}}
