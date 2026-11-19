@@ -22,6 +22,8 @@ jobs:
         run: node tests/demo/origin.mjs
       - name: Configuración segura de SMTP Gmail
         run: node tests/demo/gmail-smtp.mjs
+      - name: Validar script SSH de Gmail
+        run: bash -n scripts/apply-gmail-credentials.sh
       - name: Solicitud push contextual en PWA
         run: node tests/demo/push-onboarding.mjs
       - name: Generación y persistencia VAPID sin exponer secretos
