@@ -2,7 +2,7 @@
 import {useCallback,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
-import {Activity,ArrowUpRight,BarChart3,Brush,Check,ChevronDown,CircleHelp,Clock3,CreditCard,FileText,Gift,ImagePlus,MapPin,Mail,Menu,Plus,Settings2,ShieldCheck,Store,Ticket,ToggleLeft,Trash2,Users,Wallet} from "lucide-react";
+import {Activity,ArrowUpRight,BarChart3,Brush,Check,ChevronDown,CircleHelp,Clock3,CreditCard,FileText,Gift,ImagePlus,MapPin,Mail,BellRing,Menu,Plus,Settings2,ShieldCheck,Store,Ticket,ToggleLeft,Trash2,Users,Wallet} from "lucide-react";
 import type {Account} from "@/components/AppFrame";
 import type {Business,Program,Location} from "@/lib/types";
 import {dateShort,initials,units} from "@/lib/format";
@@ -15,6 +15,7 @@ import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/Bus
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {BranchCreator} from "@/components/BranchCreator";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
+import {PushCampaignPanel} from "@/components/PushCampaignPanel";
 type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Resumen",icon:<BarChart3 size={17}/>},
@@ -52,6 +53,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState("Tijuana"),[country,setCountry]=useState("México"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState(""),[quote,setQuote]=useState<MailQuote|null>(null);
  const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null);
+ const [showPush,setShowPush]=useState(false);
  const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,template_name:"",template_language:""});
  useEffect(()=>{fetch("/api/local/marketing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setMarketingStatus(v as MarketingStatus)}).catch(()=>{});},[]);
  const [previewEarned,setPreviewEarned]=useState(3),[siteOrigin,setSiteOrigin]=useState("");
@@ -314,9 +316,11 @@ export default function BusinessWorkspace({account}:{account:Account}){
  </>}
    {tab==="marketing"&&<div className="campaign-page">
     <div className="campaign-channel-switch" role="group" aria-label="Canal de campaña">
-     <button type="button" className={marketingChannel==="email"?"active":""} onClick={()=>{setMarketingChannel("email");clearComposer()}}><Mail size={17}/>Correo electrónico</button>
-     <button type="button" className={marketingChannel==="whatsapp"?"active":""} onClick={()=>{setMarketingChannel("whatsapp");clearComposer()}}><Users size={17}/>WhatsApp</button>
+     <button type="button" className={!showPush&&marketingChannel==="email"?"active":""} onClick={()=>{setShowPush(false);setMarketingChannel("email");clearComposer()}}><Mail size={17}/>Correo electrónico</button>
+     <button type="button" className={!showPush&&marketingChannel==="whatsapp"?"active":""} onClick={()=>{setShowPush(false);setMarketingChannel("whatsapp");clearComposer()}}><Users size={17}/>WhatsApp</button>
+     <button type="button" className={showPush?"active":""} onClick={()=>{setShowPush(true);clearComposer()}}><BellRing size={17}/>Notificación push</button>
     </div>
+    {showPush?<PushCampaignPanel key={selected} businessId={selected}/>:<>
     <div className="campaign-overview-grid">
      <div className="panel-card campaign-overview-stat"><span>Contactos que han aceptado este canal</span><strong>{quote?.contacts??"—"}</strong><small>Solo personas con consentimiento expreso</small></div>
      <div className="panel-card campaign-overview-stat"><span>Coste unitario</span><strong>{quote?.price_cents!=null?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(Number(quote.price_cents)/100):"No disponible"}</strong><small>Precio por destinatario gestionado por Loyally</small></div>
@@ -351,6 +355,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
       </section>
      </div>
     </div>
+    </>}
    </div>}
    </>}
   </div></div></>}
