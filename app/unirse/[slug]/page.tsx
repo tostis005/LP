@@ -20,7 +20,7 @@ export default function JoinPage(){
  const [offer,setOffer]=useState<Offer|null>(null),[business,setBusiness]=useState<Business|null>(null);
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
- const [signed,setSigned]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false);
+ const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con Loyally.");setLoading(false);return}
   const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
@@ -38,12 +38,17 @@ export default function JoinPage(){
   setProgram({type:found.program_type,reward_label:found.reward_label,reward_cost:found.reward_cost,cashback_bps:found.cashback_bps,points_per_euro:found.points_per_euro});
   setLocations(Array.isArray(found.locations_json)?found.locations_json:[]);
   if(u.data.user){
-   const m=await db().from("loyalty_memberships").select("id").eq("business_id",found.business_id).eq("customer_id",u.data.user.id).maybeSingle();
-   if(alive)setJoined(!!m.data);
+   const [m,roles,admin]=await Promise.all([
+    db().from("loyalty_memberships").select("id").eq("business_id",found.business_id).eq("customer_id",u.data.user.id).maybeSingle(),
+    db().from("business_members").select("id").eq("user_id",u.data.user.id).eq("active",true).limit(1),
+    db().from("platform_admins").select("user_id").eq("user_id",u.data.user.id).maybeSingle()
+   ]);
+   if(alive){setJoined(!!m.data);setIsBusinessAccount(!!admin.data||!!roles.data?.length);}
   }
   if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);
  async function join(){if(!offer)return;
+  if(isBusinessAccount){setError("Para tener tarjetas y premios necesitas una cuenta de cliente independiente.");return;}
   if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder");return}
   setBusy(true);setError("");
   const result=await db().rpc("join_program",{p_business:offer.business_id});
@@ -77,7 +82,8 @@ export default function JoinPage(){
        <StampCard name={offer.business_name} color={business?.accent_color||offer.accent_color} reward={program.reward_label} total={Math.max(2,program.reward_cost)} earned={0} icon={business?.stamp_icon||categoryStampKind(category)} message={business?.card_text||"GRACIAS POR VOLVER"} textColor={business?.card_text_color} stampColor={business?.stamp_color}/>
        <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
       </div>}
-      {success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><Link href="/app" className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link></div>:
+      {isBusinessAccount?<div className="info-callout"><Heart size={19}/><div><strong>Esta ficha es para tus clientes</strong><p>Estás dentro con una cuenta de negocio. Para guardar tarjetas y premios, utiliza una cuenta de cliente independiente.</p><Link href="/negocio">Volver a mi negocio <ArrowUpRight size={16}/></Link></div></div>:
+      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><Link href="/app" className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link></div>:
       <div className="join-subscribe">
        <h3>¿Te apuntas?</h3>
        <p>Unirte es gratis. Podrás consultar tus sellos y recompensas siempre que quieras.</p>
