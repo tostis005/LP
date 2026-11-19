@@ -13,29 +13,35 @@ import {programPromise,programExplanation} from "@/lib/program-presentation";
 import type {Business,Location,Program} from "@/lib/types";
 import {db,configured} from "@/lib/supabase";
 const DirectoryMapView=dynamic(()=>import("@/components/DirectoryMap"),{ssr:false,loading:()=> <div className="map-placeholder">Preparando el mapa...</div>});
-type Offer={business_id:string;business_name:string;description:string|null;accent_color:string;reward_label:string;program_type:Program["type"]};
+type PublicProgram=Pick<Program,"type"|"reward_label"|"reward_cost"|"cashback_bps"|"points_per_euro">;
+type Offer={business_id:string;business_name:string;description:string|null;accent_color:string;reward_label:string;program_type:Program["type"];reward_cost:number;cashback_bps:number;points_per_euro:number;category:string|null;logo_url:string|null;card_text:string|null;card_text_color:string;stamp_color:string;stamp_icon:string;public_listing:boolean;locations_json:Location[]};
 export default function JoinPage(){
  const params=useParams<{slug:string}>(),router=useRouter();
  const [offer,setOffer]=useState<Offer|null>(null),[business,setBusiness]=useState<Business|null>(null);
- const [program,setProgram]=useState<Program|null>(null),[locations,setLocations]=useState<Location[]>([]);
+ const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
  const [signed,setSigned]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con Loyally.");setLoading(false);return}
-  const [o,u]=await Promise.all([db().rpc("find_join_business",{p_slug:params.slug}),db().auth.getUser()]);
+  const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
   if(!alive)return;
   setSigned(!!u.data.user);
   if(o.error||!o.data?.length){setError("No hemos encontrado un programa disponible con este enlace.");setLoading(false);return}
   const found=o.data[0] as Offer;setOffer(found);
-  const [b,p,l,m]=await Promise.all([
-   db().from("businesses").select("*").eq("id",found.business_id).maybeSingle(),
-   db().from("loyalty_programs").select("*").eq("business_id",found.business_id).maybeSingle(),
-   db().from("business_locations").select("*").eq("business_id",found.business_id).eq("visible",true),
-   u.data.user?db().from("loyalty_memberships").select("id").eq("business_id",found.business_id).eq("customer_id",u.data.user.id).maybeSingle():Promise.resolve({data:null,error:null})
-  ]);
-  if(!alive)return;
-  setBusiness(b.data as Business|null);setProgram(p.data as Program|null);setLocations((l.data||[]) as Location[]);
-  setJoined(!!m.data);setLoading(false);
+  setBusiness({
+   id:found.business_id,name:found.business_name,slug:params.slug,description:found.description,
+   category:found.category,accent_color:found.accent_color,logo_url:found.logo_url,
+   card_text:found.card_text,card_text_color:found.card_text_color,stamp_color:found.stamp_color,
+   stamp_icon:found.stamp_icon,stamp_image_url:null,card_background:null,
+   public_listing:found.public_listing,active:true
+  });
+  setProgram({type:found.program_type,reward_label:found.reward_label,reward_cost:found.reward_cost,cashback_bps:found.cashback_bps,points_per_euro:found.points_per_euro});
+  setLocations(Array.isArray(found.locations_json)?found.locations_json:[]);
+  if(u.data.user){
+   const m=await db().from("loyalty_memberships").select("id").eq("business_id",found.business_id).eq("customer_id",u.data.user.id).maybeSingle();
+   if(alive)setJoined(!!m.data);
+  }
+  if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);
  async function join(){if(!offer)return;
   if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder");return}
