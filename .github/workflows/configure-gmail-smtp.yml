@@ -1,0 +1,77 @@
+name: Configurar Gmail SMTP de Loyally
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lp-production
+  cancel-in-progress: false
+
+jobs:
+  configurar-gmail:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Preparar SSH seguro al VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          LP_SSH_KNOWN_HOSTS: ${{ secrets.LP_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$VPS_HOST" && test -n "$VPS_USER" && test -n "$VPS_SSH_KEY" || { echo "::error::Falta acceso SSH al VPS."; exit 1; }
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$HOME/.ssh/id_deploy"
+          chmod 600 "$HOME/.ssh/id_deploy"
+          ssh-keygen -y -P "" -f "$HOME/.ssh/id_deploy" > /dev/null
+          PORT="${VPS_SSH_PORT:-22}"
+          if [ -n "$LP_SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$LP_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          else
+            ssh-keyscan -T 15 -p "$PORT" "$VPS_HOST" > "$HOME/.ssh/known_hosts" 2>/dev/null
+          fi
+          chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+
+      - name: Guardar Gmail SMTP solo en Contabo y reiniciar web
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          LOYALLY_GMAIL_ADDRESS: ${{ secrets.LOYALLY_GMAIL_ADDRESS }}
+          LOYALLY_GMAIL_APP_PASSWORD: ${{ secrets.LOYALLY_GMAIL_APP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$LOYALLY_GMAIL_ADDRESS" ] || [ -z "$LOYALLY_GMAIL_APP_PASSWORD" ]; then
+            echo "::error::Añade los dos secrets LOYALLY_GMAIL_ADDRESS y LOYALLY_GMAIL_APP_PASSWORD en GitHub antes de ejecutar este workflow."
+            exit 1
+          fi
+          PORT="${VPS_SSH_PORT:-22}"
+          # Nunca se incluyen los secretos en argumentos de SSH ni en los logs.
+          printf '%s\n%s\n' "$LOYALLY_GMAIL_ADDRESS" "$LOYALLY_GMAIL_APP_PASSWORD" |
+            ssh -i "$HOME/.ssh/id_deploy" -p "$PORT" \
+              -o IdentitiesOnly=yes -o BatchMode=yes \
+              -o StrictHostKeyChecking=yes \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              "$VPS_USER@$VPS_HOST" 'bash -ec '\''cd /opt/lp
+                test -f .env.production
+                test -f scripts/configure-gmail-smtp.mjs || { echo "ERROR: despliega primero la versión más reciente de Loyally."; exit 1; }
+                if docker info >/dev/null 2>&1; then
+                  DOCKER="docker"
+                  COMPOSE="docker compose"
+                else
+                  sudo -n docker info >/dev/null
+                  DOCKER="sudo -n docker"
+                  COMPOSE="sudo -n docker compose"
+                fi
+                $DOCKER run --rm -i --network none \
+                  --mount type=bind,source=/opt/lp/.env.production,target=/loyally/.env.production \
+                  --mount type=bind,source=/opt/lp/scripts/configure-gmail-smtp.mjs,target=/configure-gmail-smtp.mjs,readonly \
+                  node:22-bookworm-slim node /configure-gmail-smtp.mjs
+                $COMPOSE --env-file .env.production up -d --no-deps --force-recreate web
+                echo "SMTP Gmail configurado y servicio Loyally reiniciado."
+              '\'''
