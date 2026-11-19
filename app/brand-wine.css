@@ -1,0 +1,56 @@
+/* Prueba de identidad Loyally: vinotinto, negro y crema. La paleta de cada tarjeta sigue siendo independiente. */
+:root{--ink:#241c21;--muted:#77646c;--green:#571c32;--green-dark:#27121c;--sage:#e6cbd5;--light:#fbf7f8;--cream:#f7eef1;--peach:#eac2b6;--line:#eee0e6}
+body{background:var(--light)}
+.workspace{background:#fbf7f8}
+.sidebar,.workspace-header,.panel-card,.soft-panel,.kpi-card{border-color:#eee4e7}
+.sidebar{background:#fffafc}
+.workspace-header{background:#fffafb}
+.button-dark,.loi-button-main{background:#571c32;color:#fff}
+.button-dark:hover,.loi-button-main:hover{background:#371020}
+.side-link.active,.mobile-bottom-link.active,.workspace .tab-bar button.active{background:#f7e9ef;color:#571c32}
+.kpi-card strong,.positive-text,.overview-stat strong{color:#571c32}
+.kpi-symbol.green,.panel-icon,.activity-icon.positive{background:#f5e5ec;color:#762e49}
+.kpi-symbol.peach{background:#f9e8e2;color:#934e49}
+.kpi-symbol.purple{background:#f0e6f5;color:#6b397d}
+.workspace .table-pill{background:#f6e9ef;color:#6e2e45}
+.business-selector,.loyalty-card{border-color:#eddfe5}
+.loi-site{--loi-dark:#27121c;--loi-green:#571c32;--loi-ink:#281820;--loi-sub:#74646a;--loi-line:#eee2e7;background:#fcf8fa}
+.loi-site h1 em,.loi-site h2 em{color:#8a3f59}
+.loi-button-main{box-shadow:0 12px 27px #571c322c}
+.loi-status-dot{background:#a15a72;box-shadow:0 0 0 5px #f4e4eb}
+.loi-overline{color:#8b3c58}
+.lp-install-widget{position:fixed;bottom:20px;right:20px;z-index:75}
+.lp-install-button{display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:13px 17px;color:#fff;background:#571c32;box-shadow:0 8px 35px #29111d3b;font-weight:800;font-size:12px;cursor:pointer}
+.lp-install-help{position:absolute;bottom:60px;right:0;width:min(340px,calc(100vw - 34px));padding:20px 24px;border-radius:18px;background:#fff;color:#27121c;border:1px solid #f0e2e6;box-shadow:0 20px 55px #29111d24;line-height:1.6}
+.lp-install-help p{font-size:13px;margin:9px 0;line-height:1.6}
+.lp-install-help p svg{vertical-align:middle}
+.lp-install-help small{color:#77646c}
+.lp-install-close{position:absolute;right:9px;top:9px;background:transparent;border:0;cursor:pointer}
+@media(max-width:700px){.workspace .lp-install-widget{bottom:96px}.lp-install-widget{right:12px;bottom:14px}.lp-install-button{padding:11px 15px}}
+/* Canje visible y cómodo para personal de tienda */
+.staff-reward-focus{margin-top:24px;border:2px solid #e1b1c5;border-radius:22px;padding:23px;background:linear-gradient(135deg,#fff4f8,#fff);box-shadow:0 12px 30px #571c3214}
+.staff-reward-focus h3{font-size:23px;margin:8px 0}
+.staff-reward-focus p{font-weight:700;color:#68243e;font-size:18px;margin:10px 0}
+.staff-reward-focus .button{font-size:15px;min-height:53px}
+.reward-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:14px 0}
+.reward-choice{border:1px solid #e4cbd5;background:#fff;border-radius:15px;padding:14px;display:flex;flex-direction:column;align-items:start;gap:5px;cursor:pointer;color:#452334;text-align:left}
+.reward-choice strong{font-size:13px}.reward-choice small{font-size:11px;color:#836273}
+.reward-choice.selected{background:#571c32;border-color:#571c32;color:#fff}
+.reward-choice.selected small{color:#f2d7e2}
+.lp-insights-controls{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.lp-insights-controls select{border:1px solid #e5d6df;border-radius:12px;padding:10px 14px;background:#fff}
+.lp-metric-delta{font-size:12px;font-weight:800}
+.lp-metric-delta.up{color:#23774f}.lp-metric-delta.down{color:#b03a4b}.lp-metric-delta.neutral{color:#847780}
+.lp-insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:17px 0 25px}
+.lp-insight-card{background:#fff;border:1px solid #ecdfe5;border-radius:19px;padding:21px;display:flex;flex-direction:column;gap:9px}
+.lp-insight-card span{color:#826a76;font-size:12px;font-weight:700}
+.lp-insight-card strong{font-size:28px;color:#571c32;letter-spacing:-.05em}
+.lp-insight-card small{color:#897680;font-size:11px}
+.lp-reward-option-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px}
+.lp-reward-option-row input{width:100%}
+.lp-reward-option-row label{font-size:11px}
+.lp-savings{background:linear-gradient(120deg,#571c32,#27121c);border-radius:23px;color:white;padding:25px;display:flex;gap:24px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:28px}
+.lp-savings span{color:#f0cfde;font-size:12px}
+.lp-savings strong{font-size:33px;display:block;margin:4px 0}
+.lp-savings small{color:#e7bece}
+@media(max-width:700px){.lp-reward-option-row{grid-template-columns:1fr 1fr}.lp-reward-option-row label:first-child{grid-column:1/-1}.lp-reward-option-row button{align-self:end}.lp-insights-grid{grid-template-columns:1fr 1fr}.lp-insight-card{padding:15px}.lp-insight-card strong{font-size:23px}}

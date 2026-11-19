@@ -8,7 +8,7 @@ type Row=Record<string,any>;
 type DemoState={tables:Record<string,Row[]>;assets:Record<string,string>};
 type DemoResult<T=any>={data:T;error:Error|null;count?:number};
 type Filter={op:"eq"|"in"|"is";field:string;value:any};
-const ROLE_KEY="loyally_role_session_v2",DATA_KEY="loyally_role_sample_tijuana_v4";
+const ROLE_KEY="loyally_role_session_v2",DATA_KEY="loyally_role_sample_tijuana_v5";
 export const DEMO_BUSINESS_ID="11111111-1111-4111-8111-111111111111";
 export const DEMO_CARD_TOKEN="99999999-9999-4999-8999-999999999999";
 const IDs={
@@ -76,7 +76,7 @@ function seed():DemoState{
   {business_id:businessIds[0],user_id:IDs.empleado,role:"employee",active:true}
  ];
  const cardDefs=[
-  {id:"11111111-aaaa-4aaa-8aaa-111111111111",business_id:businessIds[0],customer_id:IDs.cliente,card_token:DEMO_CARD_TOKEN,balance:8,total_earned:12},
+  {id:"11111111-aaaa-4aaa-8aaa-111111111111",business_id:businessIds[0],customer_id:IDs.cliente,card_token:DEMO_CARD_TOKEN,balance:8,total_earned:16},
   {id:"11111111-bbbb-4bbb-8bbb-111111111111",business_id:businessIds[1],customer_id:IDs.cliente,card_token:"99999999-9999-4999-8999-999999999998",balance:2,total_earned:2},
   {id:"11111111-cccc-4ccc-8ccc-111111111111",business_id:businessIds[0],customer_id:IDs.alvaro,card_token:"99999999-9999-4999-8999-999999999997",balance:2,total_earned:2},
   {id:"11111111-dddd-4ddd-8ddd-111111111111",business_id:businessIds[0],customer_id:IDs.lucia,card_token:"99999999-9999-4999-8999-999999999996",balance:5,total_earned:5},
@@ -86,11 +86,12 @@ function seed():DemoState{
   {id:uuid(),business_id:businessIds[8],customer_id:IDs.cliente,card_token:uuid(),balance:4000,total_earned:4000}
  ].map(x=>({...x,created_at:days(18)}));
  const vouchers:Row[]=[{id:uuid(),token:"80808080-8080-4808-8808-808080808080",membership_id:cardDefs[0].id,business_id:businessIds[0],reward_label:"Un café gratis",status:"issued",issued_at:now(),redeemed_at:null}];
- const movements:Row[]=[
-  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(0)},
-  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:2,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(2)},
-  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[1].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(4)},
-  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[2].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:"T-100",reversal_of:null,reversal_reason:null,created_at:days(6)},
+ const redeemedSeed={id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"redeem",amount_delta:-8,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(8)};
+  const movements:Row[]=[redeemedSeed,
+  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:8500,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(0)},
+  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:2,purchase_cents:14000,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(2)},
+  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[1].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:9700,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(4)},
+  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[2].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:6400,ticket_ref:"T-100",reversal_of:null,reversal_reason:null,created_at:days(6)},
   {id:uuid(),business_id:businessIds[2],membership_id:cardDefs[4].id,employee_id:IDs.administrador,kind:"earn",amount_delta:2,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(3)}
  ];
  const locations=DEMO_SHOPS.map((s,i)=>({
@@ -101,7 +102,10 @@ function seed():DemoState{
  return {assets:{},tables:{
   profiles:people,platform_admins:[{user_id:IDs.administrador}],businesses,
   business_members:members,business_invitations:[],loyalty_programs:programs,loyalty_memberships:cardDefs,
-  loyalty_transactions:movements,reward_vouchers:vouchers,business_locations:locations,marketing_consents:[{id:uuid(),business_id:businessIds[0],customer_id:IDs.cliente,opted_in:true}],marketing_campaigns:[],marketing_deliveries:[],marketing_usage_ledger:[],business_marketing_rates:[],
+  loyalty_transactions:movements,reward_vouchers:vouchers,
+   reward_options:[...["Espresso","Café latte","Cappuccino","Americano","Cold brew"].map((label,i)=>({id:uuid(),business_id:businessIds[0],label,retail_cents:[4500,6500,6500,4800,7200][i],cost_cents:[900,1800,1700,1000,2200][i],active:true,position:i}))],
+   reward_redemptions:[{id:uuid(),transaction_id:redeemedSeed.id,business_id:businessIds[0],membership_id:cardDefs[0].id,customer_id:IDs.cliente,reward_label:"Café latte",retail_cents:6500,cost_cents:1800,redeemed_at:days(8)}],
+   business_locations:locations,marketing_consents:[{id:uuid(),business_id:businessIds[0],customer_id:IDs.cliente,opted_in:true}],marketing_campaigns:[],marketing_deliveries:[],marketing_usage_ledger:[],business_marketing_rates:[],
   platform_billing_settings:[],business_billing:businessIds.map(id=>({business_id:id,plan:"business",status:"trialing",trial_ends_at:days(-20),stripe_customer_id:null,stripe_subscription_id:null,updated_at:now()})),
   business_leads:[{id:uuid(),business_name:"La Casa del Pan",contact_name:"Rosa Martín",contact_email:"rosa@ejemplo.test",category:"Panadería",city:"Ciudad de México",message:"Me interesan las tarjetas digitales",status:"new",created_at:days(1)}]
  }};
@@ -129,6 +133,8 @@ function authorize(table:string,mode:string,rows:Row[]):Row[]{
  if(role==="administrador")return rows;
  if(["businesses","business_locations","loyalty_programs"].includes(table)&&mode==="select")return rows.filter(r=>r.active!==false);
  if(table==="business_members")return rows.filter(r=>r.user_id===actor());
+  if(table==="reward_options")return rows.filter(r=>role==="gestor"&&load().tables.business_members.some(m=>m.user_id===actor()&&m.business_id===r.business_id&&m.role!=="employee"&&m.active));
+  if(table==="reward_redemptions")return [];
  if(table==="platform_admins")return [];
  if(table==="loyalty_memberships")return rows.filter(r=>role==="cliente"?r.customer_id===actor():role==="empleado"||role==="gestor"?r.business_id===DEMO_BUSINESS_ID:false);
  if(table==="loyalty_transactions")return rows.filter(r=>role==="gestor"||role==="empleado"?r.business_id===DEMO_BUSINESS_ID:role==="cliente"?load().tables.loyalty_memberships.some(m=>m.customer_id===actor()&&m.id===r.membership_id):false);
@@ -178,6 +184,7 @@ class DemoQuery implements PromiseLike<DemoResult>{
    return {data:this.one?(Array.isArray(data)?data[0]||null:null):data,error:null,...(this.count?{count:rows.length}:{})};
   }
   if(!["administrador","gestor","cliente"].includes(demoRole()||""))return fail("No tienes permiso para modificar este apartado.");
+   if(this.table==="reward_options"&&!["administrador","gestor"].includes(demoRole()||""))return fail("Solo los responsables pueden gestionar recompensas.");
   if(this.action==="update"){
    if(!this.conditions.length)return fail("Selecciona primero el registro.");
    for(const row of rows)Object.assign(row,this.data);
@@ -236,7 +243,57 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     result=ok([{contacts,price_cents:1,total_cents:contacts,currency:"MXN"}]);
     break;
    }
-   case "business_employee_activity":{
+   case "available_rewards":{
+     const eligible=canStaff||role==="cliente"&&table.loyalty_memberships.some(m=>m.business_id===biz&&m.customer_id===actor());
+     result=eligible?ok((table.reward_options||[]).filter(o=>o.business_id===biz&&o.active).sort((a,b)=>a.position-b.position).map(o=>({id:o.id,label:o.label,retail_cents:o.retail_cents}))):fail("No autorizado");
+     break;
+    }
+    case "customer_reward_summary":{
+     const reversed=new Set(table.loyalty_transactions.filter(t=>t.reversal_of).map(t=>t.reversal_of));
+     const valid=(table.reward_redemptions||[]).filter(r=>r.customer_id===actor()&&!reversed.has(r.transaction_id));
+     result=ok([{benefits:valid.length,savings_cents:valid.reduce((s,r)=>s+Number(r.retail_cents||0),0),unpriced:valid.filter(r=>r.retail_cents==null).length}]);break;
+    }
+    case "business_dashboard_metrics":{
+     if(!manager){result=fail("No autorizado");break}
+     const n=Math.max(1,Math.min(365,Number(args.p_days)||30)),stamp=Date.now();
+     const reversed=new Set(table.loyalty_transactions.filter(t=>t.reversal_of).map(t=>t.reversal_of));
+     const snapshot=(idx:number):Record<string,number>=>{
+      const from=stamp-(idx+1)*n*86400000,to=stamp-idx*n*86400000;
+      const tx=table.loyalty_transactions.filter(t=>t.business_id===biz&&!reversed.has(t.id)&&new Date(t.created_at).getTime()>=from&&new Date(t.created_at).getTime()<to);
+      const earn=tx.filter(t=>t.kind==="earn"),redeem=tx.filter(t=>t.kind==="redeem");
+      const rr=(table.reward_redemptions||[]).filter(r=>r.business_id===biz&&!reversed.has(r.transaction_id)&&new Date(r.redeemed_at).getTime()>=from&&new Date(r.redeemed_at).getTime()<to);
+      const unique=new Set(earn.map(t=>t.membership_id)).size;
+      return {new_customers:table.loyalty_memberships.filter(m=>m.business_id===biz&&new Date(m.created_at).getTime()>=from&&new Date(m.created_at).getTime()<to).length,
+       visits:earn.length,redemptions:redeem.length,active_customers:unique,frequency:unique?Math.round(earn.length/unique*100)/100:0,
+       sales_cents:earn.reduce((s,t)=>s+Number(t.purchase_cents||0),0),reward_cost_cents:rr.reduce((s,r)=>s+Number(r.cost_cents||0),0),
+       unpriced_purchases:earn.filter(t=>t.purchase_cents==null).length,unpriced_rewards:rr.filter(r=>r.cost_cents==null).length};
+     };
+     const cur=snapshot(0),prev=snapshot(1);
+     result=ok(Object.keys(cur).map(metric=>({metric,current_value:cur[metric],previous_value:prev[metric]})));
+     break;
+    }
+    case "business_reward_ranking":{
+     if(!manager){result=fail("No autorizado");break}
+     const reversed=new Set(table.loyalty_transactions.filter(t=>t.reversal_of).map(t=>t.reversal_of));
+     const rewards=(table.reward_redemptions||[]).filter(r=>r.business_id===biz&&!reversed.has(r.transaction_id)&&new Date(r.redeemed_at).getTime()>=Date.now()-(Number(args.p_days)||30)*86400000);
+     const labels=[...new Set(rewards.map(r=>r.reward_label))];
+     result=ok(labels.map(label=>{const rr=rewards.filter(r=>r.reward_label===label);return {reward_label:label,redemptions:rr.length,retail_cents:rr.reduce((s,r)=>s+Number(r.retail_cents||0),0),cost_cents:rr.reduce((s,r)=>s+Number(r.cost_cents||0),0),unpriced:rr.filter(r=>r.cost_cents==null||r.retail_cents==null).length}}).sort((a,b)=>b.redemptions-a.redemptions));break;
+    }
+    case "manager_create_branch":{
+     const source=table.businesses.find(b=>b.id===args.p_source_business);
+     const owned=table.business_members.some(m=>m.business_id===args.p_source_business&&m.user_id===actor()&&m.role==="owner"&&m.active);
+     const slug=String(args.p_slug||"");
+     if(!manager||!owned||!source||source.parent_business_id||!slug||table.businesses.some(b=>b.slug===slug)){result=fail("No puedes crear esta sucursal. Revisa propietario e identificador.");break}
+     const id=uuid(),newBiz={...source,id,name:String(args.p_name||""),slug,parent_business_id:source.id,public_listing:false,created_at:now()};
+     table.businesses.push(newBiz);
+     const p=table.loyalty_programs.find(p=>p.business_id===source.id);
+     if(p)table.loyalty_programs.push({...p,id:uuid(),business_id:id});
+     const email=String(args.p_owner_email||"");
+     if(email.toLowerCase()===demoUser()?.email?.toLowerCase())table.business_members.push({business_id:id,user_id:actor(),role:"owner",active:true});
+     else table.business_invitations.push({id:uuid(),business_id:id,email,role:"owner",created_at:now(),claimed_at:null});
+     persist();result=ok(id);break;
+    }
+    case "business_employee_activity":{
     const tx=table.loyalty_transactions.filter(t=>t.business_id===biz&&t.kind==="earn");
     const memberIds=[...new Set(tx.map(t=>t.employee_id))];
     result=ok(memberIds.map(id=>({user_id:id,employee_name:table.profiles.find(p=>p.id===id)?.full_name||"Personal",operations:tx.filter(t=>t.employee_id===id).length,awarded_units:tx.filter(t=>t.employee_id===id).reduce((sum,t)=>sum+t.amount_delta,0)})));
@@ -284,17 +341,24 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     result=ok(canStaff&&m&&p&&b?[{membership_id:m.id,business_id:m.business_id,business_name:b.name,customer_name:name||"Cliente",program_type:p.type,balance:m.balance,reward_label:p.reward_label,reward_cost:p.reward_cost}]:[]);
     break;
    }
-   case "staff_redeem_voucher":{
+   case "staff_redeem_voucher_choice":
+    case "staff_redeem_voucher":{
     if(!canStaff){result=fail("No autorizado");break}
     const v=table.reward_vouchers.find(v=>v.token===String(args.p_token||"")&&v.status==="issued");
     const m=v&&table.loyalty_memberships.find(m=>m.id===v.membership_id);
     const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
     if(!v||!m||!p||m.balance<p.reward_cost){result=fail("El QR está canjeado o el saldo es insuficiente.");break}
-    m.balance-=p.reward_cost;v.status="redeemed";v.redeemed_at=now();
-    table.loyalty_transactions.unshift({id:uuid(),business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:"redeem",amount_delta:-p.reward_cost,created_at:now()});persist();result=ok(m.balance);break;
+    const option=(table.reward_options||[]).find(o=>o.id===args.p_reward_option&&o.business_id===m.business_id&&o.active);
+     if(name==="staff_redeem_voucher_choice"&&(table.reward_options||[]).some(o=>o.business_id===m.business_id&&o.active)&&!option){result=fail("Selecciona una recompensa disponible.");break}
+     m.balance-=p.reward_cost;v.status="redeemed";v.redeemed_at=now();
+    const txId=uuid();
+     table.loyalty_transactions.unshift({id:txId,business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:"redeem",amount_delta:-p.reward_cost,created_at:now()});
+     table.reward_redemptions.push({id:uuid(),transaction_id:txId,business_id:m.business_id,membership_id:m.id,customer_id:m.customer_id,reward_label:option?.label||p.reward_label,retail_cents:option?.retail_cents??null,cost_cents:option?.cost_cents??null,redeemed_at:now()});
+     persist();result=ok(m.balance);break;
    }
    case "staff_award_card":
-   case "staff_redeem_card":{
+   case "staff_redeem_card":
+    case "staff_redeem_card_choice":{
     if(!canStaff){result=fail("El perfil seleccionado no puede validar compras.");break}
     const m=membershipByToken();
     const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
@@ -303,13 +367,17 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     if(delta===0||name==="staff_award_card"&&(delta<1||p.type==="stamps"&&delta>p.max_stamps_per_action)){
      result=fail("Cantidad de sellos fuera del límite configurado.");break;
     }
-    if(name==="staff_redeem_card"&&m.balance+delta<0){result=fail("Saldo insuficiente para canjear.");break}
+    if(name!=="staff_award_card"&&m.balance+delta<0){result=fail("Saldo insuficiente para canjear.");break}
     if(args.p_ticket_ref&&table.loyalty_transactions.some(t=>t.business_id===m.business_id&&t.ticket_ref===args.p_ticket_ref)){result=fail("El ticket ya se ha utilizado.");break}
+     const option=(table.reward_options||[]).find(o=>o.id===args.p_reward_option&&o.business_id===m.business_id&&o.active);
+     if(name==="staff_redeem_card_choice"&&(table.reward_options||[]).some(o=>o.business_id===m.business_id&&o.active)&&!option){result=fail("Selecciona una recompensa.");break}
     m.balance+=delta;if(delta>0)m.total_earned+=delta;
     const existing=table.reward_vouchers.find(v=>v.membership_id===m.id&&v.status==="issued");
     if(m.balance<p.reward_cost&&existing)existing.status="cancelled";
     if(m.balance>=p.reward_cost&&!existing)table.reward_vouchers.push({id:uuid(),token:uuid(),membership_id:m.id,business_id:m.business_id,reward_label:p.reward_label,status:"issued",issued_at:now()});
-    table.loyalty_transactions.unshift({id:uuid(),business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:delta>0?"earn":"redeem",amount_delta:delta,purchase_cents:args.p_purchase_cents||null,ticket_ref:args.p_ticket_ref||null,reversal_of:null,reversal_reason:null,created_at:now()});
+    const txId=uuid();
+     table.loyalty_transactions.unshift({id:txId,business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:delta>0?"earn":"redeem",amount_delta:delta,purchase_cents:args.p_purchase_cents||null,ticket_ref:args.p_ticket_ref||null,reversal_of:null,reversal_reason:null,created_at:now()});
+     if(delta<0)table.reward_redemptions.push({id:uuid(),transaction_id:txId,business_id:m.business_id,membership_id:m.id,customer_id:m.customer_id,reward_label:option?.label||p.reward_label,retail_cents:option?.retail_cents??null,cost_cents:option?.cost_cents??null,redeemed_at:now()});
     persist();result=ok(m.balance);break;
    }
    case "manager_reverse_transaction":{

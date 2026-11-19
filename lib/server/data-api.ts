@@ -12,9 +12,9 @@ const tables=new Set([
  "profiles","platform_admins","businesses","business_members","business_invitations",
  "loyalty_programs","loyalty_memberships","loyalty_transactions","business_locations",
  "marketing_consents","marketing_campaigns","platform_billing_settings","reward_vouchers",
- "business_billing","billing_webhook_events","business_leads"
+ "business_billing","billing_webhook_events","business_leads","reward_options"
 ]);
-const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads","business_marketing_rates"]);
+const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads","business_marketing_rates","reward_options"]);
 function ident(value:string) {
  if(!/^[a-z_][a-z0-9_]*$/.test(value))throw new ApiError("Campo o tabla no válida.");
  return '"'+value+'"';
@@ -124,6 +124,13 @@ export async function queryData(client:PoolClient,input:QueryInput) {
 type Arg=[string,"uuid"|"text"|"integer"|"boolean"|"bigint"];
 type Spec={args:Arg[];returns:"scalar"|"table"};
 const rpcMap:Record<string,Spec>={
+ manager_create_branch:{args:[["p_source_business","uuid"],["p_name","text"],["p_slug","text"],["p_owner_email","text"]],returns:"scalar"},
+ available_rewards:{args:[["p_business","uuid"]],returns:"table"},
+ business_dashboard_metrics:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
+ business_reward_ranking:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
+ customer_reward_summary:{args:[],returns:"table"},
+ staff_redeem_voucher_choice:{args:[["p_token","uuid"],["p_reward_option","uuid"]],returns:"scalar"},
+ staff_redeem_card_choice:{args:[["p_token","uuid"],["p_cashback_cents","integer"],["p_reward_option","uuid"]],returns:"scalar"},
  admin_create_business:{args:[["p_name","text"],["p_slug","text"],["p_manager_email","text"]],returns:"scalar"},
  invite_staff:{args:[["p_business","uuid"],["p_email","text"],["p_role","text"]],returns:"scalar"},
  claim_invitations:{args:[],returns:"scalar"},
