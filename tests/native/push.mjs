@@ -15,7 +15,7 @@ try{
  )).rows;
  const ids=Object.fromEntries(rows.map(x=>[x.email.split("@")[0],x.id]));
  const shop=(await client.query("SELECT id FROM public.businesses WHERE slug='cafe-noma'")).rows[0];
- const other=(await client.query("SELECT id FROM public.businesses WHERE id<>$1 LIMIT 1",[shop?.id])).rows[0];
+ const other=(await client.query("SELECT b.id FROM public.businesses b WHERE NOT EXISTS (SELECT 1 FROM public.loyalty_memberships m WHERE m.business_id=b.id AND m.customer_id=$1::uuid) LIMIT 1",[ids.cliente])).rows[0];
  assert.ok(ids.cliente&&ids.gestor&&shop?.id&&other?.id,"El sandbox de Tijuana es obligatorio");
 
  await client.query("BEGIN");
