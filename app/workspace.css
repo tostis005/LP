@@ -649,3 +649,11 @@
 @media(max-width:1100px){.campaign-editor-grid{grid-template-columns:1fr}}
 @media(max-width:780px){.campaign-overview-grid{grid-template-columns:1fr}.campaign-overview-stat{padding:19px}.campaign-editor-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:490px){.campaign-channel-switch button{flex:1;justify-content:center;padding:11px 8px;font-size:12px}.campaign-compose{padding:20px}.rich-message-editor,.rich-message-preview{min-height:180px}}
+
+/* Wallets: enlaces nativos solo cuando las firmas del proveedor estén configuradas. */
+.wallet-actions{display:grid;gap:8px;margin:13px 0;max-width:330px;margin-left:auto;margin-right:auto}
+.wallet-action-button{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 17px;border-radius:13px;background:#1f1820;border:1px solid #1f1820;color:#fff;font-size:13px;font-weight:800;text-decoration:none}
+.wallet-action-button:hover{background:#4e273c;color:#fff}
+.wallet-action-button.google{background:#fff;color:#38212c;border-color:#dfc8d4}
+.wallet-action-button.google:hover{background:#f9edf3}
+.wallet-unavailable{display:flex;justify-content:center;align-items:center;gap:8px;margin:12px 0 0;color:#826779;font-size:11px;line-height:1.5;text-align:center}
