@@ -1,8 +1,9 @@
 "use client";
-import {useState} from "react";
+import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {ArrowRight,CheckCircle2,Eye,EyeOff,LockKeyhole,ScanLine,ShieldCheck,Sparkles,Store,UserRound} from "lucide-react";
 import {Brand} from "@/components/Brand";
+import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import {StampCard} from "@/components/StampCard";
 import {enterDemo,leaveDemo,type DemoRole} from "@/lib/demo-local";
 import {configured,db} from "@/lib/supabase";
@@ -51,6 +52,7 @@ export default function Login(){
    }
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
+ useEffect(()=>{if(new URLSearchParams(window.location.search).has("auth_error"))setError("No hemos podido acceder con tu cuenta. Vuelve a intentarlo.");},[]);
  function switchMode(next:typeof mode){setMode(next);setError("");setMessage("")}
  return <main className="auth-layout auth-compact auth-all-access">
   <aside className="auth-story auth-story-compact">
@@ -69,6 +71,7 @@ export default function Login(){
     <div className="eyebrow">BIENVENIDO A LOYALLY</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
     <p className="auth-intro">{mode==="login"?"Inicia sesión con tu cuenta o explora cualquiera de los cuatro perfiles de demostración.":mode==="signup"?"Solo necesitas una cuenta para guardar todas tus tarjetas. Los avisos sobre tus premios forman parte del servicio; las ofertas comerciales son opcionales.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
+    <SocialAuthButtons next="/entrar"/>
     <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
      {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div></>}
      <label>Correo electrónico<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>
