@@ -46,6 +46,8 @@ jobs:
         run: npm run typecheck
       - name: Construir Next.js
         run: npm run build
+      - name: Confirmar que SMTP está incluido en la imagen standalone
+        run: cd .next/standalone && node -e "require.resolve('nodemailer')"
       - name: Verificar la portada dentro de una imagen Docker real
         shell: bash
         run: |
