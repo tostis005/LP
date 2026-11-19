@@ -3,7 +3,7 @@
 import {readFileSync,writeFileSync} from "node:fs";
 import {generateKeyPairSync} from "node:crypto";
 
-const path="/loyally/.env.production";
+const path=process.argv[2]||"/loyally/.env.production";
 const original=readFileSync(path,"utf8");
 const lines=original.split(/\r?\n/);
 function get(key){
