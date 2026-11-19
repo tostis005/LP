@@ -36,7 +36,7 @@ assert.doesNotMatch(presentation.programPromise({type:"stamps",reward_label:"Caf
 const map=readFileSync(new URL("../../components/DirectoryMap.tsx",import.meta.url),"utf8");
 const css=readFileSync(new URL("../../app/workspace.css",import.meta.url),"utf8");
 assert.match(map,/stampMarkup\(categoryStampKind\(category\)/);
-assert.match(map,/iconAnchor:\[24,52\]/);
+assert.match(map,/iconAnchor:\[23,52\]/);
 const outer=css.match(/\.loyally-map-marker\{([^}]*)\}/)?.[1]||"";
 assert.ok(outer&&!/transform\s*:/.test(outer),"Map marker must not override Leaflet positioning");
 assert.match(css,/\.loyally-map-symbol\{[^}]*place-items:center/);
