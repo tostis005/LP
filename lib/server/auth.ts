@@ -54,9 +54,9 @@ export async function rateLimit(key:string,max:number,minutes=15) {
   );
   if(result.rows[0].hits>max)throw new ApiError("Demasiados intentos. Inténtalo más tarde.",429);
 }
-export async function createSession(userId:string) {
+export async function createSession(userId:string,ttlMs=30*DAY) {
   const token=randomBytes(32).toString("hex");
-  const expires=new Date(Date.now()+30*DAY);
+  const expires=new Date(Date.now()+ttlMs);
   await authPool.query(
     "INSERT INTO auth.sessions(user_id,token_hash,expires_at) VALUES($1,$2,$3)",
     [userId,hashToken(token),expires]
