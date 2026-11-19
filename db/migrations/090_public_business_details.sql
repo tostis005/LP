@@ -5,7 +5,7 @@ RETURNS TABLE(
  business_id uuid,business_name text,description text,accent_color text,category text,
  logo_url text,card_text text,card_text_color text,stamp_color text,stamp_icon text,
  reward_label text,program_type text,reward_cost integer,cashback_bps integer,
- points_per_euro integer,public_listing boolean,locations_json jsonb
+ points_per_euro numeric,public_listing boolean,locations_json jsonb
 )
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
  SELECT b.id,b.name,b.description,b.accent_color,b.category,
