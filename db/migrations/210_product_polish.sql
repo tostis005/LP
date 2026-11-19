@@ -28,3 +28,16 @@ END $$;
 DROP TRIGGER IF EXISTS guard_business_currency ON public.businesses;
 CREATE TRIGGER guard_business_currency BEFORE UPDATE OF currency ON public.businesses
 FOR EACH ROW EXECUTE FUNCTION public.guard_business_currency();
+
+-- Cambio atómico de moneda para negocios sin movimientos monetarios previos.
+CREATE OR REPLACE FUNCTION public.admin_set_business_currency(p_business uuid,p_currency text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+BEGIN
+ IF NOT public.is_platform_admin() THEN RAISE EXCEPTION 'No autorizado'; END IF;
+ IF p_currency NOT IN ('USD','EUR','MXN') THEN RAISE EXCEPTION 'Moneda no disponible'; END IF;
+ UPDATE public.businesses SET currency=p_currency WHERE id=p_business;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Negocio no encontrado'; END IF;
+ UPDATE public.business_marketing_rates SET currency=p_currency,updated_at=now() WHERE business_id=p_business;
+END $$;
+REVOKE ALL ON FUNCTION public.admin_set_business_currency(uuid,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.admin_set_business_currency(uuid,text) TO authenticated;
