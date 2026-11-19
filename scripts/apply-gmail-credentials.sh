@@ -39,8 +39,14 @@ fi
     text:"El correo de confirmación de cuentas ya puede enviarse desde Loyally."
   });
   console.log("SMTP de Gmail verificado: mensaje de prueba enviado a la cuenta configurada.");
-})().catch(()=>{
-  console.error("ERROR: Gmail rechazó la autenticación o el envío. Comprueba la cuenta, 2FA y contraseña de aplicación.");
+})().catch(error=>{
+  // Solo metadatos controlados: nunca incluir mensajes, contraseñas ni el SMTP transcript.
+  const codes=["EAUTH","ECONNECTION","ETIMEDOUT","ESOCKET","ENOTFOUND","EENVELOPE","EMESSAGE","MODULE_NOT_FOUND"];
+  const code=String(error&&error.code||"OTHER");
+  const safeCode=codes.includes(code)?code:"OTHER";
+  const n=Number(error&&error.responseCode);
+  const responseCode=Number.isInteger(n)&&n>=400&&n<=599?n:"none";
+  console.error("ERROR: prueba SMTP fallida. Tipo="+safeCode+"; respuestaSMTP="+responseCode+".");
   process.exit(1);
 });
 '
