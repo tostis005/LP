@@ -192,6 +192,17 @@ jobs:
             fi
             COMPOSE=(sudo -n docker compose)
           fi
+          # Generación inicial VAPID dentro del VPS. Nunca pasa por GitHub Secrets
+          # ni se imprime en los logs. Respeta futuras desactivaciones explícitas.
+          DOCKER=(docker)
+          if (("${#ENV_CMD[@]}")) || ! docker info >/dev/null 2>&1; then
+            DOCKER=(sudo -n docker)
+          fi
+          "${DOCKER[@]}" run --rm --network none \
+            --mount "type=bind,source=$PWD/.env.production,target=/loyally/.env.production" \
+            --mount "type=bind,source=$PWD/scripts/setup-push-env.mjs,target=/setup-push-env.mjs,readonly" \
+            node:22-bookworm-slim node /setup-push-env.mjs
+
           "${COMPOSE[@]}" --env-file .env.production config --quiet
           "${COMPOSE[@]}" --env-file .env.production up -d --build --remove-orphans
           homepage="$(mktemp)"
@@ -212,7 +223,16 @@ jobs:
                   exit 1
                 fi
               done
-              echo "Loyally responde correctamente: home ES/EN, negocio, campañas, vista previa, descubrir y estados de Wallet."
+              # Requerir HTTPS público realmente verificable y push activo,
+              # no basta con la respuesta del contenedor por HTTP interno.
+              SITE="$("${ENV_CMD[@]}" grep '^NEXT_PUBLIC_SITE_URL=' .env.production | tail -n 1 | cut -d= -f2-)"
+              SITE="${SITE%/}"
+              if ! [[ "$SITE" == https://* ]] || \
+                 ! curl -fsS --max-time 15 "$SITE/api/local/push/config" | grep -q '"enabled":true'; then
+                echo "ERROR: no se ha podido verificar Web Push por HTTPS público con certificado válido."
+                exit 1
+              fi
+              echo "Loyally responde correctamente: home ES/EN, negocio, campañas, Wallet y Web Push HTTPS activo."
               exit 0
             fi
             sleep 3
