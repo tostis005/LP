@@ -999,3 +999,12 @@
 .admin-business-list{grid-column:1/-1;width:100%;max-width:none;min-width:0}
 .admin-business-list .data-table{width:100%}
 @media(min-width:951px){.admin-create-business .lp-address-picker{max-width:980px}}
+
+/* Acceso rápido autorizado y adaptable sin contraseñas en cliente. */
+.qa-profile-access{margin-top:26px;padding-top:8px;width:100%}
+.qa-profile-access>.muted{font-size:12px;margin:10px 0 18px}
+.qa-profile-access .auth-profile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.qa-profile-access .auth-profile-card{width:100%;min-width:0;text-align:left;cursor:pointer}
+.qa-profile-access .auth-profile-copy{min-width:0}
+.qa-profile-access .auth-profile-copy strong,.qa-profile-access .auth-profile-copy small{overflow-wrap:anywhere}
+@media(max-width:430px){.qa-profile-access .auth-profile-grid{grid-template-columns:1fr}}
