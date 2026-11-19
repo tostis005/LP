@@ -47,7 +47,7 @@ const auth={
  getSession:async()=>post<{session:{access_token:string;user:User}|null}>("/api/local/auth",{action:"getSession"}),
  signOut:async()=>post("/api/local/auth",{action:"signOut"}),
  signInWithPassword:async(data:{email:string;password:string})=>post("/api/local/auth",{action:"signInWithPassword",...data}),
- signUp:async(data:{email:string;password:string;options?:{data?:{full_name?:string;whatsapp?:string};emailRedirectTo?:string}})=>post<{user:User|null;session:unknown}>("/api/local/auth",{action:"signUp",email:data.email,password:data.password,full_name:data.options?.data?.full_name,whatsapp:data.options?.data?.whatsapp}),
+ signUp:async(data:{email:string;password:string;options?:{data?:{full_name?:string;whatsapp?:string;platform_marketing_opt_in?:boolean};emailRedirectTo?:string}})=>post<{user:User|null;session:unknown}>("/api/local/auth",{action:"signUp",email:data.email,password:data.password,full_name:data.options?.data?.full_name,whatsapp:data.options?.data?.whatsapp,platform_marketing_opt_in:data.options?.data?.platform_marketing_opt_in===true}),
  resetPasswordForEmail:async(email:string,_options?:{redirectTo?:string})=>post("/api/local/auth",{action:"resetPasswordForEmail",email}),
  updateUser:async(data:{email?:string;password?:string;whatsapp?:string})=>post("/api/local/auth",{action:"updateUser",...data}),
  exchangeCodeForSession:async(_code:string)=>({data:null,error:err("El enlace de acceso ya no utiliza códigos externos.")}),
