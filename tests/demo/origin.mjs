@@ -1,0 +1,27 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {createRequire} from "node:module";
+import {runInNewContext} from "node:vm";
+import ts from "typescript";
+
+// Run the actual TypeScript helper without starting a database or HTTP server.
+const source=readFileSync(new URL("../../lib/server/origin.ts",import.meta.url),"utf8");
+const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const mod={exports:{}};
+runInNewContext(js,{module:mod,exports:mod.exports,require:createRequire(import.meta.url),URL});
+const {isAllowedOrigin}=mod.exports;
+const ip="https://169.58.121.198";
+assert.equal(isAllowedOrigin(null,ip),true,"requests without Origin remain supported");
+assert.equal(isAllowedOrigin("https://169.58.121.198",ip),true,"canonical HTTPS");
+assert.equal(isAllowedOrigin("http://169.58.121.198",ip),true,"IP accessed over HTTP");
+assert.equal(isAllowedOrigin("https://169.58.121.198:8443",ip),false,"different HTTPS port rejected");
+assert.equal(isAllowedOrigin("http://169.58.121.198:3000",ip),false,"alternate HTTP port rejected");
+assert.equal(isAllowedOrigin("http://169.58.121.199",ip),false,"different IP rejected");
+assert.equal(isAllowedOrigin("https://evil.example",ip),false,"unrelated website rejected");
+assert.equal(isAllowedOrigin("null",ip),false,"opaque origins rejected");
+assert.equal(isAllowedOrigin("http://169.58.121.198",undefined),false,"missing public URL fails closed");
+assert.equal(isAllowedOrigin("http://loyally.example","https://loyally.example"),false,"named domains stay HTTPS-only");
+assert.equal(isAllowedOrigin("https://loyally.example","https://loyally.example"),true,"same exact domain works");
+assert.equal(isAllowedOrigin("https://loyally.example:443","https://loyally.example"),false,"noncanonical origin rejected");
+assert.equal(isAllowedOrigin("http://127.0.0.1:3100","http://127.0.0.1:3100"),true,"explicit localhost port works when configured");
+console.log("Origin validation: 13 cases passed.");
