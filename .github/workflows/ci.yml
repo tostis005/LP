@@ -24,6 +24,8 @@ jobs:
         run: node tests/demo/discovery-ux.mjs
       - name: Verificar textos comerciales ES/EN, iconos y logotipo
         run: node tests/demo/landing.mjs
+      - name: Verificar paleta vinotinto y colores configurables
+        run: node tests/demo/theme.mjs
       - name: Probar acceso inmediato y sellos en los cuatro perfiles
         run: node tests/demo/role-flow.mjs
       - name: Comprobar TypeScript
@@ -131,3 +133,4 @@ jobs:
           npm run db:seed:tijuana
           node tests/native/tijuana.mjs
           node tests/native/oauth.mjs
+          node tests/native/theme.mjs
