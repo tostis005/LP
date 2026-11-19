@@ -92,9 +92,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
    db().rpc("business_marketing_usage",{p_business:selected}),
    db().rpc("business_push_campaigns_unified",{p_business:selected})
   ]);
-  const p=(pricing.data||[])[0] as (MailQuote&{devices?:number})|undefined;
-  setQuote(pricing.error||!p?null:{contacts:marketingChannel==="push"?Number(p.devices||0):Number(p.contacts||0),
-   price_cents:p.price_cents,total_cents:p.total_cents,currency:p.currency});
+  const priceInfo=(pricing.data||[])[0] as (MailQuote&{devices?:number})|undefined;
+  setQuote(pricing.error||!priceInfo?null:{contacts:marketingChannel==="push"?Number(priceInfo.devices||0):Number(priceInfo.contacts||0),
+   price_cents:priceInfo.price_cents,total_cents:priceInfo.total_cents,currency:priceInfo.currency});
   setUsage((used.data||[]) as Usage[]);
   setDrafts([...(d.data||[]) as Draft[],...(pushItems.data||[]) as Draft[]]
    .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)));
