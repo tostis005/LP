@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@/lib/supabase";
-import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, Mail, Users, ChevronRight } from "lucide-react";
+import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, Mail, Users, ChevronRight, Brush, Gift, MapPin, Store } from "lucide-react";
 import { Brand } from "@/components/Brand";
 import { configured, db } from "@/lib/supabase";
 import {leaveDemo} from "@/lib/demo-local";
@@ -17,7 +17,12 @@ const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
   {href:"/negocio/customers",label:"Clientes",icon:<Users size={18}/>},
   {href:"/negocio/marketing",label:"Campañas",icon:<Mail size={18}/>},
   {href:"/negocio/reports",label:"Resultados",icon:<BarChart3 size={18}/>},
-  {href:"/negocio/settings",label:"Más opciones",icon:<Settings2 size={18}/>}
+  {href:"/negocio/team",label:"Empleados",icon:<Users size={18}/>},
+  {href:"/negocio/designer",label:"Diseño de tarjeta",icon:<Brush size={18}/>},
+  {href:"/negocio/program",label:"Premios y sellos",icon:<Gift size={18}/>},
+  {href:"/negocio/locations",label:"Dirección",icon:<MapPin size={18}/>},
+  {href:"/negocio/settings",label:"Datos del negocio",icon:<Settings2 size={18}/>},
+  {href:"/negocio/facturacion",label:"Facturación",icon:<CreditCard size={18}/>}
  ],
  staff:[{href:"/empleado",label:"Escanear tarjetas",icon:<ScanLine size={18}/>}],
  admin:[{href:"/admin",label:"Administración",icon:<Shield size={18}/>}]
@@ -53,14 +58,16 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
  return <div className={"workspace workspace-"+area}>
   <aside className="sidebar"><div className="sidebar-brand"><Brand/></div><div className="sidebar-caption">NAVEGACIÓN</div><nav className="side-links" aria-label="Menú principal">
-   {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"side-link"+(pathname===i.href||i.href==="/negocio/settings"&&pathname.startsWith("/negocio/")&&!["/negocio/customers","/negocio/marketing","/negocio/reports"].includes(pathname)?" active":"")}>{i.icon}{i.label}</Link>)}
+   {menus[area].filter(i=>!(area==="business"&&i.href==="/negocio/facturacion"&&!roles.some(r=>r.role==="owner"))).map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
   </nav><div className="sidebar-spacer"/><button type="button" className="side-logout" onClick={logout}><LogOut size={17}/> Cerrar sesión</button>
   </aside>
   <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> Loyally / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user"><span>{user.user_metadata?.full_name||({business:"Mi negocio",staff:"Personal",admin:"Administración",customer:"Mi cuenta"}[area])}</span><div className="user-avatar">{(user.user_metadata?.full_name||"L").slice(0,1).toUpperCase()}</div><button type="button" className="mobile-logout" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20}/></button></div></header>
    <div className="workspace-content">{area==="business"&&pathname.startsWith("/negocio/")&&<nav className="workspace-breadcrumbs" aria-label="Ruta de navegación">
      <Link href="/negocio">Mi negocio</Link><ChevronRight size={14}/>
-     {["designer","program","team","locations","facturacion","vista-previa"].includes(pathname.split("/")[2])&&<><Link href="/negocio/settings">Más opciones</Link><ChevronRight size={14}/></>}
-     <span aria-current="page">{({"designer":"Diseño de tarjeta","program":"Premios y sellos","team":"Equipo","locations":"Locales","facturacion":"Facturación","vista-previa":"Vista previa","settings":"Más opciones"} as Record<string,string>)[pathname.split("/")[2]]||menus.business.find(x=>x.href===pathname)?.label||"Mi negocio"}</span>
+     <span aria-current="page">{menus.business.find(i=>i.href===pathname)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
+    </nav>}
+    {area==="business"&&<nav className="business-mobile-all-sections" aria-label="Secciones del negocio">
+     {menus.business.filter(i=>i.href!=="/negocio/facturacion"||roles.some(r=>r.role==="owner")).map(i=><Link href={i.href} key={i.href} aria-current={pathname===i.href?"page":undefined} className={pathname===i.href?"active":""}>{i.icon}<span>{i.label}</span></Link>)}
     </nav>}<div className="workspace-title"><div><p className="page-eyebrow">TU ESPACIO, A TU MANERA</p><h1>{title}</h1><p>{subtitle}</p></div></div>{children(account)}</div>
 
   </div>

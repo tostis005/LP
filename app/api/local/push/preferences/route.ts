@@ -8,10 +8,13 @@ export async function GET(request:Request){
   const actor=await actorFromRequest(request);
   if(!actor)throw new ApiError("Necesitas iniciar sesión.",401);
   const data=await asActor(actor,async client=>{
-   const r=await client.query("SELECT * FROM public.customer_push_preferences()");
-   return r.rows;
+   const [r,p]=await Promise.all([
+    client.query("SELECT * FROM public.customer_push_preferences()"),
+    client.query("SELECT push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id IS NULL",[actor.id])
+   ]);
+   return {businesses:r.rows,platform_opted_in:p.rows[0]?.push_opted_in===true};
   });
-  return Response.json({businesses:data},{headers:{"Cache-Control":"no-store"}});
+  return Response.json(data,{headers:{"Cache-Control":"no-store"}});
  }catch(e){return responseError(e);}
 }
 export async function POST(request:Request){
@@ -36,6 +39,11 @@ export async function POST(request:Request){
    if(!input.endpoint||!trustedPushEndpoint(input.endpoint))throw new ApiError("Suscripción inválida.");
    await authPool.query("SELECT public.unregister_web_push_subscription($1::uuid,$2::text)",
     [actor.id,input.endpoint]);
+  }else if(input.action==="platform_consent"){
+   if(typeof input.opted_in!=="boolean")throw new ApiError("Preferencia inválida.");
+   await asActor(actor,async client=>{
+    await client.query("SELECT public.platform_upsert_push_consent($1::boolean)",[input.opted_in]);
+   });
   }else if(input.action==="consent"){
    if(!/^[a-f0-9-]{36}$/i.test(input.business_id||"")||typeof input.opted_in!=="boolean")
     throw new ApiError("Preferencia inválida.");

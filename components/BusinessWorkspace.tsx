@@ -55,7 +55,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
   const [periodDays,setPeriodDays]=useState(30),[metrics,setMetrics]=useState<MetricRow[]>([]),[ranking,setRanking]=useState<RankingRow[]>([]),[rewardOptions,setRewardOptions]=useState<RewardOption[]>([]);
  const [activity,setActivity]=useState<{user_id:string;employee_name:string;operations:number;awarded_units:number}[]>([]);
- const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee");
+ const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee"),[teamView,setTeamView]=useState<"list"|"invite">("list");
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState("Tijuana"),[country,setCountry]=useState("México"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState(""),[quote,setQuote]=useState<MailQuote|null>(null);
  const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null),[campaignView,setCampaignView]=useState<"list"|"editor">("list");
@@ -153,7 +153,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  async function invite(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setNotice("");
   const {error}=await db().rpc("invite_staff",{p_business:selected,p_email:inviteEmail,p_role:inviteRole});
   setBusy(false);if(error){setError(error.message);return}
-  setInviteEmail("");success("Invitación creada. El empleado debe registrarse con ese correo verificado e iniciar sesión para aceptarla.");await reload()
+  setInviteEmail("");setTeamView("list");success("Invitación creada. El empleado debe registrarse con ese correo verificado e iniciar sesión para aceptarla.");await reload()
  }
  async function toggleStaff(user_id:string,active:boolean){setBusy(true);setError("");
   const {error}=await db().rpc("set_staff_active",{p_business:selected,p_user:user_id,p_active:active});
@@ -231,17 +231,6 @@ export default function BusinessWorkspace({account}:{account:Account}){
     <div className="demo-two-cols"><section className="panel-card"><h2>Últimos movimientos</h2><p className="muted">Cada visita es una oportunidad para fidelizar.</p>{transactions.slice(0,6).map(t=><div className="activity-row" key={t.id}><div className={"activity-icon "+(t.kind==="earn"?"positive":"negative")}>{t.kind==="earn"?<Plus size={18}/>:<Gift size={18}/>}</div><div><strong>{t.kind==="earn"?"Compra verificada":"Recompensa canjeada"}</strong><span>{dateShort(t.created_at)} {t.ticket_ref?"· Ticket "+t.ticket_ref:""}</span></div><b className={t.amount_delta>0?"positive-text":"negative-text"}>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></div>)}{transactions.length===0&&<p className="muted">Todavía no se han registrado movimientos.</p>}</section>
     <section className="panel-card overview-card"><div className="panel-icon"><Gift size={23}/></div><h2>Tu programa en una mirada</h2><p className="muted">Recompensas que hablan de tu negocio.</p><div className="overview-stat"><span>Modalidad</span><strong>{programType==="stamps"?"Sellos":programType==="points"?"Puntos":"Saldo a favor"}</strong></div><div className="overview-stat"><span>Recompensa</span><strong>{prog.reward_label}</strong></div><div className="overview-stat"><span>Clientes con consentimiento comercial</span><strong>{canvassed}</strong></div><a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Ver la tarjeta como cliente <ArrowUpRight size={16}/></a><Link href="/negocio/facturacion" className="button button-outline button-full">Facturación y suscripción <CreditCard size={16}/></Link><button className="button button-outline button-full" onClick={()=>openSection("program")}>Configurar programa <ArrowUpRight size={16}/></button></section></div>
    </>}
-   {tab==="settings"&&<section className="business-settings-hub" aria-label="Más opciones de negocio">
-    <h3>Gestiona todos los detalles</h3><p>Las herramientas de tu local, bien organizadas y a un toque.</p>
-    <div className="business-settings-links">
-     {([{id:"designer",title:"Diseño de tarjeta",summary:"Color, dibujo y mensaje de tus sellos",icon:<Brush size={22}/>},
-      {id:"program",title:"Premios y sellos",summary:"Reglas de fidelización y recompensas",icon:<Gift size={22}/>},
-      {id:"team",title:"Tu equipo",summary:"Empleados y accesos del establecimiento",icon:<Users size={22}/>},
-      {id:"locations",title:"Dirección del negocio",summary:"Actualiza la dirección de tu establecimiento",icon:<MapPin size={22}/>}
-     ] as const).map(item=><Link key={item.id} href={"/negocio/"+item.id}>{item.icon}<span><strong>{item.title}</strong><small>{item.summary}</small></span><ArrowUpRight size={17}/></Link>)}
-     <Link href="/negocio/facturacion"><CreditCard size={22}/><span><strong>Facturación</strong><small>Suscripción, pagos y consumo de campañas</small></span><ArrowUpRight size={17}/></Link>
-    </div>
-   </section>}
    {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido por tu categoría. Puedes elegir otro para el mapa y las tarjetas desde «Diseño de tarjeta».</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form><section className="panel-card"><h2>Tu identidad de marca</h2><p className="muted">Sube un logo para personalizar la tarjeta y la ficha de tu negocio.</p><div className="upload-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logo del negocio"/>:<div className="upload-logo" style={{background:biz.accent_color}}>{initials(biz.name)}</div>}</div><label className="file-input"><ImagePlus size={18}/> Subir logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label><div className="info-callout"><ShieldCheck size={18}/> Puedes usar una imagen de hasta 5 MB. Tu logotipo se mostrará a quienes descubran el negocio y guarden su tarjeta.</div></section></div>}
 
    {tab==="designer"&&<div className="designer-grid lp-new-designer">
@@ -294,8 +283,38 @@ export default function BusinessWorkspace({account}:{account:Account}){
    <div className="info-callout"><ShieldCheck size={18}/> Cada visita queda registrada con la fecha y el empleado que la atendió, para que puedas consultar el historial y corregir errores.</div>
    <button disabled={busy} className="button button-dark">Guardar programa <Check size={17}/></button></div></form>}
     {tab==="program"&&<RewardCatalog businessId={selected} options={rewardOptions} onSaved={reload}/>}
-   {tab==="team"&&<div className="admin-grid"><section className="panel-card"><h2>Tu equipo</h2><p className="muted">Cada empleado opera bajo su cuenta y queda registrado en cada movimiento.</p>{staff.map(x=><div className="activity-row team-row" key={x.user_id}><div className="person-initial">{initials(x.full_name||privateEmail(x.email))}</div><div><strong>{x.full_name||privateEmail(x.email)}</strong><span>{privateEmail(x.email)} · {x.role==="owner"?"Propietario":x.role==="manager"?"Manager":"Empleado"}</span></div>{x.role!=="owner"&&<button disabled={busy} onClick={()=>toggleStaff(x.user_id,!x.active)} className={"table-pill "+(x.active?"":"inactive")}>{x.active?"Activo":"Inactivo"}</button>}</div>)}<h3 className="subheading">Invitaciones pendientes</h3>{invites.map(x=><div className="activity-row" key={x.id}><div className="activity-icon positive"><Mail size={17}/></div><div><strong>{privateEmail(x.email)}</strong><span>{x.role} · Pendiente de registro/verificación</span></div></div>)}{!invites.length&&<p className="muted">No hay invitaciones pendientes.</p>}</section>
-   <form className="panel-card" onSubmit={invite}><div className="panel-icon"><Users size={22}/></div><h2>Añadir un empleado</h2><p className="muted">Invita por email. La cuenta tendrá acceso solo a los negocios asignados.</p><div className="form-stack"><label>Email del empleado<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="empleado@negocio.com" required/></label><label>Permiso<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="employee">Empleado: escanear y canjear</option>{account.businesses.find(x=>x.business_id===selected)?.role==="owner"&&<option value="manager">Manager: también gestionar negocio</option>}</select></label><button className="button button-dark" disabled={busy}>Crear invitación <Plus size={17}/></button></div><p className="tiny-note">La invitación queda registrada en Loyally. No se envía un email automáticamente hasta integrar un servicio transaccional; puedes avisar al empleado por tu cuenta.</p></form></div>}
+   {tab==="team"&&<div className="team-section">
+    {teamView==="list"?<>
+     <div className="campaign-page-header team-page-header"><div><span className="page-eyebrow">PERSONAL DEL NEGOCIO</span><h2>Empleados y accesos</h2>
+      <p>Gestiona quién puede registrar visitas, canjear premios o ayudarte con el negocio.</p></div>
+      <button type="button" className="button button-dark" onClick={()=>setTeamView("invite")}><Plus size={18}/> Añadir empleado</button>
+     </div>
+     <section className="panel-card team-list-panel">
+      <div className="content-heading"><div><h3>{staff.length} personas en el equipo</h3><p>Permisos y estado de las cuentas de este establecimiento.</p></div></div>
+      {staff.length?staff.map(x=><div className="activity-row team-row" key={x.user_id}>
+       <div className="person-initial">{initials(x.full_name||privateEmail(x.email))}</div>
+       <div><strong>{x.full_name||privateEmail(x.email)}</strong><span>{privateEmail(x.email)} · {x.role==="owner"?"Propietario":x.role==="manager"?"Responsable":"Empleado"}</span></div>
+       {x.role!=="owner"&&<button type="button" disabled={busy} onClick={()=>toggleStaff(x.user_id,!x.active)} className={"table-pill "+(x.active?"":"inactive")}>{x.active?"Activo":"Inactivo"}</button>}
+      </div>):<div className="campaign-empty-state"><Users size={26}/><h3>Aún no has añadido empleados</h3><p>Invita a tu primer colaborador para registrar visitas.</p><button type="button" className="button button-dark" onClick={()=>setTeamView("invite")}>Añadir empleado</button></div>}
+      {invites.length>0&&<><h3 className="subheading">Invitaciones pendientes</h3>{invites.map(x=><div className="activity-row" key={x.id}><div className="activity-icon positive"><Mail size={17}/></div><div><strong>{privateEmail(x.email)}</strong><span>{x.role==="manager"?"Responsable":"Empleado"} · Pendiente de aceptación</span></div></div>)}</>}
+     </section>
+    </>:<>
+     <div className="campaign-page-header"><div><button type="button" className="campaign-editor-back" onClick={()=>setTeamView("list")}>← Volver a empleados</button>
+      <h2>Invitar a un empleado</h2><p>Elige el correo y el tipo de acceso que tendrá.</p></div>
+      <button type="button" className="button button-outline" onClick={()=>setTeamView("list")}>Cancelar</button>
+     </div>
+     <form className="panel-card team-invite-form" onSubmit={invite}>
+      <div className="panel-icon"><Users size={23}/></div>
+      <div className="form-stack"><label>Correo electrónico del empleado<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="empleado@negocio.com" required/></label>
+       <label>Tipo de acceso<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="employee">Empleado: escanear y canjear</option>
+        {account.businesses.find(x=>x.business_id===selected)?.role==="owner"&&<option value="manager">Responsable: gestionar negocio</option>}
+       </select></label>
+       <button type="submit" className="button button-dark" disabled={busy}>{busy?"Guardando...":"Crear invitación"} <Plus size={17}/></button>
+      </div>
+      <p className="tiny-note">La invitación se guarda en Loyally. Comparte las instrucciones de acceso con el empleado si todavía no está activado el correo del servidor.</p>
+     </form>
+    </>}
+   </div>}
    {tab==="customers"&&<section className="panel-card"><div className="content-heading"><div><h2>Tu comunidad</h2><p>Solo clientes inscritos en tu programa. Por su privacidad, no mostramos sus direcciones completas; puedes contactarles mediante las campañas de Loyally.</p></div><span className="table-pill">{customers.length} clientes</span></div><div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>{customers.map(x=><tr key={x.user_id}><td><strong>{x.full_name||"Sin nombre"}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(x.email)}</code></td><td><b>{formatBalance(x.balance)}</b></td><td>{x.visits}</td><td>{x.marketing_ok?<span className="table-pill">Aceptado</span>:<span className="table-pill inactive">No</span>}</td><td>{dateShort(x.joined_at)}</td></tr>)}</tbody></table></div>{customers.length===0&&<p className="muted">Comparte tu programa para conseguir tus primeros clientes.</p>}</section>}
    {tab==="locations"&&<div className="business-location-layout">
     <section className="panel-card business-location-intro">

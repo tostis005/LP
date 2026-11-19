@@ -798,3 +798,90 @@
 .loyally-map-symbol svg{stroke-width:3.5!important}
 @media(max-width:850px){.directory-results-grid{grid-template-columns:1fr}}
 @media(max-width:530px){.directory-card-premium .directory-card-cover{min-height:190px}.directory-card-premium .directory-card-body{padding:20px!important}.directory-card-premium .directory-cover-icon{width:64px;height:64px}.directory-card-premium .directory-cover-icon svg{width:42px;height:42px}}
+
+
+/* Loyally · experiencia sin contenedores estrechos artificiales. */
+.workspace-content{width:100%;max-width:none;margin:0;padding-inline:clamp(18px,2.6vw,48px)}
+.business-workspace,.business-workspace .workspace-section-layout,.business-workspace .workspace-section-body,
+.campaign-page-final,.campaign-editor-full,.team-section,.team-list-panel,.team-invite-form{max-width:none;width:100%;min-width:0}
+.campaign-editor-full{margin:0}
+.workspace-title{max-width:none}
+.sidebar{height:100dvh;position:sticky;top:0;overflow-y:auto}
+.sidebar .side-links{overflow:visible;gap:2px}
+.sidebar .side-link{min-height:40px}
+.business-mobile-all-sections{display:none}
+@media(max-width:1000px){
+ .business-mobile-all-sections{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:thin;padding:1px 0 14px;margin:0 0 16px}
+ .business-mobile-all-sections a{display:flex;gap:8px;align-items:center;flex:none;scroll-snap-align:start;padding:10px 13px;border:1px solid #ebdce4;border-radius:999px;background:#fff;color:#704258;text-decoration:none;font-size:12px;font-weight:750;white-space:nowrap}
+ .business-mobile-all-sections a.active{background:#571c32;color:#fff;border-color:#571c32}
+ .business-mobile-all-sections a svg{width:17px;height:17px}
+}
+@media(max-width:700px){
+ .workspace-content{padding-inline:16px}
+ .business-mobile-all-sections{margin-inline:-16px;padding-inline:16px}
+ .sidebar{height:auto}
+}
+/* Tarjeta personal con acceso directo a Wallet; el QR exportado no incorpora sellos congelados. */
+.loyalty-card-item{width:100%;min-width:0;display:flex;flex-direction:column;gap:10px}
+.loyalty-card-item>.loyalty-card{width:100%;flex:1;margin:0}
+.loyalty-wallet-open{display:flex;justify-content:center;align-items:center;gap:9px;border:1px solid #e2c9d5;border-radius:12px;min-height:42px;padding:9px 13px;background:#fff9fc;color:#672e46;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;transition:background .15s ease}
+.loyalty-wallet-open:hover,.loyalty-wallet-open:focus-visible{background:#f1e1e9}
+.lp-wallet-intro{margin:18px 0 10px;text-align:center}
+.lp-wallet-intro h3{font-size:17px;color:#3e2632;margin:0 0 6px}
+.lp-wallet-intro p{font-size:12px;line-height:1.55;color:#856777;margin:0}
+.lp-wallet-choices{display:grid;gap:9px;width:100%;max-width:390px;margin:14px auto}
+.lp-wallet-choice{min-width:0;min-height:59px;padding:12px 15px;border:1px solid #281820;border-radius:13px;display:flex;gap:12px;align-items:center;text-decoration:none;color:#fff;background:#241b21;text-align:left}
+.lp-wallet-choice svg{flex:none}
+.lp-wallet-choice>span{font-size:13px;line-height:1.2;font-weight:850;display:grid;gap:4px}
+.lp-wallet-choice small{font-size:10px;font-weight:500;opacity:.8}
+.lp-wallet-choice.lp-wallet-google{background:#fff;color:#281820;border-color:#d9c9d1}
+.lp-wallet-choice.lp-wallet-disabled{background:#f9f5f7;color:#786775;border-color:#e9dfe3;cursor:default}
+.lp-wallet-choices-note{display:flex;gap:8px;align-items:start;font-size:11px;line-height:1.5;color:#8b6f7d;padding:9px 3px;text-align:left;margin:0}
+.lp-wallet-choices-note svg{flex:none}
+.lp-wallet-choices-compact{grid-template-columns:repeat(2,minmax(0,1fr));max-width:none}
+.lp-wallet-choices-compact .lp-wallet-choice{min-height:47px;padding:9px 12px}
+.lp-wallet-choices-compact .lp-wallet-choice>span{font-size:11px}
+.lp-wallet-choices-compact .lp-wallet-choices-note{grid-column:1/-1}
+.download-card-action{margin:10px auto 7px;display:flex;align-items:center;justify-content:center;gap:9px}
+@media(max-width:480px){.lp-wallet-choices-compact{grid-template-columns:1fr}}
+/* Fichas de Explorar: franja de marca a todo el ancho, información compacta. */
+.directory-results-grid{align-items:stretch}
+.directory-results-grid>.directory-card-premium{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start;gap:0!important;padding:0!important;height:100%}
+.directory-results-grid>.directory-card-premium>.directory-card-cover{display:flex;width:100%;min-width:0;flex:0 0 auto;min-height:172px;align-items:stretch;justify-content:space-between;padding:17px 22px 18px;gap:8px;background-image:radial-gradient(circle at 85% 20%,#ffffff28,transparent 52%),linear-gradient(115deg,transparent,#0000001a)}
+.directory-card-premium .directory-cover-brand{margin:4px 0;justify-content:space-between}
+.directory-card-premium .directory-cover-icon{width:62px;height:62px;border-radius:17px}
+.directory-card-premium .directory-cover-icon svg{width:43px;height:43px}
+.directory-card-premium .directory-cover-business-name{font-size:21px}
+.directory-card-premium>.directory-card-body{width:100%;padding:18px 21px 19px!important;min-height:0;display:flex;flex-direction:column;justify-content:flex-start;gap:0}
+.directory-card-premium .directory-business-description{min-height:0;line-height:1.55!important;margin:6px 0 13px!important}
+.directory-card-premium .directory-reward-highlight{padding:12px 13px}
+.directory-card-premium .directory-location{margin:12px 0!important}
+.directory-card-premium .directory-card-footer{margin-top:auto}
+.directory-card-premium .directory-card-heading>span{width:28px;height:28px}
+.directory-card-premium .directory-card-heading strong{font-size:17px!important}
+@media(max-width:630px){.directory-results-grid{grid-template-columns:1fr!important}}
+/* Plantilla unificada de empleados: listado primero, formulario después. */
+.team-section{display:grid;gap:20px}
+.team-page-header{margin:0 0 2px}
+.team-list-panel{padding:clamp(18px,2vw,28px)}
+.team-list-panel .team-row{padding:14px 3px;gap:12px}
+.team-list-panel .content-heading{margin-bottom:13px}
+.team-invite-form{display:grid;gap:20px;padding:clamp(20px,3vw,34px)}
+.team-invite-form .form-stack{max-width:680px}
+.team-invite-form>p{max-width:680px}
+@media(max-width:700px){.team-page-header{align-items:stretch}.team-page-header>.button{align-self:flex-start}}
+/* Promociones: decisión libre y visible, sin diálogos del navegador ni casillas premarcadas. */
+.lp-signup-consent{display:flex!important;flex-direction:row!important;align-items:flex-start!important;gap:12px!important;padding:15px!important;margin:7px 0!important;border:1px solid #e7d3df;border-radius:13px;background:#fbf4f8}
+.lp-signup-consent input[type=checkbox]{appearance:auto;width:18px;height:18px;flex:none;margin:2px 0 0;accent-color:#571c32}
+.lp-signup-consent>span{display:grid;gap:4px}
+.lp-signup-consent strong{font-size:13px;color:#572b3e}
+.lp-signup-consent small{font-size:11px;line-height:1.5;color:#806575}
+.lp-join-promo-choice{border:1px solid #ddc4d0!important;border-radius:14px;background:#fcf2f7;padding:16px!important}
+.lp-consent-nudge{padding:19px;border-radius:16px;border:1px solid #e2c8d5;background:linear-gradient(140deg,#fffafd,#f8eaf1);margin:15px 0;box-shadow:0 6px 20px #571c3209}
+.lp-consent-nudge-title{display:flex;align-items:flex-start;gap:12px}
+.lp-consent-nudge-title svg{flex:none;color:#863d5b}
+.lp-consent-nudge-title strong{font-size:15px;color:#55263a}
+.lp-consent-nudge-title p{font-size:12px;color:#795467;line-height:1.6;margin:5px 0 0}
+.lp-consent-nudge-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:14px}
+.lp-consent-nudge-actions .button{margin:0;min-height:42px}
+@media(max-width:450px){.lp-consent-nudge-actions{display:grid}.lp-consent-nudge-actions .button{width:100%}}

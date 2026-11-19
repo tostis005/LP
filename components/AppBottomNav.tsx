@@ -2,14 +2,14 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
-import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound} from "lucide-react";
+import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound,Brush} from "lucide-react";
 import {db} from "@/lib/supabase";
 import {demoRole,leaveDemo} from "@/lib/demo-local";
 
 type Role="customer"|"business"|"staff"|"admin";
 const tabs={
  customer:[{href:"/app",label:"Tarjetas",icon:CreditCard},{href:"/app/descubrir",label:"Descubrir",icon:Compass},{href:"/app/perfil",label:"Mi cuenta",icon:UserRound}],
- business:[{href:"/negocio",label:"Inicio",icon:LayoutDashboard},{href:"/negocio/customers",label:"Clientes",icon:Users},{href:"/negocio/marketing",label:"Campañas",icon:Mail},{href:"/negocio/reports",label:"Resultados",icon:BarChart3},{href:"/negocio/settings",label:"Más",icon:Settings2}],
+ business:[{href:"/negocio",label:"Inicio",icon:LayoutDashboard},{href:"/negocio/customers",label:"Clientes",icon:Users},{href:"/negocio/marketing",label:"Campañas",icon:Mail},{href:"/negocio/team",label:"Empleados",icon:Users},{href:"/negocio/designer",label:"Diseño",icon:Brush}],
  staff:[{href:"/empleado",label:"Escanear",icon:ScanLine}],
  admin:[{href:"/admin",label:"Panel",icon:Shield}]
 } as const;
@@ -62,7 +62,7 @@ export function AppBottomNav(){
  }
  return <nav className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de Loyally">
   {items.map(item=>{
-   const active=item.href==="/negocio"?pathname==="/negocio"||pathname==="/negocio/overview":item.href==="/negocio/settings"?pathname.startsWith("/negocio/")&&!["/negocio/customers","/negocio/marketing","/negocio/reports"].includes(pathname):pathname===item.href;
+   const active=item.href==="/negocio"?pathname==="/negocio"||pathname==="/negocio/overview":pathname===item.href;
    const Icon=item.icon;
    return <Link key={item.href} href={item.href} aria-current={active?"page":undefined} className={"mobile-bottom-link"+(active?" active":"")}><Icon size={20}/><span>{item.label}</span></Link>;
   })}
