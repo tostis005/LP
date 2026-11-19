@@ -256,7 +256,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   {!selected?<div className="empty-state"><Store size={33}/><h3>Todavía no gestionas ningún negocio</h3><p>El superadministrador debe crear el negocio e invitarte como responsable.</p></div>:<>
    <div className="workspace-section-layout">
     <header className="business-section-heading">
-     <div><span className="page-eyebrow">PANEL DE NEGOCIO</span><h2>{tabs.find(t=>t.id===tab)?.label||"Resumen"}</h2><p>Gestiona esta sección desde el menú principal de Loyally.</p></div>
+     <div><span className="page-eyebrow">PANEL DE NEGOCIO</span><h2>{tabs.find(t=>t.id===tab)?.label||"Resumen"}</h2></div>
      <Link className="button button-outline button-sm" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Vista previa de la tarjeta <ArrowUpRight size={16}/></Link>
     </header>
     
@@ -396,30 +396,25 @@ export default function BusinessWorkspace({account}:{account:Account}){
    </div>
  </>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">
-    {pushView?<>
-     <div className="campaign-page-header"><div><h2>Notificación push</h2><p>Promociones para los clientes con tarjeta y consentimiento de este negocio.</p></div>
-      <button type="button" className="button button-outline" onClick={()=>{setPushView(false);setCampaignView("list")}}>Volver a campañas</button>
-     </div>
-     <PushCampaignPanel key={selected} businessId={selected}/>
-    </>:campaignView==="list"?<>
+    {campaignView==="list"?<>
+
      <div className="campaign-page-header">
-      <div><span className="page-eyebrow">COMUNICACIÓN CON TUS CLIENTES</span>
-       <h2>Campañas</h2><p>Prepara mensajes, revisa tus envíos y consulta los resultados desde aquí.</p></div>
+      <div>
+       <h2>Campañas</h2></div>
       <div className="campaign-compose-actions">
-       <button type="button" className="button button-outline" onClick={()=>setPushView(true)}><BellRing size={17}/> Enviar notificación push</button>
        <button type="button" className="button button-dark campaign-new-button" onClick={()=>{setEditingDraft(null);setMailSubject("");setMailBody("");setCampaignView("editor")}}><Plus size={18}/> Crear campaña</button>
       </div>
      </div>
      <div className="campaign-overview-grid">
-      <div className="panel-card campaign-overview-stat"><span>Campañas creadas</span><strong>{drafts.length}</strong><small>Correo y WhatsApp</small></div>
+      <div className="panel-card campaign-overview-stat"><span>Campañas creadas</span><strong>{drafts.length}</strong><small>Correo, WhatsApp y push</small></div>
       <div className="panel-card campaign-overview-stat"><span>Enviados</span><strong>{drafts.reduce((sum,d)=>sum+(Number(d.sent_count)||0),0)}</strong><small>Mensajes aceptados</small></div>
       <div className="panel-card campaign-overview-stat"><span>Consumo de campañas</span><strong>{usage.length?usage.map(u=>new Intl.NumberFormat("es-MX",{style:"currency",currency:u.currency}).format(Number(u.amount_cents)/100)).join(" · "):"—"}</strong><small>Importes registrados por canal</small></div>
      </div>
      <section className="panel-card campaign-list-panel">
       <div className="content-heading"><div><h3>Todas tus campañas</h3><p>Edita tus borradores o revisa las campañas que ya has preparado.</p></div></div>
       {drafts.length?<div className="campaign-management-list">{drafts.map(d=><article key={d.id} className="campaign-management-row">
-       <div className="campaign-management-icon">{d.channel==="whatsapp"?<Users size={21}/>:<Mail size={21}/>}</div>
-       <div className="campaign-management-main"><strong>{d.subject}</strong><p>{d.channel==="whatsapp"?"WhatsApp":"Correo electrónico"} · {dateShort(d.created_at)}</p>
+       <div className="campaign-management-icon">{d.channel==="push"?<BellRing size={21}/>:d.channel==="whatsapp"?<Users size={21}/>:<Mail size={21}/>}</div>
+       <div className="campaign-management-main"><strong>{d.subject}</strong><p>{d.channel==="push"?"Notificación push":d.channel==="whatsapp"?"WhatsApp":"Correo"} · {dateShort(d.created_at)}</p>
         <span className={"campaign-status campaign-status-"+d.status}>{d.status==="draft"?"Borrador":d.status==="sent"?"Enviada":d.status==="partial"?"Parcial":d.status==="failed"?"Fallida":"En proceso"}</span>
         {d.status!=="draft"&&<small>{d.sent_count||0} mensajes aceptados</small>}
        </div>
@@ -442,20 +437,21 @@ export default function BusinessWorkspace({account}:{account:Account}){
       <div className="campaign-channel-switch" role="group" aria-label="Canal de campaña">
        <button type="button" className={marketingChannel==="email"?"active":""} disabled={!!editingDraft} onClick={()=>setMarketingChannel("email")}><Mail size={17}/> Correo electrónico</button>
        <button type="button" className={marketingChannel==="whatsapp"?"active":""} disabled={!!editingDraft} onClick={()=>setMarketingChannel("whatsapp")}><Users size={17}/> WhatsApp</button>
-       <button type="button" disabled={!!editingDraft} onClick={()=>setPushView(true)}><BellRing size={17}/> Notificación push</button>
+       <button type="button" className={marketingChannel==="push"?"active":""} disabled={!!editingDraft} onClick={()=>setMarketingChannel("push")}><BellRing size={17}/> Notificación push</button>
       </div>
-      {!marketingStatus[marketingChannel]&&<div className="info-callout"><ShieldCheck size={18}/>{marketingChannel==="whatsapp"?
-       "Puedes preparar la campaña. El envío estará disponible cuando Loyally configure la conexión y la plantilla aprobada de WhatsApp.":
-       "Puedes crear y guardar la campaña. El envío estará disponible cuando el servicio de correo esté configurado."}</div>}
+      {!marketingStatus[marketingChannel]&&<div className="info-callout"><ShieldCheck size={18}/>{marketingChannel==="push"?"Las notificaciones aún no están disponibles.":marketingChannel==="whatsapp"?"WhatsApp aún no está disponible.":"El correo aún no está disponible."}</div>}
       <div className="form-stack">
-       <label>{marketingChannel==="email"?"Asunto":"Nombre de campaña"}<input required maxLength={180} value={mailSubject} onChange={e=>setMailSubject(e.target.value)} placeholder={marketingChannel==="email"?"Tenemos una sorpresa para ti":"Promoción especial"}/></label>
-       <div><label className="campaign-editor-label">Tu mensaje</label><RichMessageEditor value={mailBody} onChange={setMailBody} channel={marketingChannel}/></div>
+       <label>{marketingChannel==="push"?"Título de la notificación":marketingChannel==="email"?"Asunto":"Nombre de campaña"}<input required maxLength={marketingChannel==="push"?120:180} value={mailSubject} onChange={e=>setMailSubject(e.target.value)} placeholder="¡Tenemos una sorpresa para ti!"/></label>
+       <div><label className="campaign-editor-label">Mensaje</label>
+        {marketingChannel==="push"?<textarea className="campaign-push-textarea" minLength={3} maxLength={500} value={mailBody} onChange={e=>setMailBody(e.target.value)} placeholder="Vuelve esta semana y disfruta de una promoción exclusiva." rows={6}/>:
+         <RichMessageEditor value={mailBody} onChange={setMailBody} channel={marketingChannel}/>}
+       </div>
        <div className="campaign-editor-budget"><strong>Previsión del envío</strong>
-        <span>{quote?.contacts??"—"} contactos con consentimiento · {quote?.price_cents!=null?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(Number(quote.price_cents)/100)+" por mensaje":"Tarifa pendiente"} · {quote?.total_cents!=null?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(Number(quote.total_cents)/100)+" estimados":"Sin presupuesto"}</span></div>
+        <span>{quote?.contacts??"—"} destinatarios · {quote?.price_cents!=null?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(Number(quote.price_cents)/100)+" por mensaje":"Tarifa pendiente"} · {quote?.total_cents!=null?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(Number(quote.total_cents)/100)+" estimados":"Sin presupuesto"}</span></div>
        <div className="campaign-compose-actions"><button type="submit" disabled={busy||mailBody.trim().length<3} className="button button-dark">{busy?"Guardando...":editingDraft?"Guardar cambios":"Guardar campaña"} <Check size={17}/></button>
         <button type="button" className="button button-outline" onClick={clearComposer}>Volver al listado</button></div>
       </div>
-      <p className="tiny-note">Guardar no envía mensajes ni genera cargos. El envío se confirma después, desde el listado de campañas.</p>
+      
      </form>
     </>}
    </div>}
