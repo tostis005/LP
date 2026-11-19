@@ -919,3 +919,31 @@
 .lp-push-welcome p.lp-push-welcome-privacy{display:flex;align-items:center;gap:8px;font-size:11px;color:#82516a;margin-bottom:16px}
 .lp-push-welcome .alert.error{color:#aa443c}
 @media(max-width:520px){.lp-push-welcome-overlay{padding:13px}.lp-push-welcome{padding:23px 20px 20px;border-radius:22px}}
+
+/* Dirección con búsqueda y marcador arrastrable. */
+.lp-address-picker{display:grid;gap:13px;margin:14px 0}
+.lp-address-search .form-stack{gap:12px}
+.lp-address-search .button{justify-self:start;display:inline-flex;gap:8px;align-items:center}
+.lp-address-map,.lp-address-map-loading{height:345px;min-height:250px;width:100%;border-radius:17px;overflow:hidden;background:#f2e6ec;border:1px solid #e4d1dc}
+.lp-address-map-loading{display:grid;place-items:center;font-size:13px;color:#7b5368}
+.lp-address-marker{background:transparent;border:0}
+.lp-address-marker-pin{position:relative;width:32px;height:38px;display:grid;place-items:center}
+.lp-address-marker-pin:before{content:"";width:30px;height:30px;background:#571c32;border:3px solid white;box-shadow:0 3px 12px #241b2170;border-radius:50% 50% 50% 3px;transform:rotate(-45deg)}
+.lp-address-marker-pin span{position:absolute;top:9px;left:12px;width:9px;height:9px;background:#fff;border-radius:50%}
+.lp-address-map-caption{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 15px;border-radius:11px;background:#fbf4f8;color:#75475d}
+.lp-address-map-caption.selected{background:#f3e7ec;color:#57263d}
+.lp-address-map-caption span{display:flex;gap:7px;align-items:center;font-size:12px;font-weight:850}
+.lp-address-map-caption small{font-size:11px;line-height:1.4;flex:1}
+.lp-address-results{display:grid;gap:5px;padding:8px;background:#fff;border:1px solid #e6d4dd;border-radius:12px;max-height:230px;overflow-y:auto}
+.lp-address-results button{display:flex;gap:9px;align-items:start;text-align:left;padding:11px;border:0;background:transparent;color:#532b41;border-radius:8px;cursor:pointer;font-size:12px;line-height:1.4}
+.lp-address-results button:hover{background:#f7edf2}
+.lp-address-results svg{flex:none}
+.marketing-tariff-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.marketing-tariff-grid label{min-width:0}
+.loyally-modal-card-preview{margin:12px 0 18px;padding:20px;border-radius:20px;display:grid;gap:15px;box-shadow:0 8px 20px #39202e20;overflow:hidden}
+.loyally-modal-card-top{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:12px;font-weight:900;letter-spacing:.04em}
+.loyally-modal-card-preview>strong{font-size:19px;line-height:1.3;overflow-wrap:anywhere}
+.loyally-modal-card-preview .lc-stamp-grid{margin:4px 0;max-width:100%}
+.loyally-modal-card-preview>small{font-size:13px;font-weight:750}
+.campaign-push-textarea{width:100%;min-height:180px;border:1px solid #ead6e0;border-radius:13px;resize:vertical;padding:17px;font:inherit;line-height:1.6;background:#fff;color:#392433}
+@media(max-width:780px){.marketing-tariff-grid{grid-template-columns:1fr}.lp-address-map,.lp-address-map-loading{height:290px}}

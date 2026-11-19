@@ -74,11 +74,19 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
  </div>
  {open&&<div className="modal-backdrop" onMouseDown={()=>setOpen(false)}><div className="modal-card qr-modal" onMouseDown={e=>e.stopPropagation()}>
  <button className="modal-close" aria-label="Cerrar" onClick={()=>setOpen(false)}><X size={20}/></button>
- <div className="eyebrow">TU TARJETA PERSONAL</div><h2>{business.name}</h2><p>Enseña este código al empleado cuando compres.</p>
+ <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
+ <div className="loyally-modal-card-preview" style={{backgroundColor:color,color:business.card_text_color||"#ffffff"}}>
+  <div className="loyally-modal-card-top"><span>{business.name}</span><span>LOYALLY</span></div>
+  <strong>{program?.reward_label||"Mis recompensas"}</strong>
+  {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance}
+   kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
+  <small>{units(membership.balance,program?.type)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</small>
+ </div>
+ <p>Enseña este QR en el establecimiento.</p>
  <div className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={220} level="M" includeMargin/></div>
- <div className="lp-wallet-intro"><h3>Guarda esta tarjeta en tu móvil</h3><p>Elige tu Wallet favorita o conserva una imagen del QR para enseñarla en el negocio.</p></div>
+ <div className="lp-wallet-intro"><h3>Guarda tu tarjeta</h3></div>
  <WalletActions cardId={membership.id} available={wallets}/>
- <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Descargar tarjeta con QR (PNG)</button><strong className="modal-balance">{units(membership.balance,program?.type)}</strong>
+ <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Guardar imagen con QR</button>
  <p className="tiny-note">{program?.type==="cashback"?"Puedes utilizar tu saldo en el establecimiento.":program?.reward_label||"Tu recompensa te espera."}</p>
  {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><div className="qr-box"><QRCodeSVG value={rewardQrUrl} size={190} level="M" includeMargin/></div></div>}
  <details className="loyalty-card-preferences"><summary>Preferencias de mensajes de este negocio</summary>

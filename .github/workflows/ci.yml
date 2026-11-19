@@ -40,8 +40,8 @@ jobs:
         run: node tests/demo/launch-polish.mjs
       - name: Verificar Wallet, ancho completo, empleados y consentimiento libre
         run: node tests/demo/wallet-navigation-consent.mjs
-      - name: Probar acceso inmediato y sellos en los cuatro perfiles
-        run: node tests/demo/role-flow.mjs
+      - name: Verificar que toda la aplicación usa datos reales
+        run: node tests/demo/real-production.mjs
       - name: Comprobar TypeScript
         run: npm run typecheck
       - name: Construir Next.js
@@ -154,3 +154,12 @@ jobs:
           node tests/native/business-governance.mjs
           node tests/native/push.mjs
           node tests/native/platform-optin.mjs
+      - name: Crear cuentas reales internas y comprobar QR, sellos y tarifas
+        env:
+          LP_SHOWCASE_ADMIN_PASSWORD: "Test-Admin-Loyally-2026-Private-A"
+          LP_SHOWCASE_BUSINESS_PASSWORD: "Test-Business-Loyally-2026-Private-B"
+          LP_SHOWCASE_STAFF_PASSWORD: "Test-Staff-Loyally-2026-Private-C"
+          LP_SHOWCASE_CUSTOMER_PASSWORD: "Test-Customer-Loyally-2026-Private-D"
+        run: |
+          node scripts/provision-showcase-real.mjs
+          node tests/native/real-production.mjs

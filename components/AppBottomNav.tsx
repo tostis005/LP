@@ -4,7 +4,7 @@ import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
 import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound,BellRing,Brush} from "lucide-react";
 import {db} from "@/lib/supabase";
-import {demoRole,leaveDemo} from "@/lib/demo-local";
+
 
 type Role="customer"|"business"|"staff"|"admin";
 const tabs={
@@ -28,12 +28,6 @@ export function AppBottomNav(){
   let mounted=true;
   async function load(){
    if(!inside){setReady(false);setRole(null);return;}
-   const fake=demoRole();
-   if(fake){
-    const r=fake==="gestor"?"business":fake==="administrador"?"admin":fake==="empleado"?"staff":"customer";
-    if(mounted){setRole(r);setReady(true);}
-    return;
-   }
    try{
     const response=await db().auth.getUser();
     if(!mounted)return;
@@ -56,8 +50,7 @@ export function AppBottomNav(){
  const items=tabs[role];
  async function logout(){
   if(!window.confirm("¿Quieres cerrar tu sesión en Loyally?"))return;
-  if(demoRole())leaveDemo();
-  else await db().auth.signOut();
+  await db().auth.signOut();
   router.replace("/acceder");
  }
  return <nav className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de Loyally">

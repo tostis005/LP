@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import {Activity,ArrowUpRight,Check,ChevronDown,FileText,Mail,Plus,Search,Shield,Store,Users} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
+import {AddressPicker} from "@/components/AddressPicker";
 import {db} from "@/lib/supabase";
 import {dateShort} from "@/lib/format";
 type Biz={id:string;name:string;slug:string;category:string|null;parent_business_id:string|null;active:boolean;public_listing:boolean;created_at:string};
@@ -12,7 +13,7 @@ function AdminContent({account}:{account:Account}){
  const [tab,setTab]=useState<"business"|"users"|"campaigns"|"leads"|"reports">("business"),[businesses,setBusinesses]=useState<Biz[]>([]),[users,setUsers]=useState<Person[]>([]),[transactionCount,setTransactionCount]=useState(0),[membershipCount,setMembershipCount]=useState(0),[search,setSearch]=useState("");
  const [leads,setLeads]=useState<Lead[]>([]);
  const [recentOperations,setRecentOperations]=useState<RecentOperation[]>([]);
- const [focusRate,setFocusRate]=useState("1"),[focusWhatsappRate,setFocusWhatsappRate]=useState(""),[focusPushRate,setFocusPushRate]=useState("0"),[focusCurrency,setFocusCurrency]=useState("MXN"),[hasFocusRate,setHasFocusRate]=useState(false);
+ const [focusRate,setFocusRate]=useState("0.01"),[focusWhatsappRate,setFocusWhatsappRate]=useState(""),[focusPushRate,setFocusPushRate]=useState("0.00"),[focusCurrency,setFocusCurrency]=useState("MXN"),[hasFocusRate,setHasFocusRate]=useState(false);
  const [focusBiz,setFocusBiz]=useState<Biz|null>(null),[focusCustomers,setFocusCustomers]=useState(0),[focusStaff,setFocusStaff]=useState(0),[focusTx,setFocusTx]=useState(0),[focusLocations,setFocusLocations]=useState(0),[focusProgram,setFocusProgram]=useState("");
  const [focusUser,setFocusUser]=useState<Person|null>(null),[focusCards,setFocusCards]=useState<{business_id:string;balance:number;businesses:{name:string;slug:string}|null}[]>([]);
  const [parentBusiness,setParentBusiness]=useState(""),[existingProgram,setExistingProgram]=useState(""),[contractPrice,setContractPrice]=useState("");
@@ -44,7 +45,7 @@ function AdminContent({account}:{account:Account}){
   });
   setBusy(false);
   if(error){setError(error.message);return}
-  setSuccess("Establecimiento registrado, con contrato independiente e invitación para su propietario.");
+  setSuccess("Negocio creado.");
   setName("");setSlug("");setManager("");setParentBusiness("");setExistingProgram("");setContractPrice("");
   await load();
   const biz=(await db().from("businesses").select("id,name,slug,category,parent_business_id,active,public_listing,created_at").eq("id",data as string).maybeSingle()).data;
@@ -68,7 +69,7 @@ function AdminContent({account}:{account:Account}){
    db().from("business_members").select("user_id").eq("business_id",b.id).eq("role","owner").eq("active",true),
    db().from("business_invitations").select("email").eq("business_id",b.id).eq("role","owner").is("claimed_at",null)
   ]);
-  setFocusCustomers(c.data?.length||0);setFocusStaff(s.data?.length||0);setFocusTx(t.count||0);setFocusLocations(l.count||0);setFocusProgram(p.data?.type||"—");setFocusRate(String(r.data?.price_cents??1));setFocusWhatsappRate(r.data?.whatsapp_price_cents==null?"":String(r.data.whatsapp_price_cents));setFocusPushRate(String(r.data?.push_price_cents??0));setFocusCurrency(r.data?.currency||"MXN");setHasFocusRate(!!r.data);
+  setFocusCustomers(c.data?.length||0);setFocusStaff(s.data?.length||0);setFocusTx(t.count||0);setFocusLocations(l.count||0);setFocusProgram(p.data?.type||"—");setFocusRate((Number(r.data?.price_cents??1)/100).toFixed(2));setFocusWhatsappRate(r.data?.whatsapp_price_cents==null?"":(Number(r.data.whatsapp_price_cents)/100).toFixed(2));setFocusPushRate((Number(r.data?.push_price_cents??0)/100).toFixed(2));setFocusCurrency(r.data?.currency||"MXN");setHasFocusRate(!!r.data);
   const l0=(loc.data||[])[0];
   setLocName(l0?.name||b.name);setLocAddress(l0?.address||"");setLocCity(l0?.city||"");setLocCountry(l0?.country||"México");setLocLat(l0?String(l0.lat):"");setLocLng(l0?String(l0.lng):"");
   setFocusContractPrice(contract.data?.agreed_monthly_cents==null?"":String(Number(contract.data.agreed_monthly_cents)/100));
@@ -82,6 +83,7 @@ function AdminContent({account}:{account:Account}){
  async function saveBusinessLocation(e:React.FormEvent){
   e.preventDefault();
   if(!focusBiz)return;
+  if(!locLat||!locLng){setError("Elige primero la ubicación en el mapa.");return}
   setBusy(true);setError("");
   const {error}=await db().rpc("admin_set_business_location",{
    p_business:focusBiz.id,p_name:locName,p_address:locAddress,p_city:locCity,p_country:locCountry,
@@ -102,7 +104,7 @@ function AdminContent({account}:{account:Account}){
  }
  async function saveMarketingRate(){
   if(!focusBiz)return;
-  const value=Number(focusRate),whatsapp=focusWhatsappRate.trim()===""?null:Number(focusWhatsappRate),push=Number(focusPushRate);
+  const value=Math.round(Number(focusRate)*100),whatsapp=focusWhatsappRate.trim()===""?null:Math.round(Number(focusWhatsappRate)*100),push=Math.round(Number(focusPushRate)*100);
   if(whatsapp!==null&&(!Number.isInteger(whatsapp)||whatsapp<0||whatsapp>100000)){setError("La tarifa de WhatsApp debe ser un número entero de centavos o estar vacía.");return}
   if(!Number.isInteger(value)||value<0||value>100000){setError("La tarifa debe expresarse en centavos enteros.");return}
    if(focusPushRate.trim()===""||!Number.isInteger(push)||push<0||push>100000){setError("La tarifa push debe ser un número entero de centavos (0 para gratis).");return}
@@ -110,7 +112,7 @@ function AdminContent({account}:{account:Account}){
   const {error}=hasFocusRate?await db().from("business_marketing_rates").update({price_cents:value,whatsapp_price_cents:whatsapp,push_price_cents:push,currency:focusCurrency,updated_at:new Date().toISOString()}).eq("business_id",focusBiz.id):
    await db().from("business_marketing_rates").insert({business_id:focusBiz.id,price_cents:value,whatsapp_price_cents:whatsapp,push_price_cents:push,currency:focusCurrency});
   setBusy(false);if(error){setError(error.message);return}
-  setSuccess("Tarifas de campañas actualizadas.");await inspectBusiness(focusBiz);
+  setSuccess("Precios guardados.");await inspectBusiness(focusBiz);
  }
  async function changeActive(){if(!focusBiz)return;
   if(!window.confirm(focusBiz.active?"¿Suspender este negocio? Los empleados no podrán registrar compras.":"¿Reactivar este negocio?"))return;
@@ -147,17 +149,30 @@ function AdminContent({account}:{account:Account}){
   <div className="form-stack"><label>Precio mensual acordado (en {focusCurrency})<input type="number" step="0.01" min="0" value={focusContractPrice} onChange={e=>setFocusContractPrice(e.target.value)} placeholder="Sin precio acordado"/></label><button type="button" className="button button-outline button-sm" disabled={busy} onClick={saveBusinessContract}>Guardar precio del establecimiento</button><small>Este importe es un acuerdo comercial, no genera por sí mismo ningún cargo ni modifica Stripe.</small></div>
  </div>
  <form className="admin-location-form" onSubmit={saveBusinessLocation}>
-  <h3>Dirección autorizada</h3><p className="muted">Cada local tiene su propio registro de negocio. Esta dirección la crea Loyally y después puede modificarla su responsable.</p>
-  <div className="form-stack"><label>Nombre del local<input required value={locName} minLength={2} onChange={e=>setLocName(e.target.value)}/></label><label>Dirección<input required minLength={4} value={locAddress} onChange={e=>setLocAddress(e.target.value)}/></label>
-   <div className="form-two"><label>Ciudad<input required value={locCity} onChange={e=>setLocCity(e.target.value)}/></label><label>País<input required value={locCountry} onChange={e=>setLocCountry(e.target.value)}/></label></div>
-   <div className="form-two"><label>Latitud<input required type="number" min={-90} max={90} step="any" value={locLat} onChange={e=>setLocLat(e.target.value)}/></label><label>Longitud<input required type="number" min={-180} max={180} step="any" value={locLng} onChange={e=>setLocLng(e.target.value)}/></label></div>
+  <h3>Dirección del establecimiento</h3>
+  <div className="form-stack"><label>Nombre del local<input required value={locName} minLength={2} onChange={e=>setLocName(e.target.value)}/></label><AddressPicker address={locAddress} city={locCity} country={locCountry} lat={locLat} lng={locLng} onAddressChange={setLocAddress} onCityChange={setLocCity} onCountryChange={setLocCountry} onCoordinatesChange={(lat,lng)=>{setLocLat(lat);setLocLng(lng)}}/>
    <button type="submit" className="button button-outline button-sm" disabled={busy}>Guardar dirección</button>
   </div>
  </form>
- <div className="form-stack marketing-rate-admin"><strong>Precio de campañas por negocio</strong><div className="form-two"><label>Centavos por email<input type="number" min="0" max="100000" step="1" value={focusRate} onChange={e=>setFocusRate(e.target.value)}/></label><label>Moneda<select value={focusCurrency} onChange={e=>setFocusCurrency(e.target.value)}><option value="MXN">MXN</option><option value="EUR">EUR</option><option value="USD">USD</option></select></label></div><label>Centavos por WhatsApp<input type="number" min="0" max="100000" step="1" value={focusWhatsappRate} onChange={e=>setFocusWhatsappRate(e.target.value)} placeholder="Sin activar"/><small>Deja este campo vacío para no ofrecer WhatsApp hasta decidir su precio.</small></label><label>Centavos por dispositivo push<input type="number" min="0" max="100000" step="1" required value={focusPushRate} onChange={e=>setFocusPushRate(e.target.value)}/><small>0 significa gratuito. El coste se registra solo cuando el proveedor acepta la notificación; varios dispositivos de un usuario cuentan por separado.</small></label><button type="button" className="button button-outline button-sm" disabled={busy} onClick={saveMarketingRate}>Guardar tarifas</button><small>Tarifas particulares de este negocio: email y WhatsApp por contacto; push por dispositivo. Son importes internos de uso, no cargos automáticos a Stripe.</small></div>
+ <div className="form-stack marketing-rate-admin"><h3>Precio de cada campaña</h3>
+  <label>Moneda<select value={focusCurrency} onChange={e=>setFocusCurrency(e.target.value)}>
+   {([["MXN","Peso mexicano"],["USD","Dólar estadounidense"],["EUR","Euro"],["GBP","Libra esterlina"],["CAD","Dólar canadiense"],["BRL","Real brasileño"],["ARS","Peso argentino"],["COP","Peso colombiano"],["CLP","Peso chileno"],["PEN","Sol peruano"],["UYU","Peso uruguayo"],["CRC","Colón costarricense"],["GTQ","Quetzal"],["DOP","Peso dominicano"],["HNL","Lempira"],["NIO","Córdoba"],["PYG","Guaraní"],["BOB","Boliviano"]] as const).map(([code,label])=><option key={code} value={code}>{label} ({code})</option>)}
+  </select></label>
+  <div className="marketing-tariff-grid">
+   <label>Correo por cliente<input type="number" min="0" max="1000" step="0.01" value={focusRate}
+    onChange={e=>setFocusRate(e.target.value)}/></label>
+   <label>WhatsApp por cliente<input type="number" min="0" max="1000" step="0.01"
+    value={focusWhatsappRate}
+    onChange={e=>setFocusWhatsappRate(e.target.value)} placeholder="Sin activar"/></label>
+   <label>Push por cliente<input type="number" min="0" max="1000" step="0.01"
+    value={focusPushRate}
+    onChange={e=>setFocusPushRate(e.target.value)}/></label>
+  </div>
+  <button type="button" className="button button-dark button-sm" disabled={busy} onClick={saveMarketingRate}>Guardar precios</button>
+ </div>
  <button className={"button "+(focusBiz.active?"button-danger":"button-dark")+" button-sm"} disabled={busy} onClick={changeActive}>{focusBiz.active?"Suspender negocio":"Reactivar negocio"}</button></div>}
  </div>
- <form className="panel-card" onSubmit={createBusiness}><div className="panel-icon"><Plus size={22}/></div><h2>Dar de alta un negocio</h2><p className="muted">Solo un superadministrador puede crear negocios. El responsable recibe una invitación interna pendiente de reclamar.</p><div className="form-stack"><label>Nombre del negocio<input required minLength={2} value={name} placeholder="Ej. Café Noma" onChange={e=>{setName(e.target.value);setSlug(slugify(e.target.value))}}/></label><label>Identificador único<input required pattern="[a-z0-9]+(-[a-z0-9]+)*" value={slug} placeholder="cafe-noma" onChange={e=>setSlug(slugify(e.target.value))}/></label><label>Email del responsable<input type="email" required value={manager} placeholder="responsable@negocio.com" onChange={e=>setManager(e.target.value)}/></label>
+ <form className="panel-card" onSubmit={createBusiness}><div className="panel-icon"><Plus size={22}/></div><h2>Nuevo negocio</h2><div className="form-stack"><label>Nombre del negocio<input required minLength={2} value={name} placeholder="Ej. Café Noma" onChange={e=>{setName(e.target.value);setSlug(slugify(e.target.value))}}/></label><label>Identificador único<input required pattern="[a-z0-9]+(-[a-z0-9]+)*" value={slug} placeholder="cafe-noma" onChange={e=>setSlug(slugify(e.target.value))}/></label><label>Email del responsable<input type="email" required value={manager} placeholder="responsable@negocio.com" onChange={e=>setManager(e.target.value)}/></label>
  <label>Grupo empresarial o franquicia (opcional)<select value={parentBusiness} onChange={e=>setParentBusiness(e.target.value)}><option value="">Negocio independiente</option>{businesses.filter(x=>!x.parent_business_id&&x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><small>Los locales de una cadena se agrupan bajo la misma empresa matriz, pero se contabilizan por separado.</small></label>
  <label>Usar el diseño de una tarjeta existente (opcional)<select value={existingProgram} onChange={e=>setExistingProgram(e.target.value)}><option value="">Crear programa independiente</option>{businesses.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><small>Copia diseño y reglas iniciales; los saldos de los clientes permanecen independientes en cada negocio.</small></label>
  <label>Precio mensual pactado para este negocio<input type="number" min="0" step="0.01" value={contractPrice} onChange={e=>setContractPrice(e.target.value)} placeholder="Se acuerda individualmente"/><small>Se pueden aplicar condiciones especiales por volumen. Este registro no genera cargos automáticamente.</small></label><button className="button button-dark button-full" disabled={busy}>{busy?"Creando...":"Crear negocio"} <ArrowUpRight size={17}/></button></div></form></div>}

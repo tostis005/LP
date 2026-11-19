@@ -5,38 +5,27 @@ import {ArrowRight,CheckCircle2,Eye,EyeOff,LockKeyhole,ScanLine,ShieldCheck,Spar
 import {Brand} from "@/components/Brand";
 import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import {StampCard} from "@/components/StampCard";
-import {enterDemo,leaveDemo,type DemoRole} from "@/lib/demo-local";
+
 import {configured,db} from "@/lib/supabase";
 
 const profiles=[
- {id:"administrador" as const,name:"Administrador",detail:"Negocios, usuarios y reportes",icon:ShieldCheck,shade:"mint",route:"/admin"},
- {id:"gestor" as const,name:"Dueño del negocio",detail:"Panel, tarjetas y clientes",icon:Store,shade:"sand",route:"/negocio"},
- {id:"empleado" as const,name:"Personal del local",detail:"Escanear QR y entregar sellos",icon:ScanLine,shade:"lavender",route:"/empleado"},
- {id:"cliente" as const,name:"Cliente",detail:"Mis tarjetas y recompensas",icon:UserRound,shade:"rose",route:"/app"}
+ {id:"administrador" as const,email:"admin@loyally.local",name:"Administrador",detail:"Negocios, usuarios y reportes",icon:ShieldCheck,shade:"mint",route:"/admin"},
+ {id:"gestor" as const,email:"gestor@loyally.local",name:"Dueño del negocio",detail:"Panel, tarjetas y clientes",icon:Store,shade:"sand",route:"/negocio"},
+ {id:"empleado" as const,email:"empleado@loyally.local",name:"Personal del local",detail:"Escanear QR y entregar sellos",icon:ScanLine,shade:"lavender",route:"/empleado"},
+ {id:"cliente" as const,email:"cliente@loyally.local",name:"Cliente",detail:"Mis tarjetas y recompensas",icon:UserRound,shade:"rose",route:"/app"}
 ];
 export default function Login(){
  const router=useRouter();
  const [mode,setMode]=useState<"login"|"signup"|"forgot">("login");
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[surname,setSurname]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[pushOptIn,setPushOptIn]=useState(false);
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
- async function selectProfile(role:DemoRole,route:string){
-  const sandbox=process.env.NEXT_PUBLIC_LP_SANDBOX_MODE==="true";
-  const sandboxPassword=process.env.NEXT_PUBLIC_LP_SANDBOX_PASSWORD||"";
-  if(sandbox&&sandboxPassword){
-   // Solo en una base de datos aislada: los cuatro perfiles son usuarios de auth.users.
-   const email=role==="administrador"?"admin@demo.loyally.test":role==="gestor"?"gestor@demo.loyally.test":role==="empleado"?"empleado@demo.loyally.test":"cliente@demo.loyally.test";
-   leaveDemo();setMode("login");setEmail(email);setPassword(sandboxPassword);setError("");setBusy(true);
-   const {error}=await db().auth.signInWithPassword({email,password:sandboxPassword});
-   setBusy(false);if(error){setError("No hemos podido iniciar sesión: "+error.message);return}
-   router.push(route);return;
-  }
-  // En la aplicación de producción no se comparte ninguna clave de administrador.
-  // El acceso de un toque conserva un sandbox ficticio SOLO del navegador.
-  enterDemo(role);router.push(route);
+ async function selectProfile(emailAddress:string){
+  setMode("login");setEmail(emailAddress);setPassword("");setError("");setMessage("");
+  // El acceso siempre requiere credenciales reales. No se simulan sesiones.
+  document.querySelector<HTMLInputElement>('input[autocomplete="current-password"]')?.focus();
  }
  async function submit(e:React.FormEvent){
   e.preventDefault();setBusy(true);setError("");setMessage("");
-  leaveDemo(); // El login por email siempre debe utilizar el servidor real.
   try{
    if(!configured())throw new Error("El servidor todavía no está disponible.");
    if(mode==="forgot"){
@@ -84,9 +73,9 @@ export default function Login(){
      <button type="submit" disabled={busy} className="button button-dark button-full">{busy?"Procesando...":mode==="login"?"Iniciar sesión":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"} <ArrowRight size={18}/></button>
     </form>
     <div className="auth-account-switch">{mode==="login"?<>¿Todavía no tienes cuenta? <button onClick={()=>switchMode("signup")}>Regístrate</button></>:<>¿Ya tienes cuenta? <button onClick={()=>switchMode("login")}>Iniciar sesión</button></>}</div>
-    <div className="auth-quick-divider"><span>O ACCEDE A UN ESPACIO</span></div>
-    <div className="auth-profile-grid auth-real-routes" role="group" aria-label="Acceso rápido al interior de Loyally">
-     {profiles.map(p=><button type="button" key={p.id} onClick={()=>selectProfile(p.id,p.route)} disabled={busy} className="auth-profile-card">
+    <div className="auth-quick-divider"><span>O SELECCIONA UNA CUENTA</span></div>
+    <div className="auth-profile-grid auth-real-routes" role="group" aria-label="Elegir correo de acceso">
+     {profiles.map(p=><button type="button" key={p.id} onClick={()=>selectProfile(p.email)} disabled={busy} className="auth-profile-card">
       <span className={"auth-profile-icon "+p.shade}><p.icon size={23} strokeWidth={1.9}/></span>
       <span className="auth-profile-copy"><strong>{p.name}</strong><small>{p.detail}</small></span>
       <ArrowRight className="auth-profile-arrow" size={17}/>
