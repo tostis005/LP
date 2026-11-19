@@ -902,3 +902,20 @@
  .push-home-shortcut .button{width:100%;display:flex;justify-content:center}
  .customer-notification-settings .panel-card{padding:19px}
 }
+
+
+/* Modal inicial de permisos push para PWA instalada; no sustituye el permiso del sistema. */
+.lp-push-welcome-overlay{position:fixed;inset:0;z-index:130;background:rgba(35,18,28,.55);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+.lp-push-welcome{position:relative;width:100%;max-width:430px;max-height:min(88vh,850px);overflow:auto;background:#fff;border-radius:25px;padding:29px;box-shadow:0 24px 65px #25132130;color:#382330}
+.lp-push-welcome-close{position:absolute;top:15px;right:15px;border:0;background:#f7eef2;color:#71324b;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.lp-push-welcome-icon{width:56px;height:56px;border-radius:19px;background:#f4e6ed;color:#71324b;display:grid;place-items:center;margin-bottom:17px}
+.lp-push-welcome h2{font-size:clamp(22px,5vw,27px);line-height:1.2;letter-spacing:-.035em;margin:0 0 10px}
+.lp-push-welcome p{font-size:13px;line-height:1.7;color:#82516a;margin:0 0 19px}
+.lp-push-welcome .button{min-height:46px;display:flex;justify-content:center;gap:10px;margin-top:10px}
+.lp-push-welcome-businesses{border:1px solid #eadce4;background:#fdf9fa;padding:14px;border-radius:15px;margin-bottom:16px}
+.lp-push-welcome-businesses>strong{display:block;font-size:12px;line-height:1.5;margin-bottom:11px}
+.lp-push-welcome-businesses label{display:flex;align-items:center;gap:9px;font-size:13px;line-height:1.45;padding:6px 0;cursor:pointer}
+.lp-push-welcome-businesses input{width:18px;height:18px;flex:none;accent-color:#71324b}
+.lp-push-welcome p.lp-push-welcome-privacy{display:flex;align-items:center;gap:8px;font-size:11px;color:#82516a;margin-bottom:16px}
+.lp-push-welcome .alert.error{color:#aa443c}
+@media(max-width:520px){.lp-push-welcome-overlay{padding:13px}.lp-push-welcome{padding:23px 20px 20px;border-radius:22px}}
