@@ -15,7 +15,10 @@ export async function POST(request:Request) {
     if(action==="signOut") {
       const token=cookieToken(request);
       if(token)await authPool.query("DELETE FROM auth.sessions WHERE token_hash=$1",[hashToken(token)]);
-      return clearSessionCookie(Response.json({data:{},error:null}));
+      const response=clearSessionCookie(Response.json({data:{},error:null}));
+      const secure=process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://")?" Secure;":"";
+      response.headers.append("Set-Cookie","lp_qa_operator=; Path=/api/local/qa-access; HttpOnly; SameSite=Strict;"+secure+" Max-Age=0");
+      return response;
     }
     if(action==="signUp") {
       if(!smtpReady())throw new ApiError("El registro requiere configurar SMTP para confirmar la dirección de correo.",503);
