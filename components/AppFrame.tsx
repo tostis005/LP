@@ -6,7 +6,6 @@ import type { User } from "@/lib/supabase";
 import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, BellRing, Mail, Users, ChevronRight, Brush, Gift, MapPin, Store } from "lucide-react";
 import { Brand } from "@/components/Brand";
 import { configured, db } from "@/lib/supabase";
-import {leaveDemo} from "@/lib/demo-local";
 export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employee"; active:boolean; businesses:{id:string;name:string;slug:string} | null };
 export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; refresh: () => void };
 type Area = "customer" | "business" | "staff" | "admin";
@@ -48,7 +47,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
   }
   load();return()=>{live=false}
  },[router,version]);
- async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en Loyally?"))return;await db().auth.signOut();leaveDemo();router.replace("/acceder")}
+ async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en Loyally?"))return;await db().auth.signOut();router.replace("/acceder")}
  const hasBusiness=roles.some(x=>x.role==="owner"||x.role==="manager");
  const allowed=area==="customer"?!admin&&roles.length===0:area==="admin"?admin:area==="business"?hasBusiness:roles.some(x=>x.role==="employee");
  if(loading)return <div className="loading-screen"><div className="spinner"/> Preparando tu espacio...</div>;
@@ -68,7 +67,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
     </nav>}
     {area==="business"&&<nav className="business-mobile-all-sections" aria-label="Secciones del negocio">
      {menus.business.filter(i=>i.href!=="/negocio/facturacion"||roles.some(r=>r.role==="owner")).map(i=><Link href={i.href} key={i.href} aria-current={pathname===i.href?"page":undefined} className={pathname===i.href?"active":""}>{i.icon}<span>{i.label}</span></Link>)}
-    </nav>}<div className="workspace-title"><div><p className="page-eyebrow">TU ESPACIO, A TU MANERA</p><h1>{title}</h1><p>{subtitle}</p></div></div>{children(account)}</div>
+    </nav>}<div className="workspace-title"><div><h1>{title}</h1><p>{subtitle}</p></div></div>{children(account)}</div>
 
   </div>
  </div>;
