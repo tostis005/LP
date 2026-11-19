@@ -995,3 +995,7 @@
  .lp-reward-row>.activity-icon{display:none}
  .lp-reward-row>div:nth-child(2){flex:1 1 100%}
 }
+
+.admin-business-list{grid-column:1/-1;width:100%;max-width:none;min-width:0}
+.admin-business-list .data-table{width:100%}
+@media(min-width:951px){.admin-create-business .lp-address-picker{max-width:980px}}
