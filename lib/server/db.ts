@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import pg, { type PoolClient } from "pg";
+import {isAllowedOrigin} from "./origin";
 
 export type Actor = { id: string; email: string; user_metadata: {full_name?:string}; expires_at?: string };
 const options = {
@@ -45,10 +46,8 @@ export class ApiError extends Error {
   constructor(message:string,public status:number=400){super(message)}
 }
 export function checkOrigin(request:Request) {
-  const origin=request.headers.get("origin");
-  if(!origin)return;
-  const site=process.env.NEXT_PUBLIC_SITE_URL;
-  if(!site || origin!==new URL(site).origin)throw new ApiError("Origen de solicitud no permitido.",403);
+  if(!isAllowedOrigin(request.headers.get("origin"),process.env.NEXT_PUBLIC_SITE_URL))
+    throw new ApiError("Origen de solicitud no permitido.",403);
 }
 export function responseError(e:unknown) {
   if(e instanceof ApiError)return Response.json({error:e.message},{status:e.status});
