@@ -1,4 +1,4 @@
-import { actorFromRequest,authPool,cookieToken,hashToken,ApiError,checkOrigin,responseError } from "@/lib/server/db";
+import { actorFromRequest,asActor,authPool,cookieToken,hashToken,ApiError,checkOrigin,responseError } from "@/lib/server/db";
 import { hashPassword,passwordMatches,validateEmail,emailToken,rateLimit,createSession,setSessionCookie,clearSessionCookie,publicUser,smtpReady } from "@/lib/server/auth";
 export const runtime="nodejs";
 
@@ -70,6 +70,18 @@ export async function POST(request:Request) {
           await authPool.query("UPDATE auth.users SET email=$1,email_confirmed_at=NULL,updated_at=now() WHERE id=$2",[email,actor.id]);
           await authPool.query("DELETE FROM auth.sessions WHERE user_id=$1",[actor.id]);
           await emailToken(actor.id,"verify",email);
+        }
+      }
+      const whatsapp=typeof input.whatsapp==="string"?input.whatsapp.trim():null;
+      if(whatsapp!==null){
+        if(whatsapp!==""&&!/^\+[1-9][0-9]{7,14}$/.test(whatsapp))
+          throw new ApiError("El teléfono debe incluir código de país, por ejemplo +526641234567.");
+        const existing=await authPool.query("SELECT raw_user_meta_data->>'whatsapp' AS phone FROM auth.users WHERE id=$1",[actor.id]);
+        if((existing.rows[0]?.phone||"")!==whatsapp){
+          await authPool.query("UPDATE auth.users SET raw_user_meta_data=jsonb_set(raw_user_meta_data,'{whatsapp}',to_jsonb($1::text),true),updated_at=now() WHERE id=$2",[whatsapp,actor.id]);
+          await asActor(actor,async client=>{
+            await client.query("UPDATE public.marketing_consents SET whatsapp_opted_in=false,updated_at=now() WHERE customer_id=$1",[actor.id]);
+          });
         }
       }
       if(password!==null){
