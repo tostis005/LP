@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@/lib/supabase";
-import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, Mail, Users, ChevronRight, Brush, Gift, MapPin, Store } from "lucide-react";
+import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, BellRing, Mail, Users, ChevronRight, Brush, Gift, MapPin, Store } from "lucide-react";
 import { Brand } from "@/components/Brand";
 import { configured, db } from "@/lib/supabase";
 import {leaveDemo} from "@/lib/demo-local";
@@ -11,7 +11,7 @@ export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employe
 export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; refresh: () => void };
 type Area = "customer" | "business" | "staff" | "admin";
 const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
- customer:[{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<Compass size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<UserRound size={18}/>}],
+ customer:[{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<Compass size={18}/>},{href:"/app/notificaciones",label:"Notificaciones",icon:<BellRing size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<UserRound size={18}/>}],
  business:[
   {href:"/negocio",label:"Resumen",icon:<LayoutDashboard size={18}/>},
   {href:"/negocio/customers",label:"Clientes",icon:<Users size={18}/>},
