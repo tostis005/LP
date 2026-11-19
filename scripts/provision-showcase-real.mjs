@@ -44,7 +44,7 @@ try{
   ids[p.role]=created.rows[0].id;
  }
  await db.query("INSERT INTO public.platform_admins(user_id) VALUES($1) ON CONFLICT DO NOTHING",[ids.ADMIN]);
- const existing={};
+ const existing={},createdSlugs=new Set();
  for(const [name,slug,category,icon,type,reward,cost,lat,lng] of shops){
   let r=await db.query("SELECT id FROM public.businesses WHERE slug=$1",[slug]);
   let isNew=!r.rowCount;
@@ -55,6 +55,7 @@ try{
   }
   const id=r.rows[0].id;existing[slug]=id;
   if(isNew){
+   createdSlugs.add(slug);
    await db.query("INSERT INTO public.loyalty_programs(business_id,type,reward_label,reward_cost) VALUES($1,$2,$3,$4)",[id,type,reward,cost]);
    await db.query("INSERT INTO public.business_locations(business_id,name,address,city,country,lat,lng,visible) VALUES($1,$2,$3,'Tijuana','México',$4,$5,false)",
     [id,name,"Dirección por configurar",lat,lng]);
@@ -63,6 +64,7 @@ try{
  }
  await db.query("INSERT INTO public.business_members(business_id,user_id,role,active) VALUES($1,$2,'employee',true) ON CONFLICT (business_id,user_id) DO NOTHING",[existing["cafe-noma"],ids.STAFF]);
  for(const slug of ["cafe-noma","brunch-club","punto-fit","lavanda-spa"]){
+  if(!createdSlugs.has(slug))continue;
   await db.query("INSERT INTO public.loyalty_memberships(business_id,customer_id,balance,total_earned) VALUES($1,$2,0,0) ON CONFLICT(business_id,customer_id) DO NOTHING",[existing[slug],ids.CUSTOMER]);
  }
  await db.query("COMMIT");
