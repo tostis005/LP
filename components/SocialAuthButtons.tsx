@@ -23,7 +23,7 @@ export function SocialAuthButtons({next="/app"}:{next?:"/app"|"/entrar"}){
    </a>}
    {available.apple&&<a className="loyally-social-button loyally-social-apple"
     href={"/api/local/oauth/apple/start?next="+encodeURIComponent(next)}>
-    <span aria-hidden="true" className="loyally-social-apple-mark">●</span>Continuar con Apple
+    <span aria-hidden="true" className="loyally-social-apple-mark"></span>Continuar con Apple
    </a>}
   </div>
  </div>;
