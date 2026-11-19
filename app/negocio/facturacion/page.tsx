@@ -63,6 +63,14 @@ function OwnerBilling({account}:{account:Account}){
        <button disabled={busy} className="button button-dark button-full" onClick={()=>action("checkout")}>{busy?"Conectando...":"Configurar suscripción"} <ArrowUpRight size={18}/></button>}
     </>}
    </section>
+
+   <section className="panel-card"><div className="panel-icon peach"><ShieldCheck size={23}/></div><h2>Facturación sin sorpresas</h2>
+    <p className="muted">Los pagos se realizan en Stripe. Loyally no almacena los números completos de tu tarjeta bancaria.</p>
+    <div className="privacy-item"><Check size={19}/> Acceso a facturación reservado al propietario del negocio.</div>
+    <div className="privacy-item"><Check size={19}/> Confirmación del estado mediante webhooks firmados, no por la pantalla de éxito.</div>
+    <div className="privacy-item"><Check size={19}/> El lanzamiento comercial requiere configurar el precio y las claves privadas del servidor.</div>
+    <div className="info-callout" style={{marginTop:23}}><Clock3 size={19}/> Durante el desarrollo, los pagos no se exigen. El administrador activará el control de suscripciones después de completar las pruebas.</div>
+   </section>
    <section className="panel-card billing-marketing-usage"><div className="panel-icon"><CreditCard size={23}/></div>
     <h2>Consumo de campañas</h2><p className="muted">El correo y WhatsApp se contabilizan por separado, en función de los mensajes aceptados por el proveedor. Los precios los fija Loyally.</p>
     {loading?<p className="muted">Consultando uso...</p>:usage.length?usage.map(x=>
@@ -71,13 +79,6 @@ function OwnerBilling({account}:{account:Account}){
       <strong>{new Intl.NumberFormat("es-MX",{style:"currency",currency:x.currency}).format(Number(x.amount_cents)/100)}</strong>
      </div>):<p className="muted">Aún no tienes consumo adicional.</p>}
     <p className="tiny-note">Este es el registro de consumo, no una factura emitida. La facturación de los mensajes se habilitará cuando Loyally active el servicio comercial y el sistema de cobros correspondiente.</p>
-   </section>
-   <section className="panel-card"><div className="panel-icon peach"><ShieldCheck size={23}/></div><h2>Facturación sin sorpresas</h2>
-    <p className="muted">Los pagos se realizan en Stripe. Loyally no almacena los números completos de tu tarjeta bancaria.</p>
-    <div className="privacy-item"><Check size={19}/> Acceso a facturación reservado al propietario del negocio.</div>
-    <div className="privacy-item"><Check size={19}/> Confirmación del estado mediante webhooks firmados, no por la pantalla de éxito.</div>
-    <div className="privacy-item"><Check size={19}/> El lanzamiento comercial requiere configurar el precio y las claves privadas del servidor.</div>
-    <div className="info-callout" style={{marginTop:23}}><Clock3 size={19}/> Durante el desarrollo, los pagos no se exigen. El administrador activará el control de suscripciones después de completar las pruebas.</div>
    </section>
   </div>
  </>;
