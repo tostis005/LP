@@ -15,9 +15,12 @@ FROM deps AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
+# Comprobar en la imagen (no solo en el checkout) que se incluye la portada publica.
+RUN node -e 'const fs=require("fs"),s=fs.readFileSync("app/page.tsx","utf8");console.log("Docker source homepage:",s.includes("Haz que cada visita"),"dynamic:",s.includes("force-dynamic"));if(!s.includes("Haz que cada visita"))process.exit(1)'
 ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 RUN mkdir -p public && npm run build
+RUN node -e 'const fs=require("fs"),s=fs.readFileSync(".next/server/app/page.js","utf8");console.log("Docker build compiled homepage chunk:",s.includes("Haz que cada visita"),"rootHTML:",fs.existsSync(".next/server/app/index.html"));'
 
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
