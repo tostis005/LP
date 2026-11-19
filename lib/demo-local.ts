@@ -131,12 +131,14 @@ function filtered(rows:Row[],filters:Filter[]){return rows.filter(row=>filters.e
 function authorize(table:string,mode:string,rows:Row[]):Row[]{
  const role=demoRole();
  if(role==="administrador")return rows;
+ const accessible=new Set(load().tables.business_members.filter(m=>m.user_id===actor()&&m.active).map(m=>m.business_id));
+
  if(["businesses","business_locations","loyalty_programs"].includes(table)&&mode==="select")return rows.filter(r=>r.active!==false);
  if(table==="business_members")return rows.filter(r=>r.user_id===actor());
   if(table==="reward_options")return rows.filter(r=>role==="gestor"&&load().tables.business_members.some(m=>m.user_id===actor()&&m.business_id===r.business_id&&m.role!=="employee"&&m.active));
   if(table==="reward_redemptions")return [];
  if(table==="platform_admins")return [];
- if(table==="loyalty_memberships")return rows.filter(r=>role==="cliente"?r.customer_id===actor():role==="empleado"||role==="gestor"?r.business_id===DEMO_BUSINESS_ID:false);
+ if(table==="loyalty_memberships")return rows.filter(r=>role==="cliente"?r.customer_id===actor():role==="empleado"||role==="gestor"?accessible.has(r.business_id):false);
  if(table==="loyalty_transactions")return rows.filter(r=>role==="gestor"||role==="empleado"?r.business_id===DEMO_BUSINESS_ID:role==="cliente"?load().tables.loyalty_memberships.some(m=>m.customer_id===actor()&&m.id===r.membership_id):false);
  if(table==="reward_vouchers")return mode==="select"?rows.filter(r=>role==="cliente"?load().tables.loyalty_memberships.some(m=>m.id===r.membership_id&&m.customer_id===actor()):(role==="empleado"||role==="gestor")&&r.business_id===DEMO_BUSINESS_ID):[];
  if(table==="profiles")return rows.filter(r=>r.id===actor());
@@ -184,6 +186,13 @@ class DemoQuery implements PromiseLike<DemoResult>{
    return {data:this.one?(Array.isArray(data)?data[0]||null:null):data,error:null,...(this.count?{count:rows.length}:{})};
   }
   if(!["administrador","gestor","cliente"].includes(demoRole()||""))return fail("No tienes permiso para modificar este apartado.");
+  if(this.table==="business_locations"){
+   if(this.action==="insert"||this.action==="delete")return fail("Solo Loyally puede registrar nuevos establecimientos.");
+   if(demoRole()!=="administrador"&&rows.some(r=>!state.tables.business_members.some(m=>m.business_id===r.business_id&&m.user_id===actor()&&m.active&&m.role!=="employee")))return fail("No puedes editar esta dirección.");
+   if(this.action==="update"&&this.data&&Object.prototype.hasOwnProperty.call(this.data,"business_id"))return fail("No puedes mover una dirección a otro negocio.");
+  }
+  if(this.table==="businesses"&&this.action==="insert")return fail("Solo administración puede crear negocios.");
+
    if(this.table==="reward_options"&&!["administrador","gestor"].includes(demoRole()||""))return fail("Solo los responsables pueden gestionar recompensas.");
   if(this.action==="update"){
    if(!this.conditions.length)return fail("Selecciona primero el registro.");
@@ -210,14 +219,14 @@ function userDirectory(state:DemoState){
 function memberDirectory(state:DemoState,businessId:string){
  return state.tables.business_members.filter(m=>m.business_id===businessId).map(m=>{
   const user=state.tables.profiles.find(p=>p.id===m.user_id);
-  return {user_id:m.user_id,full_name:user?.full_name||"Miembro",email:user?.email||"",role:m.role,active:m.active};
+  return {user_id:m.user_id,full_name:user?.full_name||"Miembro",email:maskDemoEmail(user?.email||""),role:m.role,active:m.active};
  });
 }
-function maskDemoEmail(email:string){const [local,domain]=email.split("@");return local&&domain?local.slice(0,2)+"***@"+domain:"***"}
+function maskDemoEmail(email:string){const [local,domain]=email.split("@");return local&&domain?local.slice(0,2)+"XXX@"+domain.slice(0,1)+"XXX":"Oculto"}
 function customerDirectory(state:DemoState,businessId:string){
  return state.tables.loyalty_memberships.filter(m=>m.business_id===businessId).map(m=>{
   const user=state.tables.profiles.find(p=>p.id===m.customer_id);
-  return {user_id:m.customer_id,full_name:user?.full_name||"",email:user?.email||"",balance:m.balance,total_earned:m.total_earned,joined_at:m.created_at,
+  return {user_id:m.customer_id,full_name:user?.full_name||"",email:maskDemoEmail(user?.email||""),balance:m.balance,total_earned:m.total_earned,joined_at:m.created_at,
    visits:state.tables.loyalty_transactions.filter(t=>t.membership_id===m.id&&t.kind==="earn").length,
    marketing_ok:!!state.tables.marketing_consents.find(c=>c.customer_id===m.customer_id&&c.business_id===businessId&&c.opted_in)};
  });
@@ -280,18 +289,7 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
      result=ok(labels.map(label=>{const rr=rewards.filter(r=>r.reward_label===label);return {reward_label:label,redemptions:rr.length,retail_cents:rr.reduce((s,r)=>s+Number(r.retail_cents||0),0),cost_cents:rr.reduce((s,r)=>s+Number(r.cost_cents||0),0),unpriced:rr.filter(r=>r.cost_cents==null||r.retail_cents==null).length}}).sort((a,b)=>b.redemptions-a.redemptions));break;
     }
     case "manager_create_branch":{
-     const source=table.businesses.find(b=>b.id===args.p_source_business);
-     const owned=table.business_members.some(m=>m.business_id===args.p_source_business&&m.user_id===actor()&&m.role==="owner"&&m.active);
-     const slug=String(args.p_slug||"");
-     if(!manager||!owned||!source||source.parent_business_id||!slug||table.businesses.some(b=>b.slug===slug)){result=fail("No puedes crear esta sucursal. Revisa propietario e identificador.");break}
-     const id=uuid(),newBiz={...source,id,name:String(args.p_name||""),slug,parent_business_id:source.id,public_listing:false,created_at:now()};
-     table.businesses.push(newBiz);
-     const p=table.loyalty_programs.find(p=>p.business_id===source.id);
-     if(p)table.loyalty_programs.push({...p,id:uuid(),business_id:id});
-     const email=String(args.p_owner_email||"");
-     if(email.toLowerCase()===demoUser()?.email?.toLowerCase())table.business_members.push({business_id:id,user_id:actor(),role:"owner",active:true});
-     else table.business_invitations.push({id:uuid(),business_id:id,email,role:"owner",created_at:now(),claimed_at:null});
-     persist();result=ok(id);break;
+     result=fail("Los nuevos establecimientos son registrados por Loyally desde administración.");break;
     }
     case "business_employee_activity":{
     const tx=table.loyalty_transactions.filter(t=>t.business_id===biz&&t.kind==="earn");
@@ -391,16 +389,41 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     table.loyalty_transactions.unshift({...original,id:uuid(),kind:"reversal",amount_delta:-original.amount_delta,reversal_of:original.id,reversal_reason:args.p_reason,created_at:now()});
     persist();result=ok(null);break;
    }
+   case "admin_provision_business":
    case "admin_create_business":{
     if(role!=="administrador"){result=fail("Solo el administrador puede crear negocios.");break}
     const slug=String(args.p_slug||"");
     if(!slug||table.businesses.some(b=>b.slug===slug)){result=fail("El identificador ya existe o es incorrecto.");break}
-    const id=uuid();
-    table.businesses.unshift({id,name:args.p_name,slug,description:"",category:"Restaurante",accent_color:"#571c32",logo_url:null,card_background:null,card_text:"GRACIAS POR VOLVER",stamp_icon:"coffee",stamp_image_url:null,public_listing:true,active:true,created_at:now()});
-    table.loyalty_programs.push({id:uuid(),business_id:id,type:"stamps",reward_label:"Premio gratis",reward_cost:8,cashback_bps:500,points_per_euro:1,max_stamps_per_action:3,max_ticket_cents:50000,min_seconds_between_awards:30,max_daily_awards_per_employee:250,require_ticket_reference:false});
-    table.business_members.push({business_id:id,user_id:IDs.administrador,role:"owner",active:true});
-    if(args.p_manager_email)table.business_invitations.push({id:uuid(),email:args.p_manager_email,business_id:id,role:"owner",created_at:now(),claimed_at:null});
+    const source=table.businesses.find(b=>b.id===args.p_existing_program);
+    if(args.p_existing_program&&!source){result=fail("Tarjeta de origen no encontrada.");break}
+    const parent=table.businesses.find(b=>b.id===args.p_parent_business);
+    if(args.p_parent_business&&!parent){result=fail("Negocio principal no encontrado.");break}
+    const id=uuid(),email=String(args.p_owner_email||args.p_manager_email||"").trim().toLowerCase();
+    const fields=source||{};
+    table.businesses.unshift({id,name:args.p_name,slug,description:fields.description||"",category:fields.category||"Restaurante",accent_color:fields.accent_color||"#571c32",logo_url:fields.logo_url||null,card_background:fields.card_background||null,card_text:fields.card_text||"GRACIAS POR VOLVER",stamp_icon:fields.stamp_icon||"restaurant",stamp_color:fields.stamp_color||"#571c32",stamp_image_url:fields.stamp_image_url||null,parent_business_id:parent?(parent.parent_business_id||parent.id):null,public_listing:false,active:true,created_at:now()});
+    const template=table.loyalty_programs.find(p=>p.business_id===source?.id);
+    table.loyalty_programs.push(template?{...template,id:uuid(),business_id:id}:{id:uuid(),business_id:id,type:"stamps",reward_label:"Tu premio",reward_cost:8,cashback_bps:500,points_per_euro:1,max_stamps_per_action:3,max_ticket_cents:50000,min_seconds_between_awards:30,max_daily_awards_per_employee:250,require_ticket_reference:false});
+    table.business_billing.push({business_id:id,plan:"business",status:"trialing",agreed_monthly_cents:args.p_monthly_price_cents??null,updated_at:now()});
+    const owner=table.profiles.find(p=>p.email?.toLowerCase()===email);
+    if(owner)table.business_members.push({business_id:id,user_id:owner.id,role:"owner",active:true});
+    else table.business_invitations.push({id:uuid(),email,business_id:id,role:"owner",created_at:now(),claimed_at:null});
     persist();result=ok(id);break;
+   }
+   case "admin_set_business_location":{
+    if(role!=="administrador"){result=fail("Solo administración puede registrar direcciones.");break}
+    const id=String(args.p_business||"");
+    if(!table.businesses.some(b=>b.id===id)){result=fail("Negocio no encontrado");break}
+    const location=table.business_locations.find(l=>l.business_id===id);
+    const vals={name:args.p_name,address:args.p_address,city:args.p_city,country:args.p_country,lat:Number(args.p_lat),lng:Number(args.p_lng)};
+    if(location)Object.assign(location,vals);
+    else table.business_locations.push({id:uuid(),business_id:id,visible:true,created_at:now(),...vals});
+    persist();result=ok(location?.id||id);break;
+   }
+   case "admin_set_business_contract":{
+    if(role!=="administrador"){result=fail("Solo administración puede fijar contratos.");break}
+    const row=table.business_billing.find(b=>b.business_id===args.p_business);
+    if(!row){result=fail("Negocio no encontrado");break}
+    row.agreed_monthly_cents=args.p_monthly_price_cents??null;persist();result=ok(null);break;
    }
    case "admin_convert_lead":{
     const lead=table.business_leads.find(l=>l.id===args.p_lead);

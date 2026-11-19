@@ -2,7 +2,7 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
-import {BarChart3,Compass,CreditCard,Gift,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound} from "lucide-react";
+import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound} from "lucide-react";
 import {db} from "@/lib/supabase";
 import {demoRole,leaveDemo} from "@/lib/demo-local";
 
@@ -51,10 +51,11 @@ export function AppBottomNav(){
   }
   load();return()=>{mounted=false;};
  },[pathname,inside]);
- if(!inside||!ready||!role)return null;
+ if(!inside||!ready||!role||inside!==role)return null;
  // Nunca mostramos accesos a zonas ajenas al rol.
  const items=tabs[role];
  async function logout(){
+  if(!window.confirm("¿Quieres cerrar tu sesión en Loyally?"))return;
   if(demoRole())leaveDemo();
   else await db().auth.signOut();
   router.replace("/acceder");

@@ -121,10 +121,9 @@ export async function queryData(client:PoolClient,input:QueryInput) {
  throw new ApiError("Operación no permitida.");
 }
 
-type Arg=[string,"uuid"|"text"|"integer"|"boolean"|"bigint"];
+type Arg=[string,"uuid"|"text"|"integer"|"boolean"|"bigint"|"double precision"];
 type Spec={args:Arg[];returns:"scalar"|"table"};
 const rpcMap:Record<string,Spec>={
- manager_create_branch:{args:[["p_source_business","uuid"],["p_name","text"],["p_slug","text"],["p_owner_email","text"]],returns:"scalar"},
  available_rewards:{args:[["p_business","uuid"]],returns:"table"},
  business_dashboard_metrics:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  business_reward_ranking:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
@@ -132,6 +131,9 @@ const rpcMap:Record<string,Spec>={
  staff_redeem_voucher_choice:{args:[["p_token","uuid"],["p_reward_option","uuid"]],returns:"scalar"},
  staff_redeem_card_choice:{args:[["p_token","uuid"],["p_cashback_cents","integer"],["p_reward_option","uuid"]],returns:"scalar"},
  admin_create_business:{args:[["p_name","text"],["p_slug","text"],["p_manager_email","text"]],returns:"scalar"},
+ admin_provision_business:{args:[["p_name","text"],["p_slug","text"],["p_owner_email","text"],["p_parent_business","uuid"],["p_existing_program","uuid"],["p_monthly_price_cents","integer"]],returns:"scalar"},
+ admin_set_business_location:{args:[["p_business","uuid"],["p_name","text"],["p_address","text"],["p_city","text"],["p_country","text"],["p_lat","double precision"],["p_lng","double precision"]],returns:"scalar"},
+ admin_set_business_contract:{args:[["p_business","uuid"],["p_monthly_price_cents","integer"]],returns:"scalar"},
  invite_staff:{args:[["p_business","uuid"],["p_email","text"],["p_role","text"]],returns:"scalar"},
  claim_invitations:{args:[],returns:"scalar"},
  set_staff_active:{args:[["p_business","uuid"],["p_user","uuid"],["p_active","boolean"]],returns:"scalar"},

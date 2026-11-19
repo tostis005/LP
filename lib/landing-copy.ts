@@ -22,7 +22,7 @@ export const LANDING_COPY = {
       disclaimer:"VISTA ILUSTRATIVA · NEGOCIOS FICTICIOS",
     },
     audience: {
-      eyebrow:"PARA LOS SITIOS QUE NOS HACEN SENTIR EN CASA",
+      eyebrow:"PARA TODO TIPO DE NEGOCIOS",
       coffee:"Cafeterías", restaurants:"Restaurantes", barbers:"Barberías", shops:"Comercios",
     },
     benefits: {
@@ -53,7 +53,7 @@ export const LANDING_COPY = {
       iconsLabel:"UN PREMIO PARA CADA PASIÓN",
       eyebrow:"LA ESENCIA DE TU NEGOCIO",
       first:"Tu marca es única.", second:"La manera de agradecer también.",
-      description:"El café de siempre, una barbería con carácter o ese restaurante al que todos quieren volver. Cada negocio tiene su historia. Loyally te ayuda a convertirla en una experiencia que tus clientes recuerden.",
+      description:"Sea cual sea tu actividad, cada negocio tiene su historia. Loyally te ayuda a convertirla en una experiencia que tus clientes recuerden.",
       points:[
         "Recompensas que enamoran a tus clientes",
         "Una experiencia que habla de tu marca",
@@ -95,7 +95,7 @@ export const LANDING_COPY = {
       disclaimer:"ILLUSTRATIVE PREVIEW · FICTIONAL BUSINESSES",
     },
     audience: {
-      eyebrow:"FOR THE PLACES THAT FEEL LIKE HOME",
+      eyebrow:"FOR EVERY KIND OF BUSINESS",
       coffee:"Coffee shops", restaurants:"Restaurants", barbers:"Barbershops", shops:"Local shops",
     },
     benefits: {
@@ -126,7 +126,7 @@ export const LANDING_COPY = {
       iconsLabel:"A REWARD FOR EVERY PASSION",
       eyebrow:"AS UNIQUE AS YOUR BUSINESS",
       first:"Your brand is one of a kind.", second:"Your thank-you can be too.",
-      description:"The neighborhood coffee shop, a barbershop with character, or the restaurant everyone loves. Every business has a story. Loyally helps turn yours into an experience customers remember.",
+      description:"Whatever your industry, every business has its own story. Loyally helps turn yours into an experience customers remember.",
       points:[
         "Rewards your customers will love",
         "An experience that feels like your brand",

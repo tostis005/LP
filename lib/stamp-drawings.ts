@@ -5,23 +5,23 @@
  * Cada dibujo es una constante interna, nunca HTML suministrado por un usuario.
  */
 export const STAMP_DRAWINGS = {
- coffee:'<path d="M14 28h30v13c0 8-6 13-15 13S14 49 14 41V28Z"/><path d="M44 31h5c10 0 10 15 0 15h-5M11 57h38M22 21c-5-5 4-8 0-13M31 21c-5-5 4-8 0-13M40 21c-5-5 4-8 0-13"/>',
- burger:'<path d="M11 28c1-12 9-19 21-19s20 7 21 19H11ZM11 47h42v3c0 5-4 8-9 8H20c-5 0-9-3-9-8v-3Z"/><path d="M10 35h44M11 40c6-4 11 4 17 0 7-4 11 4 17 0 3-2 6-2 9 0M21 21h1m10-5h1m10 5h1"/>',
- restaurant:'<circle cx="32" cy="34" r="17"/><circle cx="32" cy="34" r="11"/><path d="M7 11v16m6-16v16m6-16v16M13 27v28M52 12c-7 6-7 15 0 19v24"/>',
+ coffee:'<path d="M17 24h27v17c0 8-6 13-13.5 13S17 49 17 41V24Z"/><path d="M44 28h5c6 0 9 4 9 9s-3 9-9 9h-5M14 58h38M24 18c-4-4 4-7 0-11M34 18c-4-4 4-7 0-11"/>',
+ burger:'<path d="M10 27c2-12 10-18 22-18s20 6 22 18H10ZM10 47h44v4c0 5-5 8-10 8H20c-5 0-10-3-10-8v-4Z"/><path d="M8 34h48M10 40c6-4 10 4 16 0s10 4 16 0 10 4 12 0M23 19h1M32 17h1M41 19h1"/>',
+ restaurant:'<circle cx="32" cy="34" r="17"/><circle cx="32" cy="34" r="10"/><path d="M7 13v15c0 4 6 5 6 0V13M13 28v27M52 13c-7 7-8 17 0 22v20"/>',
  // Solo bigote y barba: sin cabeza, ojos, nariz ni facciones.
- beard:'<path d="M32 25c-5-5-9-8-14-6-5 2-7 7-13 7 5 10 15 13 27-1ZM32 25c5-5 9-8 14-6 5 2 7 7 13 7-5 10-15 13-27-1Z"/><path d="M17 38c1 11 6 17 15 22 9-5 14-11 15-22M23 39c0 8 4 13 9 16 5-3 9-8 9-16"/>',
+ beard:'<path d="M32 26c-5-7-11-9-16-6-4 3-7 6-12 5 4 9 15 13 28 1ZM32 26c5-7 11-9 16-6 4 3 7 6 12 5-4 9-15 13-28 1Z"/><path d="M17 37c1 10 5 17 15 22 10-5 14-12 15-22M23 39c0 8 3 12 9 16 6-4 9-8 9-16"/>',
  // Melena/peluca conceptual con raya y mechones: sin rostro.
- hair:'<path d="M13 52c-4-6-3-14-2-22C12 15 21 8 32 8s20 7 21 22c1 8 2 16-2 22-5 4-12 1-15-5M28 47c-3 6-10 9-15 5"/><path d="M11 32c8-2 17-7 21-16 4 9 13 14 21 16M20 31c1 8 0 13-5 19M44 31c-1 8 0 13 5 19"/>',
- pizza:'<path d="M9 16c15-6 31-6 46 0L32 57 9 16Z"/><path d="M12 22c13-5 27-5 40 0"/><circle cx="29" cy="33" r="4"/><circle cx="39" cy="27" r="3"/><circle cx="33" cy="45" r="3"/>',
- bread:'<path d="M7 40c0-12 11-22 25-22s25 10 25 22c0 8-8 14-25 14S7 48 7 40Z"/><path d="M17 28c5 3 8 8 9 13M30 22c5 5 7 10 8 16M43 27c4 4 6 7 6 11"/>',
- croissant:'<path d="M5 44c3-10 10-18 21-24l6 7 6-7c11 6 18 14 21 24-5 9-12 11-19 6-4 5-12 5-16 0-7 5-14 3-19-6Z"/><path d="M26 20c-7 10-9 20-2 30M38 20c7 10 9 20 2 30M15 34c-1 6 1 11 5 14M49 34c1 6-1 11-5 14"/>',
- icecream:'<path d="M23 34 32 58l9-24H23Z"/><path d="M14 35c-4-6 0-13 7-14 1-7 5-12 11-12s10 5 11 12c7 1 11 8 7 14H14Z"/>',
+ hair:'<path d="M13 55c-3-7-4-18-2-27C13 15 21 8 32 8s19 7 21 20c2 9 1 20-2 27-5 3-11 0-14-5M27 50c-4 5-9 8-14 5"/><path d="M11 31c9-1 16-6 21-17 5 11 12 16 21 17M18 35c0 7-1 13-5 20M46 35c0 7 1 13 5 20"/>',
+ pizza:'<path d="M8 17c16-8 32-8 48 0L32 57 8 17Z"/><path d="M11 24c14-5 28-5 42 0"/><circle cx="27" cy="34" r="3.5"/><circle cx="40" cy="32" r="3.5"/><circle cx="33" cy="46" r="3.5"/>',
+ bread:'<path d="M8 41c0-13 10-24 24-24s24 11 24 24c0 9-8 14-24 14S8 50 8 41Z"/><path d="M17 28c4 3 7 8 8 13M29 22c4 4 7 10 8 16M41 27c4 3 6 8 7 13"/>',
+ croissant:'<path d="M6 45c3-12 10-19 20-24l6 7 6-7c10 5 17 12 20 24-5 8-12 10-19 5-4 5-10 5-14 0-7 5-14 3-19-5Z"/><path d="M26 21c-6 10-8 21-1 29M38 21c6 10 8 21 1 29"/>',
+ icecream:'<path d="M22 35 32 58l10-23H22Z"/><path d="M15 35c-4-5-1-12 6-14 1-7 5-12 11-12s10 5 11 12c7 2 10 9 6 14H15Z"/>',
  flower:'<circle cx="32" cy="26" r="5"/><path d="M32 20c-7-17-19-4-11 5-16-6-15 10-2 11-9 12 6 17 13 5 7 12 22 7 13-5 13-1 14-17-2-11 8-9-4-22-11-5ZM32 42v18m0-8c-6-6-12-7-17-5m17 10c6-6 12-8 17-6"/>',
  scissors:'<circle cx="16" cy="16" r="8"/><circle cx="16" cy="48" r="8"/><path d="m22 22 34 34M22 42 56 8"/>',
  star:'<path d="m32 7 8 17 19 3-14 13 4 18-17-9-17 9 4-18L5 27l19-3 8-17Z"/>',
  heart:'<path d="M32 56 10 36C-4 22 12 7 25 18l7 6 7-6C52 7 68 22 54 36L32 56Z"/>',
  gift:'<rect x="11" y="29" width="42" height="29" rx="3"/><path d="M7 29h50v10H7zM32 29v29M32 29c-14-3-20-13-14-17 7-5 14 7 14 17Zm0 0c14-3 20-13 14-17-7-5-14 7-14 17Z"/>',
- taco:'<path d="M8 49c1-18 11-30 24-30s23 12 24 30H8Z"/><path d="M13 41c4-7 8-4 13-10 4-4 9-4 13 0 5 6 9 3 13 10M17 47c4-5 9-3 15-3s11-2 15 3"/>',
+ taco:'<path d="M8 51c1-19 11-32 24-32s23 13 24 32H8Z"/><path d="M12 43c4-6 8-3 12-9 5-5 11-5 16 0 4 6 8 3 12 9M17 47c4-3 9-2 15-2s11-1 15 2"/>',
  donut:'<circle cx="32" cy="32" r="24"/><circle cx="32" cy="32" r="8"/><path d="M10 27c8-7 11-1 17-6 7-5 12 2 18 0 5-2 8 0 9 6M17 43c7-2 8 7 15 5 6-2 11-5 15-1"/>',
  gym:'<rect x="6" y="25" width="9" height="18" rx="2"/><rect x="15" y="19" width="10" height="30" rx="2"/><rect x="39" y="19" width="10" height="30" rx="2"/><rect x="49" y="25" width="9" height="18" rx="2"/><path d="M25 34h14"/>',
  spa:'<path d="M10 52c-2-21 12-39 43-42 3 29-13 46-35 44"/><path d="M13 55c11-14 24-24 40-32"/>',
@@ -53,5 +53,5 @@ export const DEFAULT_STAMP:StampKind="coffee";
 export function stampMarkup(kind?:string|null,size=28):string {
  const validated=kind && Object.prototype.hasOwnProperty.call(STAMP_DRAWINGS,kind)?kind as StampKind:DEFAULT_STAMP;
  const scale=Math.max(10,Math.min(200,Math.round(size)));
- return '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="'+scale+'" height="'+scale+'" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">'+STAMP_DRAWINGS[validated]+'</svg>';
+ return '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="'+scale+'" height="'+scale+'" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">'+STAMP_DRAWINGS[validated]+'</svg>';
 }
