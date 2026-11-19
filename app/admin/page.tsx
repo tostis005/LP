@@ -72,7 +72,7 @@ function AdminContent({account}:{account:Account}){
   const l0=(loc.data||[])[0];
   setLocName(l0?.name||b.name);setLocAddress(l0?.address||"");setLocCity(l0?.city||"");setLocCountry(l0?.country||"México");setLocLat(l0?String(l0.lat):"");setLocLng(l0?String(l0.lng):"");
   setFocusContractPrice(contract.data?.agreed_monthly_cents==null?"":String(Number(contract.data.agreed_monthly_cents)/100));
-  setFocusOwner((pending.data||[]).map(x=>x.email).join(", ")||(owners.data?.length?"Propietario registrado":"Invitación pendiente"));
+  setFocusOwner((pending.data||[]).map((x:{email:string})=>x.email).join(", ")||(owners.data?.length?"Propietario registrado":"Invitación pendiente"));
  }
  async function inspectUser(u:Person){setFocusUser(u);setError("");
   const {data,error}=await db().from("loyalty_memberships").select("business_id,balance,businesses(name,slug)").eq("customer_id",u.user_id);
