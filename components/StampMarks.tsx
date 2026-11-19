@@ -7,7 +7,7 @@ export type {StampKind};
 export function StampMark({kind=DEFAULT_STAMP,size=30,color}:{kind?:string|null;size?:number;color?:string}){
  const k=(kind&&Object.prototype.hasOwnProperty.call(STAMP_DRAWINGS,kind)?kind:DEFAULT_STAMP) as StampKind;
  return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 64 64"
-  fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" style={color?{color}:undefined}
+  fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" style={color?{color}:undefined}
   aria-hidden="true" focusable="false" dangerouslySetInnerHTML={{__html:STAMP_DRAWINGS[k]}}/>;
 }
 export function StampGrid({total,earned,kind=DEFAULT_STAMP,imageUrl,color,className="",locale="es"}:{total:number;earned:number;kind?:string|null;imageUrl?:string|null;color?:string|null;className?:string;locale?:"es"|"en"}){

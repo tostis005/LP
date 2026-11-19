@@ -14,7 +14,7 @@
 ## Requisitos
 
 1. Publicar Loyally en un origen `https://` con certificado válido y confiable para móviles; puede ser una **IP pública** si su certificado incluye esa IP. El origen debe permanecer estable: cambiar IP/dominio requiere que los usuarios vuelvan a conceder o registrar sus suscripciones.
-2. Desplegar la migración `db/migrations/160_web_push.sql` y la nueva versión de Loyally en el mismo despliegue de Docker.
+2. Desplegar la migración `db/migrations/180_web_push.sql` y la nueva versión de Loyally en el mismo despliegue de Docker.
 3. Generar **un único** par de claves VAPID, una vez, en un entorno de confianza:
 
    ```bash

@@ -13,9 +13,9 @@ try{
  await client.query("BEGIN");await client.query("SET LOCAL ROLE authenticated");await identity(ids.gestor);
  const members=await client.query("SELECT * FROM public.business_customer_directory($1::uuid)",[shop.id]);
  assert.ok(members.rowCount>0);
- assert.ok(members.rows.every(m=>m.email.includes("***")&&!m.email.includes("cliente@demo.loyally.test")));
+ assert.ok(members.rows.every(m=>m.email.includes("XXX")&&!m.email.includes("cliente@demo.loyally.test")));
  const employees=await client.query("SELECT * FROM public.business_staff_directory($1::uuid)",[shop.id]);
- assert.ok(employees.rows.every(x=>x.email.includes("***")));
+ assert.ok(employees.rows.every(x=>x.email.includes("XXX")));
  const wq=await client.query("SELECT * FROM public.business_whatsapp_quote($1::uuid)",[shop.id]);
  assert.equal(Number(wq.rows[0].contacts),0,"WhatsApp has no opt-in by default");
  assert.equal(wq.rows[0].price_cents,null,"WhatsApp cannot be priced without platform administrator");
