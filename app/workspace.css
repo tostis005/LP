@@ -824,7 +824,7 @@
 /* Tarjeta personal con acceso directo a Wallet; el QR exportado no incorpora sellos congelados. */
 .loyalty-card-item{width:100%;min-width:0;display:flex;flex-direction:column;gap:10px}
 .loyalty-card-item>.loyalty-card{width:100%;flex:1;margin:0}
-.loyalty-wallet-open{display:flex;justify-content:center;align-items:center;gap:9px;border:1px solid #e2c9d5;border-radius:12px;min-height:42px;padding:9px 13px;background:#fff9fc;color:#672e46;font:800 12px inherit;cursor:pointer;transition:background .15s ease}
+.loyalty-wallet-open{display:flex;justify-content:center;align-items:center;gap:9px;border:1px solid #e2c9d5;border-radius:12px;min-height:42px;padding:9px 13px;background:#fff9fc;color:#672e46;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;transition:background .15s ease}
 .loyalty-wallet-open:hover,.loyalty-wallet-open:focus-visible{background:#f1e1e9}
 .lp-wallet-intro{margin:18px 0 10px;text-align:center}
 .lp-wallet-intro h3{font-size:17px;color:#3e2632;margin:0 0 6px}
