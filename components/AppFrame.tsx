@@ -32,7 +32,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[version,setVersion]=useState(0);
  useEffect(()=>{let live=true;
   async function load(){
-   if(!configured()){if(live){setError("No se ha podido conectar con el servidor Loyally. Comprueba la base de datos.");setLoading(false)}return}
+   if(!configured()){if(live){setError("No podemos abrir tu cuenta ahora mismo. Inténtalo de nuevo.");setLoading(false)}return}
    try{
     const auth=await db().auth.getUser(); if(auth.error) throw auth.error;
     if(!auth.data.user){if(live){setLoading(false);router.replace("/acceder")}return}
@@ -51,7 +51,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  const hasBusiness=roles.some(x=>x.role==="owner"||x.role==="manager");
  const allowed=area==="customer"?!admin&&roles.length===0:area==="admin"?admin:area==="business"?hasBusiness:roles.some(x=>x.role==="employee");
  if(loading)return <div className="loading-screen"><div className="spinner"/> Preparando tu espacio...</div>;
- if(error)return <div className="empty-page"><h2>Falta un paso para empezar</h2><p>{error}</p><Link className="button button-dark" href="/acceder">Volver al acceso</Link></div>;
+ if(error)return <div className="empty-page"><h2>No hemos podido abrir tu espacio</h2><p>{error}</p><Link className="button button-dark" href="/acceder">Volver al acceso</Link></div>;
  if(!user)return <div className="loading-screen">Redirigiendo al acceso...</div>;
  if(!allowed)return <div className="empty-page"><h2>Esta zona es privada</h2><p>No tienes permisos para acceder a esta sección.</p><Link className="button button-dark" href={admin?"/admin":roles.some(x=>x.role!=="employee")?"/negocio":roles.length?"/empleado":"/app"}>Volver a mi espacio</Link></div>;
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
