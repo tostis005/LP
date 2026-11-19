@@ -31,12 +31,13 @@ for(const lang of [es,en]){
  const all=JSON.stringify(lang);
  assert.doesNotMatch(all,/SVG|cuatro perfiles|four profiles|tablet|tableta/i);
 }
-const iconSource=readFileSync(new URL("../../components/StampMarks.tsx",import.meta.url),"utf8");
-assert.match(iconSource,/strokeWidth:3\.2/);
+const iconSource=readFileSync(new URL("../../lib/stamp-drawings.ts",import.meta.url),"utf8");
+assert.match(iconSource,/stroke-width="3"/);
 assert.doesNotMatch(iconSource,/fill="currentColor"/);
-assert.match(iconSource,/k==="beard"/);
-assert.match(iconSource,/k==="hair"/);
-assert.equal((iconSource.match(/\{id:"/g)||[]).length,22,"All 22 stamps remain available");
+assert.match(iconSource,/beard:/);
+assert.match(iconSource,/hair:/);
+assert.match(iconSource,/bread:/);
+assert.equal((iconSource.match(/\{id:"/g)||[]).length,23,"All 23 stamps remain available");
 const brand=readFileSync(new URL("../../components/Brand.tsx",import.meta.url),"utf8");
 assert.doesNotMatch(brand,/<span>\.<\/span>/);
-console.log("Commercial landing: ES/EN copy parity, icon collection and logo verified.");
+console.log("Commercial landing: ES/EN copy parity, 23-icon collection and logo verified.");
