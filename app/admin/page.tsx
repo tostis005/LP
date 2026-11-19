@@ -12,7 +12,7 @@ function AdminContent({account}:{account:Account}){
  const [tab,setTab]=useState<"business"|"users"|"campaigns"|"leads"|"reports">("business"),[businesses,setBusinesses]=useState<Biz[]>([]),[users,setUsers]=useState<Person[]>([]),[transactionCount,setTransactionCount]=useState(0),[membershipCount,setMembershipCount]=useState(0),[search,setSearch]=useState("");
  const [leads,setLeads]=useState<Lead[]>([]);
  const [recentOperations,setRecentOperations]=useState<RecentOperation[]>([]);
- const [focusRate,setFocusRate]=useState("1"),[focusCurrency,setFocusCurrency]=useState("MXN"),[hasFocusRate,setHasFocusRate]=useState(false);
+ const [focusRate,setFocusRate]=useState("1"),[focusWhatsappRate,setFocusWhatsappRate]=useState(""),[focusCurrency,setFocusCurrency]=useState("MXN"),[hasFocusRate,setHasFocusRate]=useState(false);
  const [focusBiz,setFocusBiz]=useState<Biz|null>(null),[focusCustomers,setFocusCustomers]=useState(0),[focusStaff,setFocusStaff]=useState(0),[focusTx,setFocusTx]=useState(0),[focusLocations,setFocusLocations]=useState(0),[focusProgram,setFocusProgram]=useState("");
  const [focusUser,setFocusUser]=useState<Person|null>(null),[focusCards,setFocusCards]=useState<{business_id:string;balance:number;businesses:{name:string;slug:string}|null}[]>([]);
  const [name,setName]=useState(""),[slug,setSlug]=useState(""),[manager,setManager]=useState(""),[subject,setSubject]=useState(""),[body,setBody]=useState(""),[drafts,setDrafts]=useState<{id:string;subject:string;created_at:string}[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
@@ -48,9 +48,9 @@ function AdminContent({account}:{account:Account}){
    db().from("loyalty_transactions").select("id",{count:"exact",head:true}).eq("business_id",b.id),
    db().from("business_locations").select("id",{count:"exact",head:true}).eq("business_id",b.id),
    db().from("loyalty_programs").select("type").eq("business_id",b.id).maybeSingle(),
-   db().from("business_marketing_rates").select("price_cents,currency").eq("business_id",b.id).maybeSingle()
+   db().from("business_marketing_rates").select("price_cents,whatsapp_price_cents,currency").eq("business_id",b.id).maybeSingle()
   ]);
-  setFocusCustomers(c.data?.length||0);setFocusStaff(s.data?.length||0);setFocusTx(t.count||0);setFocusLocations(l.count||0);setFocusProgram(p.data?.type||"—");setFocusRate(String(r.data?.price_cents??1));setFocusCurrency(r.data?.currency||"MXN");setHasFocusRate(!!r.data);
+  setFocusCustomers(c.data?.length||0);setFocusStaff(s.data?.length||0);setFocusTx(t.count||0);setFocusLocations(l.count||0);setFocusProgram(p.data?.type||"—");setFocusRate(String(r.data?.price_cents??1));setFocusWhatsappRate(r.data?.whatsapp_price_cents==null?"":String(r.data.whatsapp_price_cents));setFocusCurrency(r.data?.currency||"MXN");setHasFocusRate(!!r.data);
  }
  async function inspectUser(u:Person){setFocusUser(u);setError("");
   const {data,error}=await db().from("loyalty_memberships").select("business_id,balance,businesses(name,slug)").eq("customer_id",u.user_id);
@@ -59,13 +59,14 @@ function AdminContent({account}:{account:Account}){
  }
  async function saveMarketingRate(){
   if(!focusBiz)return;
-  const value=Number(focusRate);
+  const value=Number(focusRate),whatsapp=focusWhatsappRate.trim()===""?null:Number(focusWhatsappRate);
+  if(whatsapp!==null&&(!Number.isInteger(whatsapp)||whatsapp<0||whatsapp>100000)){setError("La tarifa de WhatsApp debe ser un número entero de centavos o estar vacía.");return}
   if(!Number.isInteger(value)||value<0||value>100000){setError("La tarifa debe expresarse en centavos enteros.");return}
   setBusy(true);setError("");
-  const {error}=hasFocusRate?await db().from("business_marketing_rates").update({price_cents:value,currency:focusCurrency,updated_at:new Date().toISOString()}).eq("business_id",focusBiz.id):
-   await db().from("business_marketing_rates").insert({business_id:focusBiz.id,price_cents:value,currency:focusCurrency});
+  const {error}=hasFocusRate?await db().from("business_marketing_rates").update({price_cents:value,whatsapp_price_cents:whatsapp,currency:focusCurrency,updated_at:new Date().toISOString()}).eq("business_id",focusBiz.id):
+   await db().from("business_marketing_rates").insert({business_id:focusBiz.id,price_cents:value,whatsapp_price_cents:whatsapp,currency:focusCurrency});
   setBusy(false);if(error){setError(error.message);return}
-  setSuccess("Tarifa de mailing actualizada.");await inspectBusiness(focusBiz);
+  setSuccess("Tarifas de campañas actualizadas.");await inspectBusiness(focusBiz);
  }
  async function changeActive(){if(!focusBiz)return;
   if(!window.confirm(focusBiz.active?"¿Suspender este negocio? Los empleados no podrán registrar compras.":"¿Reactivar este negocio?"))return;
@@ -98,7 +99,7 @@ function AdminContent({account}:{account:Account}){
  {error&&<div className="alert error">{error}</div>}{success&&<div className="alert success"><Check size={17}/>{success}</div>}
  {tab==="business"&&<div className="admin-grid"><div className="panel-card"><div className="content-heading"><div><h2>Red de negocios</h2><p>Todos los negocios del ecosistema.</p></div></div><div className="search-box small-search"><Search size={17}/><input placeholder="Buscar negocio..." value={search} onChange={e=>setSearch(e.target.value)}/></div><div className="table-wrap"><table className="data-table"><thead><tr><th>Negocio</th><th>Estado</th><th>Directorio</th><th>Fecha</th><th></th></tr></thead><tbody>{list.map(b=><tr key={b.id}><td><strong>{b.name}</strong><small>/{b.slug}</small></td><td><span className={"table-pill "+(b.active?"":"inactive")}>{b.active?"Activo":"Inactivo"}</span></td><td>{b.public_listing?"Visible":"Oculto"}</td><td>{dateShort(b.created_at)}</td><td><button className="inline-table-button" onClick={()=>inspectBusiness(b)}>Detalles</button></td></tr>)}</tbody></table></div>{!list.length&&<p className="muted">No hay negocios con ese filtro.</p>}
  {focusBiz&&<div className="admin-inspector"><div className="inspector-head"><div><strong>{focusBiz.name}</strong><small>/{focusBiz.slug}</small></div><button onClick={()=>setFocusBiz(null)} className="inline-table-button">Cerrar</button></div><div className="inspector-stats"><div><strong>{focusCustomers}</strong><span>Clientes</span></div><div><strong>{focusStaff}</strong><span>Equipo</span></div><div><strong>{focusTx}</strong><span>Operaciones</span></div><div><strong>{focusLocations}</strong><span>Locales</span></div></div><p className="muted">Programa: <strong>{focusProgram}</strong> · Directorio: {focusBiz.public_listing?"Visible":"Oculto"}</p>
- <div className="form-stack marketing-rate-admin"><strong>Precio de campañas por negocio</strong><div className="form-two"><label>Centavos por contacto<input type="number" min="0" max="100000" step="1" value={focusRate} onChange={e=>setFocusRate(e.target.value)}/></label><label>Moneda<select value={focusCurrency} onChange={e=>setFocusCurrency(e.target.value)}><option value="MXN">MXN</option><option value="EUR">EUR</option><option value="USD">USD</option></select></label></div><button type="button" className="button button-outline button-sm" disabled={busy} onClick={saveMarketingRate}>Guardar tarifa</button><small>Ejemplo: 1 centavo × 10 destinatarios = 0,10 MXN. Solo se contabilizan los mensajes enviados correctamente.</small></div>
+ <div className="form-stack marketing-rate-admin"><strong>Precio de campañas por negocio</strong><div className="form-two"><label>Centavos por email<input type="number" min="0" max="100000" step="1" value={focusRate} onChange={e=>setFocusRate(e.target.value)}/></label><label>Moneda<select value={focusCurrency} onChange={e=>setFocusCurrency(e.target.value)}><option value="MXN">MXN</option><option value="EUR">EUR</option><option value="USD">USD</option></select></label></div><label>Centavos por WhatsApp<input type="number" min="0" max="100000" step="1" value={focusWhatsappRate} onChange={e=>setFocusWhatsappRate(e.target.value)} placeholder="Sin activar"/><small>Deja este campo vacío para no ofrecer WhatsApp hasta decidir su precio.</small></label><button type="button" className="button button-outline button-sm" disabled={busy} onClick={saveMarketingRate}>Guardar tarifas</button><small>Las tarifas son por destinatario y por canal; solo la plataforma puede modificarlas.</small></div>
  <button className={"button "+(focusBiz.active?"button-danger":"button-dark")+" button-sm"} disabled={busy} onClick={changeActive}>{focusBiz.active?"Suspender negocio":"Reactivar negocio"}</button></div>}
  </div>
  <form className="panel-card" onSubmit={createBusiness}><div className="panel-icon"><Plus size={22}/></div><h2>Dar de alta un negocio</h2><p className="muted">Solo un superadministrador puede crear negocios. El responsable recibe una invitación interna pendiente de reclamar.</p><div className="form-stack"><label>Nombre del negocio<input required minLength={2} value={name} placeholder="Ej. Café Noma" onChange={e=>{setName(e.target.value);setSlug(slugify(e.target.value))}}/></label><label>Identificador único<input required pattern="[a-z0-9]+(-[a-z0-9]+)*" value={slug} placeholder="cafe-noma" onChange={e=>setSlug(slugify(e.target.value))}/></label><label>Email del responsable<input type="email" required value={manager} placeholder="responsable@negocio.com" onChange={e=>setManager(e.target.value)}/></label><button className="button button-dark button-full" disabled={busy}>{busy?"Creando...":"Crear negocio"} <ArrowUpRight size={17}/></button></div></form></div>}
