@@ -1,18 +1,44 @@
 "use client";
 import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
-import {ArrowRight,CheckCircle2,Eye,EyeOff,Sparkles} from "lucide-react";
+import {ArrowRight,CheckCircle2,Eye,EyeOff,Sparkles,ShieldCheck,Store,ScanLine,UserRound} from "lucide-react";
 import {Brand} from "@/components/Brand";
 import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import {StampCard} from "@/components/StampCard";
 
 import {configured,db} from "@/lib/supabase";
 
+const profiles=[
+ {role:"ADMIN",name:"Administrador",detail:"Negocios, usuarios y reportes",icon:ShieldCheck,shade:"mint"},
+ {role:"BUSINESS",name:"Dueño de negocio",detail:"Tarjetas, clientes y equipo",icon:Store,shade:"sand"},
+ {role:"STAFF",name:"Empleado",detail:"Escanear tarjetas y asignar sellos",icon:ScanLine,shade:"lavender"},
+ {role:"CUSTOMER",name:"Cliente",detail:"Mis tarjetas y recompensas",icon:UserRound,shade:"rose"}
+] as const;
 export default function Login(){
  const router=useRouter();
  const [mode,setMode]=useState<"login"|"signup"|"forgot">("login");
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[surname,setSurname]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[pushOptIn,setPushOptIn]=useState(false);
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
+ const [qaEnabled,setQaEnabled]=useState(false),[qaAuthorized,setQaAuthorized]=useState(false);
+ useEffect(()=>{let active=true;
+  fetch("/api/local/qa-access",{credentials:"same-origin",cache:"no-store"})
+   .then(r=>r.ok?r.json():null).then(v=>{
+    if(active&&v){setQaEnabled(v.enabled===true);setQaAuthorized(v.authorized===true);}
+   }).catch(()=>{});
+  return()=>{active=false};
+ },[]);
+ async function selectProfile(role:typeof profiles[number]["role"]){
+  setBusy(true);setError("");setMessage("");
+  try{
+   const r=await fetch("/api/local/qa-access",{method:"POST",credentials:"same-origin",cache:"no-store",
+    headers:{"Content-Type":"application/json"},body:JSON.stringify({action:qaAuthorized?"switch":"request",role})});
+   const v=await r.json() as {error?:string;route?:string;sent?:boolean};
+   if(!r.ok)throw new Error(v.error||"No se pudo acceder con este perfil.");
+   if(v.route){window.location.assign(v.route);return}
+   if(v.sent){setMessage("Hemos enviado un enlace de acceso al correo de administración. Ábrelo para entrar. Después podrás cambiar entre perfiles con un clic.");return}
+   throw new Error("No se pudo preparar el acceso.");
+  }catch(e){setError((e as Error).message)}finally{setBusy(false)}
+ }
  async function submit(e:React.FormEvent){
   e.preventDefault();setBusy(true);setError("");setMessage("");
   try{
@@ -62,6 +88,17 @@ export default function Login(){
      <button type="submit" disabled={busy} className="button button-dark button-full">{busy?"Procesando...":mode==="login"?"Iniciar sesión":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"} <ArrowRight size={18}/></button>
     </form>
     <div className="auth-account-switch">{mode==="login"?<>¿Todavía no tienes cuenta? <button onClick={()=>switchMode("signup")}>Regístrate</button></>:<>¿Ya tienes cuenta? <button onClick={()=>switchMode("login")}>Iniciar sesión</button></>}</div>
+    {mode==="login"&&qaEnabled&&<section className="qa-profile-access">
+     <div className="auth-quick-divider"><span>ACCESO RÁPIDO POR PERFIL</span></div>
+     <p className="muted">{qaAuthorized?"Selecciona el perfil que quieres revisar.":"La primera vez confirmaremos el acceso desde tu correo de administración."}</p>
+     <div className="auth-profile-grid auth-real-routes" role="group" aria-label="Acceso autorizado por perfil">
+      {profiles.map(p=><button type="button" key={p.role} disabled={busy} className="auth-profile-card" onClick={()=>void selectProfile(p.role)}>
+       <span className={"auth-profile-icon "+p.shade}><p.icon size={23} strokeWidth={1.9}/></span>
+       <span className="auth-profile-copy"><strong>{p.name}</strong><small>{p.detail}</small></span>
+       <ArrowRight className="auth-profile-arrow" size={17}/>
+      </button>)}
+     </div>
+    </section>}
    </div>
   </section>
  </main>;
