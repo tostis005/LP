@@ -7,7 +7,7 @@ import type {Location} from "@/lib/types";
 import {categoryStampKind} from "@/lib/business-categories";
 import {stampMarkup} from "@/lib/stamp-drawings";
 
-export type DirectoryPin=Location&{
+export type DirectoryPin=Omit<Location,"businesses">&{
  businesses?:{name:string;category:string|null;slug:string;accent_color?:string;description?:string|null};
  offerText?:string;
 };
