@@ -20,6 +20,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Probar control de origen de acceso por IP
         run: node tests/demo/origin.mjs
+      - name: Verificar textos comerciales ES/EN, iconos y logotipo
+        run: node tests/demo/landing.mjs
       - name: Probar acceso inmediato y sellos en los cuatro perfiles
         run: node tests/demo/role-flow.mjs
       - name: Comprobar TypeScript
@@ -51,7 +53,17 @@ jobs:
             grep -oE "Preparando tu espacio|Accede a tu espacio|Haz que cada visita" /tmp/lp-root-smoke.html || true
             exit 1
           fi
-          echo "OK: la imagen Docker sirve la portada comercial en /."
+          curl -fsS --max-time 8 'http://127.0.0.1:3156/?lang=en' -o /tmp/lp-root-en.html
+          if ! grep -q 'Turn every visit into' /tmp/lp-root-en.html ||
+             grep -q 'Haz que cada visita' /tmp/lp-root-en.html; then
+            echo "::error::Docker no devuelve la portada en inglés."
+            exit 1
+          fi
+          if ! grep -q 'href="/?lang=es"' /tmp/lp-root-en.html; then
+            echo "::error::El selector no ofrece volver a español."
+            exit 1
+          fi
+          echo "OK: Docker ofrece la portada comercial en español e inglés."
       - name: Verificar que la raiz sirve la presentacion y no el login
         shell: bash
         run: |
