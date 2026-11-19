@@ -18,8 +18,7 @@ export function AddressPicker({address,city,country,lat,lng,onAddressChange,onCi
   return lat.trim()&&lng.trim()&&Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(x)<=90&&Math.abs(y)<=180?{lat:x,lng:y}:null;
  },[lat,lng]);
  function choose(next:Point){onCoordinatesChange(String(Number(next.lat.toFixed(7))),String(Number(next.lng.toFixed(7))));}
- async function search(event:React.FormEvent){
-  event.preventDefault();setError("");setResults([]);
+ async function search(){setError("");setResults([]);
   const q=[address,city,country].filter(Boolean).join(", ").trim();
   if(q.length<7){setError("Escribe la dirección y la ciudad.");return}
   setLoading(true);
@@ -34,16 +33,16 @@ export function AddressPicker({address,city,country,lat,lng,onAddressChange,onCi
   }catch(e){setError((e as Error).message)}finally{setLoading(false)}
  }
  return <div className="lp-address-picker">
-  <form className="lp-address-search" onSubmit={search}>
+  <div className="lp-address-search">
    <div className="form-stack">
     <label>Dirección<input required minLength={4} value={address} onChange={e=>onAddressChange(e.target.value)} placeholder="Calle, número y colonia"/></label>
     <div className="form-two">
      <label>Ciudad<input required value={city} onChange={e=>onCityChange(e.target.value)} placeholder="Ciudad"/></label>
      <label>País<input required value={country} onChange={e=>onCountryChange(e.target.value)} placeholder="País"/></label>
     </div>
-    <button type="submit" className="button button-outline" disabled={loading}><Search size={17}/>{loading?"Buscando...":"Buscar dirección en el mapa"}</button>
+    <button type="button" className="button button-outline" onClick={()=>void search()} disabled={loading}><Search size={17}/>{loading?"Buscando...":"Buscar dirección en el mapa"}</button>
    </div>
-  </form>
+  </div>
   {error&&<div className="alert error" role="alert">{error}</div>}
   {results.length>1&&<div className="lp-address-results" role="listbox" aria-label="Direcciones encontradas">{results.map((r,i)=><button type="button" role="option" aria-selected={point?.lat===r.lat&&point?.lng===r.lng} key={i} onClick={()=>{choose(r);setResults([])}}><MapPin size={17}/><span>{r.label}</span></button>)}</div>}
   <AddressMap point={point} onChange={choose}/>
