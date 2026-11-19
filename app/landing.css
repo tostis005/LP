@@ -142,3 +142,25 @@
 @media(max-width:650px){.loi-site .container{width:min(100% - 34px,520px)}.loi-hero-layout{padding-top:43px}.loi-hero-copy h1{font-size:clamp(39px,10vw,55px)}.loi-hero-copy>p{font-size:14px;line-height:1.75}.loi-hero-actions{flex-direction:column;align-items:stretch}.loi-hero-actions .loi-button{width:100%}.loi-hero-foot{margin-top:24px;text-align:left}.loi-hero-showcase{min-height:492px}.loi-showcase-phone{width:275px;min-height:485px;border-width:7px;padding:13px 13px 0;transform:rotate(-3deg)}.loi-showcase-phone .stamp-visual-card{min-height:217px}.loi-showcase-phone .stamp-grid{grid-template-columns:repeat(var(--stamp-columns),minmax(0,24px))}.loi-showcase-phone .stamp-slot{max-width:24px}.loi-showcase-floating{bottom:57px;right:-7px;padding:10px}.loi-showcase-floating strong{font-size:10px}.loi-showcase-floating small{font-size:9px}.loi-floating-icon{width:33px;height:33px}.loi-hero-orbit.orbit-a{height:365px;width:365px;left:0}.loi-hero-orbit.orbit-b{height:290px;width:290px;right:-80px}.loi-showcase-caption{left:5px;top:0;font-size:10px}.loi-demo-disclaimer{font-size:8px;bottom:0}.loi-audience-strip .container{padding:16px 0;gap:13px 17px;justify-content:center}.loi-audience-strip span{font-size:10px}.loi-audience-strip span:first-child{width:100%;justify-content:center}.loi-section{padding:67px 0}.loi-section-lead h2{font-size:clamp(32px,8vw,42px)}.loi-section-lead>p{font-size:13px}.loi-feature-grid,.loi-role-grid{grid-template-columns:1fr 1fr;gap:10px}.loi-feature,.loi-role-card{padding:17px 14px;min-height:0}.loi-feature-icon,.loi-role-top>span{width:42px;height:42px}.loi-feature-icon{margin-bottom:22px}.loi-feature h3,.loi-role-card h3{font-size:14px}.loi-feature p,.loi-role-card p{font-size:11px}.loi-role-top{margin-bottom:21px}.loi-process{padding:65px 0}.loi-process-copy h2,.loi-design-copy h2{font-size:37px}.loi-process-steps{padding:7px 16px}.loi-step{grid-template-columns:36px 1fr;gap:12px;padding:19px 0}.loi-step>span{width:32px;height:32px}.loi-step>svg{display:none}.loi-step>div h3{font-size:15px}.loi-design-section{padding:69px 0}.loi-design-preview{padding:25px 13px;min-height:390px;border-radius:22px}.loi-design-preview .stamp-visual-card{width:95%;min-height:275px;padding:19px}.loi-design-preview .stamp-grid{grid-template-columns:repeat(var(--stamp-columns),minmax(0,37px))}.loi-stamp-library>div{gap:6px}.loi-stamp-library>div span{width:33px;height:33px}.loi-role-action{align-items:flex-start;flex-direction:column}.loi-final-section{padding:64px 0}.loi-final-card{border-radius:23px;padding:45px 25px}.loi-final-card h2{font-size:38px}.loi-final-card p{font-size:13px}.loi-final-deco{display:none}.loi-footer-top{flex-direction:column;gap:30px}.loi-footer-top nav{gap:15px 26px}.loi-footer-bottom{flex-direction:column;gap:4px}}
 @media(max-width:375px){.loi-feature-grid,.loi-role-grid{grid-template-columns:1fr}.loi-feature,.loi-role-card{padding:21px}.loi-feature p,.loi-role-card p{font-size:12px}.loi-hero-showcase{min-height:470px}.loi-showcase-floating{right:0;bottom:54px}.loi-showcase-phone{width:255px}.loi-hero-copy h1{font-size:37px}}
 @media(prefers-reduced-motion:reduce){.loi-site *{transition:none!important;scroll-behavior:auto!important}}
+
+/* Cabecera comercial bilingüe; el idioma se puede cambiar también en móvil. */
+.loi-site .brand-symbol{letter-spacing:normal;transform:none}
+.loi-public-header .loi-header-actions{gap:15px}
+.loi-language-switch{display:inline-flex;align-items:center;gap:3px;border:1px solid #dce7db;border-radius:100px;background:#f6f9f4;padding:4px;font-size:11px;font-weight:900;line-height:1}
+.loi-language-switch a{display:inline-flex;align-items:center;justify-content:center;min-height:28px;min-width:28px;padding:6px 7px;border-radius:100px;color:#6c8271;transition:background .15s ease,color .15s ease}
+.loi-language-switch a.selected,.loi-language-switch a[aria-current="page"]{background:#234a36;color:#fff;box-shadow:0 2px 8px #153a2919}
+.loi-language-switch>span{color:#b1c0b1;font-weight:500}
+.loi-site .loi-stamp-library>div span svg{width:25px;height:25px;stroke-width:3.2}
+@media(max-width:780px){
+ .loi-public-header .loi-header-actions{gap:9px}
+ .loi-language-switch{padding:3px}
+ .loi-language-switch a{min-width:25px;min-height:27px;padding:6px}
+}
+@media(max-width:410px){
+ .loi-public-header .header-inner{gap:7px}
+ .loi-public-header .brand{gap:6px}
+ .loi-public-header .brand-name{font-size:17px}
+ .loi-public-header .brand-symbol{height:32px;width:32px;border-radius:11px;font-size:23px}
+ .loi-public-header .header-actions .button{padding:9px 10px;font-size:11px;min-height:38px}
+ .loi-public-header .header-actions .button svg{display:none}
+}
