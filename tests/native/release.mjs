@@ -22,7 +22,9 @@ try{
  const usage=await client.query("SELECT * FROM public.business_marketing_usage($1::uuid)",[shop.id]);
  assert.equal(usage.rowCount,0);
  await client.query("ROLLBACK");
- await client.query("BEGIN");await client.query("SET LOCAL ROLE authenticated");await identity(ids.cliente);
+ await client.query("BEGIN");
+ await client.query("UPDATE auth.users SET raw_user_meta_data=raw_user_meta_data-'whatsapp' WHERE id=$1",[ids.cliente]);
+ await client.query("SET LOCAL ROLE authenticated");await identity(ids.cliente);
  const joined=await client.query("SELECT public.join_program($1::uuid)",[shop.id]);
  assert.ok(joined.rows[0].join_program,"Customer should still join programs");
  await assert.rejects(()=>client.query("SELECT public.business_upsert_whatsapp_consent($1::uuid,true)",[shop.id]),e=>e.code==="P0001");
