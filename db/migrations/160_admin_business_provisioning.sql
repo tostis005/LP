@@ -134,3 +134,17 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.admin_set_business_location(uuid,text,text,text,text,double precision,double precision) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.admin_set_business_location(uuid,text,text,text,text,double precision,double precision) TO authenticated;
+
+-- Los descuentos por volumen se pactan establecimiento por establecimiento.
+CREATE OR REPLACE FUNCTION public.admin_set_business_contract(p_business uuid,p_monthly_price_cents integer)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+BEGIN
+ IF NOT public.is_platform_admin() THEN RAISE EXCEPTION 'Solo Loyally puede pactar contratos'; END IF;
+ IF p_monthly_price_cents IS NOT NULL AND (p_monthly_price_cents<0 OR p_monthly_price_cents>100000000)
+ THEN RAISE EXCEPTION 'Precio no válido'; END IF;
+ UPDATE public.business_billing SET agreed_monthly_cents=p_monthly_price_cents,updated_at=now()
+ WHERE business_id=p_business;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Negocio no encontrado'; END IF;
+END $$;
+REVOKE ALL ON FUNCTION public.admin_set_business_contract(uuid,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.admin_set_business_contract(uuid,integer) TO authenticated;
