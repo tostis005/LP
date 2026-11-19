@@ -40,7 +40,7 @@ assert.match(shell,/\.data-table th\{[^}]+background:#fbf5f8/,"Tables must use p
 assert.match(secondary,/\.button-dark,\.loi-button-main\{background:#571c32/,"Buttons must use wine");
 assert.match(designer,/const COLOR_PRESETS=\["#571c32"/,"Business designer starts with wine");
 assert.match(designer,/const STAMP_COLOR_PRESETS=\["#571c32"/,"Stamp palette starts with wine");
-assert.match(designer,/accent_color:color/,"Businesses keep customized card colors");
+assert.match(designer,/accent_color:biz\.accent_color/,"Business settings keep their customized card colors");
 assert.match(clientCard,/backgroundColor:color/,"Customer cards keep the business color");
 assert.match(demo,/loyally_role_sample_tijuana_v6/,"Demo data must refresh to new palette");
 assert.match(demo,/slug:"cafe-noma",category:"Cafetería",color:"#571c32"/);
