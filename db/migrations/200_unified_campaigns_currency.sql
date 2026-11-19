@@ -118,9 +118,16 @@ BEGIN
  IF p_expired THEN
   UPDATE public.web_push_subscriptions SET active=false,updated_at=now() WHERE id=v_subscription;
  END IF;
- SELECT count(*) FILTER(WHERE status IN('pending','sending')),
- count(*) FILTER(WHERE status='sent'),count(*) FILTER(WHERE status='failed')
- INTO v_pending,v_sent,v_failed FROM public.push_deliveries WHERE campaign_id=v_campaign;
+ WITH recipient AS (
+  SELECT customer_id,
+   bool_or(status IN ('pending','sending')) AS pending,
+   bool_or(status='sent') AS accepted,
+   bool_and(status='failed') AS failed
+  FROM public.push_deliveries WHERE campaign_id=v_campaign GROUP BY customer_id
+ )
+ SELECT count(*) FILTER(WHERE pending),count(*) FILTER(WHERE accepted),
+  count(*) FILTER(WHERE failed)
+ INTO v_pending,v_sent,v_failed FROM recipient;
  UPDATE public.push_campaigns SET sent_count=v_sent,failed_count=v_failed,
   status=CASE WHEN v_pending>0 THEN 'sending' WHEN v_failed=0 THEN 'sent'
    WHEN v_sent=0 THEN 'failed' ELSE 'partial' END WHERE id=v_campaign;
