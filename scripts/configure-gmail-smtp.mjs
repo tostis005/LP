@@ -11,7 +11,7 @@ if(!/^[A-Za-z0-9._%+-]+@gmail\.com$/i.test(email)
  && !/^[A-Za-z0-9._%+-]+@googlemail\.com$/i.test(email)){
  throw Error("La dirección debe ser una cuenta Gmail válida para esta configuración temporal.");
 }
-if(!/^[A-Za-z]{16}$/.test(password))throw Error("La contraseña de aplicación de Gmail debe tener 16 letras.");
+if(!/^[A-Za-z0-9]{16}$/.test(password))throw Error("La contraseña de aplicación de Gmail debe tener 16 caracteres alfanuméricos.");
 const original=readFileSync(path,"utf8");
 const lines=original.split(/\r?\n/);
 function set(key,value){
