@@ -42,6 +42,8 @@ jobs:
         run: node tests/demo/wallet-navigation-consent.mjs
       - name: Verificar que toda la aplicación usa datos reales
         run: node tests/demo/real-production.mjs
+      - name: Validar fidelización, moneda, mapa y catálogo de regalos
+        run: node tests/demo/product-polish.mjs
       - name: Comprobar TypeScript
         run: npm run typecheck
       - name: Construir Next.js
