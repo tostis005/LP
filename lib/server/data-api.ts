@@ -146,6 +146,7 @@ const rpcMap:Record<string,Spec>={
  business_customer_directory:{args:[["p_business","uuid"]],returns:"table"},
  business_mail_quote:{args:[["p_business","uuid"]],returns:"table"},
  business_whatsapp_quote:{args:[["p_business","uuid"]],returns:"table"},
+ business_marketing_usage:{args:[["p_business","uuid"]],returns:"table"},
  business_upsert_whatsapp_consent:{args:[["p_business","uuid"],["p_opted_in","boolean"]],returns:"scalar"},
  business_staff_directory:{args:[["p_business","uuid"]],returns:"table"},
  admin_user_directory:{args:[],returns:"table"},
