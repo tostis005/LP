@@ -3,7 +3,7 @@ import {useEffect,useMemo,useState} from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
-import {Compass,MapPin,Navigation,Search,ArrowUpRight,Check,Gift} from "lucide-react";
+import {Compass,MapPin,Navigation,Search,ArrowUpRight,Check,Gift,Wallet,Heart} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {StampMark} from "@/components/StampMarks";
 import {db} from "@/lib/supabase";
@@ -18,19 +18,21 @@ const TIJUANA:[number,number]=[32.5234,-117.0382];
 function Discover({account}:{account:Account}){
  const [entries,setEntries]=useState<Entry[]>([]);
  const [programs,setPrograms]=useState<Program[]>([]);
- const [memberIds,setMemberIds]=useState<string[]>([]);
+ const [myCards,setMyCards]=useState<Record<string,string>>({});
+ const [wallets,setWallets]=useState({apple:false,google:false});
  const [filter,setFilter]=useState(""),[category,setCategory]=useState("Todos"),[rewardType,setRewardType]=useState("Todos");
  const [center,setCenter]=useState<[number,number]>(TIJUANA),[hasLocation,setHasLocation]=useState(false);
  const [error,setError]=useState("");
+ useEffect(()=>{fetch("/api/local/wallet/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setWallets({apple:v.apple===true,google:v.google===true})}).catch(()=>{});},[]);
  useEffect(()=>{async function load(){
   const [loc,members,p]=await Promise.all([
    db().from("business_locations").select("*,businesses(*)").eq("visible",true),
-   db().from("loyalty_memberships").select("business_id").eq("customer_id",account.user.id),
+   db().from("loyalty_memberships").select("id,business_id").eq("customer_id",account.user.id),
    db().from("loyalty_programs").select("*")
   ]);
   if(loc.error)setError(loc.error.message);else setEntries((loc.data||[]) as Entry[]);
   if(p.error)setError(p.error.message);else setPrograms((p.data||[]) as Program[]);
-  setMemberIds(((members.data||[]) as {business_id:string}[]).map(x=>x.business_id));
+  setMyCards(Object.fromEntries(((members.data||[]) as {id:string;business_id:string}[]).map(x=>[x.business_id,x.id])));
  }load()},[account.user.id]);
  function locate(){
   if(!navigator.geolocation){setError("Tu navegador no puede consultar la ubicación.");return}
@@ -59,21 +61,29 @@ function Discover({account}:{account:Account}){
   <div className="content-heading spaced"><div><h2>{filtered.length} {filtered.length===1?"lugar para descubrir":"lugares para descubrir"}</h2><p>Explora el mapa o elige una tarjeta para conocer el negocio y su recompensa.</p></div></div>
   <div className="directory-results-grid">
    {filtered.length===0?<div className="empty-state compact"><Compass size={29}/><h3>Sin resultados</h3><p>Prueba con otro tipo de negocio o elimina algún filtro.</p></div>:
-   filtered.map(e=>{const program=programByBusiness.get(e.business_id),already=memberIds.includes(e.business_id);return <article key={e.id} className="directory-card directory-card-rich">
+   filtered.map(e=>{const program=programByBusiness.get(e.business_id),cardId=myCards[e.business_id],already=!!cardId;return <article key={e.id} className="directory-card directory-card-rich directory-card-premium">
     <div className="directory-card-cover" style={{backgroundColor:e.businesses.accent_color||"#571c32"}}>
-     <span className="directory-cover-icon"><StampMark kind={e.businesses.stamp_icon||categoryStampKind(e.businesses.category)} size={45} color={e.businesses.stamp_color||"#ffffff"}/></span>
-     <span className="directory-cover-category">{e.businesses.category||"Negocio local"}</span>{e.businesses.logo_url&&<img className="directory-brand-logo" src={e.businesses.logo_url} alt={"Logotipo de "+e.businesses.name}/>}
-     {already&&<span className="joined-badge directory-joined"><Check size={13}/> Ya tienes tarjeta</span>}
+     <div className="directory-cover-pattern" aria-hidden="true"><span>LO</span><span>YA</span></div>
+     <div className="directory-cover-top"><span className="directory-cover-category">{e.businesses.category||"Negocio local"}</span>{already&&<span className="joined-badge directory-joined"><Check size={13}/> Ya tienes tarjeta</span>}</div>
+     <div className="directory-cover-brand">
+      <span className="directory-cover-icon" style={{backgroundColor:/^#f{3,6}$/i.test(e.businesses.stamp_color||"")?"#571c32":"#fff"}}><StampMark kind={e.businesses.stamp_icon||categoryStampKind(e.businesses.category)} size={49} color={e.businesses.stamp_color||"#571c32"}/></span>
+      {e.businesses.logo_url&&<img className="directory-brand-logo" src={e.businesses.logo_url} alt={"Logotipo de "+e.businesses.name}/>}
+     </div>
+     <strong className="directory-cover-business-name">{e.businesses.name}</strong>
     </div>
     <div className="directory-card-body">
-     <div className="directory-card-heading"><strong>{e.businesses.name}</strong></div>
-     <p className="directory-business-description">{e.businesses.description||"Un lugar para disfrutar y volver. Descubre su propuesta y las recompensas que ha preparado para ti."}</p>
-     <div className="directory-reward-highlight"><span><Gift size={17}/> TU RECOMPENSA</span><strong>{programPromise(program)}</strong></div>
-     <p className="directory-location"><MapPin size={14}/>{e.address} · {e.city}, {e.country}</p>
+     <div className="directory-card-heading"><strong>{e.businesses.name}</strong><span><Heart size={15}/></span></div>
+     <p className="directory-business-description">{e.businesses.description||"Un lugar especial para descubrir, disfrutar y volver."}</p>
+     <div className="directory-reward-highlight"><span><Gift size={16}/> TU RECOMPENSA</span><strong>{programPromise(program)}</strong></div>
+     <p className="directory-location"><MapPin size={15}/><span>{e.address} · {e.city}, {e.country}</span></p>
      <div className="directory-card-footer">
       <span className="distance-tag">{distance(e)} km aprox.</span>
-      <Link href={"/unirse/"+encodeURIComponent(e.businesses.slug)} className="button button-dark button-sm">{already?"Ver programa y tarjeta":"Conocer y conseguir tarjeta"} <ArrowUpRight size={16}/></Link>
+      <Link href={already?"/app":"/unirse/"+encodeURIComponent(e.businesses.slug)} className="button button-dark button-sm">{already?"Ver mi tarjeta":"Conseguir tarjeta"} <ArrowUpRight size={16}/></Link>
      </div>
+     {already&&(wallets.apple||wallets.google)&&<div className="directory-wallet-links">
+      {wallets.apple&&<a href={"/api/local/wallet/apple?card="+encodeURIComponent(cardId)}><Wallet size={16}/> Apple Wallet</a>}
+      {wallets.google&&<a href={"/api/local/wallet/google?card="+encodeURIComponent(cardId)}><Wallet size={16}/> Google Wallet</a>}
+     </div>}
     </div>
    </article>})}
   </div>
