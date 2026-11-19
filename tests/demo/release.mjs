@@ -35,6 +35,8 @@ assert.match(business,/RichMessageEditor/);
 assert.match(business,/business_whatsapp_quote/);
 assert.match(business,/business_marketing_usage/);
 assert.match(read("app/negocio/facturacion/page.tsx"),/business_marketing_usage/,"Additional campaign usage must appear in billing");
+assert.doesNotMatch(read("app/negocio/facturacion/page.tsx"),/precio propuesto|claves privadas del servidor/,"Billing UI must not reveal provisional/internal wording");
+assert.match(read("app/negocio/facturacion/page.tsx"),/billingReady.checkout/,"Subscription button must require configured payments");
 assert.match(rich,/onPaste/);
 assert.match(rich,/contentEditable/);
 assert.match(richServer,/escapeHtml/);
