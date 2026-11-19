@@ -6,7 +6,6 @@ import {BrowserQRCodeReader,type IScannerControls} from "@zxing/browser";
 import {Camera,Check,Gift,Keyboard,Minus,Plus,RefreshCw,ScanLine,ShieldCheck,StopCircle,Ticket} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {db} from "@/lib/supabase";
-import {demoRole,DEMO_CARD_TOKEN} from "@/lib/demo-local";
 import {normalizeToken,units} from "@/lib/format";
 type RewardChoice={id:string;label:string;retail_cents:number};
 type Found={membership_id:string;business_id:string;business_name:string;customer_name:string;program_type:"stamps"|"points"|"cashback";balance:number;reward_label:string;reward_cost:number;voucher_id?:string;max_stamps_per_action?:number};
@@ -31,7 +30,7 @@ function StaffMain({account}:{account:Account}){
    setStamps(1);
   }
  },[]);
- useEffect(()=>{const reward=params.get("reward"),code=params.get("code");if(reward)lookup("/p/"+reward);else if(code)lookup(code);else if(demoRole())lookup(DEMO_CARD_TOKEN)},[lookup,params]);
+ useEffect(()=>{const reward=params.get("reward"),code=params.get("code");if(reward)lookup("/p/"+reward);else if(code)lookup(code);},[lookup,params]);
  function startCamera(){setError("");setScanner(true)}
  function stopCamera(){setScanner(false)}
  useEffect(()=>{
@@ -56,9 +55,8 @@ function StaffMain({account}:{account:Account}){
  return <div className="scanner-grid"><section className="panel-card"><div className="panel-icon"><ScanLine size={23}/></div><h2>Escanea una tarjeta</h2><p className="muted">Utiliza la cámara de este dispositivo o pega el contenido del QR. Necesitas una cuenta de empleado autorizada.</p>
   {scanner?<div className="camera-frame"><video ref={video} autoPlay muted playsInline/><button className="button button-outline button-sm" onClick={stopCamera}><StopCircle size={16}/> Detener</button></div>:<div className="scanner-placeholder"><ScanLine size={54}/><span>Listo para escanear</span><small>Los códigos identifican al cliente, no confirman la compra.</small></div>}
   {!scanner&&<button className="button button-dark button-full" onClick={startCamera}><Camera size={18}/> Abrir cámara</button>}
-  {!!demoRole()&&<button type="button" className="button button-outline button-full demo-sample-scan" onClick={()=>lookup(DEMO_CARD_TOKEN)}><ScanLine size={18}/> Abrir tarjeta reciente</button>}
   <div className="form-divider">o introduce el código</div><form onSubmit={e=>{e.preventDefault();lookup(input)}} className="form-stack"><label>Enlace o identificador de tarjeta<input value={input} onChange={e=>setInput(e.target.value)} placeholder="Pega el enlace o UUID"/></label><button className="button button-outline button-full"><Keyboard size={18}/> Buscar tarjeta</button></form>
-  <div className="scanner-security"><ShieldCheck size={18}/><span>Acceso autenticado, límites por operación e historial de movimientos.</span></div>
+  
  </section>
  <section className="panel-card"><div className="panel-icon peach"><Ticket size={22}/></div><h2>Registrar la compra</h2><p className="muted">Los datos del cliente aparecerán cuando escanees su tarjeta.</p>
  {error&&<div className="alert error">{error}</div>}{success&&<div className="alert success"><Check size={18}/>{success}</div>}

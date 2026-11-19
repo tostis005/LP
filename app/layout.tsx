@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./workspace.css";
+import "leaflet/dist/leaflet.css";
 import "./brand-wine.css";
 import {PwaSetup} from "@/components/PwaSetup";
 import {AppBottomNav} from "@/components/AppBottomNav";

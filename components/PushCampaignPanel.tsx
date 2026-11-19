@@ -1,7 +1,6 @@
 "use client";
 import {useCallback,useEffect,useState} from "react";
 import {BellRing,Check,ShieldCheck} from "lucide-react";
-import {demoRole} from "@/lib/demo-local";
 
 type Campaign={id:string;title:string;status:string;recipient_count:number;sent_count:number;failed_count:number;total_cents:number;currency:string;created_at:string};
 type Usage={messages:number;amount_cents:number;currency:string};
@@ -51,7 +50,6 @@ export function PushCampaignPanel({businessId}:{businessId:string}){
  }
  async function create(e:React.FormEvent){
   e.preventDefault();setError("");setNotice("");
-  if(demoRole()){setError("Los envíos reales están desactivados en modo demostración.");return;}
   if(!overview.enabled){setError("Web Push todavía no está configurado en el servidor.");return;}
   if(overview.devices<1){setError("No hay dispositivos con permiso y consentimiento de este negocio.");return;}
   if(!window.confirm("¿Enviar esta notificación a "+overview.devices+" dispositivos de este negocio? Presupuesto máximo: "+currency(overview.total_cents,overview.currency)+". Solo se contabilizarán los envíos aceptados."))return;
@@ -92,7 +90,7 @@ export function PushCampaignPanel({businessId}:{businessId:string}){
       onChange={e=>setBody(e.target.value)} placeholder="Visítanos esta semana y consigue un sello extra."/></label>
      <small>{body.length}/500 caracteres</small>
      <div className="campaign-compose-actions"><button className="button button-dark" type="submit"
-      disabled={busy||loading||!overview.enabled||overview.devices===0||title.trim().length<3||body.trim().length<3||!!demoRole()}>
+      disabled={busy||loading||!overview.enabled||overview.devices===0||title.trim().length<3||body.trim().length<3}>
       {busy?"Enviando...":"Enviar push"} <BellRing size={17}/></button></div>
     </div>
     <p className="tiny-note">El teléfono debe haber autorizado las notificaciones. Un dispositivo puede dejar de estar disponible después del envío.</p>
@@ -103,7 +101,7 @@ export function PushCampaignPanel({businessId}:{businessId:string}){
       <div><strong>{c.title}</strong><span>{statusText[c.status]||c.status} · {new Date(c.created_at).toLocaleDateString("es-ES")}</span>
        <small>{c.sent_count} aceptados · {c.failed_count} fallidos · {Math.max(0,c.recipient_count-c.sent_count-c.failed_count)} pendientes · presupuesto {currency(Number(c.total_cents||0),c.currency||"MXN")}</small></div>
       {["queued","sending"].includes(c.status)&&<button className="button button-outline button-sm"
-       type="button" disabled={busy||!overview.enabled||!!demoRole()} onClick={()=>resume(c.id)}>Continuar</button>}
+       type="button" disabled={busy||!overview.enabled} onClick={()=>resume(c.id)}>Continuar</button>}
      </div>)}
      {!overview.campaigns.length&&<p className="muted">Todavía no hay campañas push.</p>}
     </section>
