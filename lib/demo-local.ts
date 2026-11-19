@@ -8,7 +8,7 @@ type Row=Record<string,any>;
 type DemoState={tables:Record<string,Row[]>;assets:Record<string,string>};
 type DemoResult<T=any>={data:T;error:Error|null;count?:number};
 type Filter={op:"eq"|"in"|"is";field:string;value:any};
-const ROLE_KEY="loyally_role_session_v2",DATA_KEY="loyally_role_sample_tijuana_v4";
+const ROLE_KEY="loyally_role_session_v2",DATA_KEY="loyally_role_sample_tijuana_v5";
 export const DEMO_BUSINESS_ID="11111111-1111-4111-8111-111111111111";
 export const DEMO_CARD_TOKEN="99999999-9999-4999-8999-999999999999";
 const IDs={
@@ -76,7 +76,7 @@ function seed():DemoState{
   {business_id:businessIds[0],user_id:IDs.empleado,role:"employee",active:true}
  ];
  const cardDefs=[
-  {id:"11111111-aaaa-4aaa-8aaa-111111111111",business_id:businessIds[0],customer_id:IDs.cliente,card_token:DEMO_CARD_TOKEN,balance:8,total_earned:12},
+  {id:"11111111-aaaa-4aaa-8aaa-111111111111",business_id:businessIds[0],customer_id:IDs.cliente,card_token:DEMO_CARD_TOKEN,balance:8,total_earned:16},
   {id:"11111111-bbbb-4bbb-8bbb-111111111111",business_id:businessIds[1],customer_id:IDs.cliente,card_token:"99999999-9999-4999-8999-999999999998",balance:2,total_earned:2},
   {id:"11111111-cccc-4ccc-8ccc-111111111111",business_id:businessIds[0],customer_id:IDs.alvaro,card_token:"99999999-9999-4999-8999-999999999997",balance:2,total_earned:2},
   {id:"11111111-dddd-4ddd-8ddd-111111111111",business_id:businessIds[0],customer_id:IDs.lucia,card_token:"99999999-9999-4999-8999-999999999996",balance:5,total_earned:5},
@@ -86,11 +86,12 @@ function seed():DemoState{
   {id:uuid(),business_id:businessIds[8],customer_id:IDs.cliente,card_token:uuid(),balance:4000,total_earned:4000}
  ].map(x=>({...x,created_at:days(18)}));
  const vouchers:Row[]=[{id:uuid(),token:"80808080-8080-4808-8808-808080808080",membership_id:cardDefs[0].id,business_id:businessIds[0],reward_label:"Un café gratis",status:"issued",issued_at:now(),redeemed_at:null}];
- const movements:Row[]=[
-  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(0)},
-  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:2,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(2)},
-  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[1].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(4)},
-  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[2].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:"T-100",reversal_of:null,reversal_reason:null,created_at:days(6)},
+ const redeemedSeed={id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"redeem",amount_delta:-8,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(8)};
+  const movements:Row[]=[redeemedSeed,
+  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:8500,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(0)},
+  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:2,purchase_cents:14000,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(2)},
+  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[1].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:9700,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(4)},
+  {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[2].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:6400,ticket_ref:"T-100",reversal_of:null,reversal_reason:null,created_at:days(6)},
   {id:uuid(),business_id:businessIds[2],membership_id:cardDefs[4].id,employee_id:IDs.administrador,kind:"earn",amount_delta:2,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(3)}
  ];
  const locations=DEMO_SHOPS.map((s,i)=>({
@@ -101,7 +102,10 @@ function seed():DemoState{
  return {assets:{},tables:{
   profiles:people,platform_admins:[{user_id:IDs.administrador}],businesses,
   business_members:members,business_invitations:[],loyalty_programs:programs,loyalty_memberships:cardDefs,
-  loyalty_transactions:movements,reward_vouchers:vouchers,business_locations:locations,marketing_consents:[{id:uuid(),business_id:businessIds[0],customer_id:IDs.cliente,opted_in:true}],marketing_campaigns:[],marketing_deliveries:[],marketing_usage_ledger:[],business_marketing_rates:[],
+  loyalty_transactions:movements,reward_vouchers:vouchers,
+   reward_options:[...["Espresso","Café latte","Cappuccino","Americano","Cold brew"].map((label,i)=>({id:uuid(),business_id:businessIds[0],label,retail_cents:[4500,6500,6500,4800,7200][i],cost_cents:[900,1800,1700,1000,2200][i],active:true,position:i}))],
+   reward_redemptions:[{id:uuid(),transaction_id:redeemedSeed.id,business_id:businessIds[0],membership_id:cardDefs[0].id,customer_id:IDs.cliente,reward_label:"Café latte",retail_cents:6500,cost_cents:1800,redeemed_at:days(8)}],
+   business_locations:locations,marketing_consents:[{id:uuid(),business_id:businessIds[0],customer_id:IDs.cliente,opted_in:true}],marketing_campaigns:[],marketing_deliveries:[],marketing_usage_ledger:[],business_marketing_rates:[],
   platform_billing_settings:[],business_billing:businessIds.map(id=>({business_id:id,plan:"business",status:"trialing",trial_ends_at:days(-20),stripe_customer_id:null,stripe_subscription_id:null,updated_at:now()})),
   business_leads:[{id:uuid(),business_name:"La Casa del Pan",contact_name:"Rosa Martín",contact_email:"rosa@ejemplo.test",category:"Panadería",city:"Ciudad de México",message:"Me interesan las tarjetas digitales",status:"new",created_at:days(1)}]
  }};
@@ -129,6 +133,8 @@ function authorize(table:string,mode:string,rows:Row[]):Row[]{
  if(role==="administrador")return rows;
  if(["businesses","business_locations","loyalty_programs"].includes(table)&&mode==="select")return rows.filter(r=>r.active!==false);
  if(table==="business_members")return rows.filter(r=>r.user_id===actor());
+  if(table==="reward_options")return rows.filter(r=>role==="gestor"&&load().tables.business_members.some(m=>m.user_id===actor()&&m.business_id===r.business_id&&m.role!=="employee"&&m.active));
+  if(table==="reward_redemptions")return [];
  if(table==="platform_admins")return [];
  if(table==="loyalty_memberships")return rows.filter(r=>role==="cliente"?r.customer_id===actor():role==="empleado"||role==="gestor"?r.business_id===DEMO_BUSINESS_ID:false);
  if(table==="loyalty_transactions")return rows.filter(r=>role==="gestor"||role==="empleado"?r.business_id===DEMO_BUSINESS_ID:role==="cliente"?load().tables.loyalty_memberships.some(m=>m.customer_id===actor()&&m.id===r.membership_id):false);
@@ -178,6 +184,7 @@ class DemoQuery implements PromiseLike<DemoResult>{
    return {data:this.one?(Array.isArray(data)?data[0]||null:null):data,error:null,...(this.count?{count:rows.length}:{})};
   }
   if(!["administrador","gestor","cliente"].includes(demoRole()||""))return fail("No tienes permiso para modificar este apartado.");
+   if(this.table==="reward_options"&&!["administrador","gestor"].includes(demoRole()||""))return fail("Solo los responsables pueden gestionar recompensas.");
   if(this.action==="update"){
    if(!this.conditions.length)return fail("Selecciona primero el registro.");
    for(const row of rows)Object.assign(row,this.data);
