@@ -24,7 +24,7 @@ export default function MiLoyally(){
  const [ready,setReady]=useState(false);
  const [showInstall,setShowInstall]=useState(false);
  const [installPrompt,setInstallPrompt]=useState<InstallPrompt|null>(null);
- const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false);
+ const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[pushOptIn,setPushOptIn]=useState(false);
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
 
  useEffect(()=>{
@@ -73,7 +73,7 @@ export default function MiLoyally(){
    }else if(mode==="signup"){
     const {data,error}=await db().auth.signUp({
      email,password,
-     options:{data:{full_name:name.trim(),platform_marketing_opt_in:marketingOptIn},emailRedirectTo:window.location.origin+"/auth/callback"}
+     options:{data:{full_name:name.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:pushOptIn},emailRedirectTo:window.location.origin+"/auth/callback"}
     });
     if(error)throw error;
     if(data.session)router.replace("/app");
@@ -114,6 +114,7 @@ export default function MiLoyally(){
      <label>Correo electrónico<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
      {mode!=="forgot"&&<label>Contraseña<input type="password" required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña"/></label>}
      {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir sorpresas y novedades de Loyally</strong><small>Ofertas, nuevos negocios y oportunidades para ganar premios por correo. Es opcional, puedes desactivarlo en tu perfil y no afecta a tus tarjetas.</small></span></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={pushOptIn} onChange={e=>setPushOptIn(e.target.checked)}/><span><strong>También quiero avisos de Loyally en mi móvil</strong><small>Recompensas, novedades y sorpresas de la aplicación. Después tendrás que autorizar las notificaciones en tu dispositivo. Es opcional y podrás cambiarlo en tus preferencias.</small></span></label>}
      {error&&<p role="alert" className="loyal-app-error">{error}</p>}
      {message&&<p role="status" className="loyal-app-success">{message}</p>}
      <button type="submit" className="loyal-app-submit" disabled={busy||!ready}>{busy?"Un momento...":mode==="login"?"Entrar en Loyally":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"}<ArrowRight size={18}/></button>
