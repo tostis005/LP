@@ -20,4 +20,29 @@ fi
   node:22-bookworm-slim node /configure-gmail-smtp.mjs
 
 "${COMPOSE[@]}" --env-file .env.production up -d --no-deps --force-recreate web
-echo "Gmail SMTP guardado en Contabo; servicio web reiniciado."
+# Confirmar autenticación con Gmail y realizar un único envío a la propia
+# dirección configurada. No mostrar contraseñas ni el contenido del mensaje.
+"${COMPOSE[@]}" --env-file .env.production exec -T web node -e '
+(async()=>{
+  const nodemailer=require("nodemailer");
+  const transport=nodemailer.createTransport({
+    host:process.env.SMTP_HOST,
+    port:Number(process.env.SMTP_PORT||465),
+    secure:process.env.SMTP_SECURE==="true",
+    auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASSWORD}
+  });
+  await transport.verify();
+  await transport.sendMail({
+    from:process.env.SMTP_FROM,
+    to:process.env.SMTP_USER,
+    subject:"Loyally - prueba de correo configurado",
+    text:"El correo de confirmación de cuentas ya puede enviarse desde Loyally."
+  });
+  console.log("SMTP de Gmail verificado: mensaje de prueba enviado a la cuenta configurada.");
+})().catch(()=>{
+  console.error("ERROR: Gmail rechazó la autenticación o el envío. Comprueba la cuenta, 2FA y contraseña de aplicación.");
+  process.exit(1);
+});
+'
+echo "Gmail SMTP guardado y verificado en Contabo."
+
