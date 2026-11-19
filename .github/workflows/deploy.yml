@@ -26,6 +26,8 @@ jobs:
         run: node tests/demo/discovery-ux.mjs
       - name: Textos bilingües y colección visual
         run: node tests/demo/landing.mjs
+      - name: Verificar generación segura de claves Web Push
+        run: node tests/demo/push-vapid.mjs
       - name: TypeScript
         run: npm run typecheck
       - name: Build de Next.js
