@@ -49,7 +49,7 @@ export default function JoinPage(){
   setBusy(false);setJoined(true);setSuccess(true);
  }
  const category=business?.category||null;
- const offerProgram=program|| (offer?{type:offer.program_type,reward_label:offer.reward_label,reward_cost:8}:null);
+ const offerProgram=program|| (offer?{type:offer.program_type,reward_label:offer.reward_label}:null);
  const hasLocation=locations.length>0;
  return <div className="join-page join-page-rich">
   <div className="join-top"><Brand/><Link href="/app/descubrir" className="text-link"><ArrowLeft size={16}/> Explorar negocios</Link></div>
