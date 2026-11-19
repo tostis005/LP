@@ -2,13 +2,13 @@
 import {useState,type FormEvent} from "react";
 import {Store,Plus} from "lucide-react";
 import {db} from "@/lib/supabase";
-export function BranchCreator({businessId,email,onCreated}:{businessId:string;email:string;onCreated:(id:string)=>void}){
+export function BranchCreator({businessId,email,onCreated}:{businessId:string;email:string;onCreated:(id:string,selfOwned:boolean)=>void}){
  const [name,setName]=useState(""),[slug,setSlug]=useState(""),[owner,setOwner]=useState(email);
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
  async function create(e:FormEvent){e.preventDefault();setBusy(true);setError("");
   const {data,error}=await db().rpc("manager_create_branch",{p_source_business:businessId,p_name:name.trim(),p_slug:slug.trim().toLowerCase(),p_owner_email:owner.trim()});
   setBusy(false);if(error){setError(error.message);return}
-  setName("");setSlug("");onCreated(data as string);
+  setName("");setSlug("");onCreated(data as string,owner.trim().toLowerCase()===email.toLowerCase());
  }
  return <section className="panel-card" style={{marginTop:20}}>
   <div className="panel-icon"><Store size={21}/></div>
