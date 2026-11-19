@@ -22,6 +22,8 @@ jobs:
           node-version: "22"
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
+      - name: Verificar iconos, mapa, premios y navegación del negocio
+        run: node tests/demo/discovery-ux.mjs
       - name: Textos bilingües y colección visual
         run: node tests/demo/landing.mjs
       - name: TypeScript

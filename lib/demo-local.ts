@@ -242,6 +242,19 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     result=ok(memberIds.map(id=>({user_id:id,employee_name:table.profiles.find(p=>p.id===id)?.full_name||"Personal",operations:tx.filter(t=>t.employee_id===id).length,awarded_units:tx.filter(t=>t.employee_id===id).reduce((sum,t)=>sum+t.amount_delta,0)})));
     break;
    }
+   case "public_business_details":{
+    const b=table.businesses.find(b=>b.slug===args.p_slug&&b.active);
+    const p=b&&table.loyalty_programs.find(p=>p.business_id===b.id);
+    result=ok(b&&p?[{
+      business_id:b.id,business_name:b.name,description:b.description,accent_color:b.accent_color,
+      category:b.category,logo_url:b.logo_url,card_text:b.card_text,card_text_color:b.card_text_color||"#ffffff",
+      stamp_color:b.stamp_color||"#275642",stamp_icon:b.stamp_icon,
+      reward_label:p.reward_label,program_type:p.type,reward_cost:p.reward_cost,
+      cashback_bps:p.cashback_bps,points_per_euro:p.points_per_euro,public_listing:b.public_listing,
+      locations_json:b.public_listing?table.business_locations.filter(l=>l.business_id===b.id&&l.visible):[]
+    }]:[]);
+    break;
+   }
    case "find_join_business":{
     const b=table.businesses.find(b=>b.slug===args.p_slug&&b.active);
     const p=b&&table.loyalty_programs.find(p=>p.business_id===b.id);

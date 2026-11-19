@@ -12,7 +12,7 @@ export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; 
 type Area = "customer" | "business" | "staff" | "admin";
 const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
  customer:[{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<Compass size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<UserRound size={18}/>}],
- business:[{href:"/negocio",label:"Mi negocio",icon:<LayoutDashboard size={18}/>},{href:"/negocio/facturacion",label:"Facturación",icon:<CreditCard size={18}/>},{href:"/empleado",label:"Escáner",icon:<ScanLine size={18}/>},{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>}],
+ business:[{href:"/negocio",label:"Gestionar negocio",icon:<LayoutDashboard size={18}/>},{href:"/negocio/facturacion",label:"Facturación",icon:<CreditCard size={18}/>},{href:"/empleado",label:"Escanear tarjetas",icon:<ScanLine size={18}/>}],
  staff:[{href:"/empleado",label:"Escanear tarjetas",icon:<ScanLine size={18}/>},{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>}],
  admin:[{href:"/admin",label:"Administración",icon:<Shield size={18}/>},{href:"/negocio",label:"Negocios",icon:<Store size={18}/>},{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>}]
 };
@@ -49,7 +49,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
   ...(roles.some(x=>x.role!=="employee")?[{href:"/negocio",label:"Negocio",icon:<Store size={19}/>}]:roles.length?[{href:"/empleado",label:"Escáner",icon:<ScanLine size={19}/>}]:[]),
   ...(admin?[{href:"/admin",label:"Admin",icon:<Shield size={19}/>}]:[])
  ];
- return <div className="workspace">
+ return <div className={"workspace workspace-"+area}>
   <aside className="sidebar"><div className="sidebar-brand"><Brand/></div>{demo&&<div className="demo-app-indicator">MODO PRUEBA</div>}<div className="sidebar-caption">TU ESPACIO</div><nav className="side-links">
    {menus[area].map(i=><Link key={i.href} href={i.href} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
    {area!=="admin" && admin && <Link href="/admin" className="side-link"><Shield size={18}/>Superadministración</Link>}

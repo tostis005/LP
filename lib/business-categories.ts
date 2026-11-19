@@ -1,28 +1,31 @@
-/** Categorías iniciales configurables para el directorio de Loyally. */
+import {type StampKind} from "@/lib/stamp-drawings";
+
+/** Cada sector recibe automáticamente un sello propio; no se configura desde el comercio. */
 export const BUSINESS_CATEGORIES=[
- {name:"Cafetería",icon:"☕"},
- {name:"Restaurante",icon:"🍽️"},
- {name:"Taquería",icon:"🌮"},
- {name:"Barbería",icon:"🧔"},
- {name:"Peluquería",icon:"✂️"},
- {name:"Panadería",icon:"🥐"},
- {name:"Heladería y postres",icon:"🍦"},
- {name:"Gimnasio",icon:"🏋️"},
- {name:"Spa y bienestar",icon:"🌸"},
- {name:"Mascotas",icon:"🐾"},
- {name:"Belleza y estética",icon:"💅"},
- {name:"Floristería",icon:"💐"},
- {name:"Librería",icon:"📚"},
- {name:"Moda y accesorios",icon:"🛍️"},
- {name:"Salud y bienestar",icon:"💚"},
- {name:"Tienda",icon:"🛒"},
- {name:"Otros",icon:"📍"}
-] as const;
-export function categoryIcon(category?:string|null):string {
- return BUSINESS_CATEGORIES.find(x=>x.name===category)?.icon||"📍";
+ {name:"Cafetería",stamp:"coffee"},
+ {name:"Restaurante",stamp:"burger"},
+ {name:"Taquería",stamp:"taco"},
+ {name:"Barbería",stamp:"beard"},
+ {name:"Peluquería",stamp:"hair"},
+ {name:"Panadería",stamp:"bread"},
+ {name:"Heladería y postres",stamp:"icecream"},
+ {name:"Gimnasio",stamp:"gym"},
+ {name:"Spa y bienestar",stamp:"spa"},
+ {name:"Mascotas",stamp:"pet"},
+ {name:"Belleza y estética",stamp:"nails"},
+ {name:"Floristería",stamp:"flower"},
+ {name:"Librería",stamp:"book"},
+ {name:"Moda y accesorios",stamp:"star"},
+ {name:"Salud y bienestar",stamp:"heart"},
+ {name:"Tienda",stamp:"gift"},
+ {name:"Otros",stamp:"star"}
+] as const satisfies ReadonlyArray<{name:string;stamp:StampKind}>;
+
+export function categoryStampKind(category?:string|null):StampKind{
+ return BUSINESS_CATEGORIES.find(c=>c.name===category)?.stamp||"star";
 }
 export const PROGRAM_TYPES=[
  {id:"stamps",label:"Sellos",description:"X visitas o compras para un premio"},
  {id:"points",label:"Puntos",description:"Puntos por importe gastado"},
- {id:"cashback",label:"Cashback",description:"Un porcentaje de la compra vuelve a tu saldo"}
+ {id:"cashback",label:"Saldo a favor",description:"Recupera un porcentaje de tus compras"}
 ] as const;
