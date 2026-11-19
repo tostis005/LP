@@ -156,3 +156,22 @@ CREATE POLICY campaigns_update_draft ON public.marketing_campaigns
  FOR UPDATE TO authenticated
  USING (status='draft' AND public.is_business_manager(business_id))
  WITH CHECK(status='draft' AND public.is_business_manager(business_id));
+
+
+-- Resumen de uso por canal; nunca devuelve destinatarios ni números.
+CREATE OR REPLACE FUNCTION public.business_marketing_usage(p_business uuid)
+RETURNS TABLE(channel text,messages bigint,amount_cents bigint,currency text)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $$
+BEGIN
+ IF NOT (public.is_business_manager(p_business) OR public.is_platform_admin()) THEN
+  RAISE EXCEPTION 'No autorizado';
+ END IF;
+ RETURN QUERY
+ SELECT c.channel::text,count(*)::bigint,coalesce(sum(l.price_cents),0)::bigint,l.currency::text
+ FROM public.marketing_usage_ledger l
+ JOIN public.marketing_campaigns c ON c.id=l.campaign_id
+ WHERE l.business_id=p_business
+ GROUP BY c.channel,l.currency;
+END $$;
+REVOKE ALL ON FUNCTION public.business_marketing_usage(uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.business_marketing_usage(uuid) TO authenticated;
