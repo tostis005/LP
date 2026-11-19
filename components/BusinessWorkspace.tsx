@@ -1,6 +1,7 @@
 "use client";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
+import {AddressPicker} from "@/components/AddressPicker";
 import {usePathname,useRouter} from "next/navigation";
 import {Activity,ArrowUpRight,BarChart3,Brush,Check,ChevronDown,CircleHelp,Clock3,CreditCard,FileText,Gift,ImagePlus,MapPin,Mail,BellRing,Menu,Plus,Settings2,ShieldCheck,Store,Ticket,ToggleLeft,Trash2,Users,Wallet} from "lucide-react";
 import type {Account} from "@/components/AppFrame";
@@ -161,6 +162,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  async function saveLocation(e:React.FormEvent){
   e.preventDefault();setError("");setNotice("");
   const location=locations[0];
+  if(!lat||!lng){setError("Marca la posición de tu local en el mapa.");return}
   if(!location){setError("Loyally tiene que activar primero la dirección de este establecimiento.");return;}
   setBusy(true);
   const {error}=await db().from("business_locations").update({
@@ -323,12 +325,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
      <div className="business-location-request"><strong>¿Necesitas otro establecimiento?</strong><p>Cada nuevo local se registra por separado en Loyally. Podemos vincular varios al mismo propietario y valorar condiciones especiales para cadenas.</p><Link href="/solicitar-acceso" className="button button-outline">Solicitar otro local <ArrowUpRight size={16}/></Link></div>
     </section>
     {locations.length>0&&<form className="panel-card" onSubmit={saveLocation}>
-     <h2>Editar dirección</h2><p className="muted">Los cambios de dirección se muestran en el mapa al guardar.</p>
+     <h2>Editar dirección</h2>
      <div className="form-stack"><label>Nombre del establecimiento<input required minLength={2} value={locationName} onChange={e=>setLocationName(e.target.value)}/></label>
-      <label>Calle y número<input required minLength={4} value={address} onChange={e=>setAddress(e.target.value)}/></label>
-      <div className="form-two"><label>Ciudad<input required value={city} onChange={e=>setCity(e.target.value)}/></label><label>País<input required value={country} onChange={e=>setCountry(e.target.value)}/></label></div>
-      <div className="form-two"><label>Latitud<input required type="number" min={-90} max={90} step="any" value={lat} onChange={e=>setLat(e.target.value)}/></label>
-       <label>Longitud<input required type="number" min={-180} max={180} step="any" value={lng} onChange={e=>setLng(e.target.value)}/></label></div>
+      <AddressPicker address={address} city={city} country={country} lat={lat} lng={lng} onAddressChange={setAddress} onCityChange={setCity} onCountryChange={setCountry} onCoordinatesChange={(lat,lng)=>{setLat(lat);setLng(lng)}}/>
       <button type="submit" className="button button-dark" disabled={busy}>{busy?"Guardando...":"Guardar dirección"}</button>
      </div>
     </form>}
