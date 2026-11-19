@@ -21,6 +21,7 @@ export async function POST(request:Request) {
       if(!smtpReady())throw new ApiError("El registro requiere configurar SMTP para confirmar la dirección de correo.",503);
       const email=String(input.email||"").trim().toLowerCase(),password=String(input.password||"");
       const name=String(input.full_name||"").trim();
+      const platformMarketingOptIn=input.platform_marketing_opt_in===true;
        const whatsapp=String(input.whatsapp||"").trim();
       if(!validateEmail(email)||password.length<10||password.length>128||name.length<2||name.length>120||(whatsapp!==""&&!/^[+][1-9][0-9]{7,14}$/.test(whatsapp)))throw new ApiError("Introduce un email válido, un nombre, apellidos, WhatsApp y una contraseña de al menos 10 caracteres.");
       await rateLimit("signup:"+email,4,60);
@@ -31,7 +32,7 @@ export async function POST(request:Request) {
         return Response.json({data:{user:{id:exists.rows[0].id,email},session:null},error:null});
       }
       const pass=await hashPassword(password);
-      const r=await authPool.query("INSERT INTO auth.users(email,password_hash,raw_user_meta_data) VALUES($1,$2,$3::jsonb) RETURNING id",[email,pass,JSON.stringify({full_name:name,whatsapp:whatsapp||null})]);
+      const r=await authPool.query("INSERT INTO auth.users(email,password_hash,raw_user_meta_data) VALUES($1,$2,$3::jsonb) RETURNING id",[email,pass,JSON.stringify({full_name:name,whatsapp:whatsapp||null,platform_marketing_opt_in:platformMarketingOptIn})]);
       await emailToken(r.rows[0].id,"verify",email);
       return Response.json({data:{user:{id:r.rows[0].id,email},session:null},error:null},{status:201});
     }
