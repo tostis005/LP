@@ -43,7 +43,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
        <div className="loi-phone-nav"><span className="active"><Ticket size={17}/> {t.hero.cardNav}</span><span><Store size={17}/> {t.hero.businessNav}</span><span><Users size={17}/> {t.hero.profileNav}</span></div>
       </div>
       <div className="loi-showcase-floating"><span className="loi-floating-icon"><BadgeCheck size={23}/></span><div><strong>{t.hero.floatingTitle}</strong><small>{t.hero.floatingDetail}</small></div></div>
-      <span className="loi-demo-disclaimer">{t.hero.disclaimer}</span>
+      
      </div>
     </div>
    </section>
