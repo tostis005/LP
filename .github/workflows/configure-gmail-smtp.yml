@@ -1,6 +1,10 @@
 name: Configurar Gmail SMTP de Loyally
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/one-shot/gmail-smtp-20261119.txt
 
 permissions:
   contents: read
