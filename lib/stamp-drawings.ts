@@ -7,7 +7,7 @@ export const STAMP_DRAWINGS = {
  coffee: '<path d="M12 23h34v16a15 15 0 0 1-15 15h-4a15 15 0 0 1-15-15V23Z"/><path d="M46 28h4a8 8 0 0 1 0 16h-5M9 57h42M21 16c-4-4 4-7 0-11M33 16c-4-4 4-7 0-11"/>',
  burger: '<path d="M10 26c1-12 10-19 22-19s21 7 22 19H10ZM10 47h44v3a7 7 0 0 1-7 7H17a7 7 0 0 1-7-7v-3Z"/><path d="M9 33h46M12 40h40M13 34l7 5 8-5 8 5 8-5 7 5M21 18l2 1m8-5 2 1m9 3 2 1"/>',
  // Bigote curvado y barba definida: expresamente sin nariz, ojos ni cabeza.
- beard: '<path d="M32 25c-5-8-11-10-16-8-4 1-6 5-8 9-2 5-4 6-7 7 8 6 17 5 23-1l8-7Z"/><path d="M32 25c5-8 11-10 16-8 4 1 6 5 8 9 2 5 4 6 7 7-8 6-17 5-23-1l-8-7Z"/><path d="M18 37c0 11 5 19 14 24 9-5 14-13 14-24M23 39c-1 7 2 13 9 17 7-4 10-10 9-17M27 39c3 2 7 2 10 0"/>',
+ beard: '<path d="M32 25c-5-8-11-10-16-8-4 1-6 5-8 9-2 5-3 6-4 7 8 6 17 5 23-1l8-7Z"/><path d="M32 25c5-8 11-10 16-8 4 1 6 5 8 9 2 5 3 6 4 7-8 6-17 5-23-1l-8-7Z"/><path d="M18 37c0 11 5 19 14 24 9-5 14-13 14-24M23 39c-1 7 2 13 9 17 7-4 10-10 9-17M27 39c3 2 7 2 10 0"/>',
  // Peluca/cabello: flequillo y mechones sueltos, sin rasgos de cara.
  hair: '<path d="M11 53c5-8 3-16 3-24C14 15 22 7 32 7s18 8 18 22c0 8-2 16 3 24-6 4-13 1-15-6M26 47c-2 7-9 10-15 6"/><path d="M15 31c6-2 13-7 17-15 3 8 10 13 17 15"/><path d="M20 30c0 9-2 15-5 19m29-19c0 9 2 15 5 19M25 22c-2 6-5 10-8 13m20-13c2 6 5 10 8 13M32 16v19"/><path d="M22 54c4 3 8 3 10 0 3 3 7 3 10 0"/>',
  // Pizza triangular con borde curvo, queso y rodajas identificables.
