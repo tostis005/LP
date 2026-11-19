@@ -84,6 +84,16 @@ jobs:
             done
             rm -f "$tmp"
           done
+          echo "GIT_LANDING_PRESENT:"
+          if git show HEAD:app/page.tsx | grep -q "Haz que cada visita"; then echo "YES"; else echo "NO"; fi
+          echo "NEXT_CONTAINER_STATUS:"
+          docker ps --format '{{.Names}} {{.Image}} {{.Ports}}' | grep -E '^lp-web-1 ' || true
+          echo "NEXT_BUILD_ROOT_FILES:"
+          docker exec lp-web-1 sh -c 'ls -l /app/.next/server/app/index.html /app/.next/server/app/entrar.html /app/.next/server/app/page.js 2>/dev/null || true'
+          echo "NEXT_BUILD_ROOT_MARKERS:"
+          docker exec lp-web-1 sh -c 'for f in /app/.next/server/app/index.html /app/.next/server/app/entrar.html; do if test -f "$f"; then echo "$f"; for marker in "Haz que cada visita" "Preparando tu espacio" "Accede a tu espacio"; do if grep -q "$marker" "$f"; then echo "MARKER: $marker"; fi; done; fi; done'
+          echo "NEXT_ROUTE_CONFIG:"
+          docker exec lp-web-1 node -e 'try { const m=require("/app/.next/routes-manifest.json"); console.log(JSON.stringify({redirects:m.redirects,rewrites:m.rewrites}).slice(0,1200)) } catch(e) { console.log("UNAVAILABLE",e.message) }' || true
           if test -r /etc/caddy/Caddyfile; then
             echo "CADDY_ROUTE_LINES:"
             grep -nE '169[.]58[.]121[.]198|redir|rewrite|reverse_proxy|handle|route|3100' /etc/caddy/Caddyfile | cut -c1-240 || true
