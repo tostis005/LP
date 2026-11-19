@@ -47,7 +47,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
      </div>
     </div>
    </section>
-   <div className="loi-audience-strip"><div className="container"><span>{t.audience.eyebrow}</span><span><Coffee size={19}/> {t.audience.coffee}</span><span><UtensilsCrossed size={19}/> {t.audience.restaurants}</span><span><Scissors size={19}/> {t.audience.barbers}</span><span><Store size={19}/> {t.audience.shops}</span></div></div>
+   <section className="loi-audience-strip loi-audience-expanded" aria-labelledby="loi-audience-heading"><div className="container loi-audience-expanded-inner"><div className="loi-audience-title"><span className="loi-overline">{t.audience.eyebrow}</span><h2 id="loi-audience-heading">{lang==="en"?"For any business that wants loyal customers.":"Para cualquier negocio que quiera clientes que vuelvan."}</h2><p>{lang==="en"?"From neighborhood favorites to growing chains, Loyally adapts to your business.":"Desde un pequeño establecimiento hasta una cadena de locales: Loyally se adapta a ti."}</p></div><div className="loi-audience-list"><span><StampMark kind="coffee" size={21}/>{lang==="en"?"Coffee shops":"Cafeterías"}</span><span><StampMark kind="restaurant" size={21}/>{lang==="en"?"Restaurants":"Restaurantes"}</span><span><StampMark kind="beard" size={21}/>{lang==="en"?"Barbershops":"Barberías"}</span><span><StampMark kind="hair" size={21}/>{lang==="en"?"Hair salons":"Peluquerías"}</span><span><StampMark kind="bread" size={21}/>{lang==="en"?"Bakeries":"Panaderías"}</span><span><StampMark kind="gym" size={21}/>{lang==="en"?"Gyms":"Gimnasios"}</span><span><StampMark kind="pet" size={21}/>{lang==="en"?"Pet services":"Mascotas"}</span><span><StampMark kind="flower" size={21}/>{lang==="en"?"Flower shops":"Floristerías"}</span><span><StampMark kind="gift" size={21}/>{lang==="en"?"Retail shops":"Comercios"}</span><span><StampMark kind="spa" size={21}/>{lang==="en"?"Wellness":"Bienestar"}</span><span><StampMark kind="car" size={21}/>{lang==="en"?"Auto services":"Automoción"}</span><span><StampMark kind="book" size={21}/>{lang==="en"?"And more":"Y muchos más"}</span></div></div></section>
 
    <InstallGuide lang={lang}/>
 
@@ -70,7 +70,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
      <div className="loi-design-preview">
       <div className="loi-design-preview-label">{t.design.previewLabel}</div>
       <StampCard locale={lang} name="Casa Buena" color="#7e3b59" stampColor="#f0c1d1" reward={t.design.illustrationReward} total={6} earned={4} icon="burger" message={t.design.illustrationMessage}/>
-      <div className="loi-stamp-library"><span>{t.design.iconsLabel}</span><div>{["coffee","burger","beard","hair","star","gift"].map(kind=><span key={kind}><StampMark kind={kind} size={25} color="#873c59"/></span>)}</div></div>
+      <div className="loi-stamp-library"><span>{t.design.iconsLabel}</span><div>{["coffee","burger","restaurant","beard","hair","pizza","bread","taco","gym","pet","star","gift"].map(kind=><span key={kind}><StampMark kind={kind} size={25} color="#873c59"/></span>)}</div></div>
      </div>
      <div className="loi-design-copy"><span className="loi-overline">{t.design.eyebrow}</span><h2>{t.design.first} <em>{t.design.second}</em></h2><p>{t.design.description}</p>
       <div className="loi-design-points">{t.design.points.map(point=><div key={point}><Check size={17}/> {point}</div>)}</div>
