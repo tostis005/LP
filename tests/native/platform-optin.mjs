@@ -17,7 +17,7 @@ try{
   const before=await client.query("SELECT opted_in,push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id IS NULL",[user]);
   assert.equal(before.rowCount,0,"Verification required before marketing records");
   await client.query("UPDATE auth.users SET email_confirmed_at=now() WHERE id=$1",[user]);
-  const after=await client.query("SELECT opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id IS NULL",[user]);
+  const after=await client.query("SELECT opted_in,push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id IS NULL",[user]);
   assert.equal(after.rowCount,checked||push?1:0,"Only explicit signup consent should be stored");
   if(checked||push){
    assert.equal(after.rows[0].opted_in,checked);
