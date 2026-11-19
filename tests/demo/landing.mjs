@@ -32,7 +32,7 @@ for(const lang of [es,en]){
  assert.doesNotMatch(all,/SVG|cuatro perfiles|four profiles|tablet|tableta/i);
 }
 const iconSource=readFileSync(new URL("../../lib/stamp-drawings.ts",import.meta.url),"utf8");
-assert.match(iconSource,/stroke-width="3"/);
+assert.match(iconSource,/stroke-width="3\.5"/);
 assert.doesNotMatch(iconSource,/fill="currentColor"/);
 assert.match(iconSource,/beard:/);
 assert.match(iconSource,/hair:/);
