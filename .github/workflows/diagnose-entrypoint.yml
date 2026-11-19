@@ -32,5 +32,16 @@ jobs:
             else
               echo "CONTENIDO: NO IDENTIFICADO"
             fi
+            node - "$body" <<'NODE'
+          const fs=require("node:fs");
+          const html=fs.readFileSync(process.argv[2],"utf8");
+          const extract=(regex)=>{const match=html.match(regex);return match?match[1].replace(/<[^>]+>/g," ").replace(/\s+/g," ").slice(0,200):"sin etiqueta"};
+          console.log("TITLE:",extract(/<title[^>]*>([\s\S]*?)<\/title>/i));
+          console.log("H1:",extract(/<h1[^>]*>([\s\S]*?)<\/h1>/i));
+          console.log("BODY_FIRST:",html.slice(0,320).replace(/\s+/g," "));
+          for(const phrase of ["Preparando tu espacio", "Redirigiendo al acceso", "Loyally transforma", "Accede a tu espacio", "Haz que cada visita"]){
+            if(html.includes(phrase))console.log("MARCADOR:",phrase);
+          }
+          NODE
             rm -f "$headers" "$body"
           done
