@@ -46,12 +46,13 @@ try{
  await db.query("INSERT INTO public.platform_admins(user_id) VALUES($1) ON CONFLICT DO NOTHING",[ids.ADMIN]);
  const existing={},createdSlugs=new Set();
  for(const [name,slug,category,icon,type,reward,cost,lat,lng] of shops){
-  let r=await db.query("SELECT id FROM public.businesses WHERE slug=$1",[slug]);
+  const internalSlug="interno-"+slug;
+  let r=await db.query("SELECT id FROM public.businesses WHERE slug=$1",[internalSlug]);
   let isNew=!r.rowCount;
   if(isNew){
    r=await db.query(
     "INSERT INTO public.businesses(name,slug,category,accent_color,stamp_icon,stamp_color,card_text,public_listing,active,description) VALUES($1,$2,$3,'#571c32',$4,'#571c32','GRACIAS POR VOLVER',false,true,'') RETURNING id",
-    [name,slug,category,icon]);
+    [name,internalSlug,category,icon]);
   }
   const id=r.rows[0].id;existing[slug]=id;
   if(isNew){
