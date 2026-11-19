@@ -2,13 +2,13 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
-import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound,Brush} from "lucide-react";
+import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound,BellRing,Brush} from "lucide-react";
 import {db} from "@/lib/supabase";
 import {demoRole,leaveDemo} from "@/lib/demo-local";
 
 type Role="customer"|"business"|"staff"|"admin";
 const tabs={
- customer:[{href:"/app",label:"Tarjetas",icon:CreditCard},{href:"/app/descubrir",label:"Descubrir",icon:Compass},{href:"/app/perfil",label:"Mi cuenta",icon:UserRound}],
+ customer:[{href:"/app",label:"Tarjetas",icon:CreditCard},{href:"/app/descubrir",label:"Descubrir",icon:Compass},{href:"/app/notificaciones",label:"Avisos",icon:BellRing},{href:"/app/perfil",label:"Mi cuenta",icon:UserRound}],
  business:[{href:"/negocio",label:"Inicio",icon:LayoutDashboard},{href:"/negocio/customers",label:"Clientes",icon:Users},{href:"/negocio/marketing",label:"Campañas",icon:Mail},{href:"/negocio/team",label:"Empleados",icon:Users},{href:"/negocio/designer",label:"Diseño",icon:Brush}],
  staff:[{href:"/empleado",label:"Escanear",icon:ScanLine}],
  admin:[{href:"/admin",label:"Panel",icon:Shield}]

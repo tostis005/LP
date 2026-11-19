@@ -1,0 +1,19 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+
+const read=path=>readFileSync(path,"utf8");
+const home=read("app/app/page.tsx");
+const route=read("app/app/notificaciones/page.tsx");
+const profile=read("app/app/perfil/page.tsx");
+const frame=read("components/AppFrame.tsx");
+const nav=read("components/AppBottomNav.tsx");
+const widget=read("components/PushPreferences.tsx");
+assert.match(home,/href="\/app\/notificaciones"/,"Las tarjetas deben mostrar un acceso visible a avisos");
+assert.match(profile,/href="\/app\/notificaciones"/,"El perfil debe tener entrada a la configuración");
+assert.match(nav,/href:"\/app\/notificaciones",label:"Avisos"/,"El menú inferior móvil debe incluir Avisos");
+assert.match(frame,/href:"\/app\/notificaciones",label:"Notificaciones"/,"El menú de escritorio debe incluir Notificaciones");
+assert.match(route,/<PushPreferences\s*\/>/,"La ruta dedicada debe mostrar el control real");
+assert.match(widget,/Notification\.requestPermission\(\)/,"Los permisos se solicitan al tocar el botón");
+assert.match(widget,/action:"subscribe"/,"La pantalla debe registrar una suscripción real");
+assert.match(widget,/action:"consent"/,"Cada negocio requiere consentimiento expreso");
+console.log("OK: notificaciones visibles en móvil, tarjetas y perfil, con activación y consentimiento.");
