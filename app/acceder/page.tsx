@@ -1,29 +1,18 @@
 "use client";
 import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
-import {ArrowRight,CheckCircle2,Eye,EyeOff,LockKeyhole,ScanLine,ShieldCheck,Sparkles,Store,UserRound} from "lucide-react";
+import {ArrowRight,CheckCircle2,Eye,EyeOff,Sparkles} from "lucide-react";
 import {Brand} from "@/components/Brand";
 import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import {StampCard} from "@/components/StampCard";
 
 import {configured,db} from "@/lib/supabase";
 
-const profiles=[
- {id:"administrador" as const,email:"admin@loyally.local",name:"Administrador",detail:"Negocios, usuarios y reportes",icon:ShieldCheck,shade:"mint",route:"/admin"},
- {id:"gestor" as const,email:"gestor@loyally.local",name:"Dueño del negocio",detail:"Panel, tarjetas y clientes",icon:Store,shade:"sand",route:"/negocio"},
- {id:"empleado" as const,email:"empleado@loyally.local",name:"Personal del local",detail:"Escanear QR y entregar sellos",icon:ScanLine,shade:"lavender",route:"/empleado"},
- {id:"cliente" as const,email:"cliente@loyally.local",name:"Cliente",detail:"Mis tarjetas y recompensas",icon:UserRound,shade:"rose",route:"/app"}
-];
 export default function Login(){
  const router=useRouter();
  const [mode,setMode]=useState<"login"|"signup"|"forgot">("login");
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[surname,setSurname]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[pushOptIn,setPushOptIn]=useState(false);
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
- async function selectProfile(emailAddress:string){
-  setMode("login");setEmail(emailAddress);setPassword("");setError("");setMessage("");
-  // El acceso siempre requiere credenciales reales. No se simulan sesiones.
-  document.querySelector<HTMLInputElement>('input[autocomplete="current-password"]')?.focus();
- }
  async function submit(e:React.FormEvent){
   e.preventDefault();setBusy(true);setError("");setMessage("");
   try{
@@ -50,7 +39,7 @@ export default function Login(){
     <div className="auth-story-label"><Sparkles size={16}/> UNA VISITA MÁS, UNA HISTORIA MÁS</div>
     <h1>Un detalle.<br/><em>Mil motivos<br/>para volver.</em></h1>
     <p>La fidelización que pone a las personas y a los pequeños negocios en el centro.</p>
-    <div className="auth-stamp-illustration"><StampCard name="Café Noma" color="#571c32" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/></div>
+    <div className="auth-stamp-illustration"><StampCard name="Tu cafetería" color="#571c32" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/></div>
    </div>
    <div className="auth-story-foot">Loyally ♡ · Tan sencillo como volver.</div>
   </aside>
@@ -59,29 +48,20 @@ export default function Login(){
    <div className="auth-form-wrap auth-choice-wrap auth-full-login">
     <div className="eyebrow">BIENVENIDO A LOYALLY</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
-    <p className="auth-intro">{mode==="login"?"Accede a Loyally y descubre tu espacio según el tipo de cuenta.":mode==="signup"?"Solo necesitas una cuenta para guardar todas tus tarjetas. Los avisos sobre tus premios forman parte del servicio; las ofertas comerciales son opcionales.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
+    <p className="auth-intro">{mode==="login"?"Accede a Loyally y descubre tu espacio según el tipo de cuenta.":mode==="signup"?"Crea tu cuenta y guarda todas tus tarjetas en un solo lugar.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
     <SocialAuthButtons next="/entrar"/>
     <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
      {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div></>}
      <label>Correo electrónico<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>
      {mode!=="forgot"&&<label>Contraseña<div className="password-input"><input value={password} type={visible?"text":"password"} onChange={e=>setPassword(e.target.value)} required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} placeholder="Tu contraseña"/><button type="button" aria-label={visible?"Ocultar contraseña":"Mostrar contraseña"} onClick={()=>setVisible(v=>!v)}>{visible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir novedades y recompensas de Loyally</strong><small>Correo ocasional sobre nuevos negocios, ofertas y promociones de Loyally. Es opcional y puedes cambiarlo cuando quieras; no autoriza mensajes de negocios concretos.</small></span></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={pushOptIn} onChange={e=>setPushOptIn(e.target.checked)}/><span><strong>Quiero avisos de Loyally en mi móvil</strong><small>Promociones y novedades de la aplicación. Cuando entres, podrás autorizar las notificaciones de este dispositivo. Es opcional e independiente del correo.</small></span></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y novedades por correo</strong><small>De Loyally. Opcional y modificable desde mi perfil.</small></span></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={pushOptIn} onChange={e=>setPushOptIn(e.target.checked)}/><span><strong>Quiero recibir avisos en mi móvil</strong><small>Puedes activarlos al entrar en la aplicación.</small></span></label>}
      {mode==="login"&&<button className="inline-action forgot-action" type="button" onClick={()=>switchMode("forgot")}>¿Olvidaste la contraseña?</button>}
      {error&&<div className="alert error" role="alert">{error}</div>}
      {message&&<div className="alert success"><CheckCircle2 size={18}/>{message}</div>}
      <button type="submit" disabled={busy} className="button button-dark button-full">{busy?"Procesando...":mode==="login"?"Iniciar sesión":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"} <ArrowRight size={18}/></button>
     </form>
     <div className="auth-account-switch">{mode==="login"?<>¿Todavía no tienes cuenta? <button onClick={()=>switchMode("signup")}>Regístrate</button></>:<>¿Ya tienes cuenta? <button onClick={()=>switchMode("login")}>Iniciar sesión</button></>}</div>
-    <div className="auth-quick-divider"><span>O SELECCIONA UNA CUENTA</span></div>
-    <div className="auth-profile-grid auth-real-routes" role="group" aria-label="Elegir correo de acceso">
-     {profiles.map(p=><button type="button" key={p.id} onClick={()=>selectProfile(p.email)} disabled={busy} className="auth-profile-card">
-      <span className={"auth-profile-icon "+p.shade}><p.icon size={23} strokeWidth={1.9}/></span>
-      <span className="auth-profile-copy"><strong>{p.name}</strong><small>{p.detail}</small></span>
-      <ArrowRight className="auth-profile-arrow" size={17}/>
-     </button>)}
-    </div>
-
    </div>
   </section>
  </main>;
