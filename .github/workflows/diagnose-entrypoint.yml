@@ -84,6 +84,14 @@ jobs:
             done
             rm -f "$tmp"
           done
+          echo "GIT_ALL_STATUS:"
+          git status --short | head -60 || true
+          echo "COMPOSE_FILES:"
+          find . -maxdepth 1 -iname '*compose*' -print | sort
+          echo "APP_ROUTING_FILES:"
+          find . -path './node_modules' -prune -o -path './.next' -prune -o \\( -name page.tsx -o -name middleware.ts -o -name middleware.js -o -name next.config.ts \\) -print | head -90
+          echo "COMPOSE_WEB_BUILD_CONTEXT:"
+          docker compose --env-file .env.production config --format json | node -e 'let raw="";process.stdin.on("data",x=>raw+=x);process.stdin.on("end",()=>{const c=JSON.parse(raw),s=c.services.web;console.log(JSON.stringify({context:s.build?.context,dockerfile:s.build?.dockerfile,image:s.image,volumes:s.volumes?.map(v=>({source:v.source,target:v.target}))}));})'
           echo "LOCAL_WORKTREE_STATUS:"
           git status --short -- app/page.tsx || true
           echo "LOCAL_LANDING_PRESENT:"
