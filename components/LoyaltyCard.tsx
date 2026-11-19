@@ -6,6 +6,7 @@ import type {Business,Program,Membership} from "@/lib/types";
 import {initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {StampGrid} from "@/components/StampMarks";
+import {STAMP_DRAWINGS,DEFAULT_STAMP,type StampKind} from "@/lib/stamp-drawings";
 export function LoyaltyCard({membership,business,program}:{membership:Membership;business:Business;program?:Program}){
  const [open,setOpen]=useState(false),[consent,setConsent]=useState(false),[consentBusy,setConsentBusy]=useState(false),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  useEffect(()=>{if(!open)return;let active=true;
@@ -28,6 +29,14 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   const balance=escaped(units(membership.balance,program?.type));
   const progress=program?.type==="stamps"?" / "+Math.max(1,program.reward_cost)+" sellos":"";
   const qrSvg=new XMLSerializer().serializeToString(qr);
+  const key=(business.stamp_icon&&Object.prototype.hasOwnProperty.call(STAMP_DRAWINGS,business.stamp_icon)?business.stamp_icon:DEFAULT_STAMP) as StampKind;
+  const stampCount=program?.type==="stamps"?Math.min(30,Math.max(1,program.reward_cost)):0;
+  const filledCount=Math.min(stampCount,Math.max(0,membership.balance));
+  const slots=Array.from({length:stampCount},(_,i)=>{
+   const x=55+(i%9)*49,y=320+Math.floor(i/9)*34;
+   return '<circle cx="'+(x+15)+'" cy="'+(y+15)+'" r="15" stroke="#ffffff" stroke-opacity=".8" stroke-width="1.6" fill="'+(i<filledCount?"#ffffff":"none")+'"/>'+
+    (i<filledCount?'<svg xmlns="http://www.w3.org/2000/svg" x="'+(x+3)+'" y="'+(y+3)+'" width="24" height="24" viewBox="0 0 64 64" fill="none" stroke="'+bg+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">'+STAMP_DRAWINGS[key]+'</svg>':"");
+  }).join("");
   const graphic='<svg xmlns="http://www.w3.org/2000/svg" width="860" height="500" viewBox="0 0 860 500">'+
    '<rect width="860" height="500" rx="28" fill="'+bg+'"/>'+
    '<circle cx="820" cy="-20" r="260" fill="#ffffff" opacity=".07"/>'+
@@ -35,7 +44,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
    '<text x="55" y="164" font-size="43" font-weight="bold" font-family="Arial,sans-serif" fill="#ffffff">'+name+'</text>'+
    '<text x="55" y="222" font-size="24" font-family="Arial,sans-serif" fill="#ffffff">'+reward+'</text>'+
    '<text x="55" y="300" font-size="29" font-weight="bold" font-family="Arial,sans-serif" fill="#ffffff">'+balance+progress+'</text>'+
-   '<text x="55" y="443" font-size="19" font-family="Arial,sans-serif" fill="#ffffff">Enséñala en tu próxima visita</text>'+
+   slots+'<text x="55" y="472" font-size="18" font-family="Arial,sans-serif" fill="#ffffff">Enséñala en tu próxima visita</text>'+
    '<rect x="565" y="167" width="249" height="249" rx="14" fill="#ffffff"/>'+
    '<g transform="translate(579 181)">'+qrSvg+'</g></svg>';
   const url=URL.createObjectURL(new Blob([graphic],{type:"image/svg+xml;charset=utf-8"}));
