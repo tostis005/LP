@@ -4,6 +4,7 @@ import {ArrowUpRight,Check,Clock3,CreditCard,ShieldCheck} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {db} from "@/lib/supabase";
 type Billing={business_id:string;plan:string;status:string;trial_ends_at:string|null;stripe_customer_id:string|null;stripe_subscription_id:string|null;updated_at:string};
+type Usage={channel:"email"|"whatsapp";messages:number;amount_cents:number;currency:string};
 const statusLabels:Record<string,string>={
  trialing:"Prueba gratuita",active:"Suscripción activa",past_due:"Pago pendiente",
  canceled:"Cancelada",unpaid:"Impagada",incomplete:"Pendiente de completar",
@@ -12,16 +13,22 @@ const statusLabels:Record<string,string>={
 function OwnerBilling({account}:{account:Account}){
  const owners=account.businesses.filter(r=>r.role==="owner");
  const [selected,setSelected]=useState(owners[0]?.business_id||"");
- const [billing,setBilling]=useState<Billing|null>(null),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
+ const [billing,setBilling]=useState<Billing|null>(null),[usage,setUsage]=useState<Usage[]>([]),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
  useEffect(()=>{
   const checkout=new URL(window.location.href).searchParams.get("checkout");
   if(checkout==="success")setNotice("Has regresado de Stripe. La activación se confirmará cuando llegue su notificación de pago.");
   if(checkout==="cancel")setNotice("No se ha realizado ningún cambio en tu suscripción.");
  },[]);
  useEffect(()=>{if(!selected)return;let active=true;setLoading(true);setError("");
-  db().from("business_billing").select("*").eq("business_id",selected).maybeSingle().then(({data,error})=>{
-   if(!active)return;setBilling(data as Billing|null);setLoading(false);
-   if(error)setError(error.message);
+  Promise.all([
+   db().from("business_billing").select("*").eq("business_id",selected).maybeSingle(),
+   db().rpc("business_marketing_usage",{p_business:selected})
+  ]).then(([bill,messages])=>{
+   if(!active)return;
+   setBilling(bill.data as Billing|null);
+   setUsage((messages.data||[]) as Usage[]);
+   setLoading(false);
+   if(bill.error||messages.error)setError(bill.error?.message||messages.error?.message||"No se pudo consultar el consumo.");
   });
   return()=>{active=false}
  },[selected]);
@@ -55,6 +62,15 @@ function OwnerBilling({account}:{account:Account}){
        <button disabled={busy} className="button button-dark button-full" onClick={()=>action("portal")}>{busy?"Conectando...":"Gestionar pagos y facturas"} <ArrowUpRight size={18}/></button>:
        <button disabled={busy} className="button button-dark button-full" onClick={()=>action("checkout")}>{busy?"Conectando...":"Configurar suscripción"} <ArrowUpRight size={18}/></button>}
     </>}
+   </section>
+   <section className="panel-card billing-marketing-usage"><div className="panel-icon"><CreditCard size={23}/></div>
+    <h2>Consumo de campañas</h2><p className="muted">El correo y WhatsApp se contabilizan por separado, en función de los mensajes aceptados por el proveedor. Los precios los fija Loyally.</p>
+    {loading?<p className="muted">Consultando uso...</p>:usage.length?usage.map(x=>
+     <div key={x.channel+"-"+x.currency} className="billing-status">
+      <span>{x.channel==="email"?"Correo electrónico":"WhatsApp"} · {x.messages} mensajes</span>
+      <strong>{new Intl.NumberFormat("es-MX",{style:"currency",currency:x.currency}).format(Number(x.amount_cents)/100)}</strong>
+     </div>):<p className="muted">Aún no tienes consumo adicional.</p>}
+    <p className="tiny-note">Este es el registro de consumo, no una factura emitida. La facturación de los mensajes se habilitará cuando Loyally active el servicio comercial y el sistema de cobros correspondiente.</p>
    </section>
    <section className="panel-card"><div className="panel-icon peach"><ShieldCheck size={23}/></div><h2>Facturación sin sorpresas</h2>
     <p className="muted">Los pagos se realizan en Stripe. Loyally no almacena los números completos de tu tarjeta bancaria.</p>
