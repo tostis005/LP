@@ -9,7 +9,6 @@ import {dateShort,initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {StampCard} from "@/components/StampCard";
-import {demoRole} from "@/lib/demo-local";
 import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/BusinessAnalytics";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
@@ -190,7 +189,6 @@ export default function BusinessWorkspace({account}:{account:Account}){
  }
  async function sendCampaign(draft:Draft){
   const channel=draft.channel||"email";
-  if(demoRole()){setError("Los envíos reales no están habilitados en esta cuenta.");return;}
   if(!marketingStatus[channel]){setError(channel==="email"?"El envío de correos aún no está activado.":"WhatsApp requiere configuración y aprobación de plantilla por Loyally.");return;}
   if(draft.status==="draft"&&channel==="whatsapp"&&!draft.template_name){setError("Antes de enviar WhatsApp hay que asociar una plantilla aprobada.");return;}
   const result=await db().rpc(channel==="email"?"business_mail_quote":"business_whatsapp_quote",{p_business:selected});
@@ -392,7 +390,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
        </div>
        <div className="campaign-management-actions">
         {d.status==="draft"&&<button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>editDraft(d)}>Editar <Brush size={16}/></button>}
-        {["draft","queued","sending"].includes(d.status)&&<button type="button" className="button button-dark button-sm" disabled={busy||!marketingStatus[d.channel||"email"]||!!demoRole()} onClick={()=>sendCampaign(d)}>{d.status==="draft"?"Enviar":"Continuar"} <ArrowUpRight size={16}/></button>}
+        {["draft","queued","sending"].includes(d.status)&&<button type="button" className="button button-dark button-sm" disabled={busy||!marketingStatus[d.channel||"email"]} onClick={()=>sendCampaign(d)}>{d.status==="draft"?"Enviar":"Continuar"} <ArrowUpRight size={16}/></button>}
        </div>
       </article>)}</div>:<div className="campaign-empty-state"><div className="panel-icon"><Mail size={24}/></div>
        <h3>Tu primera campaña empieza aquí</h3><p>Cuenta una novedad, presenta una oferta o invita a tus clientes a volver.</p>
