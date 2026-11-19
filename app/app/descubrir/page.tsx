@@ -60,7 +60,7 @@ function Discover({account}:{account:Account}){
   <div className="directory-results-grid">
    {filtered.length===0?<div className="empty-state compact"><Compass size={29}/><h3>Sin resultados</h3><p>Prueba con otro tipo de negocio o elimina algún filtro.</p></div>:
    filtered.map(e=>{const program=programByBusiness.get(e.business_id),already=memberIds.includes(e.business_id);return <article key={e.id} className="directory-card directory-card-rich">
-    <div className="directory-card-cover" style={{backgroundColor:e.businesses.accent_color||"#264d3e"}}>
+    <div className="directory-card-cover" style={{backgroundColor:e.businesses.accent_color||"#571c32"}}>
      <span className="directory-cover-icon"><StampMark kind={categoryStampKind(e.businesses.category)} size={45}/></span>
      <span className="directory-cover-category">{e.businesses.category||"Negocio local"}</span>{e.businesses.logo_url&&<img className="directory-brand-logo" src={e.businesses.logo_url} alt={"Logotipo de "+e.businesses.name}/>}
      {already&&<span className="joined-badge directory-joined"><Check size={13}/> Ya tienes tarjeta</span>}

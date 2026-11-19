@@ -30,8 +30,8 @@ type Employee={user_id:string;full_name:string;email:string;role:string;active:b
 type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;membership_id:string;employee_id:string|null;reversal_of:string|null;reversal_reason:string|null};
 type Draft={id:string;subject:string;body_text:string;created_at:string;status:string;recipient_count?:number;sent_count?:number;failed_count?:number};
 type MailQuote={contacts:number;price_cents:number;total_cents:number;currency:string};
-const COLOR_PRESETS=["#264d3e","#7760a5","#c9784f","#273550","#a14460","#1d1d1d","#367666","#a35f75","#2c73ac","#dfac5c","#b33c3c","#134e4a","#6d28d9","#f97316","#0f172a","#edf4e9","#f4e8db","#f9cadf","#ffffff","#000000"];
-const STAMP_COLOR_PRESETS=["#275642","#0f172a","#2563eb","#b91c1c","#c2410c","#7c3aed","#0f766e","#a16207","#db2777","#ffffff"];
+const COLOR_PRESETS=["#571c32","#351623","#8b3c58","#a7637c","#7760a5","#c9784f","#273550","#a14460","#1d1d1d","#367666","#a35f75","#2c73ac","#dfac5c","#b33c3c","#134e4a","#6d28d9","#f97316","#0f172a","#edf4e9","#f4e8db","#f9cadf","#ffffff","#000000"];
+const STAMP_COLOR_PRESETS=["#571c32","#8b3c58","#0f172a","#2563eb","#b91c1c","#c2410c","#7c3aed","#0f766e","#a16207","#db2777","#ffffff"];
 export default function BusinessWorkspace({account}:{account:Account}){
  const manageable=account.businesses.filter(b=>b.role!=="employee");
  const [selected,setSelected]=useState(manageable[0]?.business_id||""),[tab,setTab]=useState<Tab>("overview");
@@ -92,7 +92,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setBusy(true);setError("");setNotice("");
   const {error:visualError}=await db().from("businesses").update({
    accent_color:biz.accent_color,card_text:biz.card_text,
-   card_text_color:biz.card_text_color||"#ffffff",stamp_color:biz.stamp_color||"#275642",
+   card_text_color:biz.card_text_color||"#ffffff",stamp_color:biz.stamp_color||"#571c32",
    stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
   }).eq("id",selected);
   if(visualError){setBusy(false);setError(visualError.message);return}
@@ -192,16 +192,16 @@ export default function BusinessWorkspace({account}:{account:Account}){
       <label className="color-input-label">Color de las letras <span><input aria-label="Elegir color de las letras" type="color" value={biz.card_text_color||"#ffffff"} onChange={e=>setBiz({...biz,card_text_color:e.target.value})}/><code>{biz.card_text_color||"#ffffff"}</code></span></label>
       {prog.type==="stamps"&&<>
        <strong className="lp-icon-heading">1. Elige el dibujo de tus sellos</strong>
-       <div className="role-demo-icon-grid lp-real-icon-grid">{STAMP_OPTIONS.map(option=><button type="button" key={option.id} className={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url?"selected":""} aria-label={"Sello de "+option.label} aria-pressed={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url} onClick={()=>setBiz({...biz,stamp_icon:option.id,stamp_image_url:null})}><StampMark kind={option.id} size={30} color={biz.stamp_color||"#275642"}/><span>{option.label}</span></button>)}</div>
+       <div className="role-demo-icon-grid lp-real-icon-grid">{STAMP_OPTIONS.map(option=><button type="button" key={option.id} className={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url?"selected":""} aria-label={"Sello de "+option.label} aria-pressed={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url} onClick={()=>setBiz({...biz,stamp_icon:option.id,stamp_image_url:null})}><StampMark kind={option.id} size={30} color={biz.stamp_color||"#571c32"}/><span>{option.label}</span></button>)}</div>
        <div className="stamp-color-panel">
         <strong className="lp-icon-heading">2. Elige el color de tu sello</strong>
         <p className="muted">Utiliza uno de estos colores o elige el que mejor combine con tu negocio. El cambio se verá en las tarjetas de tus clientes.</p>
         <div className="stamp-color-row">
-         <div className="stamp-color-sample"><StampMark kind={biz.stamp_icon||"coffee"} size={38} color={biz.stamp_color||"#275642"}/><span>Tu sello</span></div>
-         <label className="color-input-label">Color personalizado <span><input aria-label="Cambiar color del sello" type="color" value={biz.stamp_color||"#275642"} onChange={e=>setBiz({...biz,stamp_color:e.target.value})}/><code>{biz.stamp_color||"#275642"}</code></span></label>
+         <div className="stamp-color-sample"><StampMark kind={biz.stamp_icon||"coffee"} size={38} color={biz.stamp_color||"#571c32"}/><span>Tu sello</span></div>
+         <label className="color-input-label">Color personalizado <span><input aria-label="Cambiar color del sello" type="color" value={biz.stamp_color||"#571c32"} onChange={e=>setBiz({...biz,stamp_color:e.target.value})}/><code>{biz.stamp_color||"#571c32"}</code></span></label>
         </div>
         <div className="stamp-color-palette" role="group" aria-label="Colores sugeridos para el sello">
-         {STAMP_COLOR_PRESETS.map(color=><button type="button" key={color} style={{backgroundColor:color}} className={(biz.stamp_color||"#275642").toLowerCase()===color?"selected":""} title={"Elegir "+color} aria-label={"Elegir color de sello "+color} aria-pressed={(biz.stamp_color||"#275642").toLowerCase()===color} onClick={()=>setBiz({...biz,stamp_color:color})}/>)}
+         {STAMP_COLOR_PRESETS.map(color=><button type="button" key={color} style={{backgroundColor:color}} className={(biz.stamp_color||"#571c32").toLowerCase()===color?"selected":""} title={"Elegir "+color} aria-label={"Elegir color de sello "+color} aria-pressed={(biz.stamp_color||"#571c32").toLowerCase()===color} onClick={()=>setBiz({...biz,stamp_color:color})}/>)}
         </div>
        </div>
        <label className="file-input"><ImagePlus size={18}/> Subir sello propio <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"stamp_image_url")}/></label>

@@ -1,5 +1,5 @@
-/* Prueba de identidad Loyally: vinotinto, negro y crema. La paleta de cada tarjeta sigue siendo independiente. */
-:root{--ink:#241c21;--muted:#77646c;--green:#571c32;--green-dark:#27121c;--sage:#e6cbd5;--light:#fbf7f8;--cream:#f7eef1;--peach:#eac2b6;--line:#eee0e6}
+/* Identidad de Loyally: vinotinto, tinta, rosa empolvado y marfil. Tarjetas de negocios independientes. */
+:root{--ink:#241b21;--muted:#786a72;--green:var(--brand-wine);--green-dark:#351623;--sage:#e6cbd5;--light:var(--brand-cream);--cream:#f7eef1;--peach:#eac2b6;--line:var(--brand-border)}
 body{background:var(--light)}
 .workspace{background:#fbf7f8}
 .sidebar,.workspace-header,.panel-card,.soft-panel,.kpi-card{border-color:#eee4e7}
@@ -19,14 +19,6 @@ body{background:var(--light)}
 .loi-button-main{box-shadow:0 12px 27px #571c322c}
 .loi-status-dot{background:#a15a72;box-shadow:0 0 0 5px #f4e4eb}
 .loi-overline{color:#8b3c58}
-.lp-install-widget{position:fixed;bottom:20px;right:20px;z-index:75}
-.lp-install-button{display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:13px 17px;color:#fff;background:#571c32;box-shadow:0 8px 35px #29111d3b;font-weight:800;font-size:12px;cursor:pointer}
-.lp-install-help{position:absolute;bottom:60px;right:0;width:min(340px,calc(100vw - 34px));padding:20px 24px;border-radius:18px;background:#fff;color:#27121c;border:1px solid #f0e2e6;box-shadow:0 20px 55px #29111d24;line-height:1.6}
-.lp-install-help p{font-size:13px;margin:9px 0;line-height:1.6}
-.lp-install-help p svg{vertical-align:middle}
-.lp-install-help small{color:#77646c}
-.lp-install-close{position:absolute;right:9px;top:9px;background:transparent;border:0;cursor:pointer}
-@media(max-width:700px){.workspace .lp-install-widget{bottom:96px}.lp-install-widget{right:12px;bottom:14px}.lp-install-button{padding:11px 15px}}
 /* Canje visible y cómodo para personal de tienda */
 .staff-reward-focus{margin-top:24px;border:2px solid #e1b1c5;border-radius:22px;padding:23px;background:linear-gradient(135deg,#fff4f8,#fff);box-shadow:0 12px 30px #571c3214}
 .staff-reward-focus h3{font-size:23px;margin:8px 0}
@@ -40,7 +32,7 @@ body{background:var(--light)}
 .lp-insights-controls{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
 .lp-insights-controls select{border:1px solid #e5d6df;border-radius:12px;padding:10px 14px;background:#fff}
 .lp-metric-delta{font-size:12px;font-weight:800}
-.lp-metric-delta.up{color:#23774f}.lp-metric-delta.down{color:#b03a4b}.lp-metric-delta.neutral{color:#847780}
+.lp-metric-delta.up{color:#76354e}.lp-metric-delta.down{color:#b03a4b}.lp-metric-delta.neutral{color:#847780}
 .lp-insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:17px 0 25px}
 .lp-insight-card{background:#fff;border:1px solid #ecdfe5;border-radius:19px;padding:21px;display:flex;flex-direction:column;gap:9px}
 .lp-insight-card span{color:#826a76;font-size:12px;font-weight:700}

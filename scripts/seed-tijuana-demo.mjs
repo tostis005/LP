@@ -11,7 +11,7 @@ if(password.length<12||password.length>128)throw new Error("Define LP_DEMO_PASSW
 const pool=new pg.Pool({host:process.env.PGHOST||"db",port:Number(process.env.PGPORT||5432),database,user:process.env.POSTGRES_USER,password:process.env.POSTGRES_PASSWORD});
 const client=await pool.connect();
 const sites=[
- ["Café Noma","cafe-noma","Cafetería","#275642","coffee","stamps","Un café gratis",8,32.535,-117.046,"Zona Centro"],
+ ["Café Noma","cafe-noma","Cafetería","#571c32","coffee","stamps","Un café gratis",8,32.535,-117.046,"Zona Centro"],
  ["Brunch Club","brunch-club","Restaurante","#bb7550","burger","stamps","Desayuno para compartir",6,32.520,-117.034,"La Cacho"],
  ["Barba Norte","barba-norte","Barbería","#68558e","beard","stamps","Arreglo de barba gratis",10,32.504,-117.025,"Chapultepec"],
  ["Studio Verde","studio-verde","Peluquería","#9d566f","hair","stamps","Tratamiento capilar",8,32.502,-116.999,"Hipódromo"],
@@ -37,7 +37,7 @@ try{
  await client.query("INSERT INTO public.platform_admins(user_id) VALUES($1)",[ids.admin]);
  const businessIds={};
  for(const [name,slug,category,color,icon,type,reward,cost,lat,lng,zone] of sites){
-  const b=await client.query("INSERT INTO public.businesses(name,slug,description,category,accent_color,stamp_icon,card_text,card_text_color,stamp_color,public_listing,active) VALUES($1,$2,$3,$4,$5,$6,'QUÉ BIEN QUE HAS VUELTO','#ffffff','#275642',true,true) RETURNING id",
+  const b=await client.query("INSERT INTO public.businesses(name,slug,description,category,accent_color,stamp_icon,card_text,card_text_color,stamp_color,public_listing,active) VALUES($1,$2,$3,$4,$5,$6,'QUÉ BIEN QUE HAS VUELTO','#ffffff','#571c32',true,true) RETURNING id",
    [name,slug,"Negocio ficticio para pruebas en "+zone+", Tijuana.",category,color,icon]);
   businessIds[slug]=b.rows[0].id;
   await client.query("INSERT INTO public.loyalty_programs(business_id,type,reward_label,reward_cost,points_per_euro,cashback_bps) VALUES($1,$2,$3,$4,1,500)",
