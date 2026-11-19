@@ -134,6 +134,7 @@ const rpcMap:Record<string,Spec>={
  admin_provision_business:{args:[["p_name","text"],["p_slug","text"],["p_owner_email","text"],["p_parent_business","uuid"],["p_existing_program","uuid"],["p_monthly_price_cents","integer"]],returns:"scalar"},
  admin_set_business_location:{args:[["p_business","uuid"],["p_name","text"],["p_address","text"],["p_city","text"],["p_country","text"],["p_lat","double precision"],["p_lng","double precision"]],returns:"scalar"},
  admin_set_business_contract:{args:[["p_business","uuid"],["p_monthly_price_cents","integer"]],returns:"scalar"},
+ admin_set_business_currency:{args:[["p_business","uuid"],["p_currency","text"]],returns:"scalar"},
  invite_staff:{args:[["p_business","uuid"],["p_email","text"],["p_role","text"]],returns:"scalar"},
  claim_invitations:{args:[],returns:"scalar"},
  set_staff_active:{args:[["p_business","uuid"],["p_user","uuid"],["p_active","boolean"]],returns:"scalar"},
