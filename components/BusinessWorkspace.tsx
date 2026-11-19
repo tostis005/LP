@@ -251,7 +251,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  }
  const repeatCount=customers.filter(c=>Number(c.visits)>=2).length,canvassed=customers.filter(c=>c.marketing_ok).length;
  const programType=prog?.type;
- const formatBalance=(n:number)=>units(n,programType);
+ const formatBalance=(n:number)=>units(n,programType,currency);
  const currency=displayCurrency(biz?.currency);
  return <div className="business-workspace">
   {manageable.length>0&&<div className="business-selector"><span>Estás gestionando</span><select value={selected} onChange={e=>{setSelected(e.target.value);window.sessionStorage.setItem("loyally_selected_business",e.target.value);openSection("overview");setNotice("")}}>{manageable.map(b=><option key={b.business_id} value={b.business_id}>{b.businesses?.name||b.business_id}</option>)}</select><ChevronDown size={16}/></div>}
