@@ -6,7 +6,7 @@ import {Brand} from "@/components/Brand";
 
 export default function ConfirmProfileAccess(){
  const [token,setToken]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState("");
- useEffect(()=>{setToken(new URLSearchParams(window.location.search).get("token")||"");},[]);
+ useEffect(()=>{const url=new URL(window.location.href);setToken(url.searchParams.get("token")||"");window.history.replaceState(null,"",url.pathname);},[]);
  async function confirm(){
   setBusy(true);setError("");
   try{
