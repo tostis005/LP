@@ -186,7 +186,7 @@ class DemoQuery implements PromiseLike<DemoResult>{
    return {data:this.one?(Array.isArray(data)?data[0]||null:null):data,error:null,...(this.count?{count:rows.length}:{})};
   }
   if(!["administrador","gestor","cliente"].includes(demoRole()||""))return fail("No tienes permiso para modificar este apartado.");
-  if(this.table==="business_locations"&&this.action!=="select"){
+  if(this.table==="business_locations"){
    if(this.action==="insert"||this.action==="delete")return fail("Solo Loyally puede registrar nuevos establecimientos.");
    if(demoRole()!=="administrador"&&rows.some(r=>!state.tables.business_members.some(m=>m.business_id===r.business_id&&m.user_id===actor()&&m.active&&m.role!=="employee")))return fail("No puedes editar esta dirección.");
    if(this.action==="update"&&this.data&&Object.prototype.hasOwnProperty.call(this.data,"business_id"))return fail("No puedes mover una dirección a otro negocio.");
