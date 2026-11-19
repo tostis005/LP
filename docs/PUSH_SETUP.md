@@ -15,22 +15,22 @@
 
 1. Publicar Loyally en un origen `https://` con certificado válido y confiable para móviles; puede ser una **IP pública** si su certificado incluye esa IP. El origen debe permanecer estable: cambiar IP/dominio requiere que los usuarios vuelvan a conceder o registrar sus suscripciones.
 2. Desplegar la migración `db/migrations/180_web_push.sql` y la nueva versión de Loyally en el mismo despliegue de Docker.
-3. Generar **un único** par de claves VAPID, una vez, en un entorno de confianza:
+3. El despliegue de GitHub genera **automáticamente** el par VAPID la primera vez, directamente dentro del VPS, sin subirlo a GitHub ni mostrarlo en logs. Si ya existe el par, no lo reemplaza. El siguiente comando es solo una alternativa manual:
 
    ```bash
    npx web-push generate-vapid-keys
    ```
 
-4. En `/opt/lp/.env.production`, añadir:
+4. Las variables quedan configuradas automáticamente en `/opt/lp/.env.production`. Alternativamente, pueden definirse manualmente:
 
    ```dotenv
    LP_ENABLE_PUSH_SEND=true
    VAPID_PUBLIC_KEY=CLAVE_PUBLICA_GENERADA
    VAPID_PRIVATE_KEY=CLAVE_PRIVADA_GENERADA
-   VAPID_SUBJECT=mailto:soporte@tu-dominio.example
+   VAPID_SUBJECT=https://TU_ORIGEN_HTTPS
    ```
 
-   Sustituir el correo de ejemplo por un contacto real. La clave privada **jamás** debe copiarse en archivos del repositorio, conversaciones públicas ni frontend. Conservar el mismo par VAPID entre despliegues; su rotación requiere nuevas suscripciones.
+   El asunto VAPID acepta una URL HTTPS de contacto o un correo real. La clave privada **jamás** debe copiarse en archivos del repositorio, conversaciones públicas ni frontend. Conservar el mismo par VAPID entre despliegues; su rotación requiere nuevas suscripciones.
 
 5. Reconstruir el servicio con el procedimiento normal del proyecto: `docker compose --env-file .env.production up -d --build`. Comprobar `https://TU_ORIGEN/api/local/push/config`; debe devolver `enabled:true` y solo la clave **pública**.
 
@@ -51,3 +51,9 @@ Si `LP_ENABLE_PUSH_SEND` está desactivado o faltan las claves, la interfaz info
 Las notificaciones comerciales requieren permiso del navegador y consentimiento por negocio. Los opt-outs afectan al envío aunque la campaña estuviese previamente encolada. El sistema no envía a clientes únicamente porque tengan tarjeta, ni a los dispositivos que no hayan autorizado el canal.
 
 Las notificaciones automáticas de premios, programación de campañas, procesado periódico de colas y analítica de apertura no forman parte de esta primera implementación; el envío manual y el historial sí.
+
+## Tarifas de campañas por establecimiento
+
+En **Administración > Negocios > Detalles** se configuran los centavos de correo, WhatsApp y push por negocio. Los tres comparten moneda (MXN/EUR/USD). Para push, el valor inicial es **0 centavos por dispositivo** hasta que administración pacte una tarifa. La cuota solo se registra cuando el servicio push acepta el mensaje y el identificador de entrega impide duplicar apuntes. La campaña muestra presupuesto máximo antes de enviar y el total aceptado en el historial. Estas tarifas son **registros internos de uso, no cobros automáticos a Stripe**.
+
+El script de despliegue solo habilita automáticamente Web Push en la **primera configuración**. En despliegues posteriores conserva la opción `LP_ENABLE_PUSH_SEND=false` si el operador decide deshabilitarlo. El despliegue también verifica el endpoint público HTTPS y que el estado sea `enabled:true`.
