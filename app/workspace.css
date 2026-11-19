@@ -533,3 +533,19 @@
 .workspace .kpi-card>small,.workspace .data-table td small,.workspace .data-table th{color:#845268}
 .workspace .tab-bar button.active{background:#f2dfe8;border-color:#d9b6c5;color:#571c32}
 .workspace .panel-card input:focus-visible,.workspace .panel-card select:focus-visible{border-color:#8a3f59}
+
+/* Menú de aplicación: fuera de cada página para que nunca desaparezca al navegar. */
+.loyalty-global-bottom-nav{z-index:150}
+.loyalty-global-bottom-nav .mobile-bottom-link{border:0;cursor:pointer;background:transparent;font-family:inherit}
+.loyalty-global-bottom-nav .mobile-bottom-link.active{background:#f0dbe5;color:#571c32}
+@media(min-width:701px){.loyalty-global-bottom-nav{display:none}}
+@media(max-width:700px){
+ body:has(.loyalty-global-bottom-nav){padding-bottom:calc(74px + env(safe-area-inset-bottom,0px))}
+ .loyalty-global-bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;width:100%;background:rgba(255,250,253,.98);
+  border-top:1px solid #eadce4;backdrop-filter:blur(20px);padding:8px 9px calc(8px + env(safe-area-inset-bottom,0px));justify-content:space-around;align-items:stretch;gap:4px}
+ .loyalty-global-bottom-nav .mobile-bottom-link{max-width:none;min-width:0;min-height:51px;padding:6px 3px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px}
+ .loyalty-global-bottom-nav .mobile-bottom-link span{font-size:10px}
+ .business-workspace .workspace-section-layout{display:block}
+ .business-workspace .workspace-section-body{width:100%;min-width:0}
+ .business-workspace .workspace-content{padding-bottom:30px}
+}
