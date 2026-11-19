@@ -1,4 +1,4 @@
-import {DEFAULT_STAMP,type StampKind} from "@/lib/stamp-drawings";
+import {type StampKind} from "@/lib/stamp-drawings";
 
 /** Cada sector recibe automáticamente un sello propio; no se configura desde el comercio. */
 export const BUSINESS_CATEGORIES=[
@@ -22,7 +22,7 @@ export const BUSINESS_CATEGORIES=[
 ] as const satisfies ReadonlyArray<{name:string;stamp:StampKind}>;
 
 export function categoryStampKind(category?:string|null):StampKind{
- return BUSINESS_CATEGORIES.find(c=>c.name===category)?.stamp||DEFAULT_STAMP;
+ return BUSINESS_CATEGORIES.find(c=>c.name===category)?.stamp||"star";
 }
 export const PROGRAM_TYPES=[
  {id:"stamps",label:"Sellos",description:"X visitas o compras para un premio"},
