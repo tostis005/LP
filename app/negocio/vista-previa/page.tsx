@@ -28,7 +28,14 @@ function Preview({account}:{account:Account}){
    .finally(()=>{if(active)setLoading(false)});
   return()=>{active=false}
  },[account.user.id]);
- async function copy(){if(!business)return;await navigator.clipboard.writeText(window.location.origin+"/unirse/"+business.slug);setCopied(true)}
+ async function copy(){
+  if(!business)return;
+  const url=window.location.origin+"/unirse/"+business.slug;
+  try{
+   if(!navigator.clipboard?.writeText)throw new Error("clipboard not available");
+   await navigator.clipboard.writeText(url);setCopied(true);
+  }catch{window.prompt("Copia el enlace para compartirlo con tus clientes:",url);}
+ }
  if(loading)return <div className="loading-screen">Preparando la tarjeta...</div>;
  if(error||!business||!program)return <div className="empty-state"><LockKeyhole size={29}/><h3>No se pudo abrir la vista previa</h3><p>{error}</p><Link href="/negocio" className="button button-dark">Volver al negocio</Link></div>;
  const published=business.public_listing&&business.active;
