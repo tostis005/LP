@@ -1,0 +1,36 @@
+name: Diagnosticar entrada publica de Loyally
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  revisar-rutas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar raiz publica y acceso de la IP
+        shell: bash
+        run: |
+          set -u
+          for url in "http://169.58.121.198/" "https://169.58.121.198/" "https://169.58.121.198/acceder"; do
+            echo "===== $url ====="
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            code="$(curl -k -sS --max-time 18 -D "$headers" -o "$body" -w "%{http_code}" "$url" || true)"
+            echo "HTTP: $code"
+            grep -Ei '^(HTTP/|location:|server:)' "$headers" || true
+            if grep -q "Haz que cada visita" "$body"; then
+              echo "CONTENIDO: PRESENTACION LOYALLY"
+            elif grep -q "Accede a tu espacio" "$body"; then
+              echo "CONTENIDO: LOGIN /ACCEDeR"
+            elif grep -q "Falta un paso para empezar" "$body"; then
+              echo "CONTENIDO: ERROR APLICACION"
+            else
+              echo "CONTENIDO: NO IDENTIFICADO"
+            fi
+            rm -f "$headers" "$body"
+          done
