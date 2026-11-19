@@ -55,7 +55,7 @@ try {
     "profiles","platform_admins","businesses","business_members","business_invitations",
     "loyalty_programs","loyalty_memberships","loyalty_transactions","business_locations",
     "marketing_consents","marketing_campaigns","platform_billing_settings",
-    "business_billing","billing_webhook_events","business_leads","business_marketing_rates","reward_vouchers","marketing_deliveries","marketing_usage_ledger"
+    "business_billing","billing_webhook_events","business_leads","business_marketing_rates","reward_vouchers","marketing_deliveries","marketing_usage_ledger","reward_options","reward_redemptions"
   ];
   for (const table of tables) await client.query("GRANT SELECT,INSERT,UPDATE,DELETE ON public." + table + " TO authenticated");
   // El servicio de correo/auth puede registrar solicitudes y webhooks ya verificados.
