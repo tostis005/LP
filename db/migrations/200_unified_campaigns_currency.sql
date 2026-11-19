@@ -143,3 +143,17 @@ BEGIN
  SELECT 'push'::text,count(*)::bigint,coalesce(sum(l.price_cents),0)::bigint,l.currency::text
  FROM public.push_usage_ledger l WHERE l.business_id=p_business GROUP BY l.currency;
 END $$;
+
+-- Compatibilidad: cualquier integración antigua usa también la aprobación y el
+-- precio por cliente del nuevo sistema.
+CREATE OR REPLACE FUNCTION public.business_create_push_campaign(
+ p_business uuid,p_title text,p_body text,p_expected_total_cents bigint
+) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+DECLARE v_id uuid;
+BEGIN
+ v_id:=public.business_save_push_campaign(p_business,p_title,p_body,NULL);
+ PERFORM public.business_queue_push_campaign(v_id,p_expected_total_cents);
+ RETURN v_id;
+END $$;
+REVOKE ALL ON FUNCTION public.business_create_push_campaign(uuid,text,text,bigint) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.business_create_push_campaign(uuid,text,text,bigint) TO authenticated;
