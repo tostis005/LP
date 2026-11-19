@@ -9,21 +9,15 @@ import {db} from "@/lib/supabase";
 import type {Membership,Business,Program} from "@/lib/types";
 import {dateShort,units} from "@/lib/format";
 type CardRow=Membership&{businesses:Business};
-type Savings={benefits:number;savings_cents:number;unpriced:number};
 type Movement={id:string;amount_delta:number;kind:string;created_at:string;business_id:string;};
 function CustomerHome({account}:{account:Account}){
  const [cards,setCards]=useState<CardRow[]>([]),[programs,setPrograms]=useState<Program[]>([]),[movements,setMovements]=useState<Movement[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
- const [savings,setSavings]=useState<Savings|null>(null);
  const load=useCallback(async()=>{setLoading(true);
- const [res,summary]=await Promise.all([
-   db().from("loyalty_memberships").select("*,businesses(*)").eq("customer_id",account.user.id).order("created_at",{ascending:false}),
-   db().rpc("customer_reward_summary")
- ]);
- setSavings(summary.error?null:((summary.data||[])[0] as Savings||null));
+ const res=await db().from("loyalty_memberships").select("*,businesses(*)").eq("customer_id",account.user.id).order("created_at",{ascending:false});
  if(res.error){setError(res.error.message);setLoading(false);return}
  const data=(res.data||[]) as CardRow[];setCards(data);
  if(data.length){const ids=data.map(v=>v.business_id);
-  const [p,m]=await Promise.all([db().from("loyalty_programs").select("*").in("business_id",ids),db().from("loyalty_transactions").select("id,amount_delta,kind,created_at,business_id").in("business_id",ids).order("created_at",{ascending:false}).limit(10)]);
+  const [p,m]=await Promise.all([db().from("loyalty_programs").select("*").in("business_id",ids),db().from("loyalty_transactions").select("id,amount_delta,kind,created_at,business_id").in("membership_id",data.map(c=>c.id)).order("created_at",{ascending:false}).limit(10)]);
   setPrograms((p.data||[]) as Program[]);setMovements((m.data||[]) as Movement[]);
  }
  setLoading(false)
