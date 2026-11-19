@@ -65,12 +65,12 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
  return <><div className="loyalty-card-item"><button className={"loyalty-card"+(program?.type==="stamps"?" stamp-card-real":"")+(program?.type==="stamps"&&program.reward_cost>=21?" is-very-dense":program?.type==="stamps"&&program.reward_cost>12?" is-dense":"")} style={{backgroundColor:color,color:business.card_text_color||"#ffffff",backgroundImage:business.card_background?"linear-gradient(0deg,rgba(0,0,0,.45),rgba(0,0,0,.10)),url("+business.card_background+")":undefined}} onClick={()=>setOpen(true)}>
-  <div className="lc-top"><span className="lc-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:initials(business.name)}</span><span className="lc-chip">LOYALTY CLUB ♡</span></div>
+  <div className="lc-top"><span className="lc-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:initials(business.name)}</span><span className="lc-chip">LOYALLY ♡</span></div>
   <div className="lc-middle"><small>{business.card_text||"GRACIAS POR VOLVER"}</small><strong>{business.name}</strong><span className="lc-reward-label">{program?.reward_label||"Tu próxima recompensa"}</span></div>
   {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance} kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
-  <div className="lc-bottom"><span>{units(membership.balance,program?.type)}{program?.type==="stamps"?" · "+program.reward_cost+" para canjear":""}</span><span className="lc-qr-small lc-qr-live"><QRCodeSVG value={qrUrl} size={44} level="M" includeMargin/></span></div>
+  <div className="lc-bottom"><span>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" · "+program.reward_cost+" para canjear":""}</span><span className="lc-qr-small lc-qr-live"><QRCodeSVG value={qrUrl} size={44} level="M" includeMargin/></span></div>
  </button>
- <button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><Wallet size={17}/> Guardar en Wallet</button>
+ <button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><Wallet size={17}/> Ver tarjeta y QR</button>
  </div>
  {open&&<div className="modal-backdrop" onMouseDown={()=>setOpen(false)}><div className="modal-card qr-modal" onMouseDown={e=>e.stopPropagation()}>
  <button className="modal-close" aria-label="Cerrar" onClick={()=>setOpen(false)}><X size={20}/></button>
@@ -80,7 +80,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   <strong>{program?.reward_label||"Mis recompensas"}</strong>
   {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance}
    kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
-  <small>{units(membership.balance,program?.type)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</small>
+  <small>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</small>
  </div>
  <p>Enseña este QR en el establecimiento.</p>
  <div className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={220} level="M" includeMargin/></div>
@@ -91,9 +91,9 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
  {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><div className="qr-box"><QRCodeSVG value={rewardQrUrl} size={190} level="M" includeMargin/></div></div>}
  <details className="loyalty-card-preferences"><summary>Preferencias de mensajes de este negocio</summary>
  <div className="check-control modal-consent"><input type="checkbox" id={"business-marketing-"+membership.id} checked={consent} disabled={consentBusy} onChange={e=>changeConsent(e.target.checked)}/>
- <label htmlFor={"business-marketing-"+membership.id}><strong>Quiero recibir ofertas y novedades de {business.name}</strong><small>Es opcional, y puedes cambiarlo cuando quieras. Los avisos relacionados con tus premios son distintos de la publicidad.</small></label></div>
+ <label htmlFor={"business-marketing-"+membership.id}><strong>Ofertas y novedades de {business.name} por email</strong><small>Opcional. Puedes desactivarlas cuando quieras.</small></label></div>
  <div className="check-control modal-consent"><input type="checkbox" id={"whatsapp-marketing-"+membership.id} checked={waConsent} disabled={consentBusy} onChange={e=>changeWaConsent(e.target.checked)}/>
- <label htmlFor={"whatsapp-marketing-"+membership.id}><strong>Quiero recibir ofertas por WhatsApp de {business.name}</strong><small>Opcional e independiente del correo. Necesitas añadir tu teléfono en Mi perfil. Puedes retirar el permiso en cualquier momento.</small></label></div>
+ <label htmlFor={"whatsapp-marketing-"+membership.id}><strong>Ofertas de {business.name} por WhatsApp</strong><small>Opcional. Requiere un teléfono en Mi perfil.</small></label></div>
  </details>
  {consentError&&<div className="alert error">{consentError}</div>}
  </div></div>}
