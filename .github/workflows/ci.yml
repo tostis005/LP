@@ -20,6 +20,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Probar control de origen de acceso por IP
         run: node tests/demo/origin.mjs
+      - name: Generación y persistencia VAPID sin exponer secretos
+        run: node tests/demo/push-vapid.mjs
       - name: Verificar iconos, mapa, premios y navegación del negocio
         run: node tests/demo/discovery-ux.mjs
       - name: Verificar textos comerciales ES/EN, iconos y logotipo
