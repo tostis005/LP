@@ -38,8 +38,8 @@ export function PushPreferences(){
      &&"PushManager" in window&&"Notification" in window;
     setSupported(isSupported);
     if(isSupported){
-     const reg=await navigator.serviceWorker.ready;
-     const sub=await reg.pushManager.getSubscription();
+     const reg=await navigator.serviceWorker.getRegistration();
+     const sub=reg?await reg.pushManager.getSubscription():null;
      if(mounted)setDeviceActive(!!sub&&Notification.permission==="granted");
     }
    }catch(e){if(mounted)setError((e as Error).message);}
