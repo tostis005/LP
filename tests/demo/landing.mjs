@@ -50,4 +50,16 @@ assert.match(landingCss,/\.loi-public-header\{background:rgba\(252,248,250/);
 assert.doesNotMatch(landingCss,/#214936|#2d6449|#1e4031|#23503b/i,"Old green brand palette still visible");
 assert.match(landingUi,/name="Café Noma" color="#571c32"/,"The mock customer card also uses the new palette");
 
+
+// El enlace de instalación debe estar siempre en la home, independientemente del navegador.
+const headerUi=readFileSync(new URL("../../components/PublicHeader.tsx",import.meta.url),"utf8");
+const installUi=readFileSync(new URL("../../components/InstallGuide.tsx",import.meta.url),"utf8");
+assert.match(landingUi,/Descargar la app/,"Visible install CTA must exist in the hero");
+assert.match(landingUi,/<InstallGuide lang=\{lang\}\/>/,"Install guide must appear on the homepage");
+assert.match(headerUi,/Instalar app/,"Header must link to PWA installation");
+assert.match(installUi,/beforeinstallprompt/,"Direct install prompt should be supported");
+assert.match(installUi,/Añadir a pantalla de inicio/,"iOS manual installation instructions required");
+assert.match(installUi,/Instalar aplicación/,"Android manual installation instructions required");
+assert.match(installUi,/QRCodeSVG/,"Desktop QR scan flow required");
+
 console.log("Commercial landing: ES/EN copy parity, 24-icon collection and logo verified.");

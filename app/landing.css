@@ -185,3 +185,37 @@
 .loi-site .loi-button-light{background:#fff9fb;border-color:#dfc1ce;color:#571c32}
 .loi-site .loi-button-cream{background:#f9e9ed;color:#451f30}
 .loi-site .loi-language-switch a.selected,.loi-site .loi-language-switch a[aria-current="page"]{background:#571c32;color:#fff}
+
+
+/* Instalación PWA siempre visible, incluso si Safari/Chrome no exponen beforeinstallprompt. */
+.loi-button-install{border:1.5px solid #af7489;background:#fff9fb;color:#571c32;font-weight:900}
+.loi-button-install:hover{border-color:#571c32;background:#f5e8ee}
+.loi-public-header .top-nav .loi-nav-install{color:#762b46;font-weight:900}
+.loi-install-section{padding:96px 0;background:linear-gradient(130deg,#f1dfe7 0%,#faf3f6 53%,#fff9fc 100%);border-top:1px solid #eddae2;border-bottom:1px solid #ead7df;scroll-margin-top:96px}
+.loi-install-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:60px;align-items:center}
+.loi-install-intro h2{font-size:clamp(34px,4.1vw,57px);line-height:1.14;margin:18px 0 21px;color:#27121c}
+.loi-install-intro h2 em{font-style:normal;color:#8a3f59}
+.loi-install-intro>p:not(.loi-install-confirmation){color:#705e67;line-height:1.8;font-size:15px;max-width:510px}
+.loi-install-primary{border:0;cursor:pointer;min-height:55px;margin:13px 0 4px}
+.loi-install-intro .loi-install-note{color:#836f79;font-size:12px;margin:16px 0 0;max-width:400px}
+.loi-install-confirmation{display:flex;align-items:center;gap:8px;font-size:12px;color:#74324b;font-weight:750;margin:9px 0}
+.loi-install-card{background:#fff;border:1px solid #ebdbe3;border-radius:27px;padding:28px;box-shadow:0 28px 70px #571c3212}
+.loi-install-card-header{display:flex;align-items:center;gap:13px;margin-bottom:23px;color:#321b27;font-size:15px}
+.loi-install-phone-icon{background:#f6e9ee;color:#571c32;border-radius:14px;width:49px;height:49px;display:grid;place-items:center;flex:none}
+.loi-install-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.loi-install-platform{border:1px solid #ebdfe4;border-radius:18px;padding:17px 16px;background:#fffafc}
+.loi-install-platform.is-current{background:#f8edf2;border-color:#c993a8}
+.loi-install-platform-name{display:flex;justify-content:space-between;gap:7px;align-items:center;color:#571c32;font-size:13px;margin-bottom:17px}
+.loi-install-platform ol{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.loi-install-platform li{display:flex;align-items:flex-start;gap:9px;color:#614c57}
+.loi-install-platform li>span{width:22px;height:22px;border-radius:50%;background:#edd7e1;color:#693148;font-size:11px;font-weight:900;display:grid;place-items:center;flex:none}
+.loi-install-platform li p{font-size:11px;line-height:1.52;margin:2px 0 0}
+.loi-install-platform li svg{vertical-align:middle;margin-left:3px;color:#843d59}
+.loi-install-extra{border-radius:12px;padding:13px 14px;background:#f9edf2;color:#613349;font-size:12px;margin:18px 0 0;line-height:1.6}
+.loi-install-qr{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:22px 0 0;margin-top:20px;border-top:1px solid #f0e6eb}
+.loi-install-qr strong{font-size:13px;color:#38212c}
+.loi-install-qr p{font-size:11px;line-height:1.55;color:#89727c;max-width:270px;margin:4px 0 0}
+.loi-qr-box{background:#fff;border-radius:12px;border:1px solid #ecdfe5;padding:8px;line-height:0;flex:none}
+@media(max-width:1100px){.loi-install-layout{gap:34px}.loi-install-card{padding:22px}}
+@media(max-width:900px){.loi-install-layout{grid-template-columns:1fr}.loi-install-intro{text-align:center}.loi-install-intro>p:not(.loi-install-confirmation),.loi-install-intro .loi-install-note{margin-left:auto;margin-right:auto}.loi-install-confirmation{justify-content:center}}
+@media(max-width:650px){.loi-install-section{padding:64px 0}.loi-install-card{border-radius:20px;padding:17px}.loi-install-steps{grid-template-columns:1fr}.loi-install-intro h2{font-size:clamp(32px,8vw,44px)}.loi-install-intro .loi-install-primary{width:100%}.loi-install-platform{padding:18px}.loi-install-platform ol{gap:10px}.loi-install-platform li p{font-size:12px}.loi-install-qr{padding-top:16px;margin-top:16px}.loi-install-qr .loi-qr-box{display:none}}
