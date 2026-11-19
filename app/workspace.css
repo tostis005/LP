@@ -885,3 +885,20 @@
 .lp-consent-nudge-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:14px}
 .lp-consent-nudge-actions .button{margin:0;min-height:42px}
 @media(max-width:450px){.lp-consent-nudge-actions{display:grid}.lp-consent-nudge-actions .button{width:100%}}
+
+
+/* Acceso claro a las notificaciones en la PWA instalada. */
+.push-home-shortcut{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#f6ebf0;border:1px solid #e9d6df;border-radius:19px;padding:18px 20px;margin-bottom:24px}
+.push-home-shortcut-main{display:flex;align-items:center;gap:13px;color:#58243a;min-width:0}
+.push-home-shortcut-main>svg{flex:none}
+.push-home-shortcut-main strong{display:block;font-size:15px;font-weight:800}
+.push-home-shortcut-main span{display:block;font-size:12px;color:#865469;line-height:1.6;margin-top:4px}
+.push-home-shortcut .button{flex:none}
+.customer-notification-settings{max-width:900px}
+.customer-notification-settings .push-howto{margin-bottom:12px}
+.customer-notification-settings .push-howto .muted{max-width:690px}
+@media(max-width:700px){
+ .push-home-shortcut{flex-direction:column;align-items:stretch;padding:17px 16px;gap:13px}
+ .push-home-shortcut .button{width:100%;display:flex;justify-content:center}
+ .customer-notification-settings .panel-card{padding:19px}
+}
