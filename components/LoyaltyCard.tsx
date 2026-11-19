@@ -23,8 +23,8 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   const qr=document.querySelector('[data-card-qr="'+membership.id+'"] svg');
   if(!qr)return;
   const escaped=(value:string)=>value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-  const bg=/^#[a-fA-F0-9]{6}$/.test(business.accent_color)?business.accent_color:"#264d3e";
-  const stampInk=/^#[a-fA-F0-9]{6}$/.test(business.stamp_color||"")?business.stamp_color!:"#275642";
+  const bg=/^#[a-fA-F0-9]{6}$/.test(business.accent_color)?business.accent_color:"#571c32";
+  const stampInk=/^#[a-fA-F0-9]{6}$/.test(business.stamp_color||"")?business.stamp_color!:"#571c32";
   const name=escaped(business.name.slice(0,70));
   const reward=escaped((program?.reward_label||"Tu próxima recompensa").slice(0,90));
   const balance=escaped(units(membership.balance,program?.type));
@@ -54,7 +54,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   document.body.appendChild(link);link.click();link.remove();
   window.setTimeout(()=>URL.revokeObjectURL(url),1200);
  }
- const color=business.accent_color||"#264d3e";
+ const color=business.accent_color||"#571c32";
  const origin=typeof window!=="undefined"?window.location.origin:process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000";
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
