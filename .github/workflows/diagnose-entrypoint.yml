@@ -108,6 +108,11 @@ jobs:
           if grep -q 'export const dynamic = "force-dynamic"' app/page.tsx; then echo PRESENT; else echo ABSENT; fi
           echo "COMPILED_PAGE_MARKERS:"
           docker exec lp-web-1 node -e 'const fs=require("fs");for(const f of ["/app/.next/server/app/page.js","/app/.next/server/app/entrar/page.js","/app/.next/server/app/index.html"]){if(!fs.existsSync(f))continue;const s=fs.readFileSync(f,"utf8");console.log(f,"bytes="+s.length,"home="+s.includes("Haz que cada visita"),"router="+s.includes("Preparando tu espacio"),"dynamic="+s.includes("force-dynamic"));}' || true
+          echo "LOCATE_LANDING_IN_COMPILED_IMAGE:"
+          docker exec lp-web-1 sh -c 'grep -rl "Haz que cada visita" /app/.next/server 2>/dev/null | head -15' || true
+          docker exec lp-web-1 sh -c 'grep -rl "Loyally transforma" /app/.next/server 2>/dev/null | head -15' || true
+          echo "ROOT_MODULE_FIRST_CHARS:"
+          docker exec lp-web-1 node -e 'const f=require("fs").readFileSync("/app/.next/server/app/page.js","utf8");console.log(f.slice(0,580).replace(/\\n/g," "));'
           echo "NEXT_BUILD_ROOT_FILES:"
           docker exec lp-web-1 sh -c 'ls -l /app/.next/server/app/index.html /app/.next/server/app/entrar.html /app/.next/server/app/page.js 2>/dev/null || true'
           echo "NEXT_BUILD_ROOT_MARKERS:"
