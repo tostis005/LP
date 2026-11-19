@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import "leaflet/dist/leaflet.css";
 import {useParams,useRouter} from "next/navigation";
 import {ArrowUpRight,Gift,Heart,MapPin,Check,ArrowLeft} from "lucide-react";
 import {Brand} from "@/components/Brand";
