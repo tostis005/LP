@@ -195,7 +195,7 @@ jobs:
           # Generación inicial VAPID dentro del VPS. Nunca pasa por GitHub Secrets
           # ni se imprime en los logs. Respeta futuras desactivaciones explícitas.
           DOCKER=(docker)
-          if (("${#ENV_CMD[@]}")) || ! docker info >/dev/null 2>&1; then
+          if ((${#ENV_CMD[@]})) || ! docker info >/dev/null 2>&1; then
             DOCKER=(sudo -n docker)
           fi
           "${DOCKER[@]}" run --rm --network none \
