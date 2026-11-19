@@ -341,17 +341,24 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     result=ok(canStaff&&m&&p&&b?[{membership_id:m.id,business_id:m.business_id,business_name:b.name,customer_name:name||"Cliente",program_type:p.type,balance:m.balance,reward_label:p.reward_label,reward_cost:p.reward_cost}]:[]);
     break;
    }
-   case "staff_redeem_voucher":{
+   case "staff_redeem_voucher_choice":
+    case "staff_redeem_voucher":{
     if(!canStaff){result=fail("No autorizado");break}
     const v=table.reward_vouchers.find(v=>v.token===String(args.p_token||"")&&v.status==="issued");
     const m=v&&table.loyalty_memberships.find(m=>m.id===v.membership_id);
     const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
     if(!v||!m||!p||m.balance<p.reward_cost){result=fail("El QR está canjeado o el saldo es insuficiente.");break}
-    m.balance-=p.reward_cost;v.status="redeemed";v.redeemed_at=now();
-    table.loyalty_transactions.unshift({id:uuid(),business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:"redeem",amount_delta:-p.reward_cost,created_at:now()});persist();result=ok(m.balance);break;
+    const option=(table.reward_options||[]).find(o=>o.id===args.p_reward_option&&o.business_id===m.business_id&&o.active);
+     if(name==="staff_redeem_voucher_choice"&&(table.reward_options||[]).some(o=>o.business_id===m.business_id&&o.active)&&!option){result=fail("Selecciona una recompensa disponible.");break}
+     m.balance-=p.reward_cost;v.status="redeemed";v.redeemed_at=now();
+    const txId=uuid();
+     table.loyalty_transactions.unshift({id:txId,business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:"redeem",amount_delta:-p.reward_cost,created_at:now()});
+     table.reward_redemptions.push({id:uuid(),transaction_id:txId,business_id:m.business_id,membership_id:m.id,customer_id:m.customer_id,reward_label:option?.label||p.reward_label,retail_cents:option?.retail_cents??null,cost_cents:option?.cost_cents??null,redeemed_at:now()});
+     persist();result=ok(m.balance);break;
    }
    case "staff_award_card":
-   case "staff_redeem_card":{
+   case "staff_redeem_card":
+    case "staff_redeem_card_choice":{
     if(!canStaff){result=fail("El perfil seleccionado no puede validar compras.");break}
     const m=membershipByToken();
     const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
@@ -360,13 +367,17 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     if(delta===0||name==="staff_award_card"&&(delta<1||p.type==="stamps"&&delta>p.max_stamps_per_action)){
      result=fail("Cantidad de sellos fuera del límite configurado.");break;
     }
-    if(name==="staff_redeem_card"&&m.balance+delta<0){result=fail("Saldo insuficiente para canjear.");break}
+    if(name!=="staff_award_card"&&m.balance+delta<0){result=fail("Saldo insuficiente para canjear.");break}
     if(args.p_ticket_ref&&table.loyalty_transactions.some(t=>t.business_id===m.business_id&&t.ticket_ref===args.p_ticket_ref)){result=fail("El ticket ya se ha utilizado.");break}
+     const option=(table.reward_options||[]).find(o=>o.id===args.p_reward_option&&o.business_id===m.business_id&&o.active);
+     if(name==="staff_redeem_card_choice"&&(table.reward_options||[]).some(o=>o.business_id===m.business_id&&o.active)&&!option){result=fail("Selecciona una recompensa.");break}
     m.balance+=delta;if(delta>0)m.total_earned+=delta;
     const existing=table.reward_vouchers.find(v=>v.membership_id===m.id&&v.status==="issued");
     if(m.balance<p.reward_cost&&existing)existing.status="cancelled";
     if(m.balance>=p.reward_cost&&!existing)table.reward_vouchers.push({id:uuid(),token:uuid(),membership_id:m.id,business_id:m.business_id,reward_label:p.reward_label,status:"issued",issued_at:now()});
-    table.loyalty_transactions.unshift({id:uuid(),business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:delta>0?"earn":"redeem",amount_delta:delta,purchase_cents:args.p_purchase_cents||null,ticket_ref:args.p_ticket_ref||null,reversal_of:null,reversal_reason:null,created_at:now()});
+    const txId=uuid();
+     table.loyalty_transactions.unshift({id:txId,business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:delta>0?"earn":"redeem",amount_delta:delta,purchase_cents:args.p_purchase_cents||null,ticket_ref:args.p_ticket_ref||null,reversal_of:null,reversal_reason:null,created_at:now()});
+     if(delta<0)table.reward_redemptions.push({id:uuid(),transaction_id:txId,business_id:m.business_id,membership_id:m.id,customer_id:m.customer_id,reward_label:option?.label||p.reward_label,retail_cents:option?.retail_cents??null,cost_cents:option?.cost_cents??null,redeemed_at:now()});
     persist();result=ok(m.balance);break;
    }
    case "manager_reverse_transaction":{
