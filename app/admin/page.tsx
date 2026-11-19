@@ -45,7 +45,7 @@ function AdminContent({account}:{account:Account}){
   });
   setBusy(false);
   if(error){setError(error.message);return}
-  setSuccess("Establecimiento registrado, con contrato independiente e invitación para su propietario.");
+  setSuccess("Negocio creado.");
   setName("");setSlug("");setManager("");setParentBusiness("");setExistingProgram("");setContractPrice("");
   await load();
   const biz=(await db().from("businesses").select("id,name,slug,category,parent_business_id,active,public_listing,created_at").eq("id",data as string).maybeSingle()).data;
@@ -112,7 +112,7 @@ function AdminContent({account}:{account:Account}){
   const {error}=hasFocusRate?await db().from("business_marketing_rates").update({price_cents:value,whatsapp_price_cents:whatsapp,push_price_cents:push,currency:focusCurrency,updated_at:new Date().toISOString()}).eq("business_id",focusBiz.id):
    await db().from("business_marketing_rates").insert({business_id:focusBiz.id,price_cents:value,whatsapp_price_cents:whatsapp,push_price_cents:push,currency:focusCurrency});
   setBusy(false);if(error){setError(error.message);return}
-  setSuccess("Tarifas de campañas actualizadas.");await inspectBusiness(focusBiz);
+  setSuccess("Precios guardados.");await inspectBusiness(focusBiz);
  }
  async function changeActive(){if(!focusBiz)return;
   if(!window.confirm(focusBiz.active?"¿Suspender este negocio? Los empleados no podrán registrar compras.":"¿Reactivar este negocio?"))return;
@@ -154,10 +154,25 @@ function AdminContent({account}:{account:Account}){
    <button type="submit" className="button button-outline button-sm" disabled={busy}>Guardar dirección</button>
   </div>
  </form>
- <div className="form-stack marketing-rate-admin"><strong>Precio de campañas por negocio</strong><div className="form-two"><label>Centavos por email<input type="number" min="0" max="100000" step="1" value={focusRate} onChange={e=>setFocusRate(e.target.value)}/></label><label>Moneda<select value={focusCurrency} onChange={e=>setFocusCurrency(e.target.value)}><option value="MXN">MXN</option><option value="EUR">EUR</option><option value="USD">USD</option></select></label></div><label>Centavos por WhatsApp<input type="number" min="0" max="100000" step="1" value={focusWhatsappRate} onChange={e=>setFocusWhatsappRate(e.target.value)} placeholder="Sin activar"/><small>Deja este campo vacío para no ofrecer WhatsApp hasta decidir su precio.</small></label><label>Centavos por dispositivo push<input type="number" min="0" max="100000" step="1" required value={focusPushRate} onChange={e=>setFocusPushRate(e.target.value)}/><small>0 significa gratuito. El coste se registra solo cuando el proveedor acepta la notificación; varios dispositivos de un usuario cuentan por separado.</small></label><button type="button" className="button button-outline button-sm" disabled={busy} onClick={saveMarketingRate}>Guardar tarifas</button><small>Tarifas particulares de este negocio: email y WhatsApp por contacto; push por dispositivo. Son importes internos de uso, no cargos automáticos a Stripe.</small></div>
+ <div className="form-stack marketing-rate-admin"><h3>Precio de cada campaña</h3>
+  <label>Moneda<select value={focusCurrency} onChange={e=>setFocusCurrency(e.target.value)}>
+   {([["MXN","Peso mexicano"],["USD","Dólar estadounidense"],["EUR","Euro"],["GBP","Libra esterlina"],["CAD","Dólar canadiense"],["BRL","Real brasileño"],["ARS","Peso argentino"],["COP","Peso colombiano"],["CLP","Peso chileno"],["PEN","Sol peruano"],["UYU","Peso uruguayo"],["CRC","Colón costarricense"],["GTQ","Quetzal"],["DOP","Peso dominicano"],["HNL","Lempira"],["NIO","Córdoba"],["PYG","Guaraní"],["BOB","Boliviano"]] as const).map(([code,label])=><option key={code} value={code}>{label} ({code})</option>)}
+  </select></label>
+  <div className="marketing-tariff-grid">
+   <label>Correo por cliente<input type="number" min="0" max="1000" step="0.01" value={(Number(focusRate||0)/100).toFixed(2)}
+    onChange={e=>setFocusRate(String(Math.round(Number(e.target.value)*100)))}/></label>
+   <label>WhatsApp por cliente<input type="number" min="0" max="1000" step="0.01"
+    value={focusWhatsappRate===""?"":(Number(focusWhatsappRate)/100).toFixed(2)}
+    onChange={e=>setFocusWhatsappRate(e.target.value===""?"":String(Math.round(Number(e.target.value)*100)))} placeholder="Sin activar"/></label>
+   <label>Push por cliente<input type="number" min="0" max="1000" step="0.01"
+    value={(Number(focusPushRate||0)/100).toFixed(2)}
+    onChange={e=>setFocusPushRate(String(Math.round(Number(e.target.value)*100)))}/></label>
+  </div>
+  <button type="button" className="button button-dark button-sm" disabled={busy} onClick={saveMarketingRate}>Guardar precios</button>
+ </div>
  <button className={"button "+(focusBiz.active?"button-danger":"button-dark")+" button-sm"} disabled={busy} onClick={changeActive}>{focusBiz.active?"Suspender negocio":"Reactivar negocio"}</button></div>}
  </div>
- <form className="panel-card" onSubmit={createBusiness}><div className="panel-icon"><Plus size={22}/></div><h2>Dar de alta un negocio</h2><p className="muted">Solo un superadministrador puede crear negocios. El responsable recibe una invitación interna pendiente de reclamar.</p><div className="form-stack"><label>Nombre del negocio<input required minLength={2} value={name} placeholder="Ej. Café Noma" onChange={e=>{setName(e.target.value);setSlug(slugify(e.target.value))}}/></label><label>Identificador único<input required pattern="[a-z0-9]+(-[a-z0-9]+)*" value={slug} placeholder="cafe-noma" onChange={e=>setSlug(slugify(e.target.value))}/></label><label>Email del responsable<input type="email" required value={manager} placeholder="responsable@negocio.com" onChange={e=>setManager(e.target.value)}/></label>
+ <form className="panel-card" onSubmit={createBusiness}><div className="panel-icon"><Plus size={22}/></div><h2>Nuevo negocio</h2><div className="form-stack"><label>Nombre del negocio<input required minLength={2} value={name} placeholder="Ej. Café Noma" onChange={e=>{setName(e.target.value);setSlug(slugify(e.target.value))}}/></label><label>Identificador único<input required pattern="[a-z0-9]+(-[a-z0-9]+)*" value={slug} placeholder="cafe-noma" onChange={e=>setSlug(slugify(e.target.value))}/></label><label>Email del responsable<input type="email" required value={manager} placeholder="responsable@negocio.com" onChange={e=>setManager(e.target.value)}/></label>
  <label>Grupo empresarial o franquicia (opcional)<select value={parentBusiness} onChange={e=>setParentBusiness(e.target.value)}><option value="">Negocio independiente</option>{businesses.filter(x=>!x.parent_business_id&&x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><small>Los locales de una cadena se agrupan bajo la misma empresa matriz, pero se contabilizan por separado.</small></label>
  <label>Usar el diseño de una tarjeta existente (opcional)<select value={existingProgram} onChange={e=>setExistingProgram(e.target.value)}><option value="">Crear programa independiente</option>{businesses.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><small>Copia diseño y reglas iniciales; los saldos de los clientes permanecen independientes en cada negocio.</small></label>
  <label>Precio mensual pactado para este negocio<input type="number" min="0" step="0.01" value={contractPrice} onChange={e=>setContractPrice(e.target.value)} placeholder="Se acuerda individualmente"/><small>Se pueden aplicar condiciones especiales por volumen. Este registro no genera cargos automáticamente.</small></label><button className="button button-dark button-full" disabled={busy}>{busy?"Creando...":"Crear negocio"} <ArrowUpRight size={17}/></button></div></form></div>}
