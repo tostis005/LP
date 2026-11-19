@@ -10,19 +10,19 @@ runInNewContext(js,{module,exports:module.exports});
 const {LANDING_COPY}=module.exports;
 const es=LANDING_COPY.es,en=LANDING_COPY.en;
 function assertSameKeys(left,right,name="root"){
- assert.deepEqual(Object.keys(left).sort(),Object.keys(right).sort(),"Translated keys differ in "+name);
- for(const key of Object.keys(left)){
-  const a=left[key],b=right[key];
-  if(a&&b&&typeof a==="object"&&!Array.isArray(a))assertSameKeys(a,b,name+"."+key);
-  else if(Array.isArray(a)){
-   assert.equal(a.length,b.length,"Translated item counts differ in "+name+"."+key);
-   a.forEach((item,i)=>assertSameKeys(item,b[i],name+"."+key+"["+i+"]"));
-  }else{
-   assert.equal(typeof a,"string");
-   assert.equal(typeof b,"string");
-   assert.ok(a.trim()&&b.trim(),"Empty translated copy: "+name+"."+key);
-  }
+ if(typeof left==="string"){
+  assert.equal(typeof right,"string","Wrong type in "+name);
+  assert.ok(left.trim()&&right.trim(),"Empty translated copy: "+name);
+  return;
  }
+ if(Array.isArray(left)){
+  assert.ok(Array.isArray(right),"Expected array in "+name);
+  assert.equal(left.length,right.length,"Translated item counts differ in "+name);
+  left.forEach((item,i)=>assertSameKeys(item,right[i],name+"["+i+"]"));
+  return;
+ }
+ assert.deepEqual(Object.keys(left).sort(),Object.keys(right).sort(),"Translated keys differ in "+name);
+ for(const key of Object.keys(left))assertSameKeys(left[key],right[key],name+"."+key);
 }
 assertSameKeys(es,en);
 assert.match(es.hero.title,/Haz que cada visita/);
