@@ -16,7 +16,7 @@ for(const option of icons.STAMP_OPTIONS){
  assert.ok(icons.STAMP_DRAWINGS[option.id],option.id+" has no drawing");
  const svg=icons.stampMarkup(option.id,28);
  assert.match(svg,/width="28" height="28" viewBox="0 0 64 64"/);
- assert.match(svg,/stroke-width="3"/);
+ assert.match(svg,/stroke-width="3\.5"/);
  assert.match(svg,/fill="none"/);
  assert.doesNotMatch(icons.STAMP_DRAWINGS[option.id],/fill="currentColor"/);
 }
@@ -25,7 +25,7 @@ for(const [category,kind] of [["Cafetería","coffee"],["Restaurante","restaurant
  assert.equal(cats.categoryStampKind(category),kind,category+" should have its product icon");
 }
 assert.equal(cats.categoryStampKind("no identificada"),"star");
-assert.match(icons.STAMP_DRAWINGS.beard,/M32 25/,"Barber must be mustache and beard");
+assert.match(icons.STAMP_DRAWINGS.beard,/M32 26/,"Barber must be mustache and beard");
 assert.ok(!/circle[^>]+cx="32" cy="34"/.test(icons.STAMP_DRAWINGS.beard),"Barber does not include a head");
 assert.ok(!/M21 33v9/.test(icons.STAMP_DRAWINGS.hair),"Old face silhouette removed");
 const presentation=load("../../lib/program-presentation.ts");
