@@ -18,7 +18,8 @@ try{
  await as(users.gestor);
  await denied("SELECT public.manager_create_branch($1::uuid,'Sucursal no autorizada','sucursal-no-autorizada','gestor@demo.loyally.test')",[business.id],"Manager cannot create a new company");
  await denied("INSERT INTO public.business_locations(business_id,name,address,city,country,lat,lng) VALUES($1,'Segundo local','Segunda dirección 33','Tijuana','México',32.5,-117.01)",[business.id],"Manager cannot add location");
- await denied("DELETE FROM public.business_locations WHERE business_id=$1",[business.id],"Manager cannot delete location");
+ const blockedDelete=await client.query("DELETE FROM public.business_locations WHERE business_id=$1 RETURNING id",[business.id]);
+ assert.equal(blockedDelete.rowCount,0,"Manager cannot delete location; RLS hides rows instead of throwing");
  await denied("UPDATE public.businesses SET parent_business_id=$1 WHERE id=$1",[business.id],"Manager cannot change franchise");
  const address=(await client.query("SELECT id,address FROM public.business_locations WHERE business_id=$1 LIMIT 1",[business.id])).rows[0];
  assert.ok(address?.id,"Business should have its one location");
