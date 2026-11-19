@@ -36,7 +36,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
        <div className="loi-phone-heading"><span>{t.hero.myCard}</span><span className="loi-phone-mini-icon"><Heart size={17}/></span></div>
        <div className="loi-phone-greeting">{t.hero.hello} <span>✳</span></div>
        <p>{t.hero.nearReward}</p>
-       <StampCard locale={lang} name="Café Noma" color="#23503b" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/>
+       <StampCard locale={lang} name="Café Noma" color="#571c32" stampColor="#f2b7ca" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/>
        <div className="loi-phone-progress"><span><Gift size={17}/> {t.hero.almost}</span><strong>{t.hero.progress}</strong></div>
        <div className="loi-phone-nav"><span className="active"><Ticket size={17}/> {t.hero.cardNav}</span><span><Store size={17}/> {t.hero.businessNav}</span><span><Users size={17}/> {t.hero.profileNav}</span></div>
       </div>
@@ -65,8 +65,8 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
     <div className="container loi-design-layout">
      <div className="loi-design-preview">
       <div className="loi-design-preview-label">{t.design.previewLabel}</div>
-      <StampCard locale={lang} name="Casa Buena" color="#7452a3" reward={t.design.illustrationReward} total={6} earned={4} icon="burger" message={t.design.illustrationMessage}/>
-      <div className="loi-stamp-library"><span>{t.design.iconsLabel}</span><div>{["coffee","burger","beard","hair","star","gift"].map(kind=><span key={kind}><StampMark kind={kind} size={25}/></span>)}</div></div>
+      <StampCard locale={lang} name="Casa Buena" color="#7e3b59" stampColor="#f0c1d1" reward={t.design.illustrationReward} total={6} earned={4} icon="burger" message={t.design.illustrationMessage}/>
+      <div className="loi-stamp-library"><span>{t.design.iconsLabel}</span><div>{["coffee","burger","beard","hair","star","gift"].map(kind=><span key={kind}><StampMark kind={kind} size={25} color="#873c59"/></span>)}</div></div>
      </div>
      <div className="loi-design-copy"><span className="loi-overline">{t.design.eyebrow}</span><h2>{t.design.first} <em>{t.design.second}</em></h2><p>{t.design.description}</p>
       <div className="loi-design-points">{t.design.points.map(point=><div key={point}><Check size={17}/> {point}</div>)}</div>
