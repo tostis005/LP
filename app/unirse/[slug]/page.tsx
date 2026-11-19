@@ -68,7 +68,7 @@ export default function JoinPage(){
    <main className="join-detail">
     <div className="join-detail-main">
      <div className="join-business-hero" style={{background:offer.accent_color||"#571c32"}}>
-      <div className="join-business-illustration"><StampMark kind={categoryStampKind(category)} size={66}/></div>
+      <div className="join-business-illustration"><StampMark kind={business?.stamp_icon||categoryStampKind(category)} size={66}/></div>
       <span className="join-business-category">{category||"Negocio local"}</span>
       <h1>{offer.business_name}</h1>
       <p>{offer.description||"Un lugar al que siempre apetece volver. Descubre qué lo hace especial y empieza a disfrutar de sus recompensas."}</p>
@@ -97,7 +97,7 @@ export default function JoinPage(){
      <section className="join-side-card"><div className="panel-icon"><MapPin size={21}/></div><h2>¿Dónde está?</h2>
       {hasLocation?locations.map(l=><div className="join-address" key={l.id}><strong>{l.name}</strong><span>{l.address}</span><span>{l.city}, {l.country}</span><a target="_blank" rel="noopener noreferrer" href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(l.lat+","+l.lng)}>Cómo llegar <ArrowUpRight size={14}/></a></div>):<p>Este negocio todavía no ha añadido una dirección pública.</p>}
      </section>
-     {hasLocation&&<div className="join-mini-map"><DirectoryMapView locations={locations.map(l=>({...l,businesses:{name:offer.business_name,category,slug:params.slug,accent_color:offer.accent_color},offerText:programPromise(offerProgram)}))} center={[locations[0].lat,locations[0].lng]}/></div>}
+     {hasLocation&&<div className="join-mini-map"><DirectoryMapView locations={locations.map(l=>({...l,businesses:{name:offer.business_name,category,slug:params.slug,accent_color:offer.accent_color,stamp_icon:offer.stamp_icon,stamp_color:offer.stamp_color},offerText:programPromise(offerProgram)}))} center={[locations[0].lat,locations[0].lng]}/></div>}
      <section className="join-side-card"><Heart size={23}/><h3>Cada visita tiene algo bueno</h3><p>Descubre negocios, elige tus favoritos y lleva todas tus tarjetas en Loyally.</p><Link href="/app/descubrir">Seguir explorando <ArrowUpRight size={15}/></Link></section>
     </aside>
    </main>
