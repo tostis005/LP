@@ -3,6 +3,7 @@ import "./globals.css";
 import "./workspace.css";
 import "./brand-wine.css";
 import {PwaSetup} from "@/components/PwaSetup";
+import {AppBottomNav} from "@/components/AppBottomNav";
 export const metadata: Metadata = {
   title: "Loyally — Haz que tus clientes vuelvan",
   description: "Una plataforma de fidelización simple y poderosa para negocios locales. Sellos, puntos, cashback y tarjetas digitales.",
@@ -11,5 +12,5 @@ export const metadata: Metadata = {
   icons:{icon:[{url:"/icon.svg",type:"image/svg+xml"}],apple:"/apple-touch-icon.png"},
 };
 export default function RootLayout({ children }: Readonly<{children: React.ReactNode}>) {
-  return <html lang="es"><body><PwaSetup/>{children}</body></html>;
+  return <html lang="es"><body><PwaSetup/>{children}<AppBottomNav/></body></html>;
 }
