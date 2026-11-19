@@ -40,6 +40,14 @@ export function PushPreferences(){
     if(isSupported){
      const reg=await navigator.serviceWorker.getRegistration();
      const sub=reg?await reg.pushManager.getSubscription():null;
+     if(sub&&Notification.permission==="granted"&&c.enabled){
+      // Al entrar con otra cuenta en el mismo móvil, vincular la suscripción con la cuenta actual.
+      const data=sub.toJSON();
+      await jsonRequest("/api/local/push/preferences",{
+       method:"POST",headers:{"Content-Type":"application/json"},
+       body:JSON.stringify({action:"subscribe",endpoint:sub.endpoint,keys:data.keys})
+      });
+     }
      if(mounted)setDeviceActive(!!sub&&Notification.permission==="granted");
     }
    }catch(e){if(mounted)setError((e as Error).message);}
