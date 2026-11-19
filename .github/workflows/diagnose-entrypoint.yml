@@ -91,7 +91,7 @@ jobs:
           echo "APP_ROUTING_FILES:"
           find . -maxdepth 5 -type f -name 'page.tsx' -not -path './node_modules/*' -not -path './.next/*' | sort | head -90
           echo "COMPOSE_WEB_BUILD_CONTEXT:"
-          docker compose --env-file .env.production config --format json | node -e 'let raw="";process.stdin.on("data",x=>raw+=x);process.stdin.on("end",()=>{const c=JSON.parse(raw),s=c.services.web;console.log(JSON.stringify({context:s.build?.context,dockerfile:s.build?.dockerfile,image:s.image,volumes:s.volumes?.map(v=>({source:v.source,target:v.target}))}));})'
+          docker compose --env-file .env.production config --format json | docker exec -i lp-web-1 node -e 'let raw="";process.stdin.on("data",x=>raw+=x);process.stdin.on("end",()=>{const c=JSON.parse(raw),s=c.services.web;console.log(JSON.stringify({context:s.build?.context,dockerfile:s.build?.dockerfile,image:s.image,volumes:s.volumes?.map(v=>({source:v.source,target:v.target}))}));})'
           echo "LOCAL_WORKTREE_STATUS:"
           git status --short -- app/page.tsx || true
           echo "LOCAL_LANDING_PRESENT:"
@@ -104,6 +104,10 @@ jobs:
           if git show HEAD:app/page.tsx | grep -q "Haz que cada visita"; then echo "YES"; else echo "NO"; fi
           echo "NEXT_CONTAINER_STATUS:"
           docker ps --format '{{.Names}} {{.Image}} {{.Ports}}' | grep -E '^lp-web-1 ' || true
+          echo "DYNAMIC_SOURCE_FLAG:"
+          if grep -q 'export const dynamic = "force-dynamic"' app/page.tsx; then echo PRESENT; else echo ABSENT; fi
+          echo "COMPILED_PAGE_MARKERS:"
+          docker exec lp-web-1 node -e 'const fs=require("fs");for(const f of ["/app/.next/server/app/page.js","/app/.next/server/app/entrar/page.js","/app/.next/server/app/index.html"]){if(!fs.existsSync(f))continue;const s=fs.readFileSync(f,"utf8");console.log(f,"bytes="+s.length,"home="+s.includes("Haz que cada visita"),"router="+s.includes("Preparando tu espacio"),"dynamic="+s.includes("force-dynamic"));}' || true
           echo "NEXT_BUILD_ROOT_FILES:"
           docker exec lp-web-1 sh -c 'ls -l /app/.next/server/app/index.html /app/.next/server/app/entrar.html /app/.next/server/app/page.js 2>/dev/null || true'
           echo "NEXT_BUILD_ROOT_MARKERS:"
