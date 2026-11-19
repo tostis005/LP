@@ -22,6 +22,8 @@ jobs:
           node-version: "22"
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
+      - name: Textos bilingües y colección visual
+        run: node tests/demo/landing.mjs
       - name: TypeScript
         run: npm run typecheck
       - name: Build de Next.js
@@ -191,13 +193,17 @@ jobs:
           "${COMPOSE[@]}" --env-file .env.production config --quiet
           "${COMPOSE[@]}" --env-file .env.production up -d --build --remove-orphans
           homepage="$(mktemp)"
-          trap 'rm -f "$homepage"' EXIT
+          homepage_en="$(mktemp)"
+          trap 'rm -f "$homepage" "$homepage_en"' EXIT
           for i in $(seq 1 40); do
             if curl -fsS --max-time 5 http://127.0.0.1:3100/api/health >/dev/null &&
                curl -fsS --max-time 8 http://127.0.0.1:3100/ -o "$homepage" &&
                grep -q 'Haz que cada visita' "$homepage" &&
-               ! grep -q 'Preparando tu espacio' "$homepage"; then
-              echo "Loyally responde correctamente y la raíz publica la presentación comercial."
+               ! grep -q 'Preparando tu espacio' "$homepage" &&
+               curl -fsS --max-time 8 'http://127.0.0.1:3100/?lang=en' -o "$homepage_en" &&
+               grep -q 'Turn every visit into' "$homepage_en" &&
+               ! grep -q 'Haz que cada visita' "$homepage_en"; then
+              echo "Loyally responde correctamente y la raíz publica las portadas española e inglesa."
               exit 0
             fi
             sleep 3

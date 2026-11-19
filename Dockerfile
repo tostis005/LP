@@ -16,7 +16,7 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
 # Comprobar en la imagen (no solo en el checkout) que se incluye la portada publica.
-RUN node -e 'const fs=require("fs"),s=fs.readFileSync("app/page.tsx","utf8");console.log("Docker source homepage:",s.includes("Haz que cada visita"),"dynamic:",s.includes("force-dynamic"));if(!s.includes("Haz que cada visita"))process.exit(1)'
+RUN node -e 'const fs=require("fs"),s=fs.readFileSync("lib/landing-copy.ts","utf8"),home=fs.readFileSync("app/page.tsx","utf8");const es=s.includes("Haz que cada visita"),en=s.includes("Turn every visit into"),present=home.includes("LandingHome");console.log("Docker bilingual homepage:",es,en,present);if(!es||!en||!present)process.exit(1)'
 ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 RUN mkdir -p public && npm run build
