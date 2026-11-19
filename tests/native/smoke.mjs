@@ -22,6 +22,10 @@ try{
   await client.query("BEGIN");
   await client.query("SET LOCAL ROLE anon");
   await test("anon no consulta perfiles",()=>assertDenied(()=>client.query("SELECT * FROM public.profiles LIMIT 1")));
+  await test("anon puede consultar programas públicos sin ver clientes",async()=>{
+   const r=await client.query("SELECT * FROM public.public_business_details('sin-negocio') LIMIT 1");
+   if(r.rows.length!==0)throw Error("La ficha no debe revelar negocios inexistentes");
+  });
   await client.query("ROLLBACK");
   await client.query("BEGIN");
   await client.query("SET LOCAL ROLE authenticated");
