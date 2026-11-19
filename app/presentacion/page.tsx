@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
-import Home from "../page";
+import {LandingHome} from "@/components/LandingHome";
+import "../landing.css";
 import {LandingLanguageSync} from "@/components/LandingLanguageSync";
 import type {LandingLanguage} from "@/lib/landing-copy";
 
@@ -22,5 +23,5 @@ export async function generateMetadata({searchParams}:Props):Promise<Metadata>{
 }
 export default async function Presentation({searchParams}:Props){
  const lang=await language(searchParams);
- return <><LandingLanguageSync lang={lang}/><Home lang={lang}/></>;
+ return <><LandingLanguageSync lang={lang}/><LandingHome lang={lang}/></>;
 }
