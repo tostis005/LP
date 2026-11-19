@@ -20,6 +20,12 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Probar control de origen de acceso por IP
         run: node tests/demo/origin.mjs
+      - name: Configuración segura de SMTP Gmail
+        run: node tests/demo/gmail-smtp.mjs
+      - name: Validar script SSH de Gmail
+        run: bash -n scripts/apply-gmail-credentials.sh
+      - name: Solicitud push contextual en PWA
+        run: node tests/demo/push-onboarding.mjs
       - name: Generación y persistencia VAPID sin exponer secretos
         run: node tests/demo/push-vapid.mjs
       - name: Verificar iconos, mapa, premios y navegación del negocio
@@ -40,6 +46,8 @@ jobs:
         run: npm run typecheck
       - name: Construir Next.js
         run: npm run build
+      - name: Confirmar que SMTP está incluido en la imagen standalone
+        run: cd .next/standalone && node -e "require.resolve('nodemailer')"
       - name: Verificar la portada dentro de una imagen Docker real
         shell: bash
         run: |

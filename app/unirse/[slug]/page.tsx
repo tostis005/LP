@@ -20,7 +20,7 @@ export default function JoinPage(){
  const [offer,setOffer]=useState<Offer|null>(null),[business,setBusiness]=useState<Business|null>(null);
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
- const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[showMarketingPrompt,setShowMarketingPrompt]=useState(false);
+ const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[pushMarketing,setPushMarketing]=useState(false),[showMarketingPrompt,setShowMarketingPrompt]=useState(false),[consentWarning,setConsentWarning]=useState("");
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con Loyally.");setLoading(false);return}
   const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
@@ -59,6 +59,15 @@ export default function JoinPage(){
    const consent=await db().rpc("business_upsert_consent",{p_business:offer.business_id,p_opted_in:true});
    if(consent.error){setError("Tu tarjeta está lista, pero no se pudo guardar la preferencia de ofertas: "+consent.error.message)}
   }
+  if(pushMarketing){
+   try{
+    const response=await fetch("/api/local/push/preferences",{
+     method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",
+     body:JSON.stringify({action:"consent",business_id:offer.business_id,opted_in:true})
+    });
+    if(!response.ok)throw new Error("Error guardando el permiso push");
+   }catch{setConsentWarning("Tu tarjeta está lista, pero el permiso de avisos push no pudo guardarse. Puedes activarlo desde Avisos.")}
+  }
   setBusy(false);setJoined(true);setSuccess(true);
  }
  const category=business?.category||null;
@@ -85,11 +94,12 @@ export default function JoinPage(){
        <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
       </div>}
       {isBusinessAccount?<div className="info-callout"><Heart size={19}/><div><strong>Esta ficha es para tus clientes</strong><p>Estás dentro con una cuenta de negocio. Para guardar tarjetas y premios, utiliza una cuenta de cliente independiente.</p><Link href="/negocio">Volver a mi negocio <ArrowUpRight size={16}/></Link></div></div>:
-      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><Link href="/app" className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link></div>:
+      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p>{consentWarning&&<small role="alert">{consentWarning}</small>}</div><Link href="/app" className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link></div>:
       <div className="join-subscribe">
        <h3>¿Te apuntas?</h3>
        <p>Unirte es gratis. Podrás consultar tus sellos y recompensas siempre que quieras.</p>
        {signed&&<label className="join-marketing-choice lp-join-promo-choice"><input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);if(e.target.checked)setShowMarketingPrompt(false)}}/><span><strong>¡Sí! Quiero enterarme de promociones, regalos y ofertas de {offer.business_name}</strong><small>Podrás conocer novedades de este negocio por correo. Es opcional y puedes desactivarlo cuando quieras.</small></span></label>}
+       {signed&&<label className="join-marketing-choice lp-join-promo-choice"><input type="checkbox" checked={pushMarketing} onChange={e=>setPushMarketing(e.target.checked)}/><span><strong>Quiero recibir ofertas de {offer.business_name} por notificación push</strong><small>Opcional y separado del correo. Si tu móvil aún no tiene permiso, Loyally te lo solicitará al abrir la app instalada. Puedes desactivarlo en Avisos.</small></span></label>}
        {signed&&showMarketingPrompt&&!marketing&&<div className="lp-consent-nudge" role="group" aria-label="Decide si deseas recibir promociones">
         <div className="lp-consent-nudge-title"><Gift size={24}/><div><strong>¿Quieres enterarte de sus próximos regalos?</strong><p>Con tu permiso, {offer.business_name} podrá avisarte por correo de promociones, novedades y recompensas especiales.</p></div></div>
         <div className="lp-consent-nudge-actions">

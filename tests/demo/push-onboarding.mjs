@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=path=>readFileSync(path,"utf8");
+const onboard=read("components/PushWelcomePrompt.tsx");
+const home=read("app/app/page.tsx");
+const join=read("app/unirse/[slug]/page.tsx");
+assert.match(home,/<PushWelcomePrompt\/>/,"El permiso aparece en el inicio del cliente");
+assert.match(onboard,/Notification\.requestPermission\(\)/,"El sistema solicita permiso del dispositivo");
+assert.match(onboard,/onClick=\{activate\}/,"El sistema solicita permiso a partir de un clic explícito");
+assert.match(onboard,/localStorage\.setItem\(storageKey/,"No volver a mostrar aviso al descartarlo");
+assert.match(onboard,/action:"subscribe"/,"El dispositivo queda registrado");
+assert.match(onboard,/action:"consent"/,"El consentimiento de negocio es independiente");
+assert.match(join,/checked=\{pushMarketing\}/,"Al crear una tarjeta existe casilla de consentimiento push");
+assert.match(join,/action:"consent",business_id:offer.business_id,opted_in:true/,"La elección se registra en el servidor");
+console.log("OK: petición push contextual y consentimiento opcional por negocio.");
