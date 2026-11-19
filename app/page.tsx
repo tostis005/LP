@@ -10,6 +10,10 @@ import {StampCard} from "@/components/StampCard";
 import {StampMark} from "@/components/StampMarks";
 import "./landing.css";
 
+// La página pública debe renderizarse desde su componente real; evita reutilizar
+// una salida HTML prerenderizada ajena durante los despliegues del contenedor.
+export const dynamic = "force-dynamic";
+
 const features=[
  {icon:<Palette size={23}/>,title:"Cada negocio, su propia tarjeta",text:"Colores, recompensa, logotipo y sellos que reflejan la personalidad de tu marca."},
  {icon:<QrCode size={23}/>,title:"Todo empieza con un QR",text:"El cliente se une desde el móvil. En sus próximas visitas, el personal valida los sellos."},

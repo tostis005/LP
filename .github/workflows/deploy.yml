@@ -26,6 +26,28 @@ jobs:
         run: npm run typecheck
       - name: Build de Next.js
         run: npm run build
+      - name: Verificar que la raiz sirve la presentacion y no el login
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT=3155 HOSTNAME=127.0.0.1 node .next/standalone/server.js > /tmp/loyally-root.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS --max-time 5 http://127.0.0.1:3155/ -o /tmp/loyally-root.html 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if ! grep -q 'Haz que cada visita' /tmp/loyally-root.html; then
+            echo "::error::La raiz / no muestra la presentacion de Loyally."
+            grep -oE 'Preparando tu espacio|Accede a tu espacio|Haz que cada visita' /tmp/loyally-root.html || true
+            tail -35 /tmp/loyally-root.log
+            exit 1
+          fi
+          if grep -q 'Preparando tu espacio' /tmp/loyally-root.html; then
+            echo "::error::La raiz / esta mostrando el router de acceso."
+            exit 1
+          fi
+          echo "La raiz / muestra la presentacion de Loyally."
 
   verificar-postgresql:
     runs-on: ubuntu-latest
