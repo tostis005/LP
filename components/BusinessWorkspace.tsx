@@ -14,6 +14,7 @@ import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/BusinessAnalytics";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {BranchCreator} from "@/components/BranchCreator";
+import {RichMessageEditor} from "@/components/RichMessageEditor";
 type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Resumen",icon:<BarChart3 size={17}/>},
@@ -29,8 +30,10 @@ const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
 type Employee={user_id:string;full_name:string;email:string;role:string;active:boolean};
 type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;membership_id:string;employee_id:string|null;reversal_of:string|null;reversal_reason:string|null};
-type Draft={id:string;subject:string;body_text:string;created_at:string;status:string;recipient_count?:number;sent_count?:number;failed_count?:number};
-type MailQuote={contacts:number;price_cents:number;total_cents:number;currency:string};
+type Draft={id:string;subject:string;body_text:string;channel:"email"|"whatsapp";template_name?:string|null;template_language?:string|null;created_at:string;status:string;recipient_count?:number;sent_count?:number;failed_count?:number};
+type MailQuote={contacts:number;price_cents:number|null;total_cents:number|null;currency:string};
+type Usage={channel:"email"|"whatsapp";messages:number;amount_cents:number;currency:string};
+type MarketingStatus={email:boolean;whatsapp:boolean;template_name:string;template_language:string};
 const COLOR_PRESETS=["#571c32","#351623","#8b3c58","#a7637c","#7760a5","#c9784f","#273550","#a14460","#1d1d1d","#367666","#a35f75","#2c73ac","#dfac5c","#b33c3c","#134e4a","#6d28d9","#f97316","#0f172a","#edf4e9","#f4e8db","#f9cadf","#ffffff","#000000"];
 const STAMP_COLOR_PRESETS=["#571c32","#8b3c58","#0f172a","#2563eb","#b91c1c","#c2410c","#7c3aed","#0f766e","#a16207","#db2777","#ffffff"];
 export default function BusinessWorkspace({account}:{account:Account}){
@@ -48,6 +51,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee");
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState("Tijuana"),[country,setCountry]=useState("México"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState(""),[quote,setQuote]=useState<MailQuote|null>(null);
+ const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null);
+ const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,template_name:"",template_language:""});
+ useEffect(()=>{fetch("/api/local/marketing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setMarketingStatus(v as MarketingStatus)}).catch(()=>{});},[]);
  const [previewEarned,setPreviewEarned]=useState(3),[siteOrigin,setSiteOrigin]=useState("");
  useEffect(()=>{setSiteOrigin(window.location.origin)},[]);
  const reload=useCallback(async()=>{
@@ -60,7 +66,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    db().from("business_invitations").select("id,email,role,created_at").eq("business_id",selected).is("claimed_at",null),
    db().from("business_locations").select("*").eq("business_id",selected),
    db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id,employee_id,reversal_of,reversal_reason").eq("business_id",selected).order("created_at",{ascending:false}).limit(250),
-   db().from("marketing_campaigns").select("id,subject,body_text,status,recipient_count,sent_count,failed_count,created_at").eq("business_id",selected).order("created_at",{ascending:false}),
+   db().from("marketing_campaigns").select("id,subject,body_text,channel,template_name,template_language,status,recipient_count,sent_count,failed_count,created_at").eq("business_id",selected).order("created_at",{ascending:false}),
    db().rpc("business_employee_activity",{p_business:selected,p_days:30}),
     db().rpc("business_dashboard_metrics",{p_business:selected,p_days:periodDays}),
     db().rpc("business_reward_ranking",{p_business:selected,p_days:periodDays}),
@@ -72,10 +78,14 @@ export default function BusinessWorkspace({account}:{account:Account}){
    setMetrics((m.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
   const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error;
   if(failure)setError(failure.message);
-  const pricing=await db().rpc("business_mail_quote",{p_business:selected});
+  const [pricing,used]=await Promise.all([
+   db().rpc(marketingChannel==="email"?"business_mail_quote":"business_whatsapp_quote",{p_business:selected}),
+   db().rpc("business_marketing_usage",{p_business:selected})
+  ]);
   setQuote(pricing.error?null:((pricing.data||[])[0] as MailQuote||null));
+  setUsage((used.data||[]) as Usage[]);
   setLoading(false);
- },[selected,periodDays]);
+ },[selected,periodDays,marketingChannel]);
  useEffect(()=>{reload()},[reload]);
  function success(s:string){setNotice(s);setError("")}
  async function saveBusiness(fields:Partial<Business>){if(!selected)return;setBusy(true);setError("");setNotice("");
@@ -146,23 +156,46 @@ export default function BusinessWorkspace({account}:{account:Account}){
   const {error}=await db().from("business_locations").delete().eq("id",id);
   if(error){setError(error.message);return}success("Ubicación eliminada.");await reload()
  }
- async function saveDraft(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setNotice("");
-  const {error}=await db().from("marketing_campaigns").insert({business_id:selected,created_by:account.user.id,subject:mailSubject,body_text:mailBody,status:"draft"});
-  setBusy(false);if(error){setError(error.message);return}setMailSubject("");setMailBody("");success("Borrador guardado, sin enviar emails.");await reload()
+ function editDraft(d:Draft){setEditingDraft(d.id);setMarketingChannel(d.channel||"email");setMailSubject(d.subject);setMailBody(d.body_text);setError("");setNotice("");}
+ function clearComposer(){setEditingDraft(null);setMailSubject("");setMailBody("");}
+ async function saveDraft(e:React.FormEvent){
+  e.preventDefault();setError("");setNotice("");
+  if(mailBody.trim().length<3||mailBody.length>12000){setError("El mensaje debe tener entre 3 y 12.000 caracteres.");return;}
+  if(marketingChannel==="whatsapp"&&mailBody.length>900){setError("Para WhatsApp, utiliza un mensaje de hasta 900 caracteres.");return;}
+  setBusy(true);
+  const fields={subject:mailSubject.trim(),body_text:mailBody,channel:marketingChannel,
+   template_name:marketingChannel==="whatsapp"?(marketingStatus.template_name||null):null,
+   template_language:marketingChannel==="whatsapp"?(marketingStatus.template_language||null):null};
+  const result=editingDraft?
+   await db().from("marketing_campaigns").update(fields).eq("id",editingDraft).eq("business_id",selected).eq("status","draft"):
+   await db().from("marketing_campaigns").insert({...fields,business_id:selected,created_by:account.user.id,status:"draft"});
+  setBusy(false);
+  if(result.error){setError(result.error.message);return;}
+  clearComposer();success("Borrador guardado. No se ha enviado ni cobrado ningún mensaje.");await reload();
  }
  async function sendCampaign(draft:Draft){
-  if(!quote){setError("No se pudo confirmar la tarifa. Recarga la página.");return}
-  if(draft.status==="draft"&&quote.contacts===0){setError("Ningún cliente ha aceptado recibir correos comerciales.");return}
-  const estimate=new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(quote.total_cents/100);
-  if(!window.confirm(draft.status==="draft"?"¿Enviar esta campaña a "+quote.contacts+" contactos? Coste estimado: "+estimate+". Solo se cobra por los mensajes enviados correctamente.":"¿Continuar los envíos pendientes de esta campaña?"))return;
+  const channel=draft.channel||"email";
+  if(demoRole()){setError("Los envíos reales están desactivados en los perfiles de demostración.");return;}
+  if(!marketingStatus[channel]){setError(channel==="email"?"El envío de correos aún no está activado.":"WhatsApp requiere configuración y aprobación de plantilla por Loyally.");return;}
+  if(draft.status==="draft"&&channel==="whatsapp"&&!draft.template_name){setError("Antes de enviar WhatsApp hay que asociar una plantilla aprobada.");return;}
+  const result=await db().rpc(channel==="email"?"business_mail_quote":"business_whatsapp_quote",{p_business:selected});
+  const current=(result.data||[])[0] as MailQuote|undefined;
+  if(result.error||!current||current.price_cents==null||current.total_cents==null){setError("No está definida la tarifa para este canal.");return;}
+  if(draft.status==="draft"&&Number(current.contacts)<1){setError("No hay destinatarios con consentimiento para este canal.");return;}
+  const estimate=new Intl.NumberFormat("es-MX",{style:"currency",currency:current.currency}).format(Number(current.total_cents)/100);
+  const question=draft.status==="draft"?
+   "¿Confirmas el envío por "+(channel==="email"?"correo":"WhatsApp")+" a "+current.contacts+" destinatarios? Coste máximo estimado: "+estimate+". Solo se contabilizan los mensajes aceptados por el proveedor.":
+   "¿Reanudar la cola de mensajes pendientes?";
+  if(!window.confirm(question))return;
   setBusy(true);setError("");setNotice("");
   try{
-   const resp=await fetch("/api/local/marketing/send",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({campaign_id:draft.id,expected_total_cents:quote.total_cents})});
+   const resp=await fetch("/api/local/marketing/send",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({campaign_id:draft.id,expected_total_cents:current.total_cents})});
    const value=await resp.json() as {error?:string;sent?:number;failed?:number;remaining?:number};
    if(!resp.ok||value.error)throw Error(value.error||"No se pudo enviar la campaña.");
-   success("Campaña procesada: "+(value.sent||0)+" correos aceptados, "+(value.failed||0)+" fallidos y "+(value.remaining||0)+" pendientes. Solo los aceptados se contabilizan como uso.");
+   success("Envío procesado: "+(value.sent||0)+" aceptados, "+(value.failed||0)+" fallidos y "+(value.remaining||0)+" pendientes. La actividad queda registrada en Loyally.");
    await reload();
-  }catch(e){setError((e as Error).message)}finally{setBusy(false)}
+  }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  const repeatCount=customers.filter(c=>Number(c.visits)>=2).length,canvassed=customers.filter(c=>c.marketing_ok).length;
  const programType=prog?.type;
@@ -267,7 +300,46 @@ export default function BusinessWorkspace({account}:{account:Account}){
       </tr>})}</tbody></table></div>
    </div>
  </>}
-   {tab==="marketing"&&<div className="admin-grid"><form className="panel-card" onSubmit={saveDraft}><div className="panel-icon"><Mail size={22}/></div><h2>Tu próxima campaña</h2><p className="muted">Prepara un correo para clientes que hayan aceptado recibir campañas. Las direcciones se mantienen protegidas por Loyally.</p><div className="marketing-eligible"><Mail size={19}/><div><strong>{quote?.contacts??canvassed} destinatarios autorizados</strong><small>{quote?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(quote.total_cents/100)+" estimados · "+quote.price_cents+" centavos/contacto":"Calculando presupuesto en el servidor..."} · De {customers.length} clientes</small></div></div><div className="form-stack"><label>Asunto<input value={mailSubject} required maxLength={180} onChange={e=>setMailSubject(e.target.value)} placeholder="¡Esta semana hay algo especial!"/></label><label>Mensaje<textarea value={mailBody} required rows={9} onChange={e=>setMailBody(e.target.value)} placeholder="Hola, queremos contarte..."/></label><button className="button button-dark" disabled={busy}>Guardar borrador <FileText size={17}/></button></div><p className="tiny-note">Guardar un borrador no envía ni cobra. Para enviar mensajes, el servicio de correo debe estar activo. Solo se contabilizan los correos aceptados por SMTP; las bajas se gestionan mediante un enlace individual.</p></form><section className="panel-card"><h2>Borradores del negocio</h2>{drafts.map(d=><div className="activity-row" key={d.id}><div className="activity-icon positive"><Mail size={18}/></div><div><strong>{d.subject}</strong><span>{dateShort(d.created_at)} · {d.status==="draft"?"Borrador":d.status==="sent"?"Envío terminado":d.status==="partial"?"Envío parcial":d.status==="failed"?"Envío fallido":"En proceso"}{d.status!=="draft"?" · "+(d.sent_count||0)+" correos enviados":""}</span></div>{!demoRole()&&(["draft","queued","sending"].includes(d.status))&&<button type="button" className="button button-outline button-sm" disabled={busy||(d.status==="draft"&&(!quote||quote.contacts===0))} onClick={()=>sendCampaign(d)}>{d.status==="draft"?"Enviar campaña":"Continuar envío"}</button>}</div>)}{!drafts.length&&<p className="muted">Todavía no hay borradores.</p>}</section></div>}
+   {tab==="marketing"&&<div className="campaign-page">
+    <div className="campaign-channel-switch" role="group" aria-label="Canal de campaña">
+     <button type="button" className={marketingChannel==="email"?"active":""} onClick={()=>{setMarketingChannel("email");clearComposer()}}><Mail size={17}/>Correo electrónico</button>
+     <button type="button" className={marketingChannel==="whatsapp"?"active":""} onClick={()=>{setMarketingChannel("whatsapp");clearComposer()}}><Users size={17}/>WhatsApp</button>
+    </div>
+    <div className="campaign-overview-grid">
+     <div className="panel-card campaign-overview-stat"><span>Contactos que han aceptado este canal</span><strong>{quote?.contacts??"—"}</strong><small>Solo personas con consentimiento expreso</small></div>
+     <div className="panel-card campaign-overview-stat"><span>Coste unitario</span><strong>{quote?.price_cents!=null?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(Number(quote.price_cents)/100):"No disponible"}</strong><small>Precio por destinatario gestionado por Loyally</small></div>
+     <div className="panel-card campaign-overview-stat"><span>Presupuesto estimado</span><strong>{quote?.total_cents!=null?new Intl.NumberFormat("es-MX",{style:"currency",currency:quote.currency}).format(Number(quote.total_cents)/100):"—"}</strong><small>Importe real según mensajes aceptados</small></div>
+    </div>
+    <div className="campaign-editor-grid">
+     <form className="panel-card campaign-compose" onSubmit={saveDraft}>
+      <div className="panel-icon"><Mail size={22}/></div>
+      <h2>{editingDraft?"Editar campaña":"Crear una campaña"}</h2>
+      <p className="muted">Prepara tu mensaje sin acceder a los datos privados de tus clientes.</p>
+      {!marketingStatus[marketingChannel]&&<div className="info-callout"><ShieldCheck size={17}/>{marketingChannel==="whatsapp"?"Los mensajes pueden prepararse. Los envíos se habilitarán cuando Loyally conecte la cuenta de Meta y apruebe la plantilla.":"Puedes guardar borradores; el envío se activará cuando Loyally configure el correo."}</div>}
+      <div className="form-stack">
+       <label>{marketingChannel==="email"?"Asunto del correo":"Nombre interno de campaña"}<input required maxLength={180} value={mailSubject} onChange={e=>setMailSubject(e.target.value)} placeholder={marketingChannel==="email"?"Una sorpresa para quienes nos visitan":"Promoción de noviembre"}/></label>
+       <div><label className="campaign-editor-label">Mensaje</label><RichMessageEditor value={mailBody} onChange={setMailBody} channel={marketingChannel}/></div>
+       <div className="campaign-compose-actions"><button type="submit" disabled={busy||mailBody.trim().length<3} className="button button-dark">{busy?"Guardando...":editingDraft?"Actualizar borrador":"Guardar borrador"} <FileText size={17}/></button>
+       {editingDraft&&<button type="button" className="button button-outline" onClick={clearComposer}>Cancelar edición</button>}</div>
+      </div>
+      <p className="tiny-note">Guardar no envía ni cobra. Cada envío requiere confirmar el presupuesto; las bajas y los consentimientos se gestionan desde Loyally.</p>
+     </form>
+     <div className="campaign-sidebar">
+      <section className="panel-card"><h2>Campañas guardadas</h2>
+       {drafts.map(d=><div className="campaign-draft-row" key={d.id}>
+        <div><strong>{d.subject}</strong><span>{d.channel==="whatsapp"?"WhatsApp":"Correo"} · {dateShort(d.created_at)} · {d.status==="draft"?"Borrador":d.status==="sent"?"Enviada":d.status==="partial"?"Parcial":d.status==="failed"?"Fallida":"En proceso"}</span>
+         {d.status!=="draft"&&<small>{d.sent_count||0} mensajes aceptados</small>}</div>
+        <div className="campaign-draft-actions">{d.status==="draft"&&<button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>editDraft(d)}>Editar</button>}
+        {["draft","queued","sending"].includes(d.status)&&<button type="button" className="button button-dark button-sm" disabled={busy||!marketingStatus[d.channel||"email"]||!!demoRole()} onClick={()=>sendCampaign(d)}>{d.status==="draft"?"Preparar envío":"Continuar"}</button>}</div>
+       </div>)}
+       {!drafts.length&&<p className="muted">Aquí aparecerán tus campañas, listas para preparar y revisar.</p>}
+      </section>
+      <section className="panel-card"><h2>Consumo de campañas</h2><p className="muted">Historial de mensajes aceptados por los proveedores. Sin mostrar correos ni teléfonos.</p>
+       {usage.length?usage.map(u=><div className="overview-stat" key={u.channel+"-"+u.currency}><span>{u.channel==="email"?"Correo":"WhatsApp"} · {u.messages} mensajes</span><strong>{new Intl.NumberFormat("es-MX",{style:"currency",currency:u.currency}).format(Number(u.amount_cents)/100)}</strong></div>):<p className="muted">Sin envíos contabilizados.</p>}
+      </section>
+     </div>
+    </div>
+   </div>}
    </>}
   </div></div></>}
  </div>;
