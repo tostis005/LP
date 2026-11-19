@@ -205,7 +205,14 @@ jobs:
                curl -fsS --max-time 8 'http://127.0.0.1:3100/?lang=en' -o "$homepage_en" &&
                grep -q 'Turn every visit into' "$homepage_en" &&
                ! grep -q 'Haz que cada visita' "$homepage_en"; then
-              echo "Loyally responde correctamente y la raíz publica las portadas española e inglesa."
+              # Evitar que un enlace de vista previa o una sección interna vuelva a responder 404/500.
+              for route in /negocio /negocio/marketing /negocio/vista-previa /app/descubrir /api/local/wallet/status /api/local/marketing/status; do
+                if ! curl -fsS --max-time 12 "http://127.0.0.1:3100${route}" >/dev/null; then
+                  echo "ERROR: la sección ${route} no responde correctamente tras el despliegue."
+                  exit 1
+                fi
+              done
+              echo "Loyally responde correctamente: home ES/EN, negocio, campañas, vista previa, descubrir y estados de Wallet."
               exit 0
             fi
             sleep 3
