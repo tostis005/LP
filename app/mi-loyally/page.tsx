@@ -5,6 +5,7 @@ import {useRouter} from "next/navigation";
 import Link from "next/link";
 import {ArrowRight,Check,ChevronLeft,Gift,Heart,LockKeyhole,Share2,Smartphone,Sparkles,Ticket,X} from "lucide-react";
 import {db} from "@/lib/supabase";
+import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import "./mi-loyally.css";
 
 type Mode="login"|"signup"|"forgot";
@@ -34,6 +35,7 @@ export default function MiLoyally(){
    ?"ios":/Android/i.test(ua)?"android":"other";
   setPlatform(device);
   setShowInstall(!appMode&&new URLSearchParams(window.location.search).has("instalar"));
+  if(new URLSearchParams(window.location.search).has("auth_error"))setError("No hemos podido conectar con tu cuenta. Prueba de nuevo.");
   function capture(e:Event){e.preventDefault();setInstallPrompt(e as InstallPrompt);}
   function installed(){setStandalone(true);setShowInstall(false);setInstallPrompt(null);}
   window.addEventListener("beforeinstallprompt",capture);
@@ -106,6 +108,7 @@ export default function MiLoyally(){
    <section className="loyal-app-auth" aria-labelledby="loyal-app-auth-title">
     <h2 id="loyal-app-auth-title">{intro}</h2>
     <p>{mode==="signup"?"Tus tarjetas estarán juntas desde el primer día.":mode==="forgot"?"Te ayudamos a volver a entrar.":"Entra para ver tus tarjetas y tus recompensas."}</p>
+    <SocialAuthButtons next="/app"/>
     <form onSubmit={signIn} className="loyal-app-form">
      {mode==="signup"&&<label>Tu nombre<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder="¿Cómo te llamas?"/></label>}
      <label>Correo electrónico<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
