@@ -34,7 +34,7 @@
 .loyal-app-links button,.loyal-app-back{background:transparent;border:0;padding:6px 0;color:#7d3551;font-size:12px;font-weight:800}
 .loyal-app-back{display:flex;align-items:center;gap:5px;margin-top:20px}
 .loyal-app-error{padding:10px 12px;color:#9b2e48;background:#fff0f3;border-radius:8px;font-size:12px;margin:0}
-.loyal-app-success{padding:10px 12px;color:#275d47;background:#eaf7f0;border-radius:8px;font-size:12px;margin:0}
+.loyal-app-success{padding:10px 12px;color:#632c43;background:#f8eaf0;border-radius:8px;font-size:12px;margin:0}
 .loyal-app-footer{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px;color:#907580;font-size:11px;margin-top:42px}
 .loyal-app-footer a{font-weight:800;color:#643148}
 .loyal-app-sheet-overlay{position:fixed;inset:0;background:#24121cb3;z-index:300;display:grid;place-items:center;padding:15px}
