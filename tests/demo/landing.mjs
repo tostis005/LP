@@ -40,4 +40,14 @@ assert.match(iconSource,/bread:/);
 assert.equal((iconSource.match(/\{id:"/g)||[]).length,24,"All 24 stamps remain available");
 const brand=readFileSync(new URL("../../components/Brand.tsx",import.meta.url),"utf8");
 assert.doesNotMatch(brand,/<span>\.<\/span>/);
+
+const landingCss=readFileSync(new URL("../../app/landing.css",import.meta.url),"utf8");
+const landingUi=readFileSync(new URL("../../components/LandingHome.tsx",import.meta.url),"utf8");
+assert.match(landingCss,/--loi-dark:#27131e/,"The landing uses the wine-and-black brand tokens");
+assert.match(landingCss,/\.loi-site \.loi-hero\{background:radial-gradient/,"The hero gradient uses the new palette");
+assert.match(landingCss,/\.loi-site \.loi-final-card\{background:linear-gradient\(120deg,#571c32/);
+assert.match(landingCss,/\.loi-public-header\{background:rgba\(252,248,250/);
+assert.doesNotMatch(landingCss,/#214936|#2d6449|#1e4031|#23503b/i,"Old green brand palette still visible");
+assert.match(landingUi,/name="Café Noma" color="#571c32"/,"The mock customer card also uses the new palette");
+
 console.log("Commercial landing: ES/EN copy parity, 24-icon collection and logo verified.");
