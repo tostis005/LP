@@ -13,7 +13,6 @@ import {demoRole} from "@/lib/demo-local";
 import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/BusinessAnalytics";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
-import {BranchCreator} from "@/components/BranchCreator";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
 type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
@@ -34,6 +33,13 @@ type Draft={id:string;subject:string;body_text:string;channel:"email"|"whatsapp"
 type MailQuote={contacts:number;price_cents:number|null;total_cents:number|null;currency:string};
 type Usage={channel:"email"|"whatsapp";messages:number;amount_cents:number;currency:string};
 type MarketingStatus={email:boolean;whatsapp:boolean;template_name:string;template_language:string};
+function privateEmail(value:string){
+ if(!value||!value.includes("@"))return "Oculto";
+ const [left,right]=value.split("@");
+ if(left.includes("*")||right.includes("*")||left.includes("X")&&left.length<4)return value.replace(/\*/g,"X");
+ return (left.slice(0,Math.min(2,left.length))+"X".repeat(Math.max(3,left.length-2))+"@"+right.slice(0,1)+"X".repeat(Math.max(3,right.length-1)));
+}
+
 const COLOR_PRESETS=["#571c32","#351623","#8b3c58","#a7637c","#7760a5","#c9784f","#273550","#a14460","#1d1d1d","#367666","#a35f75","#2c73ac","#dfac5c","#b33c3c","#134e4a","#6d28d9","#f97316","#0f172a","#edf4e9","#f4e8db","#f9cadf","#ffffff","#000000"];
 const STAMP_COLOR_PRESETS=["#571c32","#8b3c58","#0f172a","#2563eb","#b91c1c","#c2410c","#7c3aed","#0f766e","#a16207","#db2777","#ffffff"];
 export default function BusinessWorkspace({account}:{account:Account}){
@@ -74,6 +80,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
   ]);
   setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
   setStaff((s.data||[]) as Employee[]);setInvites(i.data||[]);setLocations((l.data||[]) as Location[]);
+  const firstLocation=(l.data||[])[0] as Location|undefined;
+  if(firstLocation){setLocationName(firstLocation.name);setAddress(firstLocation.address);setCity(firstLocation.city);setCountry(firstLocation.country);setLat(String(firstLocation.lat));setLng(String(firstLocation.lng))}
+  else {setLocationName("");setAddress("");setLat("");setLng("")}
   setTransactions((t.data||[]) as Tx[]);setDrafts((d.data||[]) as Draft[]);setActivity((a.data||[]) as {user_id:string;employee_name:string;operations:number;awarded_units:number}[]);
    setMetrics((m.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
   const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error;
@@ -148,13 +157,17 @@ export default function BusinessWorkspace({account}:{account:Account}){
   const {error}=await db().rpc("set_staff_active",{p_business:selected,p_user:user_id,p_active:active});
   setBusy(false);if(error){setError(error.message);return}success("Acceso actualizado.");await reload()
  }
- async function addLocation(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setNotice("");
-  const {error}=await db().from("business_locations").insert({business_id:selected,name:locationName,address,city,country,lat:Number(lat),lng:Number(lng)});
-  setBusy(false);if(error){setError(error.message);return}setLocationName("");setAddress("");setCity("");setLat("");setLng("");success("Nueva ubicación guardada.");await reload()
- }
- async function removeLocation(id:string){if(!confirm("¿Eliminar esta ubicación?"))return;
-  const {error}=await db().from("business_locations").delete().eq("id",id);
-  if(error){setError(error.message);return}success("Ubicación eliminada.");await reload()
+ async function saveLocation(e:React.FormEvent){
+  e.preventDefault();setError("");setNotice("");
+  const location=locations[0];
+  if(!location){setError("Loyally tiene que activar primero la dirección de este establecimiento.");return;}
+  setBusy(true);
+  const {error}=await db().from("business_locations").update({
+   name:locationName,address,city,country,lat:Number(lat),lng:Number(lng)
+  }).eq("id",location.id).eq("business_id",selected);
+  setBusy(false);
+  if(error){setError(error.message);return}
+  success("Dirección actualizada.");await reload();
  }
  function editDraft(d:Draft){setEditingDraft(d.id);setMarketingChannel(d.channel||"email");setMailSubject(d.subject);setMailBody(d.body_text);setError("");setNotice("");}
  function clearComposer(){setEditingDraft(null);setMailSubject("");setMailBody("");}
@@ -208,7 +221,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
      <div><span className="page-eyebrow">PANEL DE NEGOCIO</span><h2>{tabs.find(t=>t.id===tab)?.label||"Resumen"}</h2><p>Gestiona esta sección desde el menú principal de Loyally.</p></div>
      <Link className="button button-outline button-sm" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Vista previa de la tarjeta <ArrowUpRight size={16}/></Link>
     </header>
-    {!["overview","customers","marketing","reports","settings"].includes(tab)&&<Link className="business-settings-return" href="/negocio/settings">Volver a Más opciones</Link>}
+    
     <div className="workspace-section-body">
    {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success"><Check size={17}/>{notice}</div>}
    {loading&&!biz?<div className="soft-panel">Cargando negocio...</div>:biz&&prog&&<>
@@ -222,10 +235,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
      {([{id:"designer",title:"Diseño de tarjeta",summary:"Color, dibujo y mensaje de tus sellos",icon:<Brush size={22}/>},
       {id:"program",title:"Premios y sellos",summary:"Reglas de fidelización y recompensas",icon:<Gift size={22}/>},
       {id:"team",title:"Tu equipo",summary:"Empleados y accesos del establecimiento",icon:<Users size={22}/>},
-      {id:"locations",title:"Locales y sucursales",summary:"Direcciones y espacios de atención",icon:<MapPin size={22}/>}
+      {id:"locations",title:"Dirección del negocio",summary:"Actualiza la dirección de tu establecimiento",icon:<MapPin size={22}/>}
      ] as const).map(item=><Link key={item.id} href={"/negocio/"+item.id}>{item.icon}<span><strong>{item.title}</strong><small>{item.summary}</small></span><ArrowUpRight size={17}/></Link>)}
      <Link href="/negocio/facturacion"><CreditCard size={22}/><span><strong>Facturación</strong><small>Suscripción, pagos y consumo de campañas</small></span><ArrowUpRight size={17}/></Link>
-     <Link href="/empleado"><Ticket size={22}/><span><strong>Escanear tarjetas</strong><small>Registrar visitas y canjear recompensas</small></span><ArrowUpRight size={17}/></Link>
     </div>
    </section>}
    {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido por tu categoría. Puedes elegir otro para el mapa y las tarjetas desde «Diseño de tarjeta».</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form><section className="panel-card"><h2>Tu identidad de marca</h2><p className="muted">Sube un logo para personalizar la tarjeta y la ficha de tu negocio.</p><div className="upload-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logo del negocio"/>:<div className="upload-logo" style={{background:biz.accent_color}}>{initials(biz.name)}</div>}</div><label className="file-input"><ImagePlus size={18}/> Subir logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label><div className="info-callout"><ShieldCheck size={18}/> Puedes usar una imagen de hasta 5 MB. Tu logotipo se mostrará a quienes descubran el negocio y guarden su tarjeta.</div></section></div>}
@@ -280,11 +292,28 @@ export default function BusinessWorkspace({account}:{account:Account}){
    <div className="info-callout"><ShieldCheck size={18}/> Cada visita queda registrada con la fecha y el empleado que la atendió, para que puedas consultar el historial y corregir errores.</div>
    <button disabled={busy} className="button button-dark">Guardar programa <Check size={17}/></button></div></form>}
     {tab==="program"&&<RewardCatalog businessId={selected} options={rewardOptions} onSaved={reload}/>}
-   {tab==="team"&&<div className="admin-grid"><section className="panel-card"><h2>Tu equipo</h2><p className="muted">Cada empleado opera bajo su cuenta y queda registrado en cada movimiento.</p>{staff.map(x=><div className="activity-row team-row" key={x.user_id}><div className="person-initial">{initials(x.full_name||x.email)}</div><div><strong>{x.full_name||x.email}</strong><span>{x.email} · {x.role==="owner"?"Propietario":x.role==="manager"?"Manager":"Empleado"}</span></div>{x.role!=="owner"&&<button disabled={busy} onClick={()=>toggleStaff(x.user_id,!x.active)} className={"table-pill "+(x.active?"":"inactive")}>{x.active?"Activo":"Inactivo"}</button>}</div>)}<h3 className="subheading">Invitaciones pendientes</h3>{invites.map(x=><div className="activity-row" key={x.id}><div className="activity-icon positive"><Mail size={17}/></div><div><strong>{x.email}</strong><span>{x.role} · Pendiente de registro/verificación</span></div></div>)}{!invites.length&&<p className="muted">No hay invitaciones pendientes.</p>}</section>
+   {tab==="team"&&<div className="admin-grid"><section className="panel-card"><h2>Tu equipo</h2><p className="muted">Cada empleado opera bajo su cuenta y queda registrado en cada movimiento.</p>{staff.map(x=><div className="activity-row team-row" key={x.user_id}><div className="person-initial">{initials(x.full_name||privateEmail(x.email))}</div><div><strong>{x.full_name||privateEmail(x.email)}</strong><span>{privateEmail(x.email)} · {x.role==="owner"?"Propietario":x.role==="manager"?"Manager":"Empleado"}</span></div>{x.role!=="owner"&&<button disabled={busy} onClick={()=>toggleStaff(x.user_id,!x.active)} className={"table-pill "+(x.active?"":"inactive")}>{x.active?"Activo":"Inactivo"}</button>}</div>)}<h3 className="subheading">Invitaciones pendientes</h3>{invites.map(x=><div className="activity-row" key={x.id}><div className="activity-icon positive"><Mail size={17}/></div><div><strong>{privateEmail(x.email)}</strong><span>{x.role} · Pendiente de registro/verificación</span></div></div>)}{!invites.length&&<p className="muted">No hay invitaciones pendientes.</p>}</section>
    <form className="panel-card" onSubmit={invite}><div className="panel-icon"><Users size={22}/></div><h2>Añadir un empleado</h2><p className="muted">Invita por email. La cuenta tendrá acceso solo a los negocios asignados.</p><div className="form-stack"><label>Email del empleado<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="empleado@negocio.com" required/></label><label>Permiso<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="employee">Empleado: escanear y canjear</option>{account.businesses.find(x=>x.business_id===selected)?.role==="owner"&&<option value="manager">Manager: también gestionar negocio</option>}</select></label><button className="button button-dark" disabled={busy}>Crear invitación <Plus size={17}/></button></div><p className="tiny-note">La invitación queda registrada en Loyally. No se envía un email automáticamente hasta integrar un servicio transaccional; puedes avisar al empleado por tu cuenta.</p></form></div>}
-   {tab==="customers"&&<section className="panel-card"><div className="content-heading"><div><h2>Tu comunidad</h2><p>Solo clientes inscritos en tu programa. Por su privacidad, no mostramos sus direcciones completas; puedes contactarles mediante las campañas de Loyally.</p></div><span className="table-pill">{customers.length} clientes</span></div><div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>{customers.map(x=><tr key={x.user_id}><td><strong>{x.full_name||"Sin nombre"}</strong></td><td><code className="customer-obfuscated-email">{x.email}</code></td><td><b>{formatBalance(x.balance)}</b></td><td>{x.visits}</td><td>{x.marketing_ok?<span className="table-pill">Aceptado</span>:<span className="table-pill inactive">No</span>}</td><td>{dateShort(x.joined_at)}</td></tr>)}</tbody></table></div>{customers.length===0&&<p className="muted">Comparte tu programa para conseguir tus primeros clientes.</p>}</section>}
-   {tab==="locations"&&<div className="admin-grid"><section className="panel-card"><h2>Puntos de atención de esta tarjeta</h2><p className="muted">Estas direcciones comparten tarjeta y programa. Para propietarios distintos, crea una sucursal independiente más abajo.</p>{locations.map(l=><div className="activity-row" key={l.id}><div className="activity-icon positive"><MapPin size={19}/></div><div><strong>{l.name}</strong><span>{l.address}, {l.city}, {l.country}</span><small className="muted">Lat. {l.lat}, lng. {l.lng}</small></div><button className="icon-button" aria-label="Eliminar ubicación" onClick={()=>removeLocation(l.id)}><Trash2 size={18}/></button></div>)}{!locations.length&&<p className="muted">Añade una ubicación para aparecer en el directorio.</p>}</section><form className="panel-card" onSubmit={addLocation}><div className="panel-icon"><MapPin size={22}/></div><h2>Añadir ubicación</h2><p className="muted">Completa la dirección de tu local. Para marcar su posición exacta en el mapa puedes usar la ubicación de tu dispositivo estando allí.</p><div className="form-stack"><label>Nombre del local<input required value={locationName} onChange={e=>setLocationName(e.target.value)} placeholder="Local principal"/></label><label>Dirección<input required value={address} onChange={e=>setAddress(e.target.value)} placeholder="Calle y número"/></label><div className="form-two"><label>Ciudad<input required value={city} onChange={e=>setCity(e.target.value)}/></label><label>País<input required value={country} onChange={e=>setCountry(e.target.value)}/></label></div><div className="form-two"><label>Posición norte/sur (latitud)<input required type="number" min={-90} max={90} step="any" value={lat} onChange={e=>setLat(e.target.value)}/></label><label>Posición este/oeste (longitud)<input required type="number" min={-180} max={180} step="any" value={lng} onChange={e=>setLng(e.target.value)}/></label></div><button className="button button-dark" disabled={busy}>Guardar local <Plus size={16}/></button></div></form></div>}
-   {tab==="locations"&&account.businesses.find(x=>x.business_id===selected)?.role==="owner"&&!biz.parent_business_id&&<BranchCreator businessId={selected} email={account.user.email||""} onCreated={(id,selfOwned)=>{if(selfOwned){account.refresh();setSelected(id);openSection("overview");}setNotice(selfOwned?"Sucursal creada con tarjeta y datos independientes.":"Sucursal creada con acceso independiente. Avisa al nuevo propietario: debe registrarse con el correo indicado y aceptar su invitación.");}}/>}
+   {tab==="customers"&&<section className="panel-card"><div className="content-heading"><div><h2>Tu comunidad</h2><p>Solo clientes inscritos en tu programa. Por su privacidad, no mostramos sus direcciones completas; puedes contactarles mediante las campañas de Loyally.</p></div><span className="table-pill">{customers.length} clientes</span></div><div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>{customers.map(x=><tr key={x.user_id}><td><strong>{x.full_name||"Sin nombre"}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(x.email)}</code></td><td><b>{formatBalance(x.balance)}</b></td><td>{x.visits}</td><td>{x.marketing_ok?<span className="table-pill">Aceptado</span>:<span className="table-pill inactive">No</span>}</td><td>{dateShort(x.joined_at)}</td></tr>)}</tbody></table></div>{customers.length===0&&<p className="muted">Comparte tu programa para conseguir tus primeros clientes.</p>}</section>}
+   {tab==="locations"&&<div className="business-location-layout">
+    <section className="panel-card business-location-intro">
+     <div className="panel-icon"><MapPin size={23}/></div><h2>Tu establecimiento</h2>
+     <p className="muted">Aquí actualizas la dirección de este negocio. Si gestionas otros locales, selecciónalos desde el menú de negocios.</p>
+     {locations.length?<><strong>{locations[0].name}</strong><p>{locations[0].address}<br/>{locations[0].city}, {locations[0].country}</p></>:
+      <div className="info-callout">Este establecimiento todavía no tiene dirección asignada. Nuestro equipo puede activarla.</div>}
+     <div className="business-location-request"><strong>¿Necesitas otro establecimiento?</strong><p>Cada nuevo local se registra por separado en Loyally. Podemos vincular varios al mismo propietario y valorar condiciones especiales para cadenas.</p><Link href="/solicitar-acceso" className="button button-outline">Solicitar otro local <ArrowUpRight size={16}/></Link></div>
+    </section>
+    {locations.length>0&&<form className="panel-card" onSubmit={saveLocation}>
+     <h2>Editar dirección</h2><p className="muted">Los cambios de dirección se muestran en el mapa al guardar.</p>
+     <div className="form-stack"><label>Nombre del establecimiento<input required minLength={2} value={locationName} onChange={e=>setLocationName(e.target.value)}/></label>
+      <label>Calle y número<input required minLength={4} value={address} onChange={e=>setAddress(e.target.value)}/></label>
+      <div className="form-two"><label>Ciudad<input required value={city} onChange={e=>setCity(e.target.value)}/></label><label>País<input required value={country} onChange={e=>setCountry(e.target.value)}/></label></div>
+      <div className="form-two"><label>Latitud<input required type="number" min={-90} max={90} step="any" value={lat} onChange={e=>setLat(e.target.value)}/></label>
+       <label>Longitud<input required type="number" min={-180} max={180} step="any" value={lng} onChange={e=>setLng(e.target.value)}/></label></div>
+      <button type="submit" className="button button-dark" disabled={busy}>{busy?"Guardando...":"Guardar dirección"}</button>
+     </div>
+    </form>}
+   </div>}
     {tab==="reports"&&<>
    <BusinessAnalytics metrics={metrics} ranking={ranking} days={periodDays} onDays={setPeriodDays}/>
    <div className="panel-card"><h2>Actividad por empleado · últimos 30 días</h2>
