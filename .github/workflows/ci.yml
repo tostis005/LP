@@ -28,6 +28,8 @@ jobs:
         run: node tests/demo/theme.mjs
       - name: Verificar experiencia final por rol, iconos, campañas y Wallet
         run: node tests/demo/release.mjs
+      - name: Revisar experiencia comercial, navegación y control de sucursales
+        run: node tests/demo/launch-polish.mjs
       - name: Probar acceso inmediato y sellos en los cuatro perfiles
         run: node tests/demo/role-flow.mjs
       - name: Comprobar TypeScript
@@ -137,3 +139,4 @@ jobs:
           node tests/native/oauth.mjs
           node tests/native/theme.mjs
           node tests/native/release.mjs
+          node tests/native/business-governance.mjs
