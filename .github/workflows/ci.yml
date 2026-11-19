@@ -140,3 +140,4 @@ jobs:
           node tests/native/theme.mjs
           node tests/native/release.mjs
           node tests/native/business-governance.mjs
+          node tests/native/push.mjs

@@ -2,7 +2,7 @@
 import {useCallback,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
-import {Activity,ArrowUpRight,BarChart3,Brush,Check,ChevronDown,CircleHelp,Clock3,CreditCard,FileText,Gift,ImagePlus,MapPin,Mail,Menu,Plus,Settings2,ShieldCheck,Store,Ticket,ToggleLeft,Trash2,Users,Wallet} from "lucide-react";
+import {Activity,ArrowUpRight,BarChart3,Brush,Check,ChevronDown,CircleHelp,Clock3,CreditCard,FileText,Gift,ImagePlus,MapPin,Mail,BellRing,Menu,Plus,Settings2,ShieldCheck,Store,Ticket,ToggleLeft,Trash2,Users,Wallet} from "lucide-react";
 import type {Account} from "@/components/AppFrame";
 import type {Business,Program,Location} from "@/lib/types";
 import {dateShort,initials,units} from "@/lib/format";
@@ -14,6 +14,7 @@ import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/BusinessAnalytics";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
+import {PushCampaignPanel} from "@/components/PushCampaignPanel";
 type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Resumen",icon:<BarChart3 size={17}/>},
@@ -58,6 +59,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState("Tijuana"),[country,setCountry]=useState("México"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState(""),[quote,setQuote]=useState<MailQuote|null>(null);
  const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null),[campaignView,setCampaignView]=useState<"list"|"editor">("list");
+ const [pushView,setPushView]=useState(false);
  const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,template_name:"",template_language:""});
  useEffect(()=>{fetch("/api/local/marketing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setMarketingStatus(v as MarketingStatus)}).catch(()=>{});},[]);
  const [previewEarned,setPreviewEarned]=useState(3),[siteOrigin,setSiteOrigin]=useState("");
@@ -342,11 +344,19 @@ export default function BusinessWorkspace({account}:{account:Account}){
    </div>
  </>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">
-    {campaignView==="list"?<>
+    {pushView?<>
+     <div className="campaign-page-header"><div><h2>Notificación push</h2><p>Promociones para los clientes con tarjeta y consentimiento de este negocio.</p></div>
+      <button type="button" className="button button-outline" onClick={()=>{setPushView(false);setCampaignView("list")}}>Volver a campañas</button>
+     </div>
+     <PushCampaignPanel key={selected} businessId={selected}/>
+    </>:campaignView==="list"?<>
      <div className="campaign-page-header">
       <div><span className="page-eyebrow">COMUNICACIÓN CON TUS CLIENTES</span>
        <h2>Campañas</h2><p>Prepara mensajes, revisa tus envíos y consulta los resultados desde aquí.</p></div>
-      <button type="button" className="button button-dark campaign-new-button" onClick={()=>{setEditingDraft(null);setMailSubject("");setMailBody("");setCampaignView("editor")}}><Plus size={18}/> Crear campaña</button>
+      <div className="campaign-compose-actions">
+       <button type="button" className="button button-outline" onClick={()=>setPushView(true)}><BellRing size={17}/> Enviar notificación push</button>
+       <button type="button" className="button button-dark campaign-new-button" onClick={()=>{setEditingDraft(null);setMailSubject("");setMailBody("");setCampaignView("editor")}}><Plus size={18}/> Crear campaña</button>
+      </div>
      </div>
      <div className="campaign-overview-grid">
       <div className="panel-card campaign-overview-stat"><span>Campañas creadas</span><strong>{drafts.length}</strong><small>Correo y WhatsApp</small></div>
@@ -380,6 +390,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
       <div className="campaign-channel-switch" role="group" aria-label="Canal de campaña">
        <button type="button" className={marketingChannel==="email"?"active":""} disabled={!!editingDraft} onClick={()=>setMarketingChannel("email")}><Mail size={17}/> Correo electrónico</button>
        <button type="button" className={marketingChannel==="whatsapp"?"active":""} disabled={!!editingDraft} onClick={()=>setMarketingChannel("whatsapp")}><Users size={17}/> WhatsApp</button>
+       <button type="button" disabled={!!editingDraft} onClick={()=>setPushView(true)}><BellRing size={17}/> Notificación push</button>
       </div>
       {!marketingStatus[marketingChannel]&&<div className="info-callout"><ShieldCheck size={18}/>{marketingChannel==="whatsapp"?
        "Puedes preparar la campaña. El envío estará disponible cuando Loyally configure la conexión y la plantilla aprobada de WhatsApp.":

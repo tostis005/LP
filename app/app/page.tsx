@@ -4,6 +4,7 @@ import Link from "next/link";
 import {ArrowUpRight,Clock3,Compass,Gift,Plus,Wallet} from "lucide-react";
 import {AppFrame, type Account} from "@/components/AppFrame";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
+import {PushPreferences} from "@/components/PushPreferences";
 import {db} from "@/lib/supabase";
 import type {Membership,Business,Program} from "@/lib/types";
 import {dateShort,units} from "@/lib/format";
@@ -34,6 +35,7 @@ function CustomerHome({account}:{account:Account}){
  <div className="content-heading"><div><h2>Tus tarjetas favoritas</h2><p>Todos tus lugares especiales, en un mismo sitio.</p></div><Link className="button button-dark button-sm" href="/app/descubrir">Descubrir negocios <Plus size={16}/></Link></div>
  {error&&<div className="alert error">{error}</div>}
  {loading?<div className="soft-panel">Cargando tus tarjetas...</div>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Tu primera tarjeta está a un paso</h3><p>Descubre negocios cerca de ti y únete a sus programas de fidelización.</p><Link className="button button-dark" href="/app/descubrir">Explorar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid">{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)}/>)}</div>}
+ <PushPreferences/>
  <div className="content-heading spaced"><div><h2>Actividad reciente</h2><p>Así avanzan tus recompensas.</p></div></div>
  <div className="soft-panel">{movements.length?movements.map(m=><div className="activity-row" key={m.id}><div className={"activity-icon "+(m.kind==="earn"?"positive":"negative")}>{m.kind==="earn"?<Plus size={19}/>:<Gift size={19}/>}</div><div><strong>{cards.find(c=>c.business_id===m.business_id)?.businesses.name||"Negocio"}</strong><span>{m.kind==="earn"?"Compra registrada":m.kind==="redeem"?"Recompensa canjeada":"Corrección de movimiento"} · {dateShort(m.created_at)}</span></div><b className={m.amount_delta>0?"positive-text":"negative-text"}>{m.amount_delta>0?"+":""}{units(m.amount_delta,prog(m.business_id)?.type)}</b></div>):<p className="muted no-margin">Todavía no hay movimientos.</p>}</div>
  </div>;
