@@ -2,7 +2,6 @@
 import {MapContainer,TileLayer,Marker,useMap,useMapEvents} from "react-leaflet";
 import {divIcon} from "leaflet";
 import {useEffect} from "react";
-import "leaflet/dist/leaflet.css";
 
 type Point={lat:number;lng:number};
 const icon=divIcon({
