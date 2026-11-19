@@ -610,3 +610,42 @@
  .stamp-visual-card .stamp-grid.is-very-dense{grid-template-columns:repeat(var(--stamp-columns),minmax(0,27px))}
 }
 .loyally-map-symbol svg{display:block;width:31px;height:31px;stroke:currentColor;stroke-width:3}
+
+
+/* Composición visual segura para email y WhatsApp. */
+.campaign-page{display:grid;gap:19px}
+.campaign-channel-switch{display:flex;flex-wrap:wrap;gap:9px}
+.campaign-channel-switch button{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5ced9;border-radius:999px;padding:12px 20px;color:#6b3d53;font-weight:800;font-size:13px;cursor:pointer}
+.campaign-channel-switch button.active{background:#571c32;border-color:#571c32;color:white}
+.campaign-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.campaign-overview-stat{padding:23px;display:grid;gap:7px}
+.campaign-overview-stat span{font-size:12px;color:#846575;font-weight:750}
+.campaign-overview-stat strong{font-size:clamp(19px,2vw,29px);line-height:1.3;color:#571c32;overflow-wrap:anywhere}
+.campaign-overview-stat small{color:#917785;font-size:11px}
+.campaign-editor-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:19px;align-items:start}
+.campaign-compose{display:grid;gap:11px}.campaign-editor-label{display:block;margin:0 0 9px;font-weight:800;font-size:12px;color:#632a41}
+.rich-message-field{border:1px solid #e5d0db;border-radius:15px;overflow:hidden;background:#fff;position:relative}
+.rich-message-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;background:#fbf5f8;border-bottom:1px solid #eadce4;padding:9px}
+.rich-message-tools button{width:33px;height:33px;border:0;background:transparent;color:#6f3851;border-radius:8px;display:grid;place-items:center;cursor:pointer}
+.rich-message-tools button:hover,.rich-message-tools button:focus-visible{background:#f0dce7}
+.rich-message-tool-space{flex:1;min-width:8px}
+.rich-message-editor,.rich-message-preview{min-height:210px;max-height:480px;overflow-y:auto;padding:18px;font-size:14px;line-height:1.8;outline:none;color:#38212e;white-space:pre-wrap;overflow-wrap:anywhere}
+.rich-message-editor:empty:before{content:attr(data-placeholder);pointer-events:none;color:#a98b9b}
+.rich-message-preview{background:#fffbfd}
+.rich-message-preview-heading{font-size:11px;letter-spacing:.09em;color:#82576c;font-weight:900;margin:0 0 18px}
+.rich-message-foot{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:10px 13px;background:#fbf5f8;border-top:1px solid #eadce4;font-size:10px;color:#845e70;line-height:1.4}
+.rich-message-foot small{white-space:nowrap}
+.rich-message-emojis{display:flex;flex-wrap:wrap;gap:5px;padding:10px;border-bottom:1px solid #eadce4;background:white}
+.rich-message-emojis button{font-size:22px;border:0;border-radius:7px;background:#faf2f6;padding:5px 8px;cursor:pointer}
+.campaign-compose-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.campaign-compose-actions .button{margin-top:3px}
+.campaign-sidebar{display:grid;gap:17px}
+.campaign-draft-row{display:flex;align-items:start;justify-content:space-between;gap:10px;padding:15px 0;border-bottom:1px solid #eee2e8;flex-wrap:wrap}
+.campaign-draft-row:last-child{border-bottom:0}
+.campaign-draft-row>div:first-child{display:grid;gap:5px;min-width:0;flex:1}
+.campaign-draft-row strong{font-size:13px;color:#3d2633;overflow-wrap:anywhere}
+.campaign-draft-row span,.campaign-draft-row small{font-size:11px;color:#846a78}
+.campaign-draft-actions{display:flex;flex-wrap:wrap;gap:6px}.campaign-draft-actions .button{margin:0;padding:9px 12px;font-size:11px}
+@media(max-width:1100px){.campaign-editor-grid{grid-template-columns:1fr}}
+@media(max-width:780px){.campaign-overview-grid{grid-template-columns:1fr}.campaign-overview-stat{padding:19px}.campaign-editor-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:490px){.campaign-channel-switch button{flex:1;justify-content:center;padding:11px 8px;font-size:12px}.campaign-compose{padding:20px}.rich-message-editor,.rich-message-preview{min-height:180px}}
