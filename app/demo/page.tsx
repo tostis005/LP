@@ -17,7 +17,7 @@ type DemoData={
 };
 type ExampleBusiness={name:string;type:string;customers:number;active:boolean};
 const FIRST:DemoData={
- name:"Café Noma",color:"#275642",reward:"Tu próximo café gratis",total:8,balance:4,maxPerAction:3,
+ name:"Café Noma",color:"#571c32",reward:"Tu próximo café gratis",total:8,balance:4,maxPerAction:3,
  icon:"coffee",stampImage:"",cardBackground:"",message:"QUÉ BIEN QUE HAS VUELTO",
  activity:[{id:1,label:"Martina recibió 1 sello",amount:1,date:"Hoy, 10:42"},{id:2,label:"Martina recibió 2 sellos",amount:2,date:"Ayer, 16:18"},{id:3,label:"Martina recibió 1 sello",amount:1,date:"Lunes, 09:15"}]
 };
@@ -33,7 +33,7 @@ const profiles:{id:Role;label:string;desc:string;icon:typeof ShieldCheck}[]=[
  {id:"empleado",label:"Personal",desc:"Escáner",icon:ScanLine},
  {id:"cliente",label:"Cliente",desc:"Mis tarjetas",icon:Wallet}
 ];
-const PALETTE=["#275642","#24465e","#735f9b","#ad684e","#ad667d","#1f2937","#3d6c67","#7e5a45"];
+const PALETTE=["#571c32","#24465e","#735f9b","#ad684e","#ad667d","#1f2937","#3d6c67","#7e5a45"];
 function round(n:number){return Math.max(2,Math.min(24,Math.floor(n)||2))}
 const dateNow=()=>new Intl.DateTimeFormat("es",{hour:"2-digit",minute:"2-digit"}).format(new Date());
 
