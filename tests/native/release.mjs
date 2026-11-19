@@ -13,7 +13,7 @@ try{
  await client.query("BEGIN");await client.query("SET LOCAL ROLE authenticated");await identity(ids.gestor);
  const members=await client.query("SELECT * FROM public.business_customer_directory($1::uuid)",[shop.id]);
  assert.ok(members.rowCount>0);
- assert.ok(members.rows.every(m=>m.email.includes("***")&&!m.email.includes("cliente@demo.loyally.test")));
+ assert.ok(members.rows.every(m=>m.email.includes("XXX")&&!m.email.includes("cliente@demo.loyally.test")));
  const employees=await client.query("SELECT * FROM public.business_staff_directory($1::uuid)",[shop.id]);
  assert.ok(employees.rows.every(x=>x.email.includes("***")));
  const wq=await client.query("SELECT * FROM public.business_whatsapp_quote($1::uuid)",[shop.id]);
