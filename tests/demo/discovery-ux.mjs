@@ -11,7 +11,7 @@ function load(path,imports={}){
  return module.exports;
 }
 const icons=load("../../lib/stamp-drawings.ts");
-assert.equal(icons.STAMP_OPTIONS.length,23);
+assert.equal(icons.STAMP_OPTIONS.length,24);
 for(const option of icons.STAMP_OPTIONS){
  assert.ok(icons.STAMP_DRAWINGS[option.id],option.id+" has no drawing");
  const svg=icons.stampMarkup(option.id,28);
@@ -21,11 +21,12 @@ for(const option of icons.STAMP_OPTIONS){
  assert.doesNotMatch(icons.STAMP_DRAWINGS[option.id],/fill="currentColor"/);
 }
 const cats=load("../../lib/business-categories.ts",{"@/lib/stamp-drawings":icons});
-for(const [category,kind] of [["Cafetería","coffee"],["Barbería","beard"],["Peluquería","hair"],["Panadería","bread"],["Taquería","taco"],["Heladería y postres","icecream"],["Gimnasio","gym"],["Librería","book"]]){
+for(const [category,kind] of [["Cafetería","coffee"],["Restaurante","restaurant"],["Barbería","beard"],["Peluquería","hair"],["Panadería","bread"],["Taquería","taco"],["Heladería y postres","icecream"],["Gimnasio","gym"],["Librería","book"]]){
  assert.equal(cats.categoryStampKind(category),kind,category+" should have its product icon");
 }
 assert.equal(cats.categoryStampKind("no identificada"),"star");
-assert.ok(!/M19 25c0-11 5-18 13-18/.test(icons.STAMP_DRAWINGS.beard),"Old face silhouette removed");
+assert.match(icons.STAMP_DRAWINGS.beard,/M32 25/,"Barber must be mustache and beard");
+assert.ok(!/circle[^>]+cx="32" cy="34"/.test(icons.STAMP_DRAWINGS.beard),"Barber does not include a head");
 assert.ok(!/M21 33v9/.test(icons.STAMP_DRAWINGS.hair),"Old face silhouette removed");
 const presentation=load("../../lib/program-presentation.ts");
 assert.equal(presentation.programPromise({type:"stamps",reward_cost:8,reward_label:"Un café gratis"}),"Cada 8 sellos, Un café gratis");
@@ -40,7 +41,16 @@ const outer=css.match(/\.loyally-map-marker\{([^}]*)\}/)?.[1]||"";
 assert.ok(outer&&!/transform\s*:/.test(outer),"Map marker must not override Leaflet positioning");
 assert.match(css,/\.loyally-map-symbol\{[^}]*place-items:center/);
 assert.match(css,/\.workspace-business \.mobile-bottom-nav\{display:none/);
+const business=readFileSync(new URL("../../components/BusinessWorkspace.tsx",import.meta.url),"utf8");
+const card=readFileSync(new URL("../../components/LoyaltyCard.tsx",import.meta.url),"utf8");
+assert.match(business,/STAMP_COLOR_PRESETS/,"Owner can choose a stamp preset");
+assert.match(business,/Cambiar color del sello/,"Owner has a custom color picker");
+assert.match(business,/stamp_color:biz\.stamp_color/,"Chosen ink color is saved");
+assert.match(business,/StampMark kind=\{option\.id\} size=\{30\} color=\{biz\.stamp_color/,"Gallery previews chosen color");
+assert.match(card,/const stampInk=/,"Downloaded cards include chosen stamp ink");
+assert.match(css,/\.stamp-color-palette\{/);
+
 const join=readFileSync(new URL("../../app/unirse/[slug]/page.tsx",import.meta.url),"utf8");
 assert.match(join,/\[marketing,setMarketing\]=useState\(false\)/);
 assert.match(join,/p_opted_in:true/);
-console.log("OK: 23 shared outline icons, category pins, reward rules, mobile business menu and optional marketing.");
+console.log("OK: 24 shared outline icons, category pins, reward rules, mobile business menu and optional marketing.");

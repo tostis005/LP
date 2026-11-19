@@ -492,3 +492,21 @@
 .business-category-preview{display:flex;align-items:center;gap:12px;border:1px solid #d8e9d8;background:#f2f8f0;padding:12px;border-radius:12px;color:#41734d;font-size:12px;line-height:1.6}
 .business-category-preview svg{flex:none}
 .directory-brand-logo{height:52px;width:52px;border-radius:15px;background:#fff;padding:4px;object-fit:contain;margin-left:auto}
+
+
+/* Diseñador Loyally: selección de dibujo y color con vista previa inmediata. */
+.stamp-color-panel{display:grid;gap:12px;margin-top:15px;padding:18px;border:1px solid #d7e6d8;border-radius:17px;background:#f5f9f3}
+.stamp-color-panel .lp-icon-heading{margin:0;color:#244e38}
+.stamp-color-panel>.muted{margin:0;color:#728778;font-size:12px;line-height:1.6}
+.stamp-color-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.stamp-color-row .color-input-label{flex:1;min-width:190px}
+.stamp-color-sample{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:87px;min-height:91px;padding:12px 10px;border:1px solid #dce8dc;border-radius:14px;background:#fff}
+.stamp-color-sample svg{display:block}
+.stamp-color-sample span{font-size:10px;font-weight:800;color:#647c69}
+.stamp-color-palette{display:flex;align-items:center;flex-wrap:wrap;gap:11px;padding:4px 1px}
+.stamp-color-palette button{height:34px;width:34px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #bccbbf;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.stamp-color-palette button.selected,.stamp-color-palette button[aria-pressed=true]{box-shadow:0 0 0 2px #286b44,0 0 0 5px #dceede;transform:scale(1.07)}
+.stamp-color-palette button:focus-visible{outline:3px solid #2563eb;outline-offset:4px}
+.lp-real-icon-grid button svg{display:block;flex:none}
+.lp-real-icon-grid button.selected{border-color:#2b7645;background:#edf6ec;box-shadow:0 0 0 2px #2b7645}
+@media(max-width:500px){.stamp-color-panel{padding:14px}.stamp-color-row{gap:10px}.stamp-color-sample{min-width:74px;min-height:86px}.stamp-color-palette{gap:9px}}
