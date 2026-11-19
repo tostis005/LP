@@ -148,3 +148,11 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.claim_whatsapp_delivery(uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.claim_whatsapp_delivery(uuid) TO lp_auth;
+
+
+-- El comerciante puede seguir editando su borrador, pero no reescribir envíos contabilizados.
+DROP POLICY IF EXISTS campaigns_update_draft ON public.marketing_campaigns;
+CREATE POLICY campaigns_update_draft ON public.marketing_campaigns
+ FOR UPDATE TO authenticated
+ USING (status='draft' AND public.is_business_manager(business_id))
+ WITH CHECK(status='draft' AND public.is_business_manager(business_id));
