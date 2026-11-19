@@ -21,6 +21,7 @@ try{
  await client.query("BEGIN");
  // Una suscripción privada no da acceso automático a los mensajes de negocios.
  const endpoint="https://fcm.googleapis.com/fcm/send/test-lp-push-"+Date.now();
+ await client.query("INSERT INTO public.business_marketing_rates(business_id,price_cents,whatsapp_price_cents,push_price_cents,currency) VALUES($1,5,7,12,'MXN') ON CONFLICT(business_id) DO UPDATE SET push_price_cents=12,currency='MXN'",[shop.id]);
  await client.query("SELECT public.register_web_push_subscription($1::uuid,$2::text,$3::text,$4::text)",
   [ids.cliente,endpoint,"B".repeat(87),"C".repeat(22)]);
  await client.query("SET LOCAL ROLE authenticated");
@@ -40,12 +41,15 @@ try{
  await client.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[ids.gestor]);
  const quote=await client.query("SELECT public.business_push_quote($1::uuid) AS devices",[shop.id]);
  assert.equal(Number(quote.rows[0].devices),1,"Un dispositivo asociado a una tarjeta y consentimiento");
+ const pricing=await client.query("SELECT * FROM public.business_push_pricing($1::uuid)",[shop.id]);
+ assert.equal(Number(pricing.rows[0].price_cents),12,"Tarifa particular del negocio");
+ assert.equal(Number(pricing.rows[0].total_cents),12,"Presupuesto por dispositivo");
  await client.query("SAVEPOINT no_other_shop");
  await assert.rejects(()=>client.query("SELECT public.business_push_quote($1::uuid)",[other.id]),
   e=>e.code==="P0001","El gestor no debe consultar clientes de otra tienda");
  await client.query("ROLLBACK TO SAVEPOINT no_other_shop");
  const campaign=(await client.query(
-  "SELECT public.business_create_push_campaign($1::uuid,'Oferta de prueba','Tienes un sello extra') AS id",
+  "SELECT public.business_create_push_campaign($1::uuid,'Oferta de prueba','Tienes un sello extra',12::bigint) AS id",
   [shop.id]
  )).rows[0].id;
  await client.query("RESET ROLE");
@@ -56,11 +60,17 @@ try{
  const success=(await client.query("SELECT status,sent_count FROM public.push_campaigns WHERE id=$1",[campaign])).rows[0];
  assert.equal(success.status,"sent");
  assert.equal(success.sent_count,1);
+ const usage=await client.query("SELECT * FROM public.push_usage_ledger WHERE campaign_id=$1",[campaign]);
+ assert.equal(usage.rowCount,1,"El envío aceptado se registra una sola vez");
+ assert.equal(usage.rows[0].price_cents,12,"El precio se conserva al momento del envío");
+ await client.query("SELECT public.finish_push_delivery($1::uuid,true,false)",[claimed.rows[0].delivery_id]);
+ const duplicate=await client.query("SELECT count(*)::int n FROM public.push_usage_ledger WHERE campaign_id=$1",[campaign]);
+ assert.equal(duplicate.rows[0].n,1,"No se puede contabilizar dos veces");
 
  await client.query("SET LOCAL ROLE authenticated");
  await client.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[ids.gestor]);
  const second=(await client.query(
-  "SELECT public.business_create_push_campaign($1::uuid,'Otra promoción','Prueba después de la baja') AS id",
+  "SELECT public.business_create_push_campaign($1::uuid,'Otra promoción','Prueba después de la baja',12::bigint) AS id",
   [shop.id]
  )).rows[0].id;
  await client.query("RESET ROLE");
