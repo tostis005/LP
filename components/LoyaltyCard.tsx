@@ -24,6 +24,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   if(!qr)return;
   const escaped=(value:string)=>value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   const bg=/^#[a-fA-F0-9]{6}$/.test(business.accent_color)?business.accent_color:"#264d3e";
+  const stampInk=/^#[a-fA-F0-9]{6}$/.test(business.stamp_color||"")?business.stamp_color!:"#275642";
   const name=escaped(business.name.slice(0,70));
   const reward=escaped((program?.reward_label||"Tu próxima recompensa").slice(0,90));
   const balance=escaped(units(membership.balance,program?.type));
@@ -35,7 +36,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   const slots=Array.from({length:stampCount},(_,i)=>{
    const x=55+(i%9)*49,y=320+Math.floor(i/9)*34;
    return '<circle cx="'+(x+15)+'" cy="'+(y+15)+'" r="15" stroke="#ffffff" stroke-opacity=".8" stroke-width="1.6" fill="'+(i<filledCount?"#ffffff":"none")+'"/>'+
-    (i<filledCount?'<svg xmlns="http://www.w3.org/2000/svg" x="'+(x+3)+'" y="'+(y+3)+'" width="24" height="24" viewBox="0 0 64 64" fill="none" stroke="'+bg+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">'+STAMP_DRAWINGS[key]+'</svg>':"");
+    (i<filledCount?'<svg xmlns="http://www.w3.org/2000/svg" x="'+(x+3)+'" y="'+(y+3)+'" width="24" height="24" viewBox="0 0 64 64" fill="none" stroke="'+stampInk+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">'+STAMP_DRAWINGS[key]+'</svg>':"");
   }).join("");
   const graphic='<svg xmlns="http://www.w3.org/2000/svg" width="860" height="500" viewBox="0 0 860 500">'+
    '<rect width="860" height="500" rx="28" fill="'+bg+'"/>'+
