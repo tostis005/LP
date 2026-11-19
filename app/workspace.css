@@ -675,3 +675,18 @@
 .business-settings-links a small{font-size:11px;line-height:1.4;color:#8d7382}
 .business-settings-links a>svg:last-child{width:16px;flex:none}
 @media(max-width:650px){.business-settings-hub{padding:19px}.business-settings-links{grid-template-columns:1fr}}
+
+
+/* Tarjetas de puntos/cashback: nunca inventar sellos en una modalidad diferente. */
+.business-preview-nonstamp{min-height:325px;border-radius:25px;padding:28px;display:flex;flex-direction:column;gap:26px;position:relative;overflow:hidden;background-size:cover;background-position:center;box-shadow:0 15px 35px #3b25311e;max-width:510px;margin:18px auto 15px}
+.business-preview-nonstamp .stamp-visual-head{position:relative;z-index:1}
+.business-preview-nonstamp-body{display:grid;gap:7px;position:relative;z-index:1}
+.business-preview-nonstamp-body small{font-size:10px;letter-spacing:.12em;font-weight:900;opacity:.88;overflow-wrap:anywhere}
+.business-preview-nonstamp-body h3{font-size:clamp(26px,4vw,38px);letter-spacing:-.04em;line-height:1.12;overflow-wrap:anywhere;margin:0}
+.business-preview-nonstamp-body p{font-size:14px;line-height:1.4;overflow-wrap:anywhere;margin:0}
+.business-preview-nonstamp-bottom{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-top:auto;border-top:1px solid #ffffff6b;padding-top:16px;position:relative;z-index:1}
+.business-preview-nonstamp-bottom>div{display:grid;gap:6px}
+.business-preview-nonstamp-bottom span{font-size:10px;font-weight:800;letter-spacing:.03em;line-height:1.4}
+.business-preview-nonstamp-bottom strong{font-size:22px;letter-spacing:-.03em}
+.business-preview-nonstamp-bottom>span{max-width:130px;text-align:right}
+@media(max-width:390px){.business-preview-nonstamp{padding:20px;min-height:300px}}
