@@ -13,7 +13,7 @@ function AdminContent({account}:{account:Account}){
  const [tab,setTab]=useState<"business"|"users"|"campaigns"|"leads"|"reports">("business"),[businesses,setBusinesses]=useState<Biz[]>([]),[users,setUsers]=useState<Person[]>([]),[transactionCount,setTransactionCount]=useState(0),[membershipCount,setMembershipCount]=useState(0),[search,setSearch]=useState("");
  const [leads,setLeads]=useState<Lead[]>([]);
  const [recentOperations,setRecentOperations]=useState<RecentOperation[]>([]);
- const [focusRate,setFocusRate]=useState("1"),[focusWhatsappRate,setFocusWhatsappRate]=useState(""),[focusPushRate,setFocusPushRate]=useState("0"),[focusCurrency,setFocusCurrency]=useState("MXN"),[hasFocusRate,setHasFocusRate]=useState(false);
+ const [focusRate,setFocusRate]=useState("0.01"),[focusWhatsappRate,setFocusWhatsappRate]=useState(""),[focusPushRate,setFocusPushRate]=useState("0.00"),[focusCurrency,setFocusCurrency]=useState("MXN"),[hasFocusRate,setHasFocusRate]=useState(false);
  const [focusBiz,setFocusBiz]=useState<Biz|null>(null),[focusCustomers,setFocusCustomers]=useState(0),[focusStaff,setFocusStaff]=useState(0),[focusTx,setFocusTx]=useState(0),[focusLocations,setFocusLocations]=useState(0),[focusProgram,setFocusProgram]=useState("");
  const [focusUser,setFocusUser]=useState<Person|null>(null),[focusCards,setFocusCards]=useState<{business_id:string;balance:number;businesses:{name:string;slug:string}|null}[]>([]);
  const [parentBusiness,setParentBusiness]=useState(""),[existingProgram,setExistingProgram]=useState(""),[contractPrice,setContractPrice]=useState("");
@@ -69,7 +69,7 @@ function AdminContent({account}:{account:Account}){
    db().from("business_members").select("user_id").eq("business_id",b.id).eq("role","owner").eq("active",true),
    db().from("business_invitations").select("email").eq("business_id",b.id).eq("role","owner").is("claimed_at",null)
   ]);
-  setFocusCustomers(c.data?.length||0);setFocusStaff(s.data?.length||0);setFocusTx(t.count||0);setFocusLocations(l.count||0);setFocusProgram(p.data?.type||"—");setFocusRate(String(r.data?.price_cents??1));setFocusWhatsappRate(r.data?.whatsapp_price_cents==null?"":String(r.data.whatsapp_price_cents));setFocusPushRate(String(r.data?.push_price_cents??0));setFocusCurrency(r.data?.currency||"MXN");setHasFocusRate(!!r.data);
+  setFocusCustomers(c.data?.length||0);setFocusStaff(s.data?.length||0);setFocusTx(t.count||0);setFocusLocations(l.count||0);setFocusProgram(p.data?.type||"—");setFocusRate((Number(r.data?.price_cents??1)/100).toFixed(2));setFocusWhatsappRate(r.data?.whatsapp_price_cents==null?"":(Number(r.data.whatsapp_price_cents)/100).toFixed(2));setFocusPushRate((Number(r.data?.push_price_cents??0)/100).toFixed(2));setFocusCurrency(r.data?.currency||"MXN");setHasFocusRate(!!r.data);
   const l0=(loc.data||[])[0];
   setLocName(l0?.name||b.name);setLocAddress(l0?.address||"");setLocCity(l0?.city||"");setLocCountry(l0?.country||"México");setLocLat(l0?String(l0.lat):"");setLocLng(l0?String(l0.lng):"");
   setFocusContractPrice(contract.data?.agreed_monthly_cents==null?"":String(Number(contract.data.agreed_monthly_cents)/100));
@@ -104,7 +104,7 @@ function AdminContent({account}:{account:Account}){
  }
  async function saveMarketingRate(){
   if(!focusBiz)return;
-  const value=Number(focusRate),whatsapp=focusWhatsappRate.trim()===""?null:Number(focusWhatsappRate),push=Number(focusPushRate);
+  const value=Math.round(Number(focusRate)*100),whatsapp=focusWhatsappRate.trim()===""?null:Math.round(Number(focusWhatsappRate)*100),push=Math.round(Number(focusPushRate)*100);
   if(whatsapp!==null&&(!Number.isInteger(whatsapp)||whatsapp<0||whatsapp>100000)){setError("La tarifa de WhatsApp debe ser un número entero de centavos o estar vacía.");return}
   if(!Number.isInteger(value)||value<0||value>100000){setError("La tarifa debe expresarse en centavos enteros.");return}
    if(focusPushRate.trim()===""||!Number.isInteger(push)||push<0||push>100000){setError("La tarifa push debe ser un número entero de centavos (0 para gratis).");return}
@@ -159,14 +159,14 @@ function AdminContent({account}:{account:Account}){
    {([["MXN","Peso mexicano"],["USD","Dólar estadounidense"],["EUR","Euro"],["GBP","Libra esterlina"],["CAD","Dólar canadiense"],["BRL","Real brasileño"],["ARS","Peso argentino"],["COP","Peso colombiano"],["CLP","Peso chileno"],["PEN","Sol peruano"],["UYU","Peso uruguayo"],["CRC","Colón costarricense"],["GTQ","Quetzal"],["DOP","Peso dominicano"],["HNL","Lempira"],["NIO","Córdoba"],["PYG","Guaraní"],["BOB","Boliviano"]] as const).map(([code,label])=><option key={code} value={code}>{label} ({code})</option>)}
   </select></label>
   <div className="marketing-tariff-grid">
-   <label>Correo por cliente<input type="number" min="0" max="1000" step="0.01" value={(Number(focusRate||0)/100).toFixed(2)}
-    onChange={e=>setFocusRate(String(Math.round(Number(e.target.value)*100)))}/></label>
+   <label>Correo por cliente<input type="number" min="0" max="1000" step="0.01" value={focusRate}
+    onChange={e=>setFocusRate(e.target.value)}/></label>
    <label>WhatsApp por cliente<input type="number" min="0" max="1000" step="0.01"
-    value={focusWhatsappRate===""?"":(Number(focusWhatsappRate)/100).toFixed(2)}
-    onChange={e=>setFocusWhatsappRate(e.target.value===""?"":String(Math.round(Number(e.target.value)*100)))} placeholder="Sin activar"/></label>
+    value={focusWhatsappRate}
+    onChange={e=>setFocusWhatsappRate(e.target.value)} placeholder="Sin activar"/></label>
    <label>Push por cliente<input type="number" min="0" max="1000" step="0.01"
-    value={(Number(focusPushRate||0)/100).toFixed(2)}
-    onChange={e=>setFocusPushRate(String(Math.round(Number(e.target.value)*100)))}/></label>
+    value={focusPushRate}
+    onChange={e=>setFocusPushRate(e.target.value)}/></label>
   </div>
   <button type="button" className="button button-dark button-sm" disabled={busy} onClick={saveMarketingRate}>Guardar precios</button>
  </div>
