@@ -38,14 +38,6 @@ export async function POST(request:Request){
    await authPool.query("SELECT public.finish_push_delivery($1::uuid,$2::boolean,$3::boolean)",
     [item.delivery_id,ok,expired]);
   }
-  // Una llamada adicional reconcilia la campaña cuando el último lote terminó.
-  await authPool.query("SELECT * FROM public.claim_push_delivery($1::uuid)",[id])
-   .then(async result=>{
-    const item=result.rows[0] as PushDelivery|undefined;
-    // Si hay otro mensaje, no se procesa en silencio: se libera para continuar después.
-    // No se llama a claim aquí: la conciliación se realiza al no encontrar pendientes.
-    if(item)await authPool.query("SELECT public.release_push_delivery($1::uuid)",[item.delivery_id]);
-   });
   return Response.json({sent,failed},{headers:{"Cache-Control":"no-store"}});
  }catch(e){return responseError(e);}
 }
