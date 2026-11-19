@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import {Activity,ArrowUpRight,Check,ChevronDown,FileText,Mail,Plus,Search,Shield,Store,Users} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
+import {AddressPicker} from "@/components/AddressPicker";
 import {db} from "@/lib/supabase";
 import {dateShort} from "@/lib/format";
 type Biz={id:string;name:string;slug:string;category:string|null;parent_business_id:string|null;active:boolean;public_listing:boolean;created_at:string};
@@ -82,6 +83,7 @@ function AdminContent({account}:{account:Account}){
  async function saveBusinessLocation(e:React.FormEvent){
   e.preventDefault();
   if(!focusBiz)return;
+  if(!locLat||!locLng){setError("Elige primero la ubicación en el mapa.");return}
   setBusy(true);setError("");
   const {error}=await db().rpc("admin_set_business_location",{
    p_business:focusBiz.id,p_name:locName,p_address:locAddress,p_city:locCity,p_country:locCountry,
@@ -147,10 +149,8 @@ function AdminContent({account}:{account:Account}){
   <div className="form-stack"><label>Precio mensual acordado (en {focusCurrency})<input type="number" step="0.01" min="0" value={focusContractPrice} onChange={e=>setFocusContractPrice(e.target.value)} placeholder="Sin precio acordado"/></label><button type="button" className="button button-outline button-sm" disabled={busy} onClick={saveBusinessContract}>Guardar precio del establecimiento</button><small>Este importe es un acuerdo comercial, no genera por sí mismo ningún cargo ni modifica Stripe.</small></div>
  </div>
  <form className="admin-location-form" onSubmit={saveBusinessLocation}>
-  <h3>Dirección autorizada</h3><p className="muted">Cada local tiene su propio registro de negocio. Esta dirección la crea Loyally y después puede modificarla su responsable.</p>
-  <div className="form-stack"><label>Nombre del local<input required value={locName} minLength={2} onChange={e=>setLocName(e.target.value)}/></label><label>Dirección<input required minLength={4} value={locAddress} onChange={e=>setLocAddress(e.target.value)}/></label>
-   <div className="form-two"><label>Ciudad<input required value={locCity} onChange={e=>setLocCity(e.target.value)}/></label><label>País<input required value={locCountry} onChange={e=>setLocCountry(e.target.value)}/></label></div>
-   <div className="form-two"><label>Latitud<input required type="number" min={-90} max={90} step="any" value={locLat} onChange={e=>setLocLat(e.target.value)}/></label><label>Longitud<input required type="number" min={-180} max={180} step="any" value={locLng} onChange={e=>setLocLng(e.target.value)}/></label></div>
+  <h3>Dirección del establecimiento</h3>
+  <div className="form-stack"><label>Nombre del local<input required value={locName} minLength={2} onChange={e=>setLocName(e.target.value)}/></label><AddressPicker address={locAddress} city={locCity} country={locCountry} lat={locLat} lng={locLng} onAddressChange={setLocAddress} onCityChange={setLocCity} onCountryChange={setLocCountry} onCoordinatesChange={(lat,lng)=>{setLocLat(lat);setLocLng(lng)}}/>
    <button type="submit" className="button button-outline button-sm" disabled={busy}>Guardar dirección</button>
   </div>
  </form>
