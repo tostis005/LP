@@ -45,7 +45,7 @@ CREATE TRIGGER guard_business_structure BEFORE UPDATE ON public.businesses
 CREATE OR REPLACE FUNCTION public.limit_business_location_changes()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
- IF NOT public.is_platform_admin() THEN
+ IF NOT public.is_platform_admin() AND NOT (SELECT rolsuper FROM pg_roles WHERE rolname=session_user) THEN
   IF TG_OP='INSERT' OR TG_OP='DELETE' THEN
    RAISE EXCEPTION 'Solo Loyally puede dar de alta o retirar locales';
   END IF;
