@@ -19,7 +19,8 @@ function Recenter({center}:{center:[number,number]}){
 function pinIcon(category?:string|null,stampKind?:string|null,stampColor?:string|null,accent?:string){
  // No se usa transform en el marcador exterior: Leaflet necesita controlarlo
  // para situar el icono. Solo el diseño interno contiene el color y el dibujo.
- const color=/^#[0-9a-f]{6}$/i.test(stampColor||"")?stampColor!:/^#[0-9a-f]{6}$/i.test(accent||"")?accent!:"#571c32";
+ const chosen=/^#[0-9a-f]{6}$/i.test(stampColor||"")?stampColor!:/^#[0-9a-f]{6}$/i.test(accent||"")?accent!:"#571c32";
+ const color=chosen.toLowerCase()==="#ffffff"?"#571c32":chosen;
  const svg=stampMarkup(stampKind||categoryStampKind(category),31);
  return divIcon({
   className:"loyally-map-marker",
