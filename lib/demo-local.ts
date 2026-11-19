@@ -8,7 +8,7 @@ type Row=Record<string,any>;
 type DemoState={tables:Record<string,Row[]>;assets:Record<string,string>};
 type DemoResult<T=any>={data:T;error:Error|null;count?:number};
 type Filter={op:"eq"|"in"|"is";field:string;value:any};
-const ROLE_KEY="loyally_role_session_v2",DATA_KEY="loyally_role_sample_v2";
+const ROLE_KEY="loyally_role_session_v2",DATA_KEY="loyally_role_sample_tijuana_v4";
 export const DEMO_BUSINESS_ID="11111111-1111-4111-8111-111111111111";
 export const DEMO_CARD_TOKEN="99999999-9999-4999-8999-999999999999";
 const IDs={
@@ -20,7 +20,19 @@ const IDs={
  lucia:"ffffffff-ffff-4fff-8fff-ffffffffffff",
  otra:"12121212-1212-4121-8121-121212121212"
 };
-const businessIds=[DEMO_BUSINESS_ID,"22222222-2222-4222-8222-222222222222","33333333-3333-4333-8333-333333333333"];
+const businessIds=[DEMO_BUSINESS_ID,...[2,3,4,5,6,7,8,9,10].map(n=>{const digit=n.toString(16);return digit.repeat(8)+"-"+digit.repeat(4)+"-4"+digit.repeat(3)+"-8"+digit.repeat(3)+"-"+digit.repeat(12)})];
+const DEMO_SHOPS=[
+ {name:"Café Noma",slug:"cafe-noma",category:"Cafetería",color:"#275642",icon:"coffee",reward:"Un café gratis",cost:8,type:"stamps",zone:"Zona Centro",lat:32.535,lng:-117.046,description:"Café de especialidad en el centro de Tijuana."},
+ {name:"Brunch Club",slug:"brunch-club",category:"Restaurante",color:"#bb7550",icon:"burger",reward:"Desayuno para compartir",cost:6,type:"stamps",zone:"La Cacho",lat:32.520,lng:-117.034,description:"Desayunos y brunch con recetas originales."},
+ {name:"Barba Norte",slug:"barba-norte",category:"Barbería",color:"#68558e",icon:"beard",reward:"Arreglo de barba gratis",cost:10,type:"stamps",zone:"Chapultepec",lat:32.504,lng:-117.025,description:"Barbería de barrio con mucha personalidad."},
+ {name:"Studio Verde",slug:"studio-verde",category:"Peluquería",color:"#9d566f",icon:"hair",reward:"Tratamiento capilar",cost:8,type:"stamps",zone:"Hipódromo",lat:32.502,lng:-116.999,description:"Color, corte y cuidado del cabello."},
+ {name:"Taco Lumbre",slug:"taco-lumbre",category:"Taquería",color:"#bb5b35",icon:"taco",reward:"Orden de tacos gratis",cost:8,type:"stamps",zone:"Zona Río",lat:32.526,lng:-117.018,description:"Tacos preparados al momento."},
+ {name:"Pan Mar",slug:"pan-mar",category:"Panadería",color:"#94704a",icon:"croissant",reward:"Pan artesanal de regalo",cost:10,type:"stamps",zone:"Playas de Tijuana",lat:32.533,lng:-117.117,description:"Pan de masa madre y bollería."},
+ {name:"Dulce Frontera",slug:"dulce-frontera",category:"Heladería y postres",color:"#ab647e",icon:"icecream",reward:"Helado de cortesía",cost:7,type:"stamps",zone:"Otay",lat:32.538,lng:-116.958,description:"Postres y sabores de temporada."},
+ {name:"Punto Fit",slug:"punto-fit",category:"Gimnasio",color:"#294b72",icon:"gym",reward:"Clase gratuita con 500 puntos",cost:500,type:"points",zone:"Las Palmas",lat:32.485,lng:-116.986,description:"Entrena y acumula puntos por cada peso de compra."},
+ {name:"Lavanda Spa",slug:"lavanda-spa",category:"Spa y bienestar",color:"#8163a4",icon:"spa",reward:"100 MXN de descuento",cost:10000,type:"cashback",zone:"La Cacho",lat:32.516,lng:-117.039,description:"Bienestar, masajes y cuidado personal."},
+ {name:"Marea Pets",slug:"marea-pets",category:"Mascotas",color:"#287d79",icon:"pet",reward:"Accesorio para tu mascota",cost:350,type:"points",zone:"Playas de Tijuana",lat:32.525,lng:-117.109,description:"Accesorios y cuidado para animales."}
+] as const;
 const roles:DemoRole[]=["administrador","gestor","empleado","cliente"];
 function isBrowser(){return typeof window!=="undefined"}
 export function demoRole():DemoRole|null{
@@ -38,12 +50,17 @@ function now(){return new Date().toISOString()}
 function days(n:number){return new Date(Date.now()-n*86400000).toISOString()}
 function uuid(){return typeof crypto!=="undefined"&&"randomUUID" in crypto?crypto.randomUUID():("xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx").replace(/[xy]/g,c=>{const r=Math.floor(Math.random()*16);return(c==="x"?r:(r&3|8)).toString(16)})}
 function seed():DemoState{
- const businesses:Row[]=[
-  {id:businessIds[0],name:"Café Noma",slug:"cafe-noma",description:"Café de especialidad y desayunos hechos con cariño.",category:"Cafetería",accent_color:"#264d3e",logo_url:null,card_background:null,card_text:"GRACIAS POR VOLVER",stamp_icon:"coffee",stamp_image_url:null,public_listing:true,active:true,created_at:days(90)},
-  {id:businessIds[1],name:"Brunch Club",slug:"brunch-club",description:"Un buen brunch siempre se comparte.",category:"Restaurante",accent_color:"#c57a54",logo_url:null,card_background:null,card_text:"LO MEJOR ES VOLVER",stamp_icon:"burger",stamp_image_url:null,public_listing:true,active:true,created_at:days(75)},
-  {id:businessIds[2],name:"Barba Norte",slug:"barba-norte",description:"Tu barbería de confianza.",category:"Barbería",accent_color:"#69568c",logo_url:null,card_background:null,card_text:"TU ESTILO, NUESTRA PASIÓN",stamp_icon:"beard",stamp_image_url:null,public_listing:true,active:true,created_at:days(50)}
- ];
- const programs=businesses.map((b,i)=>({id:uuid(),business_id:b.id,type:"stamps",reward_label:["Un café gratis","Un desayuno gratis","Un arreglo de barba gratis"][i],reward_cost:[8,6,10][i],cashback_bps:500,points_per_euro:1,max_stamps_per_action:3,max_ticket_cents:50000,min_seconds_between_awards:30,max_daily_awards_per_employee:250,require_ticket_reference:false}));
+ const businesses:Row[]=DEMO_SHOPS.map((s,i)=>({
+  id:businessIds[i],name:s.name,slug:s.slug,description:s.description,category:s.category,
+  accent_color:s.color,card_text_color:"#ffffff",stamp_color:"#275642",logo_url:null,card_background:null,
+  card_text:"QUÉ BIEN QUE HAS VUELTO",stamp_icon:s.icon,stamp_image_url:null,
+  public_listing:true,active:true,created_at:days(90-i*5)
+ }));
+ const programs=DEMO_SHOPS.map((s,i)=>({
+  id:uuid(),business_id:businessIds[i],type:s.type,reward_label:s.reward,reward_cost:s.cost,
+  cashback_bps:500,points_per_euro:1,max_stamps_per_action:3,max_ticket_cents:500000,
+  min_seconds_between_awards:30,max_daily_awards_per_employee:250,require_ticket_reference:false
+ }));
  const people:Row[]=[
   {id:IDs.administrador,full_name:"Alex · Administración",email:"admin@demo.loyally.test",created_at:days(150)},
   {id:IDs.gestor,full_name:"Clara · Café Noma",email:"gestor@demo.loyally.test",created_at:days(90)},
@@ -59,13 +76,16 @@ function seed():DemoState{
   {business_id:businessIds[0],user_id:IDs.empleado,role:"employee",active:true}
  ];
  const cardDefs=[
-  {id:"11111111-aaaa-4aaa-8aaa-111111111111",business_id:businessIds[0],customer_id:IDs.cliente,card_token:DEMO_CARD_TOKEN,balance:4,total_earned:12},
+  {id:"11111111-aaaa-4aaa-8aaa-111111111111",business_id:businessIds[0],customer_id:IDs.cliente,card_token:DEMO_CARD_TOKEN,balance:8,total_earned:12},
   {id:"11111111-bbbb-4bbb-8bbb-111111111111",business_id:businessIds[1],customer_id:IDs.cliente,card_token:"99999999-9999-4999-8999-999999999998",balance:2,total_earned:2},
   {id:"11111111-cccc-4ccc-8ccc-111111111111",business_id:businessIds[0],customer_id:IDs.alvaro,card_token:"99999999-9999-4999-8999-999999999997",balance:2,total_earned:2},
   {id:"11111111-dddd-4ddd-8ddd-111111111111",business_id:businessIds[0],customer_id:IDs.lucia,card_token:"99999999-9999-4999-8999-999999999996",balance:5,total_earned:5},
   {id:"11111111-eeee-4eee-8eee-111111111111",business_id:businessIds[2],customer_id:IDs.alvaro,card_token:"99999999-9999-4999-8999-999999999995",balance:5,total_earned:5},
-  {id:"11111111-ffff-4fff-8fff-111111111111",business_id:businessIds[0],customer_id:IDs.otra,card_token:"99999999-9999-4999-8999-999999999994",balance:1,total_earned:1}
+  {id:"11111111-ffff-4fff-8fff-111111111111",business_id:businessIds[0],customer_id:IDs.otra,card_token:"99999999-9999-4999-8999-999999999994",balance:1,total_earned:1},
+  {id:uuid(),business_id:businessIds[7],customer_id:IDs.cliente,card_token:uuid(),balance:200,total_earned:200},
+  {id:uuid(),business_id:businessIds[8],customer_id:IDs.cliente,card_token:uuid(),balance:4000,total_earned:4000}
  ].map(x=>({...x,created_at:days(18)}));
+ const vouchers:Row[]=[{id:uuid(),token:"80808080-8080-4808-8808-808080808080",membership_id:cardDefs[0].id,business_id:businessIds[0],reward_label:"Un café gratis",status:"issued",issued_at:now(),redeemed_at:null}];
  const movements:Row[]=[
   {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(0)},
   {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[0].id,employee_id:IDs.empleado,kind:"earn",amount_delta:2,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(2)},
@@ -73,15 +93,15 @@ function seed():DemoState{
   {id:uuid(),business_id:businessIds[0],membership_id:cardDefs[2].id,employee_id:IDs.empleado,kind:"earn",amount_delta:1,purchase_cents:null,ticket_ref:"T-100",reversal_of:null,reversal_reason:null,created_at:days(6)},
   {id:uuid(),business_id:businessIds[2],membership_id:cardDefs[4].id,employee_id:IDs.administrador,kind:"earn",amount_delta:2,purchase_cents:null,ticket_ref:null,reversal_of:null,reversal_reason:null,created_at:days(3)}
  ];
- const locations=[
-  {id:uuid(),business_id:businessIds[0],name:"Café Noma · Centro",address:"Av. Álvaro Obregón 42",city:"Ciudad de México",country:"México",lat:19.4167,lng:-99.1620},
-  {id:uuid(),business_id:businessIds[1],name:"Brunch Club · Roma",address:"Colima 118",city:"Ciudad de México",country:"México",lat:19.4206,lng:-99.1578},
-  {id:uuid(),business_id:businessIds[2],name:"Barba Norte · Condesa",address:"Av. Michoacán 82",city:"Ciudad de México",country:"México",lat:19.4103,lng:-99.1746}
- ];
+ const locations=DEMO_SHOPS.map((s,i)=>({
+  id:uuid(),business_id:businessIds[i],name:s.name+" · "+s.zone,
+  address:s.zone+" (ubicación de demostración)",city:"Tijuana",country:"México",
+  lat:s.lat,lng:s.lng,visible:true
+ }));
  return {assets:{},tables:{
   profiles:people,platform_admins:[{user_id:IDs.administrador}],businesses,
   business_members:members,business_invitations:[],loyalty_programs:programs,loyalty_memberships:cardDefs,
-  loyalty_transactions:movements,business_locations:locations,marketing_consents:[],marketing_campaigns:[],
+  loyalty_transactions:movements,reward_vouchers:vouchers,business_locations:locations,marketing_consents:[{id:uuid(),business_id:businessIds[0],customer_id:IDs.cliente,opted_in:true}],marketing_campaigns:[],marketing_deliveries:[],marketing_usage_ledger:[],business_marketing_rates:[],
   platform_billing_settings:[],business_billing:businessIds.map(id=>({business_id:id,plan:"business",status:"trialing",trial_ends_at:days(-20),stripe_customer_id:null,stripe_subscription_id:null,updated_at:now()})),
   business_leads:[{id:uuid(),business_name:"La Casa del Pan",contact_name:"Rosa Martín",contact_email:"rosa@ejemplo.test",category:"Panadería",city:"Ciudad de México",message:"Me interesan las tarjetas digitales",status:"new",created_at:days(1)}]
  }};
@@ -112,6 +132,7 @@ function authorize(table:string,mode:string,rows:Row[]):Row[]{
  if(table==="platform_admins")return [];
  if(table==="loyalty_memberships")return rows.filter(r=>role==="cliente"?r.customer_id===actor():role==="empleado"||role==="gestor"?r.business_id===DEMO_BUSINESS_ID:false);
  if(table==="loyalty_transactions")return rows.filter(r=>role==="gestor"||role==="empleado"?r.business_id===DEMO_BUSINESS_ID:role==="cliente"?load().tables.loyalty_memberships.some(m=>m.customer_id===actor()&&m.id===r.membership_id):false);
+ if(table==="reward_vouchers")return mode==="select"?rows.filter(r=>role==="cliente"?load().tables.loyalty_memberships.some(m=>m.id===r.membership_id&&m.customer_id===actor()):(role==="empleado"||role==="gestor")&&r.business_id===DEMO_BUSINESS_ID):[];
  if(table==="profiles")return rows.filter(r=>r.id===actor());
  if(["business_invitations","marketing_campaigns","business_billing"].includes(table))return role==="gestor"?rows.filter(r=>r.business_id===DEMO_BUSINESS_ID):[];
  if(table==="marketing_consents")return rows.filter(r=>r.customer_id===actor());
@@ -185,6 +206,7 @@ function memberDirectory(state:DemoState,businessId:string){
   return {user_id:m.user_id,full_name:user?.full_name||"Miembro",email:user?.email||"",role:m.role,active:m.active};
  });
 }
+function maskDemoEmail(email:string){const [local,domain]=email.split("@");return local&&domain?local.slice(0,2)+"***@"+domain:"***"}
 function customerDirectory(state:DemoState,businessId:string){
  return state.tables.loyalty_memberships.filter(m=>m.business_id===businessId).map(m=>{
   const user=state.tables.profiles.find(p=>p.id===m.customer_id);
@@ -208,6 +230,12 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
    case "admin_user_directory":result=role==="administrador"?ok(userDirectory(state)):fail("Solo disponible para administración.");break;
    case "business_customer_directory":result=manager?ok(customerDirectory(state,biz)):fail("Acceso denegado.");break;
    case "business_staff_directory":result=manager?ok(memberDirectory(state,biz)):fail("Acceso denegado.");break;
+   case "business_mail_quote":{
+    if(!manager){result=fail("Acceso denegado.");break}
+    const contacts=customerDirectory(state,biz).filter(v=>v.marketing_ok).length;
+    result=ok([{contacts,price_cents:1,total_cents:contacts,currency:"MXN"}]);
+    break;
+   }
    case "business_employee_activity":{
     const tx=table.loyalty_transactions.filter(t=>t.business_id===biz&&t.kind==="earn");
     const memberIds=[...new Set(tx.map(t=>t.employee_id))];
@@ -226,6 +254,15 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     const row={id:uuid(),business_id:biz,customer_id:actor(),card_token:uuid(),balance:0,total_earned:0,created_at:now()};
     table.loyalty_memberships.push(row);persist();result=ok(row.id);break;
    }
+   case "staff_lookup_voucher":{
+    const v=table.reward_vouchers.find(v=>v.token===String(args.p_token||"")&&v.status==="issued");
+    const m=v&&table.loyalty_memberships.find(m=>m.id===v.membership_id);
+    const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
+    const b=m&&table.businesses.find(b=>b.id===m.business_id);
+    const name=m&&table.profiles.find(x=>x.id===m.customer_id)?.full_name;
+    result=ok(canStaff&&v&&m&&p&&b?[{membership_id:m.id,business_id:m.business_id,business_name:b.name,customer_name:name||"Cliente",program_type:p.type,balance:m.balance,reward_label:v.reward_label,reward_cost:p.reward_cost,voucher_id:v.id}]:[]);
+    break;
+   }
    case "staff_lookup_card":{
     const m=membershipByToken();
     const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
@@ -233,6 +270,15 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     const name=m&&table.profiles.find(x=>x.id===m.customer_id)?.full_name;
     result=ok(canStaff&&m&&p&&b?[{membership_id:m.id,business_id:m.business_id,business_name:b.name,customer_name:name||"Cliente",program_type:p.type,balance:m.balance,reward_label:p.reward_label,reward_cost:p.reward_cost}]:[]);
     break;
+   }
+   case "staff_redeem_voucher":{
+    if(!canStaff){result=fail("No autorizado");break}
+    const v=table.reward_vouchers.find(v=>v.token===String(args.p_token||"")&&v.status==="issued");
+    const m=v&&table.loyalty_memberships.find(m=>m.id===v.membership_id);
+    const p=m&&table.loyalty_programs.find(p=>p.business_id===m.business_id);
+    if(!v||!m||!p||m.balance<p.reward_cost){result=fail("El QR está canjeado o el saldo es insuficiente.");break}
+    m.balance-=p.reward_cost;v.status="redeemed";v.redeemed_at=now();
+    table.loyalty_transactions.unshift({id:uuid(),business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:"redeem",amount_delta:-p.reward_cost,created_at:now()});persist();result=ok(m.balance);break;
    }
    case "staff_award_card":
    case "staff_redeem_card":{
@@ -247,6 +293,9 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
     if(name==="staff_redeem_card"&&m.balance+delta<0){result=fail("Saldo insuficiente para canjear.");break}
     if(args.p_ticket_ref&&table.loyalty_transactions.some(t=>t.business_id===m.business_id&&t.ticket_ref===args.p_ticket_ref)){result=fail("El ticket ya se ha utilizado.");break}
     m.balance+=delta;if(delta>0)m.total_earned+=delta;
+    const existing=table.reward_vouchers.find(v=>v.membership_id===m.id&&v.status==="issued");
+    if(m.balance<p.reward_cost&&existing)existing.status="cancelled";
+    if(m.balance>=p.reward_cost&&!existing)table.reward_vouchers.push({id:uuid(),token:uuid(),membership_id:m.id,business_id:m.business_id,reward_label:p.reward_label,status:"issued",issued_at:now()});
     table.loyalty_transactions.unshift({id:uuid(),business_id:m.business_id,membership_id:m.id,employee_id:actor(),kind:delta>0?"earn":"redeem",amount_delta:delta,purchase_cents:args.p_purchase_cents||null,ticket_ref:args.p_ticket_ref||null,reversal_of:null,reversal_reason:null,created_at:now()});
     persist();result=ok(m.balance);break;
    }

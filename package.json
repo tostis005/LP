@@ -9,7 +9,8 @@
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
-    "db:admin": "node scripts/bootstrap-admin.mjs"
+    "db:admin": "node scripts/bootstrap-admin.mjs",
+    "db:seed:tijuana": "node scripts/seed-tijuana-demo.mjs"
   },
   "dependencies": {
     "@zxing/browser": "^0.1.5",

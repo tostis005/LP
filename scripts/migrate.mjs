@@ -29,8 +29,7 @@ try {
   const files = [
     resolve(root,"db/migrations/000_bootstrap.sql"),
     ...readdirSync(resolve(root,"supabase/migrations")).filter(n => /^\d+_.+\.sql$/.test(n)).sort().map(n=>resolve(root,"supabase/migrations",n)),
-    resolve(root,"db/migrations/010_native.sql"),
-    resolve(root,"db/migrations/020_stamp_design.sql")
+    ...readdirSync(resolve(root,"db/migrations")).filter(n => /^\d+_.+\.sql$/.test(n) && n!=="000_bootstrap.sql").sort().map(n=>resolve(root,"db/migrations",n))
   ];
   for (const path of files) {
     const name = path.split("/").at(-1);
@@ -56,7 +55,7 @@ try {
     "profiles","platform_admins","businesses","business_members","business_invitations",
     "loyalty_programs","loyalty_memberships","loyalty_transactions","business_locations",
     "marketing_consents","marketing_campaigns","platform_billing_settings",
-    "business_billing","billing_webhook_events","business_leads"
+    "business_billing","billing_webhook_events","business_leads","business_marketing_rates","reward_vouchers","marketing_deliveries","marketing_usage_ledger"
   ];
   for (const table of tables) await client.query("GRANT SELECT,INSERT,UPDATE,DELETE ON public." + table + " TO authenticated");
   // El servicio de correo/auth puede registrar solicitudes y webhooks ya verificados.

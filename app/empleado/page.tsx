@@ -8,13 +8,16 @@ import {AppFrame,type Account} from "@/components/AppFrame";
 import {db} from "@/lib/supabase";
 import {demoRole,DEMO_CARD_TOKEN} from "@/lib/demo-local";
 import {normalizeToken,units} from "@/lib/format";
-type Found={membership_id:string;business_id:string;business_name:string;customer_name:string;program_type:"stamps"|"points"|"cashback";balance:number;reward_label:string;reward_cost:number;max_stamps_per_action?:number};
+type Found={membership_id:string;business_id:string;business_name:string;customer_name:string;program_type:"stamps"|"points"|"cashback";balance:number;reward_label:string;reward_cost:number;voucher_id?:string;max_stamps_per_action?:number};
 function StaffMain({account}:{account:Account}){
  const params=useSearchParams(),[input,setInput]=useState(""),[card,setCard]=useState<Found|null>(null),[receipt,setReceipt]=useState(""),[stamps,setStamps]=useState(1),[amount,setAmount]=useState(""),[cash,setCash]=useState(""),[busy,setBusy]=useState(false),[scanner,setScanner]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
  const video=useRef<HTMLVideoElement>(null),controls=useRef<IScannerControls|null>(null);
- const lookup=useCallback(async(raw:string)=>{const token=normalizeToken(raw);setError("");setSuccess("");
+ const lookup=useCallback(async(raw:string)=>{const voucherUrl=raw.match(/\/p\/([a-f0-9-]{36})/i);
+  const token=voucherUrl?.[1]||normalizeToken(raw);setError("");setSuccess("");
   if(!token){setError("El código QR o identificador no es válido.");return}
-  setInput(token);const {data,error}=await db().rpc("staff_lookup_card",{p_token:token});
+  setInput(token);
+  let {data,error}=voucherUrl?await db().rpc("staff_lookup_voucher",{p_token:token}):await db().rpc("staff_lookup_card",{p_token:token});
+  if(!voucherUrl&&!error&&(!data||!data.length)){const voucher=await db().rpc("staff_lookup_voucher",{p_token:token});if(!voucher.error&&voucher.data?.length){data=voucher.data;error=null;}}
   if(error){setError(error.message);setCard(null)}else if(!data?.length){setError("Tarjeta no encontrada o sin permiso para este negocio.");setCard(null)}else {
    const found=data[0] as Found;
    const limit=await db().from("loyalty_programs").select("max_stamps_per_action").eq("business_id",found.business_id).maybeSingle();
@@ -22,7 +25,7 @@ function StaffMain({account}:{account:Account}){
    setStamps(1);
   }
  },[]);
- useEffect(()=>{const code=params.get("code");if(code)lookup(code);else if(demoRole())lookup(DEMO_CARD_TOKEN)},[lookup,params]);
+ useEffect(()=>{const reward=params.get("reward"),code=params.get("code");if(reward)lookup("/p/"+reward);else if(code)lookup(code);else if(demoRole())lookup(DEMO_CARD_TOKEN)},[lookup,params]);
  function startCamera(){setError("");setScanner(true)}
  function stopCamera(){setScanner(false)}
  useEffect(()=>{
@@ -38,8 +41,8 @@ function StaffMain({account}:{account:Account}){
  },[scanner,lookup]);
  async function transact(kind:"earn"|"redeem"){if(!card)return;setBusy(true);setError("");setSuccess("");
   let result;
-  if(kind==="earn"){result=await db().rpc("staff_award_card",{p_token:input,p_purchase_cents:Math.round(Number(amount)*100)||0,p_stamps:stamps,p_ticket_ref:receipt.trim()||null});}
-  else {if(!window.confirm("¿Confirmas el canje de esta recompensa?")){setBusy(false);return}result=await db().rpc("staff_redeem_card",{p_token:input,p_cashback_cents:card.program_type==="cashback"?Math.round(Number(cash)*100):null})}
+  if(kind==="earn"&&!card.voucher_id){result=await db().rpc("staff_award_card",{p_token:input,p_purchase_cents:Math.round(Number(amount)*100)||0,p_stamps:stamps,p_ticket_ref:receipt.trim()||null});}
+  else {if(!window.confirm("¿Confirmas el canje de esta recompensa?")){setBusy(false);return}result=card.voucher_id?await db().rpc("staff_redeem_voucher",{p_token:input}):await db().rpc("staff_redeem_card",{p_token:input,p_cashback_cents:card.program_type==="cashback"?Math.round(Number(cash)*100):null})}
   setBusy(false);if(result.error){setError(result.error.message);return}
   setSuccess(kind==="earn"?"Compra registrada. Nuevo saldo: "+units(result.data,card.program_type):"Recompensa canjeada. Saldo restante: "+units(result.data,card.program_type));
   setCard({...card,balance:result.data});setReceipt("");setAmount("");setCash("")
@@ -54,10 +57,10 @@ function StaffMain({account}:{account:Account}){
  <section className="panel-card"><div className="panel-icon peach"><Ticket size={22}/></div><h2>Registrar la compra</h2><p className="muted">Los datos del cliente aparecerán cuando escanees su tarjeta.</p>
  {error&&<div className="alert error">{error}</div>}{success&&<div className="alert success"><Check size={18}/>{success}</div>}
  {!card?<div className="scan-await"><ScanLine size={35}/><strong>Esperando una tarjeta</strong><p>Escanea un QR para ver el saldo y las acciones disponibles.</p></div>:<><div className="scan-found"><span>CLIENTE ENCONTRADO</span><h3>{card.customer_name||"Cliente Loyally"}</h3><p>{card.business_name}</p><strong>{units(card.balance,card.program_type)}</strong></div>
-  <div className="form-stack">{card.program_type==="stamps"?<div className="staff-touch-stamps"><label>¿Cuántos sellos asignamos?</label><div className="staff-touch-stepper"><button type="button" aria-label="Restar sello" disabled={stamps<=1} onClick={()=>setStamps(n=>Math.max(1,n-1))}><Minus size={20}/></button><input aria-label="Número de sellos" min={1} max={card.max_stamps_per_action||100} type="number" value={stamps} onChange={e=>setStamps(Math.max(1,Math.min(card.max_stamps_per_action||100,Number(e.target.value)||1)))}/><button type="button" aria-label="Sumar sello" disabled={stamps>=(card.max_stamps_per_action||100)} onClick={()=>setStamps(n=>Math.min(card.max_stamps_per_action||100,n+1))}><Plus size={20}/></button></div><small>Máximo de {card.max_stamps_per_action||100} sellos por operación, según el programa.</small></div>:<label>Importe de la compra (€)<input type="number" value={amount} min="0.01" step="0.01" onChange={e=>setAmount(e.target.value)} placeholder="12,50"/></label>}
+  <div className="form-stack">{card.program_type==="stamps"?<div className="staff-touch-stamps"><label>¿Cuántos sellos asignamos?</label><div className="staff-touch-stepper"><button type="button" aria-label="Restar sello" disabled={stamps<=1} onClick={()=>setStamps(n=>Math.max(1,n-1))}><Minus size={20}/></button><input aria-label="Número de sellos" min={1} max={card.max_stamps_per_action||100} type="number" value={stamps} onChange={e=>setStamps(Math.max(1,Math.min(card.max_stamps_per_action||100,Number(e.target.value)||1)))}/><button type="button" aria-label="Sumar sello" disabled={stamps>=(card.max_stamps_per_action||100)} onClick={()=>setStamps(n=>Math.min(card.max_stamps_per_action||100,n+1))}><Plus size={20}/></button></div><small>Máximo de {card.max_stamps_per_action||100} sellos por operación, según el programa.</small></div>:<label>Importe de la compra (MXN)<input type="number" value={amount} min="0.01" step="0.01" onChange={e=>setAmount(e.target.value)} placeholder="12,50"/></label>}
   <label>Referencia del ticket (recomendado)<input value={receipt} onChange={e=>setReceipt(e.target.value)} placeholder="Ej. T-2026-0015"/><small>Evita asignar dos veces puntos al mismo ticket si se registra la referencia.</small></label>
-  <button className="button button-dark button-full" disabled={busy||card.program_type==="stamps"&&!(stamps>=1&&stamps<=(card.max_stamps_per_action||100))} onClick={()=>transact("earn")}><Plus size={17}/> {busy?"Guardando...":"Registrar compra / sellos"}</button>
-  <div className="redeem-box"><h3>Canjear recompensa</h3><p>{card.reward_label}</p>{card.program_type==="cashback"&&<label>Cashback a utilizar (€)<input type="number" min=".01" step=".01" value={cash} onChange={e=>setCash(e.target.value)} placeholder="5.00"/></label>}
+  <button className="button button-dark button-full" disabled={busy||!!card.voucher_id||card.program_type==="stamps"&&!(stamps>=1&&stamps<=(card.max_stamps_per_action||100))} onClick={()=>transact("earn")}><Plus size={17}/> {busy?"Guardando...":"Registrar compra / sellos"}</button>
+  <div className="redeem-box"><h3>{card.voucher_id?"Canjear premio con QR de un solo uso":"Canjear recompensa"}</h3><p>{card.reward_label}</p>{card.program_type==="cashback"&&!card.voucher_id&&<label>Cashback a utilizar (MXN)<input type="number" min=".01" step=".01" value={cash} onChange={e=>setCash(e.target.value)} placeholder="5.00"/></label>}
   <button disabled={busy||(card.program_type!=="cashback"&&card.balance<card.reward_cost)} onClick={()=>transact("redeem")} className="button button-outline button-full"><Gift size={18}/> Canjear recompensa</button></div>
   </div></>}
  </section></div>;

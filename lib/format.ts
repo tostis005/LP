@@ -1,6 +1,6 @@
 import type { ProgramType } from "@/lib/types";
-export function money(cents: number, currency = "EUR") {
-  return new Intl.NumberFormat("es-ES", { style: "currency", currency }).format((cents || 0) / 100);
+export function money(cents: number, currency = "MXN") {
+  return new Intl.NumberFormat("es-MX", { style: "currency", currency }).format((cents || 0) / 100);
 }
 export function dateShort(s: string) { return new Date(s).toLocaleDateString("es-ES", {day:"2-digit",month:"short",year:"numeric"}); }
 export function units(balance: number, type: ProgramType | undefined) {

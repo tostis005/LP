@@ -349,3 +349,42 @@
  .auth-all-access .auth-profile-copy small{font-size:9px}
  .auth-quick-divider span{font-size:8px}
 }
+
+
+/* Loyally · navegación y directorio Tijuana */
+.workspace-section-layout{display:grid;grid-template-columns:195px minmax(0,1fr);gap:22px;align-items:start;min-width:0}
+.workspace-section-menu{display:grid;gap:5px;align-content:start;position:sticky;top:22px;border:1px solid #e4eae4;background:#fff;padding:14px;border-radius:19px;box-shadow:0 9px 25px #163e2406}
+.workspace-section-menu>strong{font-size:10px;color:#91a495;letter-spacing:.09em;padding:7px 10px 11px}
+.workspace-section-menu button{display:flex;gap:10px;align-items:center;text-align:left;border:none;background:transparent;border-radius:11px;padding:12px 10px;color:#6c8472;font-size:12px;font-weight:750;cursor:pointer}
+.workspace-section-menu button.active{background:#e8f2e7;color:#245f3c}
+.workspace-section-menu button:hover:not(.active){background:#f6f9f5;color:#2b6842}
+.workspace-section-menu button svg{flex:none}
+.workspace-section-body{min-width:0}
+.directory-filter-group{margin:18px 0 0}
+.directory-filter-group>strong{font-size:12px;color:#4e6d56;display:block}
+.directory-filter-group .chip-row{margin:10px 0 13px}
+.directory-map.directory-map-primary{position:relative;top:auto;height:430px;width:100%;margin:18px 0 27px}
+.directory-results-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.directory-results-grid .directory-card{margin:0;height:100%}
+.directory-reward{font-weight:800;color:#295c40;font-size:12px;margin-top:10px}
+.loyally-map-marker{background:#fff;box-shadow:0 4px 11px #15362150;border:2px solid #d6e9da;border-radius:50% 50% 50% 7px;transform:rotate(-45deg);display:grid;place-items:center}
+.loyally-map-marker span{font-size:20px;line-height:1;transform:rotate(45deg);display:inline-block}
+.stamp-visual-footer .stamp-reward-name{display:block;font-size:clamp(14px,1.45vw,18px);font-weight:900;line-height:1.25;color:inherit;letter-spacing:-.015em;margin-top:5px}
+.lc-reward-label{display:block;font-size:clamp(12px,1.1vw,15px);font-weight:850;line-height:1.35;opacity:.98;margin-top:7px}
+.color-input-label{display:grid;gap:7px;font-size:12px;font-weight:800;color:#4a6350}
+.color-input-label span{display:flex;align-items:center;gap:9px;border:1px solid #dae5d9;border-radius:12px;padding:8px 12px;background:#fff;min-height:46px}
+.color-input-label input[type=color]{width:53px;height:32px;padding:0;border:0;border-radius:8px;cursor:pointer}
+.color-input-label code{font-family:monospace;font-weight:700;letter-spacing:.04em;font-size:12px;color:#496b52}
+.preset-palette{display:flex;flex-wrap:wrap;gap:10px}
+.preset-palette button{width:32px;height:32px;min-width:32px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #cbd8cd;cursor:pointer}
+@media(max-width:1100px){.workspace-section-layout{grid-template-columns:160px minmax(0,1fr);gap:14px}.workspace-section-menu{padding:8px}}
+@media(max-width:850px){.workspace-section-layout{display:block}.workspace-section-menu{position:relative;top:auto;display:flex;overflow-x:auto;gap:7px;margin-bottom:20px;padding:8px}.workspace-section-menu>strong{display:none}.workspace-section-menu button{white-space:nowrap;flex:none}.directory-results-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.directory-map.directory-map-primary{height:350px}.directory-results-grid .directory-card{min-height:150px}}
+
+
+/* Recompensas desbloqueadas: QR independiente de la tarjeta personal */
+.reward-claim-panel{padding:19px 18px;margin:17px 0;border:1px solid #c9dece;background:linear-gradient(140deg,#e9f5eb,#fafdf7);border-radius:18px;text-align:center;box-shadow:0 8px 20px #17462c0b}
+.reward-claim-panel>.eyebrow{font-size:10px;font-weight:900;letter-spacing:.11em;color:#36704c;margin-bottom:7px}
+.reward-claim-panel>strong{display:block;font-size:clamp(18px,2.3vw,25px);font-weight:950;line-height:1.15;letter-spacing:-.035em;color:#1d5034}
+.reward-claim-panel>p{font-size:12px;line-height:1.55;color:#567662;margin:10px auto 13px;max-width:275px}
+.reward-claim-panel .qr-box{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:15px;border:1px solid #dbe7dc;width:max-content;max-width:100%;margin:auto}

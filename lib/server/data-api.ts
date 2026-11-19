@@ -11,10 +11,10 @@ export type QueryInput={
 const tables=new Set([
  "profiles","platform_admins","businesses","business_members","business_invitations",
  "loyalty_programs","loyalty_memberships","loyalty_transactions","business_locations",
- "marketing_consents","marketing_campaigns","platform_billing_settings",
+ "marketing_consents","marketing_campaigns","platform_billing_settings","reward_vouchers",
  "business_billing","billing_webhook_events","business_leads"
 ]);
-const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads"]);
+const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads","business_marketing_rates"]);
 function ident(value:string) {
  if(!/^[a-z_][a-z0-9_]*$/.test(value))throw new ApiError("Campo o tabla no válida.");
  return '"'+value+'"';
@@ -130,11 +130,14 @@ const rpcMap:Record<string,Spec>={
  set_staff_active:{args:[["p_business","uuid"],["p_user","uuid"],["p_active","boolean"]],returns:"scalar"},
  join_program:{args:[["p_business","uuid"]],returns:"scalar"},
  staff_lookup_card:{args:[["p_token","uuid"]],returns:"table"},
+ staff_lookup_voucher:{args:[["p_token","uuid"]],returns:"table"},
+ staff_redeem_voucher:{args:[["p_token","uuid"]],returns:"scalar"},
  staff_award_card:{args:[["p_token","uuid"],["p_purchase_cents","integer"],["p_stamps","integer"],["p_ticket_ref","text"]],returns:"scalar"},
  staff_redeem_card:{args:[["p_token","uuid"],["p_cashback_cents","integer"]],returns:"scalar"},
  platform_upsert_consent:{args:[["p_opted_in","boolean"]],returns:"scalar"},
  business_upsert_consent:{args:[["p_business","uuid"],["p_opted_in","boolean"]],returns:"scalar"},
  business_customer_directory:{args:[["p_business","uuid"]],returns:"table"},
+ business_mail_quote:{args:[["p_business","uuid"]],returns:"table"},
  business_staff_directory:{args:[["p_business","uuid"]],returns:"table"},
  admin_user_directory:{args:[],returns:"table"},
  find_join_business:{args:[["p_slug","text"]],returns:"table"},

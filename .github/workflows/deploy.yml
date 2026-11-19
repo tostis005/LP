@@ -119,25 +119,55 @@ jobs:
             -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" 'bash -se' <<'REMOTE'
           set -euo pipefail
           cd /opt/lp
-          test -f .env.production
+          test -f .env.production || { echo "ERROR: falta /opt/lp/.env.production"; exit 1; }
+
+          # No cambiar propietarios ni permisos de los secretos de producción.
+          # Si la cuenta SSH no puede leerlos directamente, usar sudo sin interacción.
+          ENV_CMD=()
           if ! test -r .env.production; then
-            echo "ERROR: el usuario de despliegue no tiene permisos de lectura sobre /opt/lp/.env.production."
-            exit 1
+            if sudo -n test -r .env.production; then
+              ENV_CMD=(sudo -n)
+            else
+              echo "ERROR: .env.production no es legible y la cuenta SSH no dispone de sudo -n."
+              exit 1
+            fi
           fi
           for key in APP_DB_PASSWORD AUTH_DB_PASSWORD; do
-            if ! grep -q "^$key=" .env.production; then
-              printf '%s=%s\n' "$key" "$(openssl rand -hex 32)" >> .env.production
+            if ! "${ENV_CMD[@]}" grep -q "^${key}=" .env.production; then
+              printf '%s=%s\n' "$key" "$(openssl rand -hex 32)" | "${ENV_CMD[@]}" tee -a .env.production >/dev/null
             fi
           done
-          git fetch --no-tags origin main
-          if git show-ref --verify --quiet refs/heads/main; then
-            git switch main
-          else
-            git switch -c main --track origin/main
+
+          # El código solo se actualiza si puede hacerse sin sobrescribir cambios locales.
+          GIT_CMD=(git)
+          if ! test -w .git; then
+            if sudo -n test -w .git; then
+              GIT_CMD=(sudo -n git -c safe.directory=/opt/lp)
+            else
+              echo "ERROR: no hay permisos para actualizar /opt/lp/.git."
+              exit 1
+            fi
           fi
-          git pull --ff-only origin main
-          docker compose --env-file .env.production config --quiet
-          docker compose --env-file .env.production up -d --build --remove-orphans
+          "${GIT_CMD[@]}" fetch --no-tags origin main
+          if "${GIT_CMD[@]}" show-ref --verify --quiet refs/heads/main; then
+            "${GIT_CMD[@]}" switch main
+          else
+            "${GIT_CMD[@]}" switch -c main --track origin/main
+          fi
+          "${GIT_CMD[@]}" pull --ff-only origin main
+
+          # Ejecutar Compose como root cuando el fichero de entorno está protegido
+          # o cuando la cuenta de despliegue no tiene acceso al socket de Docker.
+          COMPOSE=(docker compose)
+          if ((${#ENV_CMD[@]})) || ! docker info >/dev/null 2>&1; then
+            if ! sudo -n docker info >/dev/null 2>&1; then
+              echo "ERROR: Docker requiere permisos que la cuenta SSH no tiene."
+              exit 1
+            fi
+            COMPOSE=(sudo -n docker compose)
+          fi
+          "${COMPOSE[@]}" --env-file .env.production config --quiet
+          "${COMPOSE[@]}" --env-file .env.production up -d --build --remove-orphans
           for i in $(seq 1 40); do
             if curl -fsS --max-time 5 http://127.0.0.1:3100/api/health >/dev/null; then
               echo "Loyally responde correctamente en el puerto 3100."
@@ -146,7 +176,7 @@ jobs:
             sleep 3
           done
           echo "Loyally no superó la comprobación de salud."
-          docker compose --env-file .env.production ps
-          docker compose --env-file .env.production logs --tail 100 web
+          "${COMPOSE[@]}" --env-file .env.production ps
+          "${COMPOSE[@]}" --env-file .env.production logs --tail 100 web
           exit 1
           REMOTE
