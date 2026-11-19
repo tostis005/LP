@@ -18,6 +18,8 @@ jobs:
           node-version: "22"
       - name: Instalar dependencias
         run: npm install --no-audit --no-fund
+      - name: Probar control de origen de acceso por IP
+        run: node tests/demo/origin.mjs
       - name: Probar acceso inmediato y sellos en los cuatro perfiles
         run: node tests/demo/role-flow.mjs
       - name: Comprobar TypeScript
