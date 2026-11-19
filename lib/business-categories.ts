@@ -3,7 +3,7 @@ import {type StampKind} from "@/lib/stamp-drawings";
 /** Cada sector recibe automáticamente un sello propio; no se configura desde el comercio. */
 export const BUSINESS_CATEGORIES=[
  {name:"Cafetería",stamp:"coffee"},
- {name:"Restaurante",stamp:"burger"},
+ {name:"Restaurante",stamp:"restaurant"},
  {name:"Taquería",stamp:"taco"},
  {name:"Barbería",stamp:"beard"},
  {name:"Peluquería",stamp:"hair"},
