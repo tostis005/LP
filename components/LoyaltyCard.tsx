@@ -1,23 +1,30 @@
 "use client";
 import {useEffect,useState} from "react";
 import {QRCodeSVG} from "qrcode.react";
-import {Download, X} from "lucide-react";
+import {Download, X, Smartphone, Wallet, CheckCircle2} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
 import {initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {StampGrid} from "@/components/StampMarks";
 import {STAMP_DRAWINGS,DEFAULT_STAMP,type StampKind} from "@/lib/stamp-drawings";
 export function LoyaltyCard({membership,business,program}:{membership:Membership;business:Business;program?:Program}){
- const [open,setOpen]=useState(false),[consent,setConsent]=useState(false),[consentBusy,setConsentBusy]=useState(false),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
+ const [open,setOpen]=useState(false),[waConsent,setWaConsent]=useState(false),[wallets,setWallets]=useState({apple:false,google:false}),[consent,setConsent]=useState(false),[consentBusy,setConsentBusy]=useState(false),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  useEffect(()=>{if(!open)return;let active=true;
+  fetch("/api/local/wallet/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(active&&v)setWallets({apple:v.apple===true,google:v.google===true})}).catch(()=>{});
   db().from("reward_vouchers").select("token,reward_label").eq("membership_id",membership.id).eq("status","issued").maybeSingle().then(({data})=>{if(active)setVoucher(data as {token:string;reward_label:string}|null)});
-  db().from("marketing_consents").select("opted_in").eq("customer_id",membership.customer_id).eq("business_id",membership.business_id).maybeSingle()
-   .then(({data})=>{if(active)setConsent(!!data?.opted_in)});
+  db().from("marketing_consents").select("opted_in,whatsapp_opted_in").eq("customer_id",membership.customer_id).eq("business_id",membership.business_id).maybeSingle()
+   .then(({data})=>{if(active){setConsent(!!data?.opted_in);setWaConsent(!!data?.whatsapp_opted_in)}});
   return()=>{active=false};
  },[open,membership.customer_id,membership.business_id]);
  async function changeConsent(checked:boolean){setConsentBusy(true);setConsentError("");
   const {error}=await db().rpc("business_upsert_consent",{p_business:membership.business_id,p_opted_in:checked});
   setConsentBusy(false);if(error)setConsentError(error.message);else setConsent(checked)
+ }
+ async function changeWaConsent(checked:boolean){
+  setConsentBusy(true);setConsentError("");
+  const {error}=await db().rpc("business_upsert_whatsapp_consent",{p_business:membership.business_id,p_opted_in:checked});
+  setConsentBusy(false);
+  if(error)setConsentError(error.message);else setWaConsent(checked);
  }
  function downloadCard(){
   const qr=document.querySelector('[data-card-qr="'+membership.id+'"] svg');
@@ -58,7 +65,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
  const origin=typeof window!=="undefined"?window.location.origin:process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000";
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
- return <><button className={"loyalty-card"+(program?.type==="stamps"?" stamp-card-real":"")} style={{backgroundColor:color,color:business.card_text_color||"#ffffff",backgroundImage:business.card_background?"linear-gradient(0deg,rgba(0,0,0,.45),rgba(0,0,0,.10)),url("+business.card_background+")":undefined}} onClick={()=>setOpen(true)}>
+ return <><button className={"loyalty-card"+(program?.type==="stamps"?" stamp-card-real":"")+(program?.type==="stamps"&&program.reward_cost>=21?" is-very-dense":program?.type==="stamps"&&program.reward_cost>12?" is-dense":"")} style={{backgroundColor:color,color:business.card_text_color||"#ffffff",backgroundImage:business.card_background?"linear-gradient(0deg,rgba(0,0,0,.45),rgba(0,0,0,.10)),url("+business.card_background+")":undefined}} onClick={()=>setOpen(true)}>
   <div className="lc-top"><span className="lc-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:initials(business.name)}</span><span className="lc-chip">LOYALTY CLUB ♡</span></div>
   <div className="lc-middle"><small>{business.card_text||"GRACIAS POR VOLVER"}</small><strong>{business.name}</strong><span className="lc-reward-label">{program?.reward_label||"Tu próxima recompensa"}</span></div>
   {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance} kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
@@ -68,12 +75,19 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
  <button className="modal-close" aria-label="Cerrar" onClick={()=>setOpen(false)}><X size={20}/></button>
  <div className="eyebrow">TU TARJETA PERSONAL</div><h2>{business.name}</h2><p>Enseña este código al empleado cuando compres.</p>
  <div className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={220} level="M" includeMargin/></div>
- <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Descargar mi tarjeta</button><strong className="modal-balance">{units(membership.balance,program?.type)}</strong>
+ <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Descargar mi tarjeta</button>
+ {(wallets.apple||wallets.google)&&<div className="wallet-actions" aria-label="Guardar tarjeta en Wallet">
+  {wallets.apple&&<a className="wallet-action-button apple" href={"/api/local/wallet/apple?card="+encodeURIComponent(membership.id)}><Wallet size={19}/> Añadir a Apple Wallet</a>}
+  {wallets.google&&<a className="wallet-action-button google" href={"/api/local/wallet/google?card="+encodeURIComponent(membership.id)}><Wallet size={19}/> Añadir a Google Wallet</a>}
+ </div>}
+ {!wallets.apple&&!wallets.google&&<p className="wallet-unavailable"><Smartphone size={15}/> Puedes llevar tu tarjeta en la app de Loyally. La incorporación a Apple Wallet y Google Wallet se habilitará próximamente.</p>}<strong className="modal-balance">{units(membership.balance,program?.type)}</strong>
  <p className="tiny-note">{program?.type==="cashback"?"Puedes utilizar tu saldo en el establecimiento.":program?.reward_label||"Tu recompensa te espera."}</p>
  {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><div className="qr-box"><QRCodeSVG value={rewardQrUrl} size={190} level="M" includeMargin/></div></div>}
  <details className="loyalty-card-preferences"><summary>Preferencias de mensajes de este negocio</summary>
  <div className="check-control modal-consent"><input type="checkbox" id={"business-marketing-"+membership.id} checked={consent} disabled={consentBusy} onChange={e=>changeConsent(e.target.checked)}/>
  <label htmlFor={"business-marketing-"+membership.id}><strong>Quiero recibir ofertas y novedades de {business.name}</strong><small>Es opcional, y puedes cambiarlo cuando quieras. Los avisos relacionados con tus premios son distintos de la publicidad.</small></label></div>
+ <div className="check-control modal-consent"><input type="checkbox" id={"whatsapp-marketing-"+membership.id} checked={waConsent} disabled={consentBusy} onChange={e=>changeWaConsent(e.target.checked)}/>
+ <label htmlFor={"whatsapp-marketing-"+membership.id}><strong>Quiero recibir ofertas por WhatsApp de {business.name}</strong><small>Opcional e independiente del correo. Necesitas añadir tu teléfono en Mi perfil. Puedes retirar el permiso en cualquier momento.</small></label></div>
  </details>
  {consentError&&<div className="alert error">{consentError}</div>}
  </div></div>}

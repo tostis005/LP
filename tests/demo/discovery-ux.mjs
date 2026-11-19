@@ -35,7 +35,7 @@ assert.match(presentation.programPromise({type:"cashback",cashback_bps:500}),/5 
 assert.doesNotMatch(presentation.programPromise({type:"stamps",reward_label:"Café gratis"}),/8/);
 const map=readFileSync(new URL("../../components/DirectoryMap.tsx",import.meta.url),"utf8");
 const css=readFileSync(new URL("../../app/workspace.css",import.meta.url),"utf8");
-assert.match(map,/stampMarkup\(categoryStampKind\(category\)/);
+assert.match(map,/stampMarkup\(stampKind\|\|categoryStampKind\(category\)/,"Markers should prefer the owner-selected stamp icon");
 assert.match(map,/iconAnchor:\[23,52\]/);
 const outer=css.match(/\.loyally-map-marker\{([^}]*)\}/)?.[1]||"";
 assert.ok(outer&&!/transform\s*:/.test(outer),"Map marker must not override Leaflet positioning");

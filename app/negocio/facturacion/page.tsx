@@ -4,6 +4,7 @@ import {ArrowUpRight,Check,Clock3,CreditCard,ShieldCheck} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {db} from "@/lib/supabase";
 type Billing={business_id:string;plan:string;status:string;trial_ends_at:string|null;stripe_customer_id:string|null;stripe_subscription_id:string|null;updated_at:string};
+type Usage={channel:"email"|"whatsapp";messages:number;amount_cents:number;currency:string};
 const statusLabels:Record<string,string>={
  trialing:"Prueba gratuita",active:"Suscripción activa",past_due:"Pago pendiente",
  canceled:"Cancelada",unpaid:"Impagada",incomplete:"Pendiente de completar",
@@ -12,16 +13,23 @@ const statusLabels:Record<string,string>={
 function OwnerBilling({account}:{account:Account}){
  const owners=account.businesses.filter(r=>r.role==="owner");
  const [selected,setSelected]=useState(owners[0]?.business_id||"");
- const [billing,setBilling]=useState<Billing|null>(null),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
+ const [billing,setBilling]=useState<Billing|null>(null),[billingReady,setBillingReady]=useState({checkout:false,portal:false}),[usage,setUsage]=useState<Usage[]>([]),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
  useEffect(()=>{
   const checkout=new URL(window.location.href).searchParams.get("checkout");
-  if(checkout==="success")setNotice("Has regresado de Stripe. La activación se confirmará cuando llegue su notificación de pago.");
+  if(checkout==="success")setNotice("La solicitud se ha recibido. La suscripción se actualizará cuando se confirme el pago.");
   if(checkout==="cancel")setNotice("No se ha realizado ningún cambio en tu suscripción.");
+  fetch("/api/billing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setBillingReady({checkout:v.checkout===true,portal:v.portal===true});}).catch(()=>{});
  },[]);
  useEffect(()=>{if(!selected)return;let active=true;setLoading(true);setError("");
-  db().from("business_billing").select("*").eq("business_id",selected).maybeSingle().then(({data,error})=>{
-   if(!active)return;setBilling(data as Billing|null);setLoading(false);
-   if(error)setError(error.message);
+  Promise.all([
+   db().from("business_billing").select("*").eq("business_id",selected).maybeSingle(),
+   db().rpc("business_marketing_usage",{p_business:selected})
+  ]).then(([bill,messages])=>{
+   if(!active)return;
+   setBilling(bill.data as Billing|null);
+   setUsage((messages.data||[]) as Usage[]);
+   setLoading(false);
+   if(bill.error||messages.error)setError(bill.error?.message||messages.error?.message||"No se pudo consultar el consumo.");
   });
   return()=>{active=false}
  },[selected]);
@@ -46,22 +54,32 @@ function OwnerBilling({account}:{account:Account}){
   <div className="billing-grid">
    <section className="panel-card billing-plan"><div className="panel-icon"><CreditCard size={23}/></div>
     <div className="eyebrow">PLAN BUSINESS</div><h2>Una comunidad que vale mucho más.</h2>
-    <div className="billing-price">19,90 € <span>/mes (precio propuesto)</span></div>
-    <p className="muted">Tarjetas QR, sellos, puntos, cashback, directorio, empleados, analítica y personalización incluidos.</p>
+    <div className="billing-price">Loyally Business</div>
+    <p className="muted">Tus tarjetas, recompensas, clientes, resultados y personalización desde un mismo espacio.</p>
     {loading?<p className="muted">Cargando suscripción...</p>:billing&&<>
       <div className="billing-status"><span>Estado</span><strong>{statusLabels[billing.status]||billing.status}</strong></div>
       {billing.status==="trialing"&&billing.trial_ends_at&&<div className="billing-status"><span>Fin del período de prueba</span><strong>{new Date(billing.trial_ends_at).toLocaleDateString("es-ES")}</strong></div>}
-      {billing.stripe_customer_id?
+      {billing.stripe_customer_id&&billingReady.portal?
        <button disabled={busy} className="button button-dark button-full" onClick={()=>action("portal")}>{busy?"Conectando...":"Gestionar pagos y facturas"} <ArrowUpRight size={18}/></button>:
-       <button disabled={busy} className="button button-dark button-full" onClick={()=>action("checkout")}>{busy?"Conectando...":"Configurar suscripción"} <ArrowUpRight size={18}/></button>}
+       billingReady.checkout?<button disabled={busy} className="button button-dark button-full" onClick={()=>action("checkout")}>{busy?"Conectando...":"Configurar suscripción"} <ArrowUpRight size={18}/></button>:
+       <div className="info-callout"><ShieldCheck size={17}/> La contratación en línea todavía no está disponible. Puedes seguir utilizando las funciones de tu negocio.</div>}
     </>}
    </section>
+
    <section className="panel-card"><div className="panel-icon peach"><ShieldCheck size={23}/></div><h2>Facturación sin sorpresas</h2>
-    <p className="muted">Los pagos se realizan en Stripe. Loyally no almacena los números completos de tu tarjeta bancaria.</p>
-    <div className="privacy-item"><Check size={19}/> Acceso a facturación reservado al propietario del negocio.</div>
-    <div className="privacy-item"><Check size={19}/> Confirmación del estado mediante webhooks firmados, no por la pantalla de éxito.</div>
-    <div className="privacy-item"><Check size={19}/> El lanzamiento comercial requiere configurar el precio y las claves privadas del servidor.</div>
-    <div className="info-callout" style={{marginTop:23}}><Clock3 size={19}/> Durante el desarrollo, los pagos no se exigen. El administrador activará el control de suscripciones después de completar las pruebas.</div>
+    <p className="muted">Consulta el estado de tu plan y el consumo adicional de campañas con toda claridad.</p>
+    <div className="privacy-item"><Check size={19}/> Solo el propietario puede gestionar los pagos y la suscripción.</div>
+    <div className="privacy-item"><Check size={19}/> No almacenamos los números completos de las tarjetas bancarias.</div>
+    <div className="privacy-item"><Check size={19}/> Los importes de campañas se registran por separado para facilitar su revisión.</div>
+   </section>
+   <section className="panel-card billing-marketing-usage"><div className="panel-icon"><CreditCard size={23}/></div>
+    <h2>Consumo de campañas</h2><p className="muted">El correo y WhatsApp se contabilizan por separado, en función de los mensajes aceptados por el proveedor. Los precios los fija Loyally.</p>
+    {loading?<p className="muted">Consultando uso...</p>:usage.length?usage.map(x=>
+     <div key={x.channel+"-"+x.currency} className="billing-status">
+      <span>{x.channel==="email"?"Correo electrónico":"WhatsApp"} · {x.messages} mensajes</span>
+      <strong>{new Intl.NumberFormat("es-MX",{style:"currency",currency:x.currency}).format(Number(x.amount_cents)/100)}</strong>
+     </div>):<p className="muted">Aún no tienes consumo adicional.</p>}
+    <p className="tiny-note">Este es el registro de consumo, no una factura emitida. La facturación de los mensajes se habilitará cuando Loyally active el servicio comercial y el sistema de cobros correspondiente.</p>
    </section>
   </div>
  </>;

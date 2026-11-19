@@ -14,7 +14,7 @@ export function StampGrid({total,earned,kind=DEFAULT_STAMP,imageUrl,color,classN
  const count=Math.min(30,Math.max(1,Math.floor(Number(total)||8)));
  const filled=Math.max(0,Math.floor(Number(earned)||0));
  const cols=count<=6?count:Math.min(6,Math.ceil(count/Math.ceil(count/6)));
- return <div className={"stamp-grid "+className} role="img" aria-label={locale==="en"?Math.min(filled,count)+" of "+count+" stamps":Math.min(filled,count)+" de "+count+" sellos"} style={{"--stamp-columns":String(cols)} as CSSProperties}>
+ return <div className={"stamp-grid "+className+(count>=21?" is-very-dense":count>12?" is-dense":"")} role="img" aria-label={locale==="en"?Math.min(filled,count)+" of "+count+" stamps":Math.min(filled,count)+" de "+count+" sellos"} style={{"--stamp-columns":String(cols)} as CSSProperties}>
   {Array.from({length:count},(_,i)=><div className={"stamp-slot"+(i<filled?" is-filled":"")} key={i} style={i<filled&&color?{color}:undefined}>
    {i<filled&&(imageUrl?<img src={imageUrl} alt="" loading="lazy"/>:<StampMark kind={kind} size={24}/>)}
   </div>)}

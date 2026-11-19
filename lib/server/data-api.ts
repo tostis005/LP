@@ -11,7 +11,7 @@ export type QueryInput={
 const tables=new Set([
  "profiles","platform_admins","businesses","business_members","business_invitations",
  "loyalty_programs","loyalty_memberships","loyalty_transactions","business_locations",
- "marketing_consents","marketing_campaigns","platform_billing_settings","reward_vouchers",
+ "marketing_consents","marketing_campaigns","business_marketing_rates","platform_billing_settings","reward_vouchers",
  "business_billing","billing_webhook_events","business_leads","reward_options"
 ]);
 const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads","business_marketing_rates","reward_options"]);
@@ -145,6 +145,9 @@ const rpcMap:Record<string,Spec>={
  business_upsert_consent:{args:[["p_business","uuid"],["p_opted_in","boolean"]],returns:"scalar"},
  business_customer_directory:{args:[["p_business","uuid"]],returns:"table"},
  business_mail_quote:{args:[["p_business","uuid"]],returns:"table"},
+ business_whatsapp_quote:{args:[["p_business","uuid"]],returns:"table"},
+ business_marketing_usage:{args:[["p_business","uuid"]],returns:"table"},
+ business_upsert_whatsapp_consent:{args:[["p_business","uuid"],["p_opted_in","boolean"]],returns:"scalar"},
  business_staff_directory:{args:[["p_business","uuid"]],returns:"table"},
  admin_user_directory:{args:[],returns:"table"},
  find_join_business:{args:[["p_slug","text"]],returns:"table"},

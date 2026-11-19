@@ -8,7 +8,7 @@ import {categoryStampKind} from "@/lib/business-categories";
 import {stampMarkup} from "@/lib/stamp-drawings";
 
 export type DirectoryPin=Omit<Location,"businesses">&{
- businesses?:{name:string;category:string|null;slug:string;accent_color?:string;description?:string|null};
+ businesses?:{name:string;category:string|null;slug:string;accent_color?:string;description?:string|null;stamp_icon?:string|null;stamp_color?:string|null};
  offerText?:string;
 };
 function Recenter({center}:{center:[number,number]}){
@@ -16,11 +16,11 @@ function Recenter({center}:{center:[number,number]}){
  useEffect(()=>{map.setView(center,Math.max(map.getZoom(),11))},[center,map]);
  return null;
 }
-function pinIcon(category?:string|null,accent?:string){
+function pinIcon(category?:string|null,stampKind?:string|null,stampColor?:string|null,accent?:string){
  // No se usa transform en el marcador exterior: Leaflet necesita controlarlo
  // para situar el icono. Solo el diseño interno contiene el color y el dibujo.
- const color=/^#[0-9a-f]{6}$/i.test(accent||"")?accent!:"#571c32";
- const svg=stampMarkup(categoryStampKind(category),27);
+ const color=/^#[0-9a-f]{6}$/i.test(stampColor||"")?stampColor!:/^#[0-9a-f]{6}$/i.test(accent||"")?accent!:"#571c32";
+ const svg=stampMarkup(stampKind||categoryStampKind(category),31);
  return divIcon({
   className:"loyally-map-marker",
   html:'<span class="loyally-map-pin"><span class="loyally-map-symbol" style="color:'+color+'">'+svg+'</span></span>',
@@ -28,7 +28,7 @@ function pinIcon(category?:string|null,accent?:string){
  });
 }
 function Pins({locations}:{locations:DirectoryPin[]}){
- const icons=useMemo(()=>new Map(locations.map(l=>[l.id,pinIcon(l.businesses?.category,l.businesses?.accent_color)])),[locations]);
+ const icons=useMemo(()=>new Map(locations.map(l=>[l.id,pinIcon(l.businesses?.category,l.businesses?.stamp_icon,l.businesses?.stamp_color,l.businesses?.accent_color)])),[locations]);
  return <>{locations.map(x=><Marker key={x.id} position={[x.lat,x.lng]} icon={icons.get(x.id)!}>
   <Popup>
    <div className="loyally-map-popup">

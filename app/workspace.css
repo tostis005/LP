@@ -533,3 +533,164 @@
 .workspace .kpi-card>small,.workspace .data-table td small,.workspace .data-table th{color:#845268}
 .workspace .tab-bar button.active{background:#f2dfe8;border-color:#d9b6c5;color:#571c32}
 .workspace .panel-card input:focus-visible,.workspace .panel-card select:focus-visible{border-color:#8a3f59}
+
+/* Menú de aplicación: fuera de cada página para que nunca desaparezca al navegar. */
+.loyalty-global-bottom-nav{z-index:150}
+.loyalty-global-bottom-nav .mobile-bottom-link{border:0;cursor:pointer;background:transparent;font-family:inherit}
+.loyalty-global-bottom-nav .mobile-bottom-link.active{background:#f0dbe5;color:#571c32}
+@media(min-width:701px){.loyalty-global-bottom-nav{display:none}}
+@media(max-width:700px){
+ body:has(.loyalty-global-bottom-nav){padding-bottom:calc(74px + env(safe-area-inset-bottom,0px))}
+ .loyalty-global-bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;width:100%;background:rgba(255,250,253,.98);
+  border-top:1px solid #eadce4;backdrop-filter:blur(20px);padding:8px 9px calc(8px + env(safe-area-inset-bottom,0px));justify-content:space-around;align-items:stretch;gap:4px}
+ .loyalty-global-bottom-nav .mobile-bottom-link{max-width:none;min-width:0;min-height:51px;padding:6px 3px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px}
+ .loyalty-global-bottom-nav .mobile-bottom-link span{font-size:10px}
+ .business-workspace .workspace-section-layout{display:block}
+ .business-workspace .workspace-section-body{width:100%;min-width:0}
+ .business-workspace .workspace-content{padding-bottom:30px}
+}
+
+
+/* Loyally 1.0: una sola navegación de negocio, siempre desde el menú principal. */
+.business-workspace .workspace-section-layout{display:block;min-width:0}
+.business-workspace .workspace-section-body{width:100%;min-width:0}
+.business-section-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 24px;padding:0 0 21px;border-bottom:1px solid #eadce4}
+.business-section-heading h2{font-size:24px;line-height:1.2;margin:4px 0 5px;color:#281820;letter-spacing:-.04em}
+.business-section-heading .page-eyebrow{display:block;margin:0 0 7px!important}
+.business-section-heading p{margin:0;color:#786a72;font-size:12px;line-height:1.5}
+.business-section-heading .button{margin:0;flex:none}
+.business-mobile-sections{display:none}
+.customer-obfuscated-email{font-family:inherit;letter-spacing:.03em;font-weight:700;color:#71324b;background:#f7edf2;padding:6px 9px;border-radius:8px;font-size:12px}
+.business-preview-page{display:grid;gap:18px}
+.business-preview-back{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#71324b;font-weight:800;justify-self:start}
+.business-preview-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:22px;align-items:start}
+.business-preview-card .stamp-visual-card{max-width:510px;margin:18px auto 15px}
+.business-preview-card .eyebrow{margin-bottom:12px}
+.business-preview-share .button{margin-top:13px}
+.business-preview-share .alert,.business-preview-share .info-callout{margin-top:20px}
+@media(max-width:900px){
+ .business-preview-layout{grid-template-columns:1fr}
+ .business-section-heading{align-items:flex-start}
+ .business-section-heading .button{align-self:center}
+ .business-mobile-sections{display:flex;align-items:center;gap:9px;overflow-x:auto;scrollbar-width:thin;padding:0 0 13px;margin:0 0 19px}
+ .business-mobile-sections a{display:flex;align-items:center;flex:none;gap:8px;white-space:nowrap;padding:11px 14px;border:1px solid #eadce4;border-radius:999px;background:#fff;color:#72465b;font-size:12px;font-weight:800}
+ .business-mobile-sections a.active{background:#571c32;color:#fff;border-color:#571c32}
+}
+@media(max-width:540px){
+ .business-section-heading{flex-direction:column;align-items:stretch;gap:13px}
+ .business-section-heading .button{align-self:stretch}
+ .business-preview-card .stamp-visual-card{margin:12px auto 15px}
+}
+/* Tarjetas de sellos adaptativas y mensajes seguros, sin cortar bordes. */
+.stamp-visual-card{height:auto;min-height:355px;padding:clamp(22px,4vw,32px);overflow:hidden;gap:13px}
+.stamp-visual-card .stamp-visual-title{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.stamp-visual-card .stamp-visual-title>span{display:block;max-width:100%;font-size:clamp(9px,1vw,11px);line-height:1.55;letter-spacing:.1em;overflow-wrap:anywhere;white-space:normal}
+.stamp-visual-card .stamp-visual-title>strong{max-width:100%;overflow-wrap:anywhere;line-height:1.2}
+.stamp-visual-card .stamp-grid{flex:none;max-width:100%;gap:clamp(5px,1.2vw,9px);margin:12px 0;grid-template-columns:repeat(var(--stamp-columns),minmax(0,38px))}
+.stamp-visual-card .stamp-visual-footer{gap:15px;margin-top:auto;min-width:0}
+.stamp-visual-card .stamp-visual-footer>div{min-width:0;overflow-wrap:anywhere}
+.stamp-visual-card .stamp-visual-footer .stamp-reward-name{line-height:1.4;overflow-wrap:anywhere}
+.stamp-visual-card.is-dense{min-height:390px}
+.stamp-visual-card.is-very-dense{min-height:435px;gap:11px}
+.stamp-visual-card .stamp-grid.is-dense{gap:5px;margin:8px 0;grid-template-columns:repeat(var(--stamp-columns),minmax(0,33px))}
+.stamp-visual-card .stamp-grid.is-very-dense{gap:4px;grid-template-columns:repeat(var(--stamp-columns),minmax(0,30px))}
+.loyalty-card.stamp-card-real{min-height:285px;padding:clamp(21px,3vw,27px);gap:12px}
+.loyalty-card.stamp-card-real.is-dense{min-height:350px}
+.loyalty-card.stamp-card-real.is-very-dense{min-height:400px}
+.loyalty-card .lc-middle{gap:7px;min-width:0;overflow-wrap:anywhere}
+.loyalty-card .lc-middle small{font-size:11px;line-height:1.5;letter-spacing:.1em;max-width:100%;overflow-wrap:anywhere;white-space:normal}
+.loyalty-card .lc-middle strong,.loyalty-card .lc-reward-label{overflow-wrap:anywhere;max-width:100%}
+.loyalty-card .lc-stamp-grid{max-width:100%;margin:8px 0;gap:5px;grid-template-columns:repeat(var(--stamp-columns),minmax(0,30px))}
+.loyalty-card .lc-stamp-grid.is-very-dense{gap:4px;grid-template-columns:repeat(var(--stamp-columns),minmax(0,27px))}
+.loyalty-card .lc-bottom{gap:12px}
+.loyalty-card .lc-bottom>span:first-child{min-width:0;line-height:1.4}
+@media(max-width:390px){
+ .stamp-visual-card{padding:20px}
+ .stamp-visual-card .stamp-grid{gap:5px;grid-template-columns:repeat(var(--stamp-columns),minmax(0,32px))}
+ .stamp-visual-card .stamp-grid.is-very-dense{grid-template-columns:repeat(var(--stamp-columns),minmax(0,27px))}
+}
+.loyally-map-symbol svg{display:block;width:31px;height:31px;stroke:currentColor;stroke-width:3}
+
+
+/* Composición visual segura para email y WhatsApp. */
+.campaign-page{display:grid;gap:19px}
+.campaign-channel-switch{display:flex;flex-wrap:wrap;gap:9px}
+.campaign-channel-switch button{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e5ced9;border-radius:999px;padding:12px 20px;color:#6b3d53;font-weight:800;font-size:13px;cursor:pointer}
+.campaign-channel-switch button.active{background:#571c32;border-color:#571c32;color:white}
+.campaign-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.campaign-overview-stat{padding:23px;display:grid;gap:7px}
+.campaign-overview-stat span{font-size:12px;color:#846575;font-weight:750}
+.campaign-overview-stat strong{font-size:clamp(19px,2vw,29px);line-height:1.3;color:#571c32;overflow-wrap:anywhere}
+.campaign-overview-stat small{color:#917785;font-size:11px}
+.campaign-editor-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:19px;align-items:start}
+.campaign-compose{display:grid;gap:11px}.campaign-editor-label{display:block;margin:0 0 9px;font-weight:800;font-size:12px;color:#632a41}
+.rich-message-field{border:1px solid #e5d0db;border-radius:15px;overflow:hidden;background:#fff;position:relative}
+.rich-message-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;background:#fbf5f8;border-bottom:1px solid #eadce4;padding:9px}
+.rich-message-tools button{width:33px;height:33px;border:0;background:transparent;color:#6f3851;border-radius:8px;display:grid;place-items:center;cursor:pointer}
+.rich-message-tools button:hover,.rich-message-tools button:focus-visible{background:#f0dce7}
+.rich-message-tool-space{flex:1;min-width:8px}
+.rich-message-editor,.rich-message-preview{min-height:210px;max-height:480px;overflow-y:auto;padding:18px;font-size:14px;line-height:1.8;outline:none;color:#38212e;white-space:pre-wrap;overflow-wrap:anywhere}
+.rich-message-editor:empty:before{content:attr(data-placeholder);pointer-events:none;color:#a98b9b}
+.rich-message-preview{background:#fffbfd}
+.rich-message-preview-heading{font-size:11px;letter-spacing:.09em;color:#82576c;font-weight:900;margin:0 0 18px}
+.rich-message-foot{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:10px 13px;background:#fbf5f8;border-top:1px solid #eadce4;font-size:10px;color:#845e70;line-height:1.4}
+.rich-message-foot small{white-space:nowrap}
+.rich-message-emojis{display:flex;flex-wrap:wrap;gap:5px;padding:10px;border-bottom:1px solid #eadce4;background:white}
+.rich-message-emojis button{font-size:22px;border:0;border-radius:7px;background:#faf2f6;padding:5px 8px;cursor:pointer}
+.campaign-compose-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.campaign-compose-actions .button{margin-top:3px}
+.campaign-sidebar{display:grid;gap:17px}
+.campaign-draft-row{display:flex;align-items:start;justify-content:space-between;gap:10px;padding:15px 0;border-bottom:1px solid #eee2e8;flex-wrap:wrap}
+.campaign-draft-row:last-child{border-bottom:0}
+.campaign-draft-row>div:first-child{display:grid;gap:5px;min-width:0;flex:1}
+.campaign-draft-row strong{font-size:13px;color:#3d2633;overflow-wrap:anywhere}
+.campaign-draft-row span,.campaign-draft-row small{font-size:11px;color:#846a78}
+.campaign-draft-actions{display:flex;flex-wrap:wrap;gap:6px}.campaign-draft-actions .button{margin:0;padding:9px 12px;font-size:11px}
+@media(max-width:1100px){.campaign-editor-grid{grid-template-columns:1fr}}
+@media(max-width:780px){.campaign-overview-grid{grid-template-columns:1fr}.campaign-overview-stat{padding:19px}.campaign-editor-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:490px){.campaign-channel-switch button{flex:1;justify-content:center;padding:11px 8px;font-size:12px}.campaign-compose{padding:20px}.rich-message-editor,.rich-message-preview{min-height:180px}}
+
+/* Wallets: enlaces nativos solo cuando las firmas del proveedor estén configuradas. */
+.wallet-actions{display:grid;gap:8px;margin:13px 0;max-width:330px;margin-left:auto;margin-right:auto}
+.wallet-action-button{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 17px;border-radius:13px;background:#1f1820;border:1px solid #1f1820;color:#fff;font-size:13px;font-weight:800;text-decoration:none}
+.wallet-action-button:hover{background:#4e273c;color:#fff}
+.wallet-action-button.google{background:#fff;color:#38212c;border-color:#dfc8d4}
+.wallet-action-button.google:hover{background:#f9edf3}
+.wallet-unavailable{display:flex;justify-content:center;align-items:center;gap:8px;margin:12px 0 0;color:#826779;font-size:11px;line-height:1.5;text-align:center}
+
+
+/* El menú inferior es la navegación móvil principal; Más agrupa funciones avanzadas. */
+.business-mobile-sections{display:none!important}
+.business-settings-return{display:inline-flex;align-items:center;color:#762e49;font-size:12px;font-weight:850;margin:0 0 14px}
+.business-settings-return:before{content:"‹";font-size:23px;line-height:10px;margin-right:8px}
+.business-settings-hub{background:#fff;border:1px solid #eadce4;border-radius:23px;padding:27px;margin:0 0 19px}
+.business-settings-hub>h3{font-size:21px;letter-spacing:-.04em;color:#2b1822;margin:0 0 7px}
+.business-settings-hub>p{font-size:12px;color:#826b77;line-height:1.65;margin:0 0 20px}
+.business-settings-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.business-settings-links a{display:flex;align-items:center;gap:13px;text-align:left;background:#fcf8fa;color:#63253c;border:1px solid #eadde4;border-radius:15px;padding:15px;min-width:0}
+.business-settings-links a:hover{background:#f8eaf1;border-color:#d7b4c4}
+.business-settings-links a>svg:first-child{width:25px;height:25px;flex:none}
+.business-settings-links a>span{display:grid;gap:5px;flex:1;min-width:0}
+.business-settings-links a strong{font-size:12px;line-height:1.3;color:#3b1f2d}
+.business-settings-links a small{font-size:11px;line-height:1.4;color:#8d7382}
+.business-settings-links a>svg:last-child{width:16px;flex:none}
+@media(max-width:650px){.business-settings-hub{padding:19px}.business-settings-links{grid-template-columns:1fr}}
+
+
+/* Tarjetas de puntos/cashback: nunca inventar sellos en una modalidad diferente. */
+.business-preview-nonstamp{min-height:325px;border-radius:25px;padding:28px;display:flex;flex-direction:column;gap:26px;position:relative;overflow:hidden;background-size:cover;background-position:center;box-shadow:0 15px 35px #3b25311e;max-width:510px;margin:18px auto 15px}
+.business-preview-nonstamp .stamp-visual-head{position:relative;z-index:1}
+.business-preview-nonstamp-body{display:grid;gap:7px;position:relative;z-index:1}
+.business-preview-nonstamp-body small{font-size:10px;letter-spacing:.12em;font-weight:900;opacity:.88;overflow-wrap:anywhere}
+.business-preview-nonstamp-body h3{font-size:clamp(26px,4vw,38px);letter-spacing:-.04em;line-height:1.12;overflow-wrap:anywhere;margin:0}
+.business-preview-nonstamp-body p{font-size:14px;line-height:1.4;overflow-wrap:anywhere;margin:0}
+.business-preview-nonstamp-bottom{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-top:auto;border-top:1px solid #ffffff6b;padding-top:16px;position:relative;z-index:1}
+.business-preview-nonstamp-bottom>div{display:grid;gap:6px}
+.business-preview-nonstamp-bottom span{font-size:10px;font-weight:800;letter-spacing:.03em;line-height:1.4}
+.business-preview-nonstamp-bottom strong{font-size:22px;letter-spacing:-.03em}
+.business-preview-nonstamp-bottom>span{max-width:130px;text-align:right}
+@media(max-width:390px){.business-preview-nonstamp{padding:20px;min-height:300px}}
+
+/* Costes de campañas visibles sin confundir consumo con factura emitida. */
+.billing-marketing-usage{grid-column:1/-1}
+.billing-marketing-usage .billing-status{max-width:650px}
