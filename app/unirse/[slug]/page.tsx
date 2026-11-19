@@ -20,7 +20,7 @@ export default function JoinPage(){
  const [offer,setOffer]=useState<Offer|null>(null),[business,setBusiness]=useState<Business|null>(null);
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
- const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false);
+ const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[showMarketingPrompt,setShowMarketingPrompt]=useState(false);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con Loyally.");setLoading(false);return}
   const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
@@ -47,13 +47,15 @@ export default function JoinPage(){
   }
   if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);
- async function join(){if(!offer)return;
+ async function join(confirmed=false,chosenMarketing=marketing){if(!offer)return;
   if(isBusinessAccount){setError("Para tener tarjetas y premios necesitas una cuenta de cliente independiente.");return;}
   if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder");return}
+  if(!confirmed&&!chosenMarketing){setShowMarketingPrompt(true);return}
+  setShowMarketingPrompt(false);
   setBusy(true);setError("");
   const result=await db().rpc("join_program",{p_business:offer.business_id});
   if(result.error){setBusy(false);setError(result.error.message);return}
-  if(marketing){
+  if(chosenMarketing){
    const consent=await db().rpc("business_upsert_consent",{p_business:offer.business_id,p_opted_in:true});
    if(consent.error){setError("Tu tarjeta está lista, pero no se pudo guardar la preferencia de ofertas: "+consent.error.message)}
   }
@@ -87,9 +89,16 @@ export default function JoinPage(){
       <div className="join-subscribe">
        <h3>¿Te apuntas?</h3>
        <p>Unirte es gratis. Podrás consultar tus sellos y recompensas siempre que quieras.</p>
-       {signed&&<label className="join-marketing-choice"><input type="checkbox" checked={marketing} onChange={e=>setMarketing(e.target.checked)}/><span><strong>También quiero recibir ofertas de {offer.business_name}</strong><small>Opcional. Puedes cambiarlo en cualquier momento. Los avisos necesarios sobre tu tarjeta no dependen de esta casilla.</small></span></label>}
+       {signed&&<label className="join-marketing-choice lp-join-promo-choice"><input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);if(e.target.checked)setShowMarketingPrompt(false)}}/><span><strong>¡Sí! Quiero enterarme de promociones, regalos y ofertas de {offer.business_name}</strong><small>Podrás conocer novedades de este negocio por correo. Es opcional y puedes desactivarlo cuando quieras.</small></span></label>}
+       {signed&&showMarketingPrompt&&!marketing&&<div className="lp-consent-nudge" role="group" aria-label="Decide si deseas recibir promociones">
+        <div className="lp-consent-nudge-title"><Gift size={24}/><div><strong>¿Quieres enterarte de sus próximos regalos?</strong><p>Con tu permiso, {offer.business_name} podrá avisarte por correo de promociones, novedades y recompensas especiales.</p></div></div>
+        <div className="lp-consent-nudge-actions">
+         <button type="button" className="button button-dark" disabled={busy} onClick={()=>{setMarketing(true);void join(true,true)}}>Sí, recibir ofertas</button>
+         <button type="button" className="button button-outline" disabled={busy} onClick={()=>void join(true,false)}>No, solo mi tarjeta</button>
+        </div>
+       </div>}
        {error&&<div className="alert error" role="alert">{error}</div>}
-       <button disabled={busy} onClick={join} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Conseguir mi tarjeta gratis":"Entrar y conseguir mi tarjeta"} <ArrowUpRight size={17}/></button>
+       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Conseguir mi tarjeta gratis":"Entrar y conseguir mi tarjeta"} <ArrowUpRight size={17}/></button>
       </div>}
      </section>
     </div>
