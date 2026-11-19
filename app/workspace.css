@@ -690,3 +690,7 @@
 .business-preview-nonstamp-bottom strong{font-size:22px;letter-spacing:-.03em}
 .business-preview-nonstamp-bottom>span{max-width:130px;text-align:right}
 @media(max-width:390px){.business-preview-nonstamp{padding:20px;min-height:300px}}
+
+/* Costes de campañas visibles sin confundir consumo con factura emitida. */
+.billing-marketing-usage{grid-column:1/-1}
+.billing-marketing-usage .billing-status{max-width:650px}
