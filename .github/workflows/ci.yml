@@ -20,6 +20,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Probar control de origen de acceso por IP
         run: node tests/demo/origin.mjs
+      - name: Configuración segura de SMTP Gmail
+        run: node tests/demo/gmail-smtp.mjs
       - name: Generación y persistencia VAPID sin exponer secretos
         run: node tests/demo/push-vapid.mjs
       - name: Verificar iconos, mapa, premios y navegación del negocio
