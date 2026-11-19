@@ -41,3 +41,16 @@
  .loi-public-header .brand-symbol{height:35px;width:35px}
  .loi-public-header .header-actions .button{padding:10px 13px}
 }
+
+/* Inicio de sesión con cuentas verificadas de Google y Apple. */
+.loyally-social-auth{margin:17px 0 22px}
+.loyally-social-divider{text-align:center;position:relative;font-size:11px;color:#947c88;font-weight:700;margin-bottom:14px}
+.loyally-social-divider:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#eadde4}
+.loyally-social-divider span{position:relative;background:#fff;padding:0 13px}
+.loyally-social-list{display:grid;gap:9px}
+.loyally-social-button{min-height:49px;border:1px solid #e7dbe1;background:#fff;border-radius:12px;display:flex;gap:12px;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#35252d;transition:background .15s ease,border .15s ease}
+.loyally-social-button:hover{background:#fcf6f9;border-color:#b98ba0}
+.loyally-social-google-mark{font-size:20px;font-weight:900;background:conic-gradient(#4285f4 0deg 95deg,#34a853 95deg 185deg,#fbbc05 185deg 265deg,#ea4335 265deg 360deg);background-clip:text;-webkit-background-clip:text;color:transparent}
+.loyally-social-apple{background:#1e1a1d;color:#fff;border-color:#1e1a1d}
+.loyally-social-apple:hover{background:#3b3037;color:#fff}
+.loyally-social-apple-mark{font-family:Arial,sans-serif;font-size:22px;line-height:1}
