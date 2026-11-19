@@ -14,7 +14,6 @@ import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/BusinessAnalytics";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
-import {PushCampaignPanel} from "@/components/PushCampaignPanel";
 type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Resumen",icon:<BarChart3 size={17}/>},
@@ -30,10 +29,10 @@ const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
 type Employee={user_id:string;full_name:string;email:string;role:string;active:boolean};
 type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;membership_id:string;employee_id:string|null;reversal_of:string|null;reversal_reason:string|null};
-type Draft={id:string;subject:string;body_text:string;channel:"email"|"whatsapp";template_name?:string|null;template_language?:string|null;created_at:string;status:string;recipient_count?:number;sent_count?:number;failed_count?:number};
+type Draft={id:string;subject:string;body_text:string;channel:"email"|"whatsapp"|"push";template_name?:string|null;template_language?:string|null;created_at:string;status:string;recipient_count?:number;sent_count?:number;failed_count?:number};
 type MailQuote={contacts:number;price_cents:number|null;total_cents:number|null;currency:string};
 type Usage={channel:"email"|"whatsapp";messages:number;amount_cents:number;currency:string};
-type MarketingStatus={email:boolean;whatsapp:boolean;template_name:string;template_language:string};
+type MarketingStatus={email:boolean;whatsapp:boolean;push:boolean;template_name:string;template_language:string};
 function privateEmail(value:string){
  if(!value||!value.includes("@"))return "Oculto";
  const [left,right]=value.split("@");
@@ -58,9 +57,8 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee"),[teamView,setTeamView]=useState<"list"|"invite">("list");
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState("Tijuana"),[country,setCountry]=useState("México"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState(""),[quote,setQuote]=useState<MailQuote|null>(null);
- const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null),[campaignView,setCampaignView]=useState<"list"|"editor">("list");
- const [pushView,setPushView]=useState(false);
- const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,template_name:"",template_language:""});
+ const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp"|"push">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null),[campaignView,setCampaignView]=useState<"list"|"editor">("list");
+ const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,push:false,template_name:"",template_language:""});
  useEffect(()=>{fetch("/api/local/marketing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setMarketingStatus(v as MarketingStatus)}).catch(()=>{});},[]);
  const [previewEarned,setPreviewEarned]=useState(3),[siteOrigin,setSiteOrigin]=useState("");
  useEffect(()=>{setSiteOrigin(window.location.origin)},[]);
@@ -85,16 +83,22 @@ export default function BusinessWorkspace({account}:{account:Account}){
   const firstLocation=(l.data||[])[0] as Location|undefined;
   if(firstLocation){setLocationName(firstLocation.name);setAddress(firstLocation.address);setCity(firstLocation.city);setCountry(firstLocation.country);setLat(String(firstLocation.lat));setLng(String(firstLocation.lng))}
   else {setLocationName("");setAddress("");setLat("");setLng("")}
-  setTransactions((t.data||[]) as Tx[]);setDrafts((d.data||[]) as Draft[]);setActivity((a.data||[]) as {user_id:string;employee_name:string;operations:number;awarded_units:number}[]);
+  setTransactions((t.data||[]) as Tx[]);setActivity((a.data||[]) as {user_id:string;employee_name:string;operations:number;awarded_units:number}[]);
    setMetrics((m.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
   const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error;
   if(failure)setError(failure.message);
-  const [pricing,used]=await Promise.all([
-   db().rpc(marketingChannel==="email"?"business_mail_quote":"business_whatsapp_quote",{p_business:selected}),
-   db().rpc("business_marketing_usage",{p_business:selected})
+  const [pricing,used,pushItems]=await Promise.all([
+   db().rpc(marketingChannel==="email"?"business_mail_quote":marketingChannel==="whatsapp"?"business_whatsapp_quote":"business_push_pricing",{p_business:selected}),
+   db().rpc("business_marketing_usage",{p_business:selected}),
+   db().rpc("business_push_campaigns_unified",{p_business:selected})
   ]);
-  setQuote(pricing.error?null:((pricing.data||[])[0] as MailQuote||null));
+  const p=(pricing.data||[])[0] as (MailQuote&{devices?:number})|undefined;
+  setQuote(pricing.error||!p?null:{contacts:marketingChannel==="push"?Number(p.devices||0):Number(p.contacts||0),
+   price_cents:p.price_cents,total_cents:p.total_cents,currency:p.currency});
   setUsage((used.data||[]) as Usage[]);
+  setDrafts([...(d.data||[]) as Draft[],...(pushItems.data||[]) as Draft[]]
+   .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)));
+  if(pushItems.error)setError(pushItems.error.message);
   setLoading(false);
  },[selected,periodDays,marketingChannel]);
  useEffect(()=>{reload()},[reload]);
@@ -176,21 +180,53 @@ export default function BusinessWorkspace({account}:{account:Account}){
  function clearComposer(){setEditingDraft(null);setMailSubject("");setMailBody("");setCampaignView("list");}
  async function saveDraft(e:React.FormEvent){
   e.preventDefault();setError("");setNotice("");
-  if(mailBody.trim().length<3||mailBody.length>12000){setError("El mensaje debe tener entre 3 y 12.000 caracteres.");return;}
-  if(marketingChannel==="whatsapp"&&mailBody.length>900){setError("Para WhatsApp, utiliza un mensaje de hasta 900 caracteres.");return;}
+  const max=marketingChannel==="push"?500:marketingChannel==="whatsapp"?900:12000;
+  if(mailBody.trim().length<3||mailBody.length>max){setError("Revisa la longitud del mensaje.");return;}
+  if(marketingChannel==="push"&&mailSubject.length>120){setError("El título debe tener hasta 120 caracteres.");return;}
   setBusy(true);
-  const fields={subject:mailSubject.trim(),body_text:mailBody,channel:marketingChannel,
-   template_name:marketingChannel==="whatsapp"?(marketingStatus.template_name||null):null,
-   template_language:marketingChannel==="whatsapp"?(marketingStatus.template_language||null):null};
-  const result=editingDraft?
-   await db().from("marketing_campaigns").update(fields).eq("id",editingDraft).eq("business_id",selected).eq("status","draft"):
-   await db().from("marketing_campaigns").insert({...fields,business_id:selected,created_by:account.user.id,status:"draft"});
+  let error:Error|null=null;
+  if(marketingChannel==="push"){
+   const r=await db().rpc("business_save_push_campaign",{p_business:selected,p_title:mailSubject.trim(),
+    p_body:mailBody.trim(),p_campaign:editingDraft||null});
+   error=r.error;
+  }else{
+   const fields={subject:mailSubject.trim(),body_text:mailBody,channel:marketingChannel,
+    template_name:marketingChannel==="whatsapp"?(marketingStatus.template_name||null):null,
+    template_language:marketingChannel==="whatsapp"?(marketingStatus.template_language||null):null};
+   const r=editingDraft?await db().from("marketing_campaigns").update(fields).eq("id",editingDraft).eq("business_id",selected).eq("status","draft"):
+    await db().from("marketing_campaigns").insert({...fields,business_id:selected,created_by:account.user.id,status:"draft"});
+   error=r.error;
+  }
   setBusy(false);
-  if(result.error){setError(result.error.message);return;}
-  clearComposer();success("Borrador guardado. No se ha enviado ni cobrado ningún mensaje.");await reload();
+  if(error){setError(error.message);return;}
+  clearComposer();success("Campaña guardada.");await reload();
  }
  async function sendCampaign(draft:Draft){
   const channel=draft.channel||"email";
+  if(channel==="push"){
+   if(!marketingStatus.push){setError("Las notificaciones no están activadas.");return;}
+   const pricing=await db().rpc("business_push_pricing",{p_business:selected});
+   const p=(pricing.data||[])[0] as {devices:number;price_cents:number;total_cents:number;currency:string}|undefined;
+   if(pricing.error||!p){setError(pricing.error?.message||"No se pudo calcular el presupuesto.");return;}
+   if(draft.status==="draft"&&Number(p.devices)<1){setError("Todavía no hay destinatarios que hayan aceptado notificaciones.");return;}
+   if(draft.status==="draft"){
+    const amount=new Intl.NumberFormat("es-MX",{style:"currency",currency:p.currency}).format(Number(p.total_cents)/100);
+    if(!window.confirm("Enviar a "+p.devices+" clientes por un máximo de "+amount+"?"))return;
+   }
+   setBusy(true);setError("");setNotice("");
+   try{
+    if(draft.status==="draft"){
+     const queued=await db().rpc("business_queue_push_campaign",{p_campaign:draft.id,p_expected_total_cents:p.total_cents});
+     if(queued.error)throw queued.error;
+    }
+    const resp=await fetch("/api/local/push/send",{method:"POST",credentials:"same-origin",
+     headers:{"Content-Type":"application/json"},body:JSON.stringify({campaign_id:draft.id})});
+    const result=await resp.json() as {error?:string;sent?:number;failed?:number};
+    if(!resp.ok||result.error)throw new Error(result.error||"No se pudo enviar la campaña.");
+    success((result.sent||0)+" notificaciones enviadas. Puedes continuar el envío desde el listado.");await reload();
+   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
+   return;
+  }
   if(!marketingStatus[channel]){setError(channel==="email"?"El envío de correos aún no está activado.":"WhatsApp requiere configuración y aprobación de plantilla por Loyally.");return;}
   if(draft.status==="draft"&&channel==="whatsapp"&&!draft.template_name){setError("Antes de enviar WhatsApp hay que asociar una plantilla aprobada.");return;}
   const result=await db().rpc(channel==="email"?"business_mail_quote":"business_whatsapp_quote",{p_business:selected});
