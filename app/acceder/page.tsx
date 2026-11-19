@@ -27,7 +27,7 @@ export default function Login(){
    const email=role==="administrador"?"admin@demo.loyally.test":role==="gestor"?"gestor@demo.loyally.test":role==="empleado"?"empleado@demo.loyally.test":"cliente@demo.loyally.test";
    leaveDemo();setMode("login");setEmail(email);setPassword(sandboxPassword);setError("");setBusy(true);
    const {error}=await db().auth.signInWithPassword({email,password:sandboxPassword});
-   setBusy(false);if(error){setError("No se pudo iniciar la sesión de prueba: "+error.message);return}
+   setBusy(false);if(error){setError("No hemos podido iniciar sesión: "+error.message);return}
    router.push(route);return;
   }
   // En la aplicación de producción no se comparte ninguna clave de administrador.
@@ -70,7 +70,7 @@ export default function Login(){
    <div className="auth-form-wrap auth-choice-wrap auth-full-login">
     <div className="eyebrow">BIENVENIDO A LOYALLY</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
-    <p className="auth-intro">{mode==="login"?"Inicia sesión con tu cuenta o explora cualquiera de los cuatro perfiles de demostración.":mode==="signup"?"Solo necesitas una cuenta para guardar todas tus tarjetas. Los avisos sobre tus premios forman parte del servicio; las ofertas comerciales son opcionales.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
+    <p className="auth-intro">{mode==="login"?"Accede a Loyally y descubre tu espacio según el tipo de cuenta.":mode==="signup"?"Solo necesitas una cuenta para guardar todas tus tarjetas. Los avisos sobre tus premios forman parte del servicio; las ofertas comerciales son opcionales.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
     <SocialAuthButtons next="/entrar"/>
     <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
      {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div></>}
@@ -82,7 +82,7 @@ export default function Login(){
      <button type="submit" disabled={busy} className="button button-dark button-full">{busy?"Procesando...":mode==="login"?"Iniciar sesión":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"} <ArrowRight size={18}/></button>
     </form>
     <div className="auth-account-switch">{mode==="login"?<>¿Todavía no tienes cuenta? <button onClick={()=>switchMode("signup")}>Regístrate</button></>:<>¿Ya tienes cuenta? <button onClick={()=>switchMode("login")}>Iniciar sesión</button></>}</div>
-    <div className="auth-quick-divider"><span>O ENTRA CON UN PERFIL DE PRUEBA</span></div>
+    <div className="auth-quick-divider"><span>O ACCEDE A UN ESPACIO</span></div>
     <div className="auth-profile-grid auth-real-routes" role="group" aria-label="Acceso rápido al interior de Loyally">
      {profiles.map(p=><button type="button" key={p.id} onClick={()=>selectProfile(p.id,p.route)} disabled={busy} className="auth-profile-card">
       <span className={"auth-profile-icon "+p.shade}><p.icon size={23} strokeWidth={1.9}/></span>
@@ -90,7 +90,7 @@ export default function Login(){
       <ArrowRight className="auth-profile-arrow" size={17}/>
      </button>)}
     </div>
-    <p className="auth-demo-note"><ShieldCheck size={16}/> En producción exploras datos locales ficticios. En una instalación sandbox aislada, los perfiles inician sesión contra usuarios auténticos de PostgreSQL.</p>
+
    </div>
   </section>
  </main>;
