@@ -7,20 +7,21 @@ const pool=new pg.Pool({
 const client=await pool.connect();
 try{
  await client.query("BEGIN");
- for(const [suffix,checked] of [["yes",true],["no",false]]){
+ for(const [suffix,checked,push] of [["email",true,false],["push",false,true],["no",false,false]]){
   const email="initial-choice-"+suffix+"@loyally.test";
   const r=await client.query(
    "INSERT INTO auth.users(email,password_hash,raw_user_meta_data) VALUES($1,$2,$3::jsonb) RETURNING id",
-   [email,"!test",JSON.stringify({full_name:"Prueba temporal",platform_marketing_opt_in:checked})]
+   [email,"!test",JSON.stringify({full_name:"Prueba temporal",platform_marketing_opt_in:checked,platform_push_opt_in:push})]
   );
   const user=r.rows[0].id;
-  const before=await client.query("SELECT opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id IS NULL",[user]);
+  const before=await client.query("SELECT opted_in,push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id IS NULL",[user]);
   assert.equal(before.rowCount,0,"Verification required before marketing records");
   await client.query("UPDATE auth.users SET email_confirmed_at=now() WHERE id=$1",[user]);
   const after=await client.query("SELECT opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id IS NULL",[user]);
-  assert.equal(after.rowCount,checked?1:0,"Only explicit signup consent should be stored");
-  if(checked){
-   assert.equal(after.rows[0].opted_in,true);
+  assert.equal(after.rowCount,checked||push?1:0,"Only explicit signup consent should be stored");
+  if(checked||push){
+   assert.equal(after.rows[0].opted_in,checked);
+   assert.equal(after.rows[0].push_opted_in,push);
    await client.query("UPDATE public.marketing_consents SET opted_in=false WHERE customer_id=$1 AND business_id IS NULL",[user]);
    await client.query("UPDATE auth.users SET email_confirmed_at=NULL WHERE id=$1",[user]);
    await client.query("UPDATE auth.users SET email_confirmed_at=now() WHERE id=$1",[user]);
@@ -29,6 +30,6 @@ try{
   }
  }
  await client.query("ROLLBACK");
- console.log("OK: marketing opt-in requires affirmative signup checkbox and verified email; withdrawal is respected.");
+ console.log("OK: email and platform push consent are separate, require verified opt-in and preserve withdrawal.");
 }catch(e){await client.query("ROLLBACK").catch(()=>{});throw e;}
 finally{client.release();await pool.end();}
