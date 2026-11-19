@@ -47,7 +47,13 @@ export function PushWelcomePrompt(){
     if(!c.enabled||!c.publicKey||!active)return;
     const reg=await navigator.serviceWorker.getRegistration();
     const sub=reg?await reg.pushManager.getSubscription():null;
-    if(!active||sub&&Notification.permission==="granted")return;
+    if(!active)return;
+    if(sub&&Notification.permission==="granted"){
+     await requestJson("/api/local/push/preferences",{
+      action:"subscribe",endpoint:sub.endpoint,keys:sub.toJSON().keys
+     });
+     return;
+    }
     setConfig({enabled:true,publicKey:String(c.publicKey)});
     setBusinesses((p.businesses||[]) as BusinessConsent[]);
     setShow(true);
