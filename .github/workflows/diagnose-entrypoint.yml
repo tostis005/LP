@@ -84,6 +84,14 @@ jobs:
             done
             rm -f "$tmp"
           done
+          echo "LOCAL_WORKTREE_STATUS:"
+          git status --short -- app/page.tsx || true
+          echo "LOCAL_LANDING_PRESENT:"
+          if grep -q "Haz que cada visita" app/page.tsx; then echo YES; else echo NO; fi
+          echo "LOCAL_ENTRAR_PRESENT:"
+          if grep -q "Preparando tu espacio" app/page.tsx; then echo YES; else echo NO; fi
+          echo "LOCAL_PAGE_DIFF:"
+          git diff -- app/page.tsx | head -70 || true
           echo "GIT_LANDING_PRESENT:"
           if git show HEAD:app/page.tsx | grep -q "Haz que cada visita"; then echo "YES"; else echo "NO"; fi
           echo "NEXT_CONTAINER_STATUS:"
