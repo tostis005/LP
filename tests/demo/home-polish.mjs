@@ -17,7 +17,7 @@ assert.ok(icons.cafeteria.length>180,"Cafetería needs a well-defined cup silhou
 assert.ok(icons.automocion.length>130,"Automoción must have a car icon");
 assert.notEqual(icons.automocion,icons.comercio);
 assert.notEqual(icons.categorias,icons.libreria);
-assert.ok(icons.barberia.length>180,"Barberia must display a recognizable beard and moustache");
+assert.ok(icons.barberia.length>240,"Barberia must display a full beard and distinct moustache");
 const cats=read("lib/business-categories.ts");
 assert.match(cats,/name:"Floristería",stamp:"floristeria"/);
 assert.match(cats,/name:"Spa y bienestar",stamp:"spa"/);

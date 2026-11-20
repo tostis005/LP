@@ -12,7 +12,7 @@ function load(path,imports={}){
 }
 const filled=load("../../lib/kreyv-icon-paths.ts");
 const icons=load("../../lib/stamp-drawings.ts",{"@/lib/kreyv-icon-paths":filled});
-assert.equal(Object.keys(filled.KREYV_FILLED_PATHS).length,41,"Approved gallery must contain all 40 filled icons");
+assert.equal(Object.keys(filled.KREYV_FILLED_PATHS).length,43,"The original gallery and four business-specific additions remain available");
 assert.equal(icons.STAMP_OPTIONS.length,25,"Every approved business-category icon is selectable");
 for(const option of icons.STAMP_OPTIONS){
  assert.ok(filled.KREYV_FILLED_PATHS[option.id],option.id+" has no approved filled path");
