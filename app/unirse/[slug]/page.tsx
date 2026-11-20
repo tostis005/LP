@@ -111,7 +111,7 @@ export default function JoinPage(){
         </label>
         {marketing&&(!/^\+[1-9][0-9]{7,14}$/.test(savedPhone))&&
          <label className="join-phone-field">Tu número de WhatsApp (con prefijo del país)
-          <input type="tel" inputMode="tel" required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+526641234567" pattern="\\+[1-9][0-9]{7,14}"/>
+          <input type="tel" inputMode="tel" required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/>
           <small>Necesario para habilitar también WhatsApp. Puedes cambiarlo en Mi perfil.</small>
          </label>}
         <p className="muted">Tu tarjeta es gratuita y funciona igual aunque no aceptes comunicaciones comerciales. El permiso push del teléfono se solicita por separado.</p>
