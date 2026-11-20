@@ -9,6 +9,7 @@ import type {Business,Program,Location} from "@/lib/types";
 import {dateShort,initials,units} from "@/lib/format";
 import {displayCurrency} from "@/lib/currency";
 import {db} from "@/lib/supabase";
+import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {StampCard} from "@/components/StampCard";
 import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
@@ -111,7 +112,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setLoading(false);
  },[selected,periodDays,marketingChannel]);
  useEffect(()=>{reload()},[reload]);
- function success(s:string){setNotice(s);setError("")}
+ function success(s:string){setNotice(s);setError("");showActionToast(s)}
  async function saveBusiness(fields:Partial<Business>){if(!selected)return;setBusy(true);setError("");setNotice("");
  const {error}=await db().from("businesses").update(fields).eq("id",selected);
  setBusy(false);if(error){setError(error.message);return}success("Cambios guardados correctamente.");await reload();
