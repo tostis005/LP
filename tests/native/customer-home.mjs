@@ -33,6 +33,8 @@ try{
   assert.ok(card.businesses.id===card.business_id,"The merchant must match the membership");
   assert.match(card.card_token,/^[0-9a-f-]{36}$/i,"The card must have a valid QR token");
  }
+ const unrelated=await client.query("SELECT id FROM public.businesses WHERE slug='interno-barba-norte'");
+ assert.equal(unrelated.rowCount,0,"A customer must NOT see another private business without a membership");
  const ids=cards.rows.map(r=>r.business_id),membershipIds=cards.rows.map(r=>r.id);
  const programs=await client.query("SELECT * FROM public.loyalty_programs t WHERE t.business_id=ANY($1::uuid[])",
   [ids]);
