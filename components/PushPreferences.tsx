@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import {Bell,BellOff,CheckCircle2,ShieldCheck} from "lucide-react";
+import {showActionToast} from "@/lib/action-toast";
 
 type Preference={business_id:string;business_name:string;opted_in:boolean};
 type Config={enabled:boolean;publicKey:string};
@@ -79,7 +80,7 @@ export function PushPreferences(){
     body:JSON.stringify({action:"subscribe",endpoint:sub.endpoint,keys:data.keys})
    });
    setDeviceActive(true);
-   setNotice("Dispositivo registrado. Ahora elige de qué negocios quieres recibir promociones.");
+   setNotice("Dispositivo registrado. Ahora elige de qué negocios quieres recibir promociones.");showActionToast("Notificaciones activadas en este móvil.");
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
  }
@@ -96,7 +97,7 @@ export function PushPreferences(){
     await sub.unsubscribe();
    }
    setDeviceActive(false);
-   setNotice("Push desactivado en este dispositivo. Tus preferencias de los negocios se mantienen para otros dispositivos.");
+   setNotice("Push desactivado en este dispositivo. Tus preferencias de los negocios se mantienen para otros dispositivos.");showActionToast("Notificaciones desactivadas en este móvil.");
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
  }
@@ -108,7 +109,7 @@ export function PushPreferences(){
     method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({action:"platform_consent",opted_in:next})
    });
-   setPlatformOptedIn(next);
+   setPlatformOptedIn(next);showActionToast("Preferencias de notificaciones guardadas.");
    setNotice(next?"Has aceptado los avisos de Loyally. También debes activar las notificaciones de este dispositivo para recibirlos.":"Has desactivado los avisos de Loyally.");
   }catch(e){setError((e as Error).message)}
   finally{setBusy(false)}
@@ -121,7 +122,7 @@ export function PushPreferences(){
     method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({action:"consent",business_id:item.business_id,opted_in})
    });
-   setItems(prev=>prev.map(p=>p.business_id===item.business_id?{...p,opted_in}:p));
+   setItems(prev=>prev.map(p=>p.business_id===item.business_id?{...p,opted_in}:p));showActionToast("Preferencia de "+item.business_name+" guardada.");
    setNotice(opted_in?"Promociones activadas para "+item.business_name+".":"Promociones desactivadas para "+item.business_name+".");
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
