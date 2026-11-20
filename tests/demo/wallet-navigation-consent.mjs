@@ -18,10 +18,12 @@ assert.match(wallet,/downloadUrl/);
 assert.doesNotMatch(wallet,/filledCount|STAMP_DRAWINGS|stampCount|\.svg";/,"Downloaded card must be a static QR identification card, no filled stamps");
 assert.match(wallet,/qrUrl/);
 const nav=shell.match(/business:\[[\s\S]*?\],\s*staff:/)?.[0]||"";
-for(const path of ["/negocio/team","/negocio/designer","/negocio/program","/negocio/locations","/negocio/settings","/negocio/facturacion"]){
+for(const path of ["/negocio","/negocio/tarjeta","/negocio/team","/negocio/marketing","/negocio/reports"]){
  assert.ok(nav.includes(path),"Missing own menu entry: "+path);
 }
-assert.doesNotMatch(nav,/Más opciones/);
+assert.doesNotMatch(nav,/Más opciones|\/negocio\/designer|\/negocio\/program|\/negocio\/facturacion|\/negocio\/locations|\/negocio\/settings/);
+assert.match(shell,/business-account-menu/);
+assert.match(shell,/\/negocio\/facturacion/);
 assert.match(shell,/business-mobile-all-sections/);
 assert.match(mobile,/\/negocio\/team/);
 assert.doesNotMatch(mobile,/label:"Más"/);
