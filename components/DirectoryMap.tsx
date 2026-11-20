@@ -4,41 +4,38 @@ import {divIcon} from "leaflet";
 import {useEffect,useMemo} from "react";
 import Link from "next/link";
 import type {Location} from "@/lib/types";
-import {categoryStampKind} from "@/lib/business-categories";
-import {stampMarkup} from "@/lib/stamp-drawings";
 
 export type DirectoryPin=Omit<Location,"businesses">&{
  businesses?:{name:string;category:string|null;slug:string;accent_color?:string;description?:string|null;stamp_icon?:string|null;stamp_color?:string|null};
  offerText?:string;
+ hasCard?:boolean;
 };
 function Recenter({center}:{center:[number,number]}){
  const map=useMap();
  useEffect(()=>{map.setView(center,Math.max(map.getZoom(),11))},[center,map]);
  return null;
 }
-function pinIcon(category?:string|null,stampKind?:string|null,stampColor?:string|null,accent?:string){
- // No se usa transform en el marcador exterior: Leaflet necesita controlarlo
- // para situar el icono. Solo el diseño interno contiene el color y el dibujo.
- const chosen=/^#[0-9a-f]{6}$/i.test(stampColor||"")?stampColor!:/^#[0-9a-f]{6}$/i.test(accent||"")?accent!:"#571c32";
- const color=chosen.toLowerCase()==="#ffffff"?"#571c32":chosen;
- const svg=stampMarkup(stampKind||categoryStampKind(category),31);
+/** Marcador independiente de la categoría: estrella rellena = tarjeta guardada. */
+function pinIcon(hasCard:boolean){
+ const star='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="29" height="29" aria-hidden="true" fill="'+(hasCard?'currentColor':'none')+'" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="m12 2.8 2.85 5.8 6.4.93-4.63 4.52 1.1 6.38L12 17.4l-5.72 3.03 1.1-6.38-4.63-4.52 6.4-.93L12 2.8Z"/></svg>';
  return divIcon({
   className:"loyally-map-marker",
-  html:'<span class="loyally-map-pin"><span class="loyally-map-symbol" style="color:'+color+'">'+svg+'</span></span>',
+  html:'<span class="loyally-map-pin '+(hasCard?'is-owned':'is-unowned')+'"><span class="loyally-map-symbol">'+star+'</span></span>',
   iconSize:[46,53],iconAnchor:[23,52],popupAnchor:[0,-48]
  });
 }
 function Pins({locations}:{locations:DirectoryPin[]}){
- const icons=useMemo(()=>new Map(locations.map(l=>[l.id,pinIcon(l.businesses?.category,l.businesses?.stamp_icon,l.businesses?.stamp_color,l.businesses?.accent_color)])),[locations]);
+ const icons=useMemo(()=>new Map(locations.map(l=>[l.id,pinIcon(Boolean(l.hasCard))])),[locations]);
  return <>{locations.map(x=><Marker key={x.id} position={[x.lat,x.lng]} icon={icons.get(x.id)!}>
   <Popup>
    <div className="loyally-map-popup">
     <strong>{x.businesses?.name||x.name}</strong>
     <small>{x.businesses?.category||"Negocio local"}</small>
+    <span className={"loyally-map-status"+(x.hasCard?" is-owned":"")}>{x.hasCard?"★ Ya tienes su tarjeta":"☆ Aún no tienes su tarjeta"}</span>
     {x.businesses?.description&&<p>{x.businesses.description}</p>}
     {x.offerText&&<div className="loyally-map-reward">{x.offerText}</div>}
     <div className="loyally-map-address">{x.address}, {x.city}</div>
-    <Link href={"/unirse/"+encodeURIComponent(x.businesses?.slug||"")}>Conocer el negocio y su tarjeta</Link>
+    <Link href={x.hasCard?"/app":"/unirse/"+encodeURIComponent(x.businesses?.slug||"")}>{x.hasCard?"Ver mi tarjeta":"Conocer el negocio y su tarjeta"}</Link>
    </div>
   </Popup>
  </Marker>)}</>;
