@@ -21,12 +21,15 @@ assert.ok(icons.barberia.length>180,"Barbería must have a full beard and distin
 const iconBoxes=m.exports.KREYV_ICON_BOXES;
 assert.equal(iconBoxes.panaderia,"0 0 64 64","Panadería uses a centered optical grid");
 assert.equal(iconBoxes.barberia,"4 10 56 56","Barbería uses a centered optical grid");
-assert.ok((icons.panaderia.match(/M/g)||[]).length===4,"Barra de pan: una silueta y tres cortes sin reborde inferior");
-assert.match(icons.panaderia,/L35 9C44 4/,"Panadería must clearly depict a long baguette");
-assert.doesNotMatch(icons.panaderia,/M7 41C4 35/,"Old bulky bread icon must be removed");
-assert.ok((icons.barberia.match(/M/g)||[]).length===3,"Barbería: barba, recorte interior y bigote definido");
-assert.match(icons.barberia,/M12 18C17 21/,"Barbería must have a recognizable separate moustache");
-assert.doesNotMatch(icons.barberia,/M14 31C20 33/,"Old ambiguous barber pictogram must be removed");
+assert.equal((icons.panaderia.match(/M/g)||[]).length,4,"Hogaza: silueta compacta y tres cortes superiores");
+assert.match(icons.panaderia,/^M6 43C6 35/,"El pan aprobado debe estar centrado y sin reborde");
+assert.match(icons.panaderia,/M23 29C19 33/,"El pan debe conservar los tres cortes vaciados");
+assert.doesNotMatch(icons.panaderia,/M7 40C5 35/,"No reutilizar la baguette anterior");
+assert.equal((icons.barberia.match(/M/g)||[]).length,2,"Barba completa y bigote separados");
+assert.match(icons.barberia,/^M7 18C8 27/,"El bigote debe ser reconocible, con extremos curvos");
+assert.match(icons.barberia,/M10 32C16 39/,"La barba inferior debe terminar en punta");
+assert.doesNotMatch(icons.barberia,/M15 25C19 26/,"No reutilizar la barba anterior");
+assert.match(read("components/KreyvIcon.tsx"),/fill="currentColor"/,"El color debe heredarse de la marca");
 
 const cats=read("lib/business-categories.ts");
 assert.match(cats,/name:"Floristería",stamp:"floristeria"/);
