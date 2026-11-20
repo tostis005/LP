@@ -16,7 +16,7 @@ export async function notifyReward(cardToken:string):Promise<void>{
   await sendMail(reward.email,"¡Tu premio de "+reward.business_name+" ya está disponible!",
    "¡Enhorabuena!\n\nHas conseguido: "+reward.reward_label+"\n\nNegocio: "+reward.business_name+
    "\n\nAquí tienes tu QR de un solo uso:\n"+link+
-   "\n\nMuéstralo en el establecimiento. El personal autorizado lo validará para entregarte el premio.\n\nLoyally");
+   "\n\nMuéstralo en el establecimiento. El personal autorizado lo validará para entregarte el premio.\n\nKreyv");
   delivered=true;
  }finally{
   await authPool.query("SELECT public.finish_reward_notification($1::uuid,$2::boolean)",[reward.token,delivered]);

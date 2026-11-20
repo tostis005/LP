@@ -175,7 +175,7 @@
 .loi-site .brand-name{color:var(--color-brand-900)}
 .loi-site .brand-name span{color:var(--color-brand-500)}
 .loi-site .brand-symbol{background:var(--color-brand-900);color:#fff}
-.loi-site .loi-final-card{background:linear-gradient(120deg,var(--color-brand) 0%,#28121e 100%)}
+.loi-site .loi-final-card{background:linear-gradient(120deg,var(--color-brand) 0%,var(--color-brand-900) 100%)}
 .loi-site .loi-final-card .loi-overline,.loi-site .loi-final-card h2 em{color:#f0b6cb}
 .loi-site .loi-hero{background:radial-gradient(circle at 91% 14%,#efd6e0 0%,transparent 37%),linear-gradient(112deg,var(--color-bg),#f8ecf1)}
 .loi-site .loi-hero-orbit.orbit-a{background:#ebd5df}
@@ -213,7 +213,7 @@
 .loi-install-platform li svg{vertical-align:middle;margin-left:3px;color:#843d59}
 .loi-install-extra{border-radius:12px;padding:13px 14px;background:#f9edf2;color:#613349;font-size:12px;margin:18px 0 0;line-height:1.6}
 .loi-install-qr{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:22px 0 0;margin-top:20px;border-top:1px solid #f0e6eb}
-.loi-install-qr strong{font-size:13px;color:#38212c}
+.loi-install-qr strong{font-size:13px;color:var(--color-brand-900)}
 .loi-install-qr p{font-size:11px;line-height:1.55;color:#89727c;max-width:270px;margin:4px 0 0}
 .loi-qr-box{background:#fff;border-radius:12px;border:1px solid #ecdfe5;padding:8px;line-height:0;flex:none}
 @media(max-width:1100px){.loi-install-layout{gap:34px}.loi-install-card{padding:22px}}

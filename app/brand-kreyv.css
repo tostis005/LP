@@ -25,7 +25,6 @@ button,input,select,textarea{font-family:var(--font-body)}
 .loi-phone-progress{background:var(--color-accent-100)}
 .loi-phone-progress span,.loi-phone-progress strong{color:var(--color-on-accent)}
 .loi-feature-icon,.loi-floating-icon{background:var(--color-accent-100);color:var(--color-accent-600)}
-.loi-site .loi-showcase-phone .stamp-visual-card{ /* tarjeta de un comercio: sin cambio de marca global */ }
 .sidebar,.workspace-header{background:var(--color-surface);border-color:var(--color-bg-2)}
 .workspace .side-link.active,.workspace .tab-bar button.active,.mobile-bottom-link.active{background:var(--color-brand-100);color:var(--color-brand)}
 .workspace .table-pill,.kpi-symbol.green,.panel-icon{background:var(--color-brand-100);color:var(--color-brand)}
