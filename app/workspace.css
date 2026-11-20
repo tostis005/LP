@@ -1059,3 +1059,43 @@
  .business-mobile-all-sections{display:none!important}
  .workspace-business .workspace-content{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 }
+
+/* Preferencia comercial única en el alta: el usuario controla los tres canales. */
+.join-unified-promo{display:flex;align-items:flex-start;gap:13px;padding:20px;
+ margin:18px 0 10px;border:1px solid #e9d7df;border-radius:19px;background:#fff;cursor:pointer}
+.join-unified-promo:has(input:checked){background:#fbf1f5;border-color:#96516b}
+.join-unified-promo>input{margin-top:5px;width:20px;height:20px;flex-shrink:0;accent-color:#571c32}
+.join-unified-promo span{flex:1;min-width:0}
+.join-unified-promo strong{display:block;line-height:1.45;font-size:15px}
+.join-unified-promo strong svg{vertical-align:-4px;margin-right:5px;color:#8b3757}
+.join-unified-promo small{display:block;margin-top:9px;line-height:1.55;color:#745767}
+.join-phone-field{display:grid;gap:8px;margin:13px 0 16px;font-weight:700;font-size:13px}
+.join-phone-field input{width:100%;padding:13px 14px;border:1px solid #e0d0d7;border-radius:11px;font:inherit}
+.join-phone-field small{font-weight:400;color:#745767}
+.join-subscribed-links{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.customer-settings-header{display:flex;align-items:center;gap:14px;margin:5px 0 22px;color:#571c32}
+.customer-settings-header h2{font-size:24px;margin:0 0 3px}
+.customer-settings-header p{margin:0;font-size:13px;color:#73596a}
+.customer-channel-cards{display:grid;gap:12px;margin-top:20px}
+.customer-channel-business{background:#fff;border:1px solid #e6d5dd;border-radius:18px;overflow:hidden}
+.customer-channel-business[open]{border-color:#bc8fa2;box-shadow:0 8px 24px #571c320b}
+.customer-channel-business>summary{display:flex;align-items:center;gap:12px;list-style:none;cursor:pointer;padding:15px}
+.customer-channel-business>summary::-webkit-details-marker{display:none}
+.customer-channel-business>summary:focus-visible{outline:3px solid #a76a87;outline-offset:-3px}
+.customer-channel-business-mark{width:43px;height:43px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:20px;font-weight:800;flex-shrink:0}
+.customer-channel-business-title{display:grid;gap:4px;min-width:0;flex:1}
+.customer-channel-business-title strong{font-size:14px}
+.customer-channel-business-title small{font-size:12px;color:#765668}
+.customer-channel-chevron{font-size:21px;transition:transform .2s;color:#745367}
+.customer-channel-business[open] .customer-channel-chevron{transform:rotate(180deg)}
+.customer-channel-options{border-top:1px solid #eadce4;padding:4px 15px 15px}
+.customer-channel-option{display:flex;align-items:center;gap:12px;padding:15px 2px;
+ border-bottom:1px solid #f0e8ec;cursor:pointer}
+.customer-channel-option:last-of-type{border-bottom:0}
+.customer-channel-option-icon{color:#874664;display:grid;place-items:center;flex-shrink:0}
+.customer-channel-option-copy{display:grid;gap:4px;min-width:0;flex:1}
+.customer-channel-option-copy strong{font-size:13px}
+.customer-channel-option-copy small{font-size:12px;color:#7d6873;line-height:1.4}
+.customer-channel-option input{width:21px;height:21px;flex-shrink:0;accent-color:#571c32}
+.customer-account-settings-link{margin-top:20px}
+@media(max-width:640px){.join-subscribed-links>*{width:100%}.customer-channel-option{gap:10px}}
