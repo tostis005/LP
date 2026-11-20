@@ -17,7 +17,10 @@ export function AddressPicker({address,city,country,lat,lng,onAddressChange,onCi
   const x=Number(lat),y=Number(lng);
   return lat.trim()&&lng.trim()&&Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(x)<=90&&Math.abs(y)<=180?{lat:x,lng:y}:null;
  },[lat,lng]);
- function choose(next:Point){onCoordinatesChange(String(Number(next.lat.toFixed(7))),String(Number(next.lng.toFixed(7))));}
+ function choose(next:Point){
+  onCoordinatesChange(String(Number(next.lat.toFixed(7))),String(Number(next.lng.toFixed(7))));
+ }
+ function clearPoint(){if(lat||lng)onCoordinatesChange("","");}
  async function search(){setError("");setResults([]);
   const q=[address,city,country].filter(Boolean).join(", ").trim();
   if(q.length<7){setError("Escribe la dirección y la ciudad.");return}
@@ -35,10 +38,10 @@ export function AddressPicker({address,city,country,lat,lng,onAddressChange,onCi
  return <div className="lp-address-picker">
   <div className="lp-address-search">
    <div className="form-stack">
-    <label>Dirección<input required minLength={4} value={address} onChange={e=>onAddressChange(e.target.value)} placeholder="Calle, número y colonia"/></label>
+    <label>Dirección<input required minLength={4} value={address} onChange={e=>{onAddressChange(e.target.value);clearPoint()}} placeholder="Calle, número y colonia"/></label>
     <div className="form-two">
-     <label>Ciudad<input required value={city} onChange={e=>onCityChange(e.target.value)} placeholder="Ciudad"/></label>
-     <label>País<input required value={country} onChange={e=>onCountryChange(e.target.value)} placeholder="País"/></label>
+     <label>Ciudad<input required value={city} onChange={e=>{onCityChange(e.target.value);clearPoint()}} placeholder="Ciudad"/></label>
+     <label>País<input required value={country} onChange={e=>{onCountryChange(e.target.value);clearPoint()}} placeholder="País"/></label>
     </div>
     <button type="button" className="button button-outline" onClick={()=>void search()} disabled={loading}><Search size={17}/>{loading?"Buscando...":"Buscar dirección en el mapa"}</button>
    </div>

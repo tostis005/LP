@@ -8,6 +8,7 @@ import type {Business,Program} from "@/lib/types";
 import {db} from "@/lib/supabase";
 import {categoryStampKind} from "@/lib/business-categories";
 import {programPromise} from "@/lib/program-presentation";
+import {money} from "@/lib/format";
 
 function Preview({account}:{account:Account}){
  const [business,setBusiness]=useState<Business|null>(null),[program,setProgram]=useState<Program|null>(null);
@@ -55,7 +56,7 @@ function Preview({account}:{account:Account}){
       <div className="stamp-visual-head"><span className="stamp-business-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:business.name.slice(0,1)}</span><span className="stamp-visual-pill">LOYALLY CLUB</span></div>
       <div className="business-preview-nonstamp-body"><small>{business.card_text||"GRACIAS POR VOLVER"}</small>
        <h3>{business.name}</h3><p>{program.reward_label}</p></div>
-      <div className="business-preview-nonstamp-bottom"><div><span>SALDO DE EJEMPLO</span><strong>{program.type==="points"?"120 puntos":"150,00 MXN"}</strong></div>
+      <div className="business-preview-nonstamp-bottom"><div><span>SALDO DE EJEMPLO</span><strong>{program.type==="points"?"120 puntos":money(15000,business.currency)}</strong></div>
        <span>{program.type==="points"?"Cada compra suma puntos":"Acumula saldo con tus compras"}</span></div>
      </div>}
     <p className="muted">Es una muestra del diseño. Los sellos y saldos mostrados son de ejemplo.</p>

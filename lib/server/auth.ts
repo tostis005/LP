@@ -54,18 +54,18 @@ export async function rateLimit(key:string,max:number,minutes=15) {
   );
   if(result.rows[0].hits>max)throw new ApiError("Demasiados intentos. Inténtalo más tarde.",429);
 }
-export async function createSession(userId:string) {
+export async function createSession(userId:string,ttlMs=30*DAY) {
   const token=randomBytes(32).toString("hex");
-  const expires=new Date(Date.now()+30*DAY);
+  const expires=new Date(Date.now()+ttlMs);
   await authPool.query(
     "INSERT INTO auth.sessions(user_id,token_hash,expires_at) VALUES($1,$2,$3)",
     [userId,hashToken(token),expires]
   );
   return {token,expires};
 }
-export function setSessionCookie(response:Response,token:string,expires:Date) {
+export function setSessionCookie(response:Response,token:string,expires:Date,maxAgeSeconds=2592000) {
   const secure=process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://")?" Secure;":"";
-  response.headers.append("Set-Cookie","lp_session="+token+"; Path=/; HttpOnly; SameSite=Lax;"+secure+" Max-Age=2592000; Expires="+expires.toUTCString());
+  response.headers.append("Set-Cookie","lp_session="+token+"; Path=/; HttpOnly; SameSite=Lax;"+secure+" Max-Age="+maxAgeSeconds+"; Expires="+expires.toUTCString());
   response.headers.set("Cache-Control","no-store");
   return response;
 }

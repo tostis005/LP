@@ -3,8 +3,8 @@ export function money(cents: number, currency = "MXN") {
   return new Intl.NumberFormat("es-MX", { style: "currency", currency }).format((cents || 0) / 100);
 }
 export function dateShort(s: string) { return new Date(s).toLocaleDateString("es-ES", {day:"2-digit",month:"short",year:"numeric"}); }
-export function units(balance: number, type: ProgramType | undefined) {
-  if (type === "cashback") return money(balance);
+export function units(balance: number, type: ProgramType | undefined, currency = "MXN") {
+  if (type === "cashback") return money(balance,currency);
   return balance + (type === "stamps" ? " sellos" : " puntos");
 }
 export function initials(s: string) { return s.split(/\s+/).slice(0,2).map(v=>v.slice(0,1)).join("").toUpperCase(); }

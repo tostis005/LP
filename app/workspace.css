@@ -947,3 +947,64 @@
 .loyally-modal-card-preview>small{font-size:13px;font-weight:750}
 .campaign-push-textarea{width:100%;min-height:180px;border:1px solid #ead6e0;border-radius:13px;resize:vertical;padding:17px;font:inherit;line-height:1.6;background:#fff;color:#392433}
 @media(max-width:780px){.marketing-tariff-grid{grid-template-columns:1fr}.lp-address-map,.lp-address-map-loading{height:290px}}
+
+
+/* Superficies de trabajo estables, sin columnas artificialmente estrechas. */
+.workspace{width:100%;min-height:100dvh}
+.workspace-main{flex:1 1 auto;width:auto;min-width:0;min-height:100dvh}
+.workspace-content,.business-workspace,.business-workspace .workspace-section-body,
+.customer-first-layout,.admin-grid,.team-section,.campaign-page-final{width:100%;max-width:none;min-width:0}
+.workspace-content{margin:0;box-sizing:border-box}
+.business-workspace .workspace-section-layout{display:block;width:100%}
+.admin-create-business{grid-column:1/-1;width:100%;max-width:none}
+.admin-create-business .form-stack{max-width:none}
+.admin-create-business .lp-address-picker{width:100%;max-width:100%}
+.card-grid,.customer-first-layout .card-grid{width:100%;max-width:none}
+.card-grid>*{min-width:0}
+.lp-rewards .lp-rewards-heading{margin:0 0 20px;align-items:center}
+.lp-rewards-heading h2{display:flex;align-items:center;gap:10px}
+.lp-reward-row{gap:12px;min-height:68px;flex-wrap:wrap}
+.lp-reward-row>.inline-table-button{display:inline-flex;gap:5px;align-items:center}
+.lp-reward-form{max-width:700px}
+.lp-insights-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.auth-all-access{min-height:100dvh;height:auto}
+.auth-all-access .auth-right{min-height:100dvh;overflow-y:auto}
+.auth-all-access .auth-choice-wrap{width:min(540px,100%);margin-inline:auto}
+.auth-all-access .auth-form-wrap{max-height:none}
+@media(min-width:701px){
+ .auth-all-access{overflow:visible;height:auto}
+ .auth-all-access .auth-story{min-height:100dvh;height:auto}
+ .auth-all-access .auth-right{height:auto;min-height:100dvh}
+}
+@media(max-width:950px){
+ .lp-insights-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .business-location-layout{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+ .workspace-main{width:100%;min-height:100dvh}
+ .workspace-content{padding:22px 16px calc(106px + env(safe-area-inset-bottom,0px))}
+ .card-grid,.customer-first-layout .card-grid{width:100%;max-width:none;grid-template-columns:1fr}
+ .lp-insights-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .lp-rewards .lp-rewards-heading{align-items:flex-start}
+ .lp-reward-row{align-items:center}
+ .auth-all-access .auth-right{min-height:100dvh}
+ .admin-grid{grid-template-columns:1fr}
+}
+@media(max-width:430px){
+ .lp-insights-grid{grid-template-columns:1fr}
+ .lp-reward-row>.activity-icon{display:none}
+ .lp-reward-row>div:nth-child(2){flex:1 1 100%}
+}
+
+.admin-business-list{grid-column:1/-1;width:100%;max-width:none;min-width:0}
+.admin-business-list .data-table{width:100%}
+@media(min-width:951px){.admin-create-business .lp-address-picker{max-width:980px}}
+
+/* Acceso rápido autorizado y adaptable sin contraseñas en cliente. */
+.qa-profile-access{margin-top:26px;padding-top:8px;width:100%}
+.qa-profile-access>.muted{font-size:12px;margin:10px 0 18px}
+.qa-profile-access .auth-profile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.qa-profile-access .auth-profile-card{width:100%;min-width:0;text-align:left;cursor:pointer}
+.qa-profile-access .auth-profile-copy{min-width:0}
+.qa-profile-access .auth-profile-copy strong,.qa-profile-access .auth-profile-copy small{overflow-wrap:anywhere}
+@media(max-width:430px){.qa-profile-access .auth-profile-grid{grid-template-columns:1fr}}

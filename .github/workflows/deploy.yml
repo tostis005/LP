@@ -207,21 +207,8 @@ jobs:
 
           "${COMPOSE[@]}" --env-file .env.production config --quiet
           "${COMPOSE[@]}" --env-file .env.production up -d --build --remove-orphans
-          # Cada perfil de acceso es una cuenta PostgreSQL real. Contraseñas distintas,
-          # creadas una sola vez en el VPS y nunca incluidas en el navegador ni GitHub.
-          for role in ADMIN BUSINESS STAFF CUSTOMER; do
-            key="LP_SHOWCASE_${role}_PASSWORD"
-            if ! "${ENV_CMD[@]}" grep -Eq "^${key}=[a-f0-9]{48}$" .env.production; then
-              printf '%s=%s\n' "$key" "$(openssl rand -hex 24)" | "${ENV_CMD[@]}" tee -a .env.production >/dev/null
-            fi
-            value="$("${ENV_CMD[@]}" grep "^${key}=" .env.production | tail -n 1 | cut -d= -f2-)"
-            export "${key}=${value}"
-          done
-          "${COMPOSE[@]}" --env-file .env.production run --rm -T --no-deps \
-            -e LP_SHOWCASE_ADMIN_PASSWORD -e LP_SHOWCASE_BUSINESS_PASSWORD \
-            -e LP_SHOWCASE_STAFF_PASSWORD -e LP_SHOWCASE_CUSTOMER_PASSWORD \
-            migrate node scripts/provision-showcase-real.mjs
-          unset LP_SHOWCASE_ADMIN_PASSWORD LP_SHOWCASE_BUSINESS_PASSWORD LP_SHOWCASE_STAFF_PASSWORD LP_SHOWCASE_CUSTOMER_PASSWORD
+          # La producción no crea negocios ni usuarios ficticios. Los datos
+          # y permisos existentes permanecen intactos durante el despliegue.
           homepage="$(mktemp)"
           homepage_en="$(mktemp)"
           trap 'rm -f "$homepage" "$homepage_en"' EXIT

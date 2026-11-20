@@ -1,36 +1,49 @@
 "use client";
 import {useState,type FormEvent} from "react";
-import {Check,Gift,Plus} from "lucide-react";
+import {Check,Gift,Plus,Pencil,X} from "lucide-react";
 import {db} from "@/lib/supabase";
-export type RewardOption={id:string;business_id:string;label:string;retail_cents:number;cost_cents:number;active:boolean;position:number};
+export type RewardOption={id:string;business_id:string;label:string;retail_cents:number|null;cost_cents:number|null;active:boolean;position:number};
 export function RewardCatalog({businessId,options,onSaved}:{businessId:string;options:RewardOption[];onSaved:()=>Promise<void>}){
- const [label,setLabel]=useState(""),[retail,setRetail]=useState(""),[cost,setCost]=useState("");
+ const [view,setView]=useState<"list"|"create"|"edit">("list"),[editing,setEditing]=useState<string|null>(null),[label,setLabel]=useState("");
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
- async function create(e:FormEvent){e.preventDefault();setBusy(true);setError("");setMessage("");
-  const r=await db().from("reward_options").insert({business_id:businessId,label:label.trim(),retail_cents:Math.round(Number(retail)*100),cost_cents:Math.round(Number(cost)*100),active:true,position:options.length});
-  setBusy(false);if(r.error){setError(r.error.message);return}
-  setLabel("");setRetail("");setCost("");setMessage("Nueva recompensa guardada.");await onSaved();
+ function beginCreate(){setEditing(null);setLabel("");setView("create");setError("");setMessage("")}
+ function beginEdit(option:RewardOption){setEditing(option.id);setLabel(option.label);setView("edit");setError("");setMessage("")}
+ function cancel(){setView("list");setEditing(null);setError("")}
+ async function save(e:FormEvent){
+  e.preventDefault();const name=label.trim();
+  if(name.length<2||name.length>120){setError("Escribe un nombre entre 2 y 120 caracteres.");return}
+  setBusy(true);setError("");setMessage("");
+  const query=view==="edit"&&editing?
+   db().from("reward_options").update({label:name}).eq("id",editing).eq("business_id",businessId):
+   db().from("reward_options").insert({business_id:businessId,label:name,retail_cents:null,cost_cents:null,active:true,position:options.length});
+  const result=await query;
+  setBusy(false);if(result.error){setError(result.error.message);return}
+  setView("list");setEditing(null);setLabel("");setMessage("Recompensa guardada.");await onSaved();
  }
- async function toggle(option:RewardOption){setBusy(true);setError("");setMessage("");
-  const r=await db().from("reward_options").update({active:!option.active}).eq("id",option.id).eq("business_id",businessId);
-  setBusy(false);if(r.error){setError(r.error.message);return}setMessage("Catálogo actualizado.");await onSaved();
+ async function toggle(option:RewardOption){
+  setBusy(true);setError("");setMessage("");
+  const result=await db().from("reward_options").update({active:!option.active}).eq("id",option.id).eq("business_id",businessId);
+  setBusy(false);if(result.error){setError(result.error.message);return}
+  setMessage("Recompensas actualizadas.");await onSaved();
  }
- return <section className="panel-card" style={{marginTop:22}}>
-  <div className="panel-icon"><Gift size={21}/></div><h2>Recompensas que puede elegir el cliente</h2>
-  <p className="muted">Define varias opciones (por ejemplo, cinco cafés). Al canjear, el empleado seleccionará cuál se entrega. El valor de venta calcula el ahorro del cliente y el coste real alimenta el dashboard privado.</p>
-  {options.map(o=><div key={o.id} className="activity-row"><div className="activity-icon positive"><Gift size={17}/></div>
-   <div><strong>{o.label}</strong><span>Precio habitual: {(Number(o.retail_cents)/100).toFixed(2)} MXN · Coste: {(Number(o.cost_cents)/100).toFixed(2)} MXN</span></div>
-   <button type="button" disabled={busy} onClick={()=>toggle(o)} className={"table-pill "+(o.active?"":"inactive")}>{o.active?"Activo":"Inactivo"}</button></div>)}
-  {!options.length&&<p className="muted">Aún no hay opciones. Puedes mantener el premio genérico, pero sin precio ni coste no podremos calcular su ahorro o inversión.</p>}
-  <form className="form-stack" onSubmit={create} style={{marginTop:20}}>
-   <div className="lp-reward-option-row">
-    <label>Nombre del producto<input required maxLength={120} minLength={2} value={label} onChange={e=>setLabel(e.target.value)} placeholder="Café latte"/></label>
-    <label>Precio venta (MXN)<input required type="number" min={0} max={1000000} step=".01" value={retail} onChange={e=>setRetail(e.target.value)} placeholder="65.00"/></label>
-    <label>Coste real (MXN)<input required type="number" min={0} max={1000000} step=".01" value={cost} onChange={e=>setCost(e.target.value)} placeholder="18.00"/></label>
-    <button disabled={busy} className="button button-dark button-sm"><Plus size={17}/> Añadir</button>
-   </div>
-  </form>
-  {error&&<div className="alert error">{error}</div>}{message&&<div className="alert success"><Check size={16}/>{message}</div>}
-  <p className="tiny-note">Los importes se guardan al canjear para preservar los informes históricos aunque cambie el catálogo.</p>
- </section>
+ return <section className="panel-card lp-rewards" style={{marginTop:22}}>
+  {view==="list"?<>
+   <div className="content-heading lp-rewards-heading"><div><h2><Gift size={20}/> Catálogo de regalos</h2><p className="muted">Crea regalos y descuentos para que el empleado elija al canjear.</p></div>
+    <button type="button" className="button button-dark button-sm" onClick={beginCreate}><Plus size={17}/> Añadir regalo</button></div>
+   {options.length?options.map(option=><div key={option.id} className="activity-row lp-reward-row">
+    <div className="activity-icon positive"><Gift size={17}/></div>
+    <div><strong>{option.label}</strong></div>
+    <button type="button" className="inline-table-button" disabled={busy} onClick={()=>beginEdit(option)} aria-label={"Editar "+option.label}><Pencil size={15}/> Editar</button>
+    <button type="button" className={"table-pill "+(option.active?"":"inactive")} disabled={busy} onClick={()=>void toggle(option)} aria-label={(option.active?"Desactivar ":"Activar ")+option.label}>{option.active?"Activo":"Inactivo"}</button>
+   </div>):<div className="campaign-empty-state"><Gift size={25}/><h3>Todavía no hay regalos</h3><p>Añade un café, una hamburguesa o un descuento.</p><button type="button" className="button button-outline" onClick={beginCreate}><Plus size={17}/> Crear regalo</button></div>}
+  </>:<>
+   <div className="content-heading lp-rewards-heading"><div><h2>{view==="edit"?"Editar regalo":"Nuevo regalo"}</h2><p className="muted">Solo necesitas el nombre de lo que entregas.</p></div><button type="button" className="button button-outline button-sm" onClick={cancel}><X size={17}/> Cancelar</button></div>
+   <form className="form-stack lp-reward-form" onSubmit={save}>
+    <label>Nombre del regalo o descuento<input autoFocus required minLength={2} maxLength={120} value={label} onChange={e=>setLabel(e.target.value)} placeholder="Ej. Café gratis, 15% de descuento, 10 € de descuento"/></label>
+    <button className="button button-dark" type="submit" disabled={busy}>{busy?"Guardando...":"Guardar regalo"} <Check size={17}/></button>
+   </form>
+  </>}
+  {error&&<div className="alert error" role="alert">{error}</div>}
+  {message&&view==="list"&&<div className="alert success"><Check size={16}/>{message}</div>}
+ </section>;
 }

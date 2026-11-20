@@ -23,6 +23,6 @@ assert.match(address,/Buscar dirección en el mapa/);
 assert.match(map,/draggable/);
 assert.match(map,/useMapEvents/);
 assert.match(read("db/migrations/200_unified_campaigns_currency.sql"),/push_usage_per_person_idx/);
-assert.match(read("scripts/provision-showcase-real.mjs"),/public_listing,active/);
-assert.match(read(".github/workflows/deploy.yml"),/provision-showcase-real\.mjs/);
+assert.match(read("db/migrations/210_product_polish.sql"),/guard_business_currency/);
+assert.doesNotMatch(read(".github/workflows/deploy.yml"),/provision-showcase-real\.mjs/);
 console.log("OK: server auth, live QR, unified campaigns, per-person billing, map picker and nontechnical copy.");
