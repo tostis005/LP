@@ -18,6 +18,16 @@ assert.ok(icons.automocion.length>130,"Automoción must have a car icon");
 assert.notEqual(icons.automocion,icons.comercio);
 assert.notEqual(icons.categorias,icons.libreria);
 assert.ok(icons.barberia.length>180,"Barbería must have a full beard and distinct moustache");
+const iconBoxes=m.exports.KREYV_ICON_BOXES;
+assert.equal(iconBoxes.panaderia,"0 0 64 64","Panadería uses a centered optical grid");
+assert.equal(iconBoxes.barberia,"4 10 56 56","Barbería uses a centered optical grid");
+assert.ok((icons.panaderia.match(/M/g)||[]).length===4,"Barra de pan: una silueta y tres cortes sin reborde inferior");
+assert.match(icons.panaderia,/L35 9C44 4/,"Panadería must clearly depict a long baguette");
+assert.doesNotMatch(icons.panaderia,/M7 41C4 35/,"Old bulky bread icon must be removed");
+assert.ok((icons.barberia.match(/M/g)||[]).length===3,"Barbería: barba, recorte interior y bigote definido");
+assert.match(icons.barberia,/M12 18C17 21/,"Barbería must have a recognizable separate moustache");
+assert.doesNotMatch(icons.barberia,/M14 31C20 33/,"Old ambiguous barber pictogram must be removed");
+
 const cats=read("lib/business-categories.ts");
 assert.match(cats,/name:"Floristería",stamp:"floristeria"/);
 assert.match(cats,/name:"Spa y bienestar",stamp:"spa"/);
