@@ -24,7 +24,7 @@ export function validateEmail(email:string) {
 export function smtpReady() {
   return !!(process.env.SMTP_HOST&&process.env.SMTP_FROM);
 }
-export async function sendMail(to:string,subject:string,body:string,html?:string) {
+export async function sendMail(to:string,subject:string,body:string,html?:string,cc?:string) {
   if(!smtpReady())throw new ApiError("Falta configurar el correo SMTP del servidor para verificar cuentas.",503);
   const transport=nodemailer.createTransport({
     host:process.env.SMTP_HOST,
@@ -32,7 +32,7 @@ export async function sendMail(to:string,subject:string,body:string,html?:string
     secure:process.env.SMTP_SECURE==="true",
     ...(process.env.SMTP_USER?{auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASSWORD||""}}:{})
   });
-  await transport.sendMail({from:process.env.SMTP_FROM,to,subject,text:body,...(html?{html}:{})});
+  await transport.sendMail({from:process.env.SMTP_FROM,to,subject,text:body,...(html?{html}:{}),...(cc?{cc}:{})});
 }
 export async function emailToken(userId:string,purpose:"verify"|"reset",email:string) {
   const token=randomBytes(32).toString("hex");
