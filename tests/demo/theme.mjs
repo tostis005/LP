@@ -44,7 +44,7 @@ assert.match(designer,/accent_color:biz\.accent_color/,"Business settings keep t
 assert.match(clientCard,/backgroundColor:color/,"Customer cards keep the business color");
 assert.match(demo,/loyally_role_sample_tijuana_v6/,"Demo data must refresh to new palette");
 assert.match(demo,/slug:"cafe-noma",category:"Cafetería",color:"#571c32"/);
-assert.match(login,/name="Café Noma" color="#571c32"/);
+assert.match(login,/name="Tu cafetería" color="#571c32"/,"The login example uses a generic business name");
 assert.match(tableDefault,/ALTER COLUMN accent_color SET DEFAULT '#571c32'/);
 assert.match(tableDefault,/ALTER COLUMN stamp_color SET DEFAULT '#571c32'/);
 function luminance(hex){
