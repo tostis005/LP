@@ -41,7 +41,7 @@ function Preview({account}:{account:Account}){
  if(error||!business||!program)return <div className="empty-state"><LockKeyhole size={29}/><h3>No se pudo abrir la vista previa</h3><p>{error}</p><Link href="/negocio" className="button button-dark">Volver al negocio</Link></div>;
  const published=business.public_listing&&business.active;
  return <div className="business-preview-page">
-  <Link href="/negocio/designer" className="business-preview-back"><ArrowLeft size={17}/> Volver al diseño</Link>
+  <Link href="/negocio/tarjeta" className="business-preview-back"><ArrowLeft size={17}/> Volver al diseño</Link>
   <div className="business-preview-layout">
    <section className="panel-card business-preview-card">
     <div className="eyebrow"><Eye size={16}/> VISTA PREVIA DE TU TARJETA</div>

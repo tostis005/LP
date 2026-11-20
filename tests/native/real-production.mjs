@@ -10,7 +10,7 @@ try{
  for(const name of names)assert.ok(users[name],"Real login account missing: "+name);
  const sites=(await db.query("SELECT id,slug,public_listing FROM public.businesses WHERE slug LIKE 'interno-%'")).rows;
  assert.equal(sites.length,10,"Ten internal locations must be persistent in PostgreSQL");
- assert.ok(sites.every(s=>s.public_listing===false),"Internal locations must not be public");
+ assert.ok(sites.every(s=>s.public_listing===true),"QA fixture stores must appear in customer discovery during validation");
  const cafe=sites.find(s=>s.slug==="interno-cafe-noma");assert.ok(cafe);
  const owned=await db.query("SELECT count(*)::int n FROM public.business_members WHERE user_id=$1 AND role='owner' AND active",[users.gestor]);
  assert.equal(owned.rows[0].n,10,"Business owner sees all ten locations");

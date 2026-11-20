@@ -48,6 +48,8 @@ jobs:
         run: node tests/demo/qa-access.mjs
       - name: Evitar caída del cliente cuando faltan detalles de una tarjeta
         run: node tests/demo/customer-resilience.mjs
+      - name: Validar app simplificada, confirmaciones y tres canales de avisos
+        run: node tests/demo/simplified-business-app.mjs
       - name: Comprobar TypeScript
         run: npm run typecheck
       - name: Construir Next.js

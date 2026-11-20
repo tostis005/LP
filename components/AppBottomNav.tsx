@@ -9,7 +9,7 @@ import {db} from "@/lib/supabase";
 type Role="customer"|"business"|"staff"|"admin";
 const tabs={
  customer:[{href:"/app",label:"Tarjetas",icon:CreditCard},{href:"/app/descubrir",label:"Descubrir",icon:Compass},{href:"/app/notificaciones",label:"Avisos",icon:BellRing},{href:"/app/perfil",label:"Mi cuenta",icon:UserRound}],
- business:[{href:"/negocio",label:"Inicio",icon:LayoutDashboard},{href:"/negocio/customers",label:"Clientes",icon:Users},{href:"/negocio/marketing",label:"Campañas",icon:Mail},{href:"/negocio/team",label:"Empleados",icon:Users},{href:"/negocio/designer",label:"Diseño",icon:Brush}],
+ business:[{href:"/negocio",label:"Inicio",icon:LayoutDashboard},{href:"/negocio/tarjeta",label:"Tarjeta",icon:CreditCard},{href:"/negocio/team",label:"Equipo",icon:Users},{href:"/negocio/marketing",label:"Campañas",icon:Mail},{href:"/negocio/reports",label:"Datos",icon:BarChart3}],
  staff:[{href:"/empleado",label:"Escanear",icon:ScanLine}],
  admin:[{href:"/admin",label:"Panel",icon:Shield}]
 } as const;

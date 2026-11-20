@@ -1008,3 +1008,54 @@
 .qa-profile-access .auth-profile-copy{min-width:0}
 .qa-profile-access .auth-profile-copy strong,.qa-profile-access .auth-profile-copy small{overflow-wrap:anywhere}
 @media(max-width:430px){.qa-profile-access .auth-profile-grid{grid-template-columns:1fr}}
+
+
+/* Confirmaciones de guardado globales: visibles en móvil, escritorio y PWA. */
+.loyally-action-toast{position:fixed;z-index:20000;right:22px;bottom:28px;
+ display:flex;align-items:center;gap:12px;max-width:min(440px,calc(100vw - 32px));
+ padding:15px 15px 15px 18px;border-radius:18px;background:#2e1521;color:#fff;
+ box-shadow:0 12px 42px rgba(40,19,31,.24);font-size:14px;font-weight:600;line-height:1.4}
+.loyally-action-toast.success>svg{color:#f5d9e5;flex-shrink:0}
+.loyally-action-toast.error>svg{color:#ffcbc9;flex-shrink:0}
+.loyally-action-toast span{flex:1}
+.loyally-action-toast button{border:0;background:transparent;color:#fff;display:grid;place-items:center;padding:3px;cursor:pointer}
+@media(max-width:640px){.loyally-action-toast{left:16px;right:16px;bottom:calc(86px + env(safe-area-inset-bottom,0px));max-width:none}}
+.business-card-tabs{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 22px;align-items:center}
+.business-card-tabs button{border:1px solid #e9dce2;background:#fff;border-radius:13px;padding:12px 17px;
+ color:#683e52;font:inherit;font-weight:700;cursor:pointer}
+.business-card-tabs button.active{background:#571c32;color:white;border-color:#571c32}
+.business-card-tabs button:focus-visible{outline:3px solid #c78ea4;outline-offset:2px}
+.business-card-stage{min-width:0}
+.join-channel-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}
+.join-channel-grid .join-marketing-choice{display:flex;align-items:flex-start;gap:10px;padding:15px;
+ border:1px solid #e8dce3;border-radius:15px;background:#fff;margin:0;cursor:pointer;min-width:0}
+.join-channel-grid .join-marketing-choice:has(input:checked){border-color:#8f4566;background:#fbf1f5}
+.join-channel-grid .join-marketing-choice input{margin-top:4px;flex-shrink:0}
+.join-channel-grid .join-marketing-choice strong{display:block;font-size:13px}
+.join-channel-grid .join-marketing-choice small{display:block;font-size:11px;line-height:1.4;margin-top:5px}
+.join-channel-intro{font-weight:650;margin:18px 0 4px}
+@media(max-width:700px){.join-channel-grid{grid-template-columns:1fr}}
+.business-account-menu{position:relative}
+.business-account-menu>button{display:flex;align-items:center;gap:8px;cursor:pointer;
+ border:1px solid #e8dce3;background:white;color:#351623;border-radius:14px;padding:9px 12px;font:inherit}
+.business-account-menu>button:focus-visible{outline:3px solid #c78ea4}
+.business-account-dropdown{position:absolute;right:0;top:calc(100% + 8px);z-index:300;
+ min-width:220px;background:white;border:1px solid #eadfe4;border-radius:16px;
+ box-shadow:0 16px 36px rgba(32,12,25,.15);padding:7px}
+.business-account-dropdown a{display:flex;align-items:center;gap:9px;text-decoration:none;
+ padding:12px;border-radius:10px;font-size:13px;color:#351623}
+.business-account-dropdown a:hover{background:#fbf1f5}
+@media(max-width:640px){.business-account-dropdown{right:0;max-width:calc(100vw - 24px)}}
+
+.business-account-menu>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;
+ border:1px solid #e8dce3;background:#fff;color:#351623;border-radius:14px;padding:9px 12px;
+ font-weight:700;white-space:nowrap}
+.business-account-menu>summary::-webkit-details-marker{display:none}
+.business-account-menu>summary:focus-visible{outline:3px solid #c78ea4;outline-offset:2px}
+.business-account-menu[open]>summary{background:#fbf1f5}
+
+/* En móviles, una sola navegación inferior para el dueño: no duplicar pestañas arriba. */
+@media(max-width:700px){
+ .business-mobile-all-sections{display:none!important}
+ .workspace-business .workspace-content{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+}

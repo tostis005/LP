@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import {useParams,useRouter} from "next/navigation";
-import {ArrowUpRight,Gift,Heart,MapPin,Check,ArrowLeft} from "lucide-react";
+import {ArrowUpRight,Gift,Heart,MapPin,Check,ArrowLeft,BellRing,Mail,MessageCircle} from "lucide-react";
 import {Brand} from "@/components/Brand";
 import {StampCard} from "@/components/StampCard";
 import {StampMark} from "@/components/StampMarks";
@@ -20,7 +20,7 @@ export default function JoinPage(){
  const [offer,setOffer]=useState<Offer|null>(null),[business,setBusiness]=useState<Business|null>(null);
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
- const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[pushMarketing,setPushMarketing]=useState(false),[showMarketingPrompt,setShowMarketingPrompt]=useState(false),[consentWarning,setConsentWarning]=useState("");
+ const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[pushMarketing,setPushMarketing]=useState(false),[whatsappMarketing,setWhatsappMarketing]=useState(false),[showMarketingPrompt,setShowMarketingPrompt]=useState(false),[consentWarning,setConsentWarning]=useState("");
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con Loyally.");setLoading(false);return}
   const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
@@ -50,14 +50,14 @@ export default function JoinPage(){
  async function join(confirmed=false,chosenMarketing=marketing){if(!offer)return;
   if(isBusinessAccount){setError("Para tener tarjetas y premios necesitas una cuenta de cliente independiente.");return;}
   if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder");return}
-  if(!confirmed&&!chosenMarketing){setShowMarketingPrompt(true);return}
+  if(!confirmed&&!chosenMarketing&&!pushMarketing&&!whatsappMarketing){setShowMarketingPrompt(true);return}
   setShowMarketingPrompt(false);
   setBusy(true);setError("");
   const result=await db().rpc("join_program",{p_business:offer.business_id});
   if(result.error){setBusy(false);setError(result.error.message);return}
   if(chosenMarketing){
    const consent=await db().rpc("business_upsert_consent",{p_business:offer.business_id,p_opted_in:true});
-   if(consent.error){setError("Tu tarjeta está lista, pero no se pudo guardar la preferencia de ofertas: "+consent.error.message)}
+   if(consent.error)setConsentWarning("Tu tarjeta está guardada, pero no se pudo activar el correo promocional. Puedes hacerlo desde tu tarjeta.");
   }
   if(pushMarketing){
    try{
@@ -67,6 +67,10 @@ export default function JoinPage(){
     });
     if(!response.ok)throw new Error("Error guardando el permiso push");
    }catch{setConsentWarning("Tu tarjeta está lista, pero el permiso de avisos push no pudo guardarse. Puedes activarlo desde Avisos.")}
+  }
+  if(whatsappMarketing){
+   const consent=await db().rpc("business_upsert_whatsapp_consent",{p_business:offer.business_id,p_opted_in:true});
+   if(consent.error)setConsentWarning("Tu tarjeta está guardada, pero no se pudo activar WhatsApp. Puedes intentarlo desde tu tarjeta.");
   }
   setBusy(false);setJoined(true);setSuccess(true);
  }
@@ -98,8 +102,14 @@ export default function JoinPage(){
       <div className="join-subscribe">
        <h3>¿Te apuntas?</h3>
        <p>Unirte es gratis. Podrás consultar tus sellos y recompensas siempre que quieras.</p>
-       {signed&&<label className="join-marketing-choice lp-join-promo-choice"><input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);if(e.target.checked)setShowMarketingPrompt(false)}}/><span><strong>Quiero recibir regalos y ofertas de {offer.business_name}</strong><small>Por correo. Opcional y modificable cuando quieras.</small></span></label>}
-       {signed&&<label className="join-marketing-choice lp-join-promo-choice"><input type="checkbox" checked={pushMarketing} onChange={e=>setPushMarketing(e.target.checked)}/><span><strong>Quiero ofertas de {offer.business_name} en mi móvil</strong><small>Puedes activar los avisos al abrir la app.</small></span></label>}
+       {signed&&<><p className="join-channel-intro">¿Cómo quieres enterarte de tus próximos regalos y promociones?</p>
+        <div className="join-channel-grid" role="group" aria-label="Canales opcionales para promociones">
+         <label className="join-marketing-choice lp-join-promo-choice"><input type="checkbox" checked={pushMarketing} onChange={e=>{setPushMarketing(e.target.checked);if(e.target.checked)setShowMarketingPrompt(false)}}/><span><strong><BellRing size={15}/> Notificaciones push</strong><small>Avisos en el móvil. Después tendrás que permitir las notificaciones del dispositivo.</small></span></label>
+         <label className="join-marketing-choice lp-join-promo-choice"><input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);if(e.target.checked)setShowMarketingPrompt(false)}}/><span><strong><Mail size={15}/> Correo electrónico</strong><small>Recompensas, novedades y ofertas de {offer.business_name} en tu email.</small></span></label>
+         <label className="join-marketing-choice lp-join-promo-choice"><input type="checkbox" checked={whatsappMarketing} onChange={e=>{setWhatsappMarketing(e.target.checked);if(e.target.checked)setShowMarketingPrompt(false)}}/><span><strong><MessageCircle size={15}/> WhatsApp</strong><small>Promociones por WhatsApp. Necesitarás indicar tu teléfono en el perfil.</small></span></label>
+        </div>
+        <p className="muted">Son opciones independientes y voluntarias. Tu tarjeta y sus premios funcionan aunque no actives ninguna.</p>
+       </>}
        {signed&&showMarketingPrompt&&!marketing&&<div className="lp-consent-nudge" role="group" aria-label="Decide si deseas recibir promociones">
         <div className="lp-consent-nudge-title"><Gift size={24}/><div><strong>¿Quieres enterarte de sus próximos regalos?</strong><p>Activa las ofertas por correo para recibir sus próximas promociones.</p></div></div>
         <div className="lp-consent-nudge-actions">

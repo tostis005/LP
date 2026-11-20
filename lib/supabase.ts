@@ -3,6 +3,14 @@
 // Ruta histórica de importación; NO utiliza SDK, Auth ni Storage de Supabase.
 // Todas las operaciones pasan por el backend local, que aplica RLS en PostgreSQL.
 export type User={id:string;email?:string;user_metadata?:{full_name?:string;whatsapp?:string}};
+import {showActionToast} from "@/lib/action-toast";
+const mutatingRpcs=new Set([
+ "invite_staff","set_staff_active","join_program","staff_redeem_voucher_choice","staff_redeem_card_choice",
+ "staff_redeem_voucher","staff_award_card","staff_redeem_card","business_upsert_consent",
+ "business_upsert_whatsapp_consent","platform_upsert_consent","admin_create_business",
+ "admin_provision_business","admin_set_business_location","admin_set_business_contract","admin_set_business_currency",
+ "manager_reverse_transaction","business_save_push_campaign","business_queue_push_campaign","admin_convert_lead"
+]);
 type Result<T=any>={data:T;error:Error|null;count?:number};
 type Filter={op:"eq"|"is"|"in";field:string;value:unknown};
 function err(message:string):Error{return new Error(message)}
@@ -10,9 +18,21 @@ async function post<T=any>(endpoint:string,payload:object):Promise<Result<T>>{
  try{
   const response=await fetch(endpoint,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),cache:"no-store"});
   const body=await response.json() as {data?:T;error?:string;count?:number};
-  if(!response.ok||body.error)return {data:(null as T),error:err(body.error||"Error de comunicación."),count:body.count};
+  const input=payload as {operation?:string;name?:string;action?:string};
+  const mutation=endpoint==="/api/local/query"&&["insert","update","delete"].includes(input.operation||"")
+   ||endpoint==="/api/local/rpc"&&mutatingRpcs.has(input.name||"")
+   ||endpoint==="/api/local/auth"&&input.action==="updateUser";
+  if(!response.ok||body.error){
+   const message=body.error||"No se pudo guardar el cambio.";
+   if(mutation)showActionToast(message,"error");
+   return {data:(null as T),error:err(message),count:body.count};
+  }
+  if(mutation)showActionToast("Cambios guardados correctamente.");
   return {data:(body.data as T),error:null,count:body.count};
- }catch{return {data:(null as T),error:err("No se pudo conectar con el servidor.")}}
+ }catch{
+  if(endpoint==="/api/local/query"||endpoint==="/api/local/rpc")showActionToast("No se pudo conectar para guardar los cambios.","error");
+  return {data:(null as T),error:err("No se pudo conectar con el servidor.")};
+ }
 }
 class Query implements PromiseLike<Result>{
  private state:{
@@ -59,6 +79,8 @@ const storage={
    try{
     const r=await fetch("/api/local/assets",{method:"POST",credentials:"same-origin",body:form});
     const result=await r.json() as {error?:string;path?:string};
+    if(r.ok)showActionToast("Imagen guardada correctamente.");
+    else showActionToast(result.error||"Error al subir la imagen.","error");
     return {data:r.ok?{path:result.path}:null,error:r.ok?null:err(result.error||"Error al subir la imagen.")};
    }catch{return {data:null,error:err("No se pudo subir la imagen.")}}
   },
