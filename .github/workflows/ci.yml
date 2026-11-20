@@ -157,6 +157,8 @@ jobs:
         run: npm run db:migrate
       - name: Verificar aislamiento de roles
         run: node tests/native/smoke.mjs
+      - name: Validar iconos rellenos Kreyv en PostgreSQL
+        run: node tests/native/kreyv-icons.mjs
       - name: Crear sandbox real de Tijuana y verificar QR, privacidad y tarifas
         env:
           LP_SANDBOX_MODE: "true"
