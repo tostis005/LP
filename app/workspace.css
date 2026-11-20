@@ -1046,3 +1046,10 @@
  padding:12px;border-radius:10px;font-size:13px;color:#351623}
 .business-account-dropdown a:hover{background:#fbf1f5}
 @media(max-width:640px){.business-account-dropdown{right:0;max-width:calc(100vw - 24px)}}
+
+.business-account-menu>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;
+ border:1px solid #e8dce3;background:#fff;color:#351623;border-radius:14px;padding:9px 12px;
+ font-weight:700;white-space:nowrap}
+.business-account-menu>summary::-webkit-details-marker{display:none}
+.business-account-menu>summary:focus-visible{outline:3px solid #c78ea4;outline-offset:2px}
+.business-account-menu[open]>summary{background:#fbf1f5}
