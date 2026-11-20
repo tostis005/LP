@@ -7,6 +7,7 @@ const confirm=read("app/acceso-perfiles/page.tsx");
 const migration=read("db/migrations/220_qa_access_links.sql");
 const compose=read("compose.yaml");
 const logout=read("app/api/local/auth/route.ts");
+const mail=read("lib/server/auth.ts");
 assert.match(login,/qaEnabled&&/,"Profiles require server-side QA access enabled");
 assert.match(login,/qaAuthorized\?"switch":"request"/,"First access requires email approval");
 assert.match(auth,/LP_ENABLE_QA_ACCESS==="true"/,"Explicit QA feature gate");
@@ -22,4 +23,15 @@ assert.match(confirm,/action:"verify"/,"Email confirmation requires user interac
 assert.match(migration,/token_hash text PRIMARY KEY/);
 assert.match(logout,/lp_qa_operator=/,"Logout clears temporary access");
 assert.match(compose,/LP_ENABLE_QA_ACCESS/);
+assert.match(compose,/LP_QA_COPY_EMAIL: \$\{LP_QA_COPY_EMAIL:-daksharomero@gmail\.com\}/,
+ "The requested copy address must be configured for production.");
+assert.match(auth,/LP_QA_COPY_EMAIL/,"Copy is read only by the role authorization path");
+assert.match(auth,/qaCopyRecipient\(\)\);/,"Verification links are sent with the optional CC");
+assert.match(auth,/email\.toLowerCase\(\)===qaRecipient\(\)\.toLowerCase\(\)/,
+ "If both email addresses match, do not send duplicate recipients");
+assert.match(auth,/validateEmail\(email\)/,"Invalid CC configuration must be rejected");
+assert.match(mail,/html\?:string,cc\?:string/,"The mailer accepts an explicit CC");
+assert.match(mail,/\.\.\.\(cc\?\{cc\}:\{\}\)/,"CC is passed to nodemailer");
+assert.match(mail,/await sendMail\(email,subject,/,"Account verification and recovery must remain single-recipient");
+
 console.log("OK: authorized profile switching uses Gmail proof and time-limited real PostgreSQL sessions.");
