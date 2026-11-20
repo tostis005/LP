@@ -23,7 +23,15 @@ function CustomerHome({account}:{account:Account}){
    const res=await db().from("loyalty_memberships").select("*,businesses(*)")
     .eq("customer_id",account.user.id).order("created_at",{ascending:false});
    if(res.error)throw res.error;
-   const rows=(res.data||[]) as CardRow[];
+   let rows=(res.data||[]) as CardRow[];
+   if(rows.some(card=>!card.businesses)){
+    const missingIds=[...new Set(rows.filter(card=>!card.businesses).map(card=>card.business_id))];
+    const fallback=await db().from("businesses").select("*").in("id",missingIds);
+    if(!fallback.error){
+     const byId=new Map(((fallback.data||[]) as Business[]).map(business=>[business.id,business]));
+     rows=rows.map(card=>({...card,businesses:card.businesses||byId.get(card.business_id)||null}));
+    }
+   }
    const complete=rows.filter(completeCard);
    setCards(complete);
    if(complete.length!==rows.length){
