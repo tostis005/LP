@@ -11,7 +11,8 @@ export default function manifest(): MetadataRoute.Manifest {
   icons:[
    {src:"/kreyv-mark-v3.svg",sizes:"any",type:"image/svg+xml",purpose:"any"},
    {src:"/kreyv-mark-v3-192.png",sizes:"192x192",type:"image/png",purpose:"any"},
-   {src:"/kreyv-mark-v3-512.png",sizes:"512x512",type:"image/png",purpose:"any maskable"}
+   {src:"/kreyv-mark-v3-512.png",sizes:"512x512",type:"image/png",purpose:"any"},
+   {src:"/kreyv-mark-v3-512.png",sizes:"512x512",type:"image/png",purpose:"maskable"}
   ]
  };
 }
