@@ -1,5 +1,5 @@
-import {Brand} from "@/components/Brand";
 "use client";
+import {Brand} from "@/components/Brand";
 
 import {useEffect,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
