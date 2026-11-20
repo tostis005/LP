@@ -1015,7 +1015,7 @@
  display:flex;align-items:center;gap:12px;max-width:min(440px,calc(100vw - 32px));
  padding:15px 15px 15px 18px;border-radius:18px;background:#2e1521;color:#fff;
  box-shadow:0 12px 42px rgba(40,19,31,.24);font-size:14px;font-weight:600;line-height:1.4}
-.loyally-action-toast.success>svg{color:#b5f0ce;flex-shrink:0}
+.loyally-action-toast.success>svg{color:#f5d9e5;flex-shrink:0}
 .loyally-action-toast.error>svg{color:#ffcbc9;flex-shrink:0}
 .loyally-action-toast span{flex:1}
 .loyally-action-toast button{border:0;background:transparent;color:#fff;display:grid;place-items:center;padding:3px;cursor:pointer}
