@@ -77,7 +77,7 @@ export function PushWelcomePrompt(){
   try{
    // Primer await directamente asociado al clic: requerido por Android/iOS.
    const permission=await Notification.requestPermission();
-   if(permission!=="granted")throw new Error("No se ha concedido el permiso de notificaciones. Puedes activarlo después en Avisos.");
+   if(permission!=="granted")throw new Error("No se ha concedido el permiso de notificaciones. Puedes activarlo después en Ajustes.");
    const reg=await navigator.serviceWorker.ready;
    let subscription=await reg.pushManager.getSubscription();
    if(!subscription){
@@ -107,7 +107,7 @@ export function PushWelcomePrompt(){
    <button type="button" aria-label="Cerrar" className="lp-push-welcome-close" onClick={dismiss}><X size={19}/></button>
    <span className="lp-push-welcome-icon"><BellRing size={26}/></span>
    {finished?<><h2 id="lp-push-welcome-title">¡Avisos activados!</h2>
-     <p>Tu teléfono está registrado. Podrás cambiar tus preferencias en «Avisos».</p>
+     <p>Tu teléfono está registrado. Podrás cambiar tus preferencias en «Ajustes».</p>
      <button type="button" className="button button-dark button-full" onClick={()=>setShow(false)}><CheckCircle2 size={17}/> Continuar a mis tarjetas</button>
     </>:<>
      <h2 id="lp-push-welcome-title">¿Quieres recibir avisos de Loyally?</h2>
