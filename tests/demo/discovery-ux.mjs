@@ -24,6 +24,11 @@ for(const option of icons.STAMP_OPTIONS){
 }
 assert.equal(icons.resolveStampIcon("coffee"),"cafeteria","Saved legacy stamps remain readable");
 assert.equal(icons.resolveStampIcon("beard"),"barberia","Legacy beard silhouette is upgraded");
+assert.equal(icons.resolveStampIcon("bread"),"panaderia","Existing bread stamps use the new baguette");
+assert.equal(icons.resolveStampIcon("croissant"),"panaderia","Old croissant IDs remain compatible");
+assert.match(icons.stampMarkup("bread",24),/width="24"/);
+assert.match(icons.stampMarkup("beard",24),/width="24"/);
+
 assert.equal(icons.resolveStampIcon("unknown"),"cafeteria","Unknown stamps have a safe fallback");
 const cats=load("../../lib/business-categories.ts",{"@/lib/stamp-drawings":icons});
 for(const [category,kind] of [["Cafetería","cafeteria"],["Restaurante","restaurante"],["Barbería","barberia"],["Peluquería","peluqueria"],["Panadería","panaderia"],["Taquería","taqueria"],["Heladería y postres","heladeria"],["Gimnasio","gimnasio"],["Librería","libreria"]]){
