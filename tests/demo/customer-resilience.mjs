@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
+const home=src("app/app/page.tsx");
+const boundary=src("app/app/error.tsx");
+assert.match(home,/type CardRow=Membership&\{businesses:Business\|null\}/,"A membership can have a missing merchant relation");
+assert.match(home,/rows\.filter\(completeCard\)/,"Cards without visible merchant data are not sent to the card renderer");
+assert.match(home,/\.from\("businesses"\)\.select\("\*"\)\.in\("id",missingIds\)/,"If the relation is temporarily absent, retry through authorized business RLS");
+assert.match(home,/catch\{/,"Customer requests are handled without a client exception");
+assert.match(home,/finally\{setLoading\(false\);\}/,"Loading state is always cleared");
+assert.match(home,/onClick=\{\(\)=>void load\(\)\}/,"Customer can retry failed requests");
+assert.match(boundary,/reset:\(\)=>void/,"Customer error boundary has a reset handler");
+assert.match(boundary,/Tus tarjetas y tus sellos siguen guardados/,"The customer is reassured their real data remains stored");
+assert.doesNotMatch(home,/demoRole|enterDemo|fakeCard|DEMO_CARD/,"No fake sessions/cards");
+console.log("OK: customer cannot crash because of missing business relations; retry and error recovery available.");

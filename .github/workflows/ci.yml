@@ -46,6 +46,8 @@ jobs:
         run: node tests/demo/product-polish.mjs
       - name: Verificar acceso rápido de perfiles con autorización por correo
         run: node tests/demo/qa-access.mjs
+      - name: Evitar caída del cliente cuando faltan detalles de una tarjeta
+        run: node tests/demo/customer-resilience.mjs
       - name: Comprobar TypeScript
         run: npm run typecheck
       - name: Construir Next.js
@@ -168,3 +170,4 @@ jobs:
           node scripts/provision-showcase-real.mjs
           node tests/native/real-production.mjs
           node tests/native/product-polish.mjs
+          node tests/native/customer-home.mjs
