@@ -1,4 +1,4 @@
-/* Kreyv · portada pública vinotinto, negro, marfil y rosa suave. Colores de tarjetas configurables por negocio. */
+/* Kreyv · portada pública vino, mostaza, marfil y negro. Colores de tarjetas configurables por negocio. */
 .loi-site{--loi-dark:var(--color-brand-900);--loi-green:var(--color-brand-500);--loi-ink:var(--color-brand-900);--loi-sub:var(--color-text-2);--loi-line:var(--color-bg-2);color:var(--loi-ink);background:var(--color-bg);overflow-x:clip}
 .loi-site .container{width:min(1190px,calc(100% - 56px));margin-inline:auto}
 .loi-site a:focus-visible,.loi-site button:focus-visible{outline:3px solid var(--color-brand-300);outline-offset:4px}
@@ -271,3 +271,110 @@
 .loi-status-dot{background:var(--color-accent);box-shadow:0 0 0 5px var(--color-accent-100)}
 .loi-feature-icon,.loi-floating-icon{background:var(--color-accent-100);color:var(--color-accent-600)}
 .loi-roles-section{background:var(--color-bg)}
+
+
+/* HOME KREYV · Equilibrio de secciones, contraste e iconografía 100 % rellena.
+ * Se aplica al sitio comercial, nunca a los colores de las tarjetas de negocios. */
+.loi-site .loi-hero{
+ background:radial-gradient(ellipse at 80% 9%,var(--color-accent-100) 0%,transparent 49%),linear-gradient(115deg,var(--color-bg) 5%,#fff 100%);
+ border-bottom:1px solid var(--color-bg-2);
+}
+.loi-site .loi-hero-orbit.orbit-a{background:var(--color-accent-100)}
+.loi-site .loi-hero-orbit.orbit-b{border-color:var(--color-accent-300)}
+.loi-site .loi-audience-expanded{background:#fff;border-block:0;padding:74px 0 78px}
+.loi-site .loi-audience-expanded .loi-audience-title p{color:var(--color-text-2)}
+.loi-site .loi-audience-expanded .loi-audience-list>span{
+ background:var(--color-bg);border:1px solid var(--color-bg-2);min-height:64px;
+ padding:13px 14px;gap:12px;border-radius:15px;color:var(--color-brand-900);
+ box-shadow:0 4px 15px color-mix(in srgb,var(--color-brand-900) 4%,transparent);
+ display:flex;align-items:center;line-height:1.25;
+}
+.loi-site .loi-audience-expanded .loi-audience-list>span:first-child{
+ color:var(--color-brand-900);font-size:12px;letter-spacing:0;
+}
+.loi-site .loi-audience-expanded .loi-audience-list>span>.kreyv-icon{
+ color:var(--color-brand);stroke:none;width:26px;height:26px;flex:0 0 26px;
+}
+.loi-site .loi-audience-expanded .loi-audience-list>span:hover{
+ border-color:var(--color-brand-300);box-shadow:0 8px 20px color-mix(in srgb,var(--color-brand-900) 7%,transparent);
+}
+.loi-site .loi-install-section{
+ background:linear-gradient(125deg,var(--color-accent-100) 0%,#fff 96%);
+ border-top:1px solid var(--color-accent-300);border-bottom:1px solid var(--color-bg-2);
+ padding:100px 0;
+}
+.loi-site .loi-install-intro>p:not(.loi-install-confirmation){color:var(--color-text-2)}
+.loi-site .loi-install-benefits>span{
+ background:#fff;border-color:var(--color-accent-300);color:var(--color-brand-900);
+ display:flex;gap:9px;align-items:center;
+}
+.loi-site .loi-install-benefits svg{stroke:none;color:var(--color-brand)}
+.loi-site .loi-install-app-icon{background:transparent;border-radius:13px;overflow:hidden}
+.loi-site .loi-install-app-icon img{height:100%;width:100%;display:block;object-fit:contain}
+.loi-site .loi-install-app-love{display:flex;align-items:center;color:var(--color-accent-600)}
+.loi-site .loi-install-app-reward{background:linear-gradient(125deg,var(--color-brand),var(--color-brand-900))}
+.loi-site .loi-install-app-stamps span{border-color:var(--color-brand-300);color:var(--color-brand-100)}
+.loi-site .loi-install-app-stamps span.filled{background:var(--color-accent-300);border-color:var(--color-accent-300)}
+.loi-site .loi-install-app-nav svg{color:var(--color-brand);stroke:none}
+.loi-site .loi-section{background:#fff}
+.loi-site .loi-section-lead>p,.loi-site .loi-feature p{color:var(--color-text-2)}
+.loi-site .loi-feature{background:var(--color-bg);border-color:var(--color-bg-2);min-height:260px}
+.loi-site .loi-feature-icon,.loi-site .loi-feature:nth-child(n) .loi-feature-icon{
+ background:var(--color-accent-100);color:var(--color-brand);
+ width:54px;height:54px;border-radius:16px;display:grid;place-items:center;
+}
+.loi-site .loi-feature-icon .kreyv-icon{width:27px;height:27px}
+.loi-site .loi-feature-index{color:var(--color-text-2)}
+.loi-site .loi-process{background:var(--color-brand-900);padding:108px 0}
+.loi-site .loi-process .loi-overline{color:var(--color-accent-300)}
+.loi-site .loi-process-copy h2{color:#fff}
+.loi-site .loi-process-copy h2 em{color:var(--color-accent-300)}
+.loi-site .loi-process-copy>p{color:var(--color-brand-100)}
+.loi-site .loi-process .loi-text-link{color:var(--color-accent-300);border-color:var(--color-accent-300)}
+.loi-site .loi-process-steps{background:#fff;border-color:var(--color-bg-2);box-shadow:0 20px 55px color-mix(in srgb,#000 20%,transparent)}
+.loi-site .loi-step>span{background:var(--color-accent-100);color:var(--color-brand-900)}
+.loi-site .loi-step>div p{color:var(--color-text-2)}
+.loi-site .loi-step>svg{color:var(--color-brand)}
+.loi-site .loi-design-section{background:var(--color-bg)}
+.loi-site .loi-design-copy>p{color:var(--color-text-2)}
+.loi-site .loi-design-preview{background:var(--color-bg-2)}
+.loi-site .loi-design-preview-label{color:var(--color-text-2)}
+.loi-site .loi-stamp-library{
+ max-width:100%;margin-top:2px;transform:translate(5px,8px);
+ background:#fff;border:1px solid var(--color-bg-2);padding:16px 18px;
+}
+.loi-site .loi-stamp-library>span{color:var(--color-text-2)}
+.loi-site .loi-stamp-library>div{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
+.loi-site .loi-stamp-library>div>span{
+ background:var(--color-accent-100);color:var(--color-brand);
+ display:grid;place-items:center;width:38px;height:38px;border-radius:50%;
+}
+.loi-site .loi-stamp-library>div>span>.kreyv-icon{width:25px;height:25px;stroke:none}
+.loi-site .loi-final-section{background:var(--color-brand-100)}
+.loi-site .loi-final-card{box-shadow:0 22px 65px color-mix(in srgb,var(--color-brand-900) 14%,transparent)}
+.loi-site .loi-final-card .loi-overline,.loi-site .loi-final-card h2 em{color:var(--color-accent-300)}
+.loi-site .loi-final-deco{display:flex;align-items:center;justify-content:center;opacity:.28}
+.loi-site .loi-final-deco .kreyv-icon+ .kreyv-icon{position:absolute;right:-5px;top:5px;color:var(--color-accent-300)}
+.loi-site .loi-footer{background:#fff}
+.loi-site .loi-footer-top>div>p,.loi-site .loi-footer-bottom{color:var(--color-text-2)}
+.loi-site .loi-footer-top nav a{color:var(--color-brand)}
+.loi-site .loi-hero-foot-icons .kreyv-icon,.loi-site .loi-showcase-caption .kreyv-icon{display:block;stroke:none}
+.loi-site .loi-phone-greeting .kreyv-icon{display:inline-block;vertical-align:middle}
+.loi-site .loi-showcase-caption{color:var(--color-brand-900)}
+@media(max-width:900px){
+ .loi-site .loi-audience-expanded{padding:58px 0}
+ .loi-site .loi-install-section{padding:78px 0}
+ .loi-site .loi-process{padding:78px 0}
+}
+@media(max-width:580px){
+ .loi-site .loi-audience-expanded{padding:42px 0}
+ .loi-site .loi-audience-expanded .loi-audience-list>span{padding:12px 10px;gap:8px;min-height:56px;font-size:11px}
+ .loi-site .loi-audience-expanded .loi-audience-list>span:first-child{font-size:11px}
+ .loi-site .loi-audience-expanded .loi-audience-list>span>.kreyv-icon{width:24px;height:24px;flex-basis:24px}
+ .loi-site .loi-install-section{padding:64px 0}
+ .loi-site .loi-process{padding:66px 0}
+ .loi-site .loi-stamp-library{padding:13px 10px;transform:translate(0,8px)}
+ .loi-site .loi-stamp-library>div{gap:5px}
+ .loi-site .loi-stamp-library>div>span{width:32px;height:32px}
+ .loi-site .loi-stamp-library>div>span>.kreyv-icon{width:21px;height:21px}
+}
