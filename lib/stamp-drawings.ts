@@ -1,9 +1,8 @@
-import {KREYV_FILLED_PATHS,type KreyvIconName} from "@/lib/kreyv-icon-paths";
+import {KREYV_FILLED_PATHS,KREYV_ICON_BOXES,type KreyvIconName} from "@/lib/kreyv-icon-paths";
 /**
- * Galería conceptual de Loyally.
- * Una sola colección de dibujos monocromos para sellos, tarjetas y marcadores.
- * Diseño de 64 × 64: pocos trazos redondeados, sin rellenos ni detalles superfluos.
- * Cada dibujo es una constante interna, nunca HTML suministrado por un usuario.
+ * Identificadores heredados de los sellos anteriores a Kreyv.
+ * Se conservan únicamente para compatibilidad, sin aceptar HTML de usuarios.
+ * Todos los sellos nuevos se dibujan con los vectores rellenos de kreyv-icon-paths.ts.
  */
 export const STAMP_DRAWINGS = {
  coffee:'<path d="M17 24h27v17c0 8-6 13-13.5 13S17 49 17 41V24Z"/><path d="M44 28h5c6 0 9 4 9 9s-3 9-9 9h-5M14 58h38M24 18c-4-4 4-7 0-11M34 18c-4-4 4-7 0-11"/>',
@@ -98,6 +97,7 @@ export function resolveStampIcon(kind?:string|null):KreyvIconName {
 }
 export function stampMarkup(kind?:string|null,size=28):string {
  const scale=Math.max(10,Math.min(200,Math.round(size)));
- const d=KREYV_FILLED_PATHS[resolveStampIcon(kind)];
- return '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="'+scale+'" height="'+scale+'" viewBox="0 0 64 64" fill="currentColor"><path fill-rule="evenodd" d="'+d+'"/></svg>';
+ const icon=resolveStampIcon(kind);
+ const d=KREYV_FILLED_PATHS[icon],viewBox=KREYV_ICON_BOXES[icon];
+ return '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="'+scale+'" height="'+scale+'" viewBox="'+viewBox+'" fill="currentColor"><path fill-rule="evenodd" d="'+d+'"/></svg>';
 }
