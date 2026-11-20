@@ -30,7 +30,7 @@ assert.match(read("components/WalletActions.tsx"),/\/api\/local\/wallet/);
 assert.match(walletServer,/createPrivateKey/);
 assert.match(walletServer,/openssl/);
 assert.match(walletServer,/Saldo al guardar/,"Wallet static snapshots must not imply live sync");
-assert.match(wallet,/business_upsert_whatsapp_consent/);
+assert.match(read("components/CustomerNotificationSettings.tsx"),/business_upsert_whatsapp_consent/);
 assert.match(business,/RichMessageEditor/);
 assert.match(business,/business_whatsapp_quote/);
 assert.match(business,/business_marketing_usage/);
