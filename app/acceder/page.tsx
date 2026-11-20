@@ -65,7 +65,7 @@ export default function Login(){
     <div className="auth-story-label"><Sparkles size={16}/> UNA VISITA MÁS, UNA HISTORIA MÁS</div>
     <h1>Un detalle.<br/><em>Mil motivos<br/>para volver.</em></h1>
     <p>La fidelización que pone a las personas y a los pequeños negocios en el centro.</p>
-    <div className="auth-stamp-illustration"><StampCard name="Tu cafetería" color="#571c32" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/></div>
+    <div className="auth-stamp-illustration"><StampCard name="Tu cafetería" color="#5E1A2B" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/></div>
    </div>
    <div className="auth-story-foot">Kreyv ♡ · Tan sencillo como volver.</div>
   </aside>

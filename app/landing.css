@@ -3,7 +3,7 @@
 .loi-site .container{width:min(1190px,calc(100% - 56px));margin-inline:auto}
 .loi-site a:focus-visible,.loi-site button:focus-visible{outline:3px solid var(--color-brand-300);outline-offset:4px}
 .loi-overline{display:inline-flex;align-items:center;gap:9px;color:var(--color-brand-500);font-size:10px;font-weight:900;letter-spacing:.17em}
-.loi-status-dot{width:8px;height:8px;display:inline-block;background:var(--color-brand-300);border-radius:50%;box-shadow:0 0 0 5px #f4e6ed;flex:none}
+.loi-status-dot{width:8px;height:8px;display:inline-block;background:var(--color-brand-300);border-radius:50%;box-shadow:0 0 0 5px var(--color-accent-100);flex:none}
 .loi-site h1,.loi-site h2{font-family:var(--font-heading),var(--font-body),sans-serif;letter-spacing:-.065em;color:var(--loi-ink)}
 .loi-site h2 em,.loi-site h1 em{font-style:normal;color:var(--color-brand-500)}
 .loi-button{min-height:52px;padding:14px 23px;display:inline-flex;gap:12px;align-items:center;justify-content:center;border-radius:100px;white-space:nowrap;font-size:13px;font-weight:800;transition:transform .2s ease,background .2s ease;max-width:100%}
@@ -70,11 +70,11 @@
 .loi-section-lead>p{font-size:14px;line-height:1.8;color:var(--color-brand-300);max-width:410px;justify-self:end;margin:0 0 3px}
 .loi-feature-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
 .loi-feature{position:relative;background:#fff;border:1px solid #f1e7eb;border-radius:19px;padding:27px 23px;min-height:276px;box-shadow:0 12px 38px color-mix(in srgb, var(--color-brand-900) 3%, transparent)}
-.loi-feature-icon{width:51px;height:51px;border-radius:15px;display:grid;place-items:center;background:#f4e6ed;color:#92506a;margin-bottom:31px}
+.loi-feature-icon{width:51px;height:51px;border-radius:15px;display:grid;place-items:center;background:var(--color-accent-100);color:var(--color-accent-600);margin-bottom:31px}
 .loi-feature:nth-child(2) .loi-feature-icon{background:#f8e9de;color:#b27a58}
 .loi-feature:nth-child(3) .loi-feature-icon{background:#eeeaf8;color:#8670b0}
 .loi-feature:nth-child(4) .loi-feature-icon{background:#f6e8eb;color:#aa6d81}
-.loi-feature-index{position:absolute;right:20px;top:22px;font-size:10px;color:#e0c4cf;font-weight:900}
+.loi-feature-index{position:absolute;right:20px;top:22px;font-size:10px;color:var(--color-brand-300);font-weight:900}
 .loi-feature h3{font-size:17px;line-height:1.3;letter-spacing:-.035em;color:#34202b;margin:0 0 11px}
 .loi-feature p{font-size:12px;line-height:1.75;color:var(--color-brand-300);margin:0}
 .loi-process{background:#f4e8ed;padding:92px 0}
@@ -104,7 +104,7 @@
 .loi-design-points{display:grid;gap:14px;margin:26px 0 32px}
 .loi-design-points div{font-size:13px;color:var(--color-brand);font-weight:800;display:flex;gap:11px;align-items:center}
 .loi-design-points svg{color:var(--color-brand-300);flex:none}
-.loi-roles-section{background:#faf0f5}
+.loi-roles-section{background:var(--color-bg)}
 .loi-role-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 .loi-role-card{background:#fff;border:1px solid var(--color-accent-100);border-radius:19px;padding:22px;min-height:224px}
 .loi-role-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:31px}
@@ -112,7 +112,7 @@
 .loi-role-card:nth-child(2) .loi-role-top>span{background:#f8ecdd;color:#ba8056}
 .loi-role-card:nth-child(3) .loi-role-top>span{background:#eee9f8;color:#8e73ae}
 .loi-role-card:nth-child(4) .loi-role-top>span{background:#f6e7ea;color:#ae7887}
-.loi-role-top small{font-size:10px;color:#e0c4cf;font-weight:900}
+.loi-role-top small{font-size:10px;color:var(--color-brand-300);font-weight:900}
 .loi-role-card h3{font-size:17px;color:var(--color-brand-900);margin:0 0 10px}
 .loi-role-card p{font-size:12px;line-height:1.75;color:var(--color-brand-300);margin:0}
 .loi-role-action{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:29px}
@@ -166,7 +166,7 @@
 }
 
 /* Cabecera comercial: el anterior CSS global utilizaba verde fuera del ámbito .loi-site. */
-.loi-public-header{background:rgba(252,248,250,.94);border-bottom-color:var(--color-bg-2)}
+.loi-public-header{background:color-mix(in srgb,var(--color-bg) 94%,white);border-bottom-color:var(--color-bg-2)}
 .loi-public-header .brand-symbol{background:var(--color-brand-900);color:#fff}
 .loi-public-header .brand-name{color:var(--color-brand-900)}
 .loi-public-header .brand-name span{color:var(--color-brand-500)}
@@ -215,7 +215,7 @@
 .loi-install-qr{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:22px 0 0;margin-top:20px;border-top:1px solid #f0e6eb}
 .loi-install-qr strong{font-size:13px;color:var(--color-brand-900)}
 .loi-install-qr p{font-size:11px;line-height:1.55;color:#89727c;max-width:270px;margin:4px 0 0}
-.loi-qr-box{background:#fff;border-radius:12px;border:1px solid #ecdfe5;padding:8px;line-height:0;flex:none}
+.loi-qr-box{background:#fff;border-radius:12px;border:1px solid var(--color-bg-2);padding:8px;line-height:0;flex:none}
 @media(max-width:1100px){.loi-install-layout{gap:34px}.loi-install-card{padding:22px}}
 @media(max-width:900px){.loi-install-layout{grid-template-columns:1fr}.loi-install-intro{text-align:center}.loi-install-intro>p:not(.loi-install-confirmation),.loi-install-intro .loi-install-note{margin-left:auto;margin-right:auto}.loi-install-confirmation{justify-content:center}}
 @media(max-width:650px){.loi-install-section{padding:64px 0}.loi-install-card{border-radius:20px;padding:17px}.loi-install-steps{grid-template-columns:1fr}.loi-install-intro h2{font-size:clamp(32px,8vw,44px)}.loi-install-intro .loi-install-primary{width:100%}.loi-install-platform{padding:18px}.loi-install-platform ol{gap:10px}.loi-install-platform li p{font-size:12px}.loi-install-qr{padding-top:16px;margin-top:16px}.loi-install-qr .loi-qr-box{display:none}}
@@ -235,7 +235,7 @@
 .loi-install-app-reward-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:21px;letter-spacing:-.04em}
 .loi-install-app-reward p{font-size:11px;color:#f3c9d9;margin:15px 0 14px}
 .loi-install-app-stamps{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;margin-bottom:12px}
-.loi-install-app-stamps span{display:grid;place-items:center;aspect-ratio:1;border:1px dashed #bf98a9;border-radius:50%;color:#bf98a9}
+.loi-install-app-stamps span{display:grid;place-items:center;aspect-ratio:1;border:1px dashed var(--color-accent-600);border-radius:50%;color:var(--color-accent-600)}
 .loi-install-app-stamps span.filled{background:var(--color-accent-300);border-color:var(--color-accent-300);color:#722640}
 .loi-install-app-reward small{font-size:11px;color:#f1cedb}
 .loi-install-app-nav{display:flex;justify-content:space-around;gap:12px;padding:21px 8px 0}
@@ -258,3 +258,16 @@
 .loi-audience-expanded .loi-audience-list svg{flex:none;color:#7e3550;stroke-width:2.5}
 @media(max-width:860px){.loi-audience-expanded .loi-audience-expanded-inner{grid-template-columns:1fr;gap:24px;text-align:center}.loi-audience-expanded .loi-audience-list{text-align:left}}
 @media(max-width:580px){.loi-audience-expanded{padding:38px 0}.loi-audience-expanded .loi-audience-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.loi-audience-expanded .loi-audience-list span{padding:12px 10px;font-size:11px;gap:8px}}
+
+/* Identidad pública de Kreyv. Mantener estos estilos aquí para que prevalezcan en la ruta / y en /presentacion. */
+.loi-site{background:var(--color-bg);color:var(--color-text)}
+.loi-site h1,.loi-site h2,.loi-site h3{font-family:var(--font-heading)}
+.loi-public-header{background:color-mix(in srgb,var(--color-bg) 94%,white);border-bottom-color:var(--color-bg-2)}
+.loi-hero{background:radial-gradient(circle at 87% 10%,var(--color-accent-100),transparent 39%),linear-gradient(120deg,var(--color-bg),#fff)}
+.loi-site h1 em,.loi-site h2 em,.loi-overline,.loi-text-link{color:var(--color-accent-600)}
+.loi-button-main{background:var(--color-brand);color:var(--color-on-brand)}
+.loi-button-main:hover{background:var(--color-brand-500)}
+.loi-button-cream{background:var(--color-accent-100);color:var(--color-on-accent)}
+.loi-status-dot{background:var(--color-accent);box-shadow:0 0 0 5px var(--color-accent-100)}
+.loi-feature-icon,.loi-floating-icon{background:var(--color-accent-100);color:var(--color-accent-600)}
+.loi-roles-section{background:var(--color-bg)}

@@ -48,7 +48,7 @@ assert.match(landingCss,/\.loi-site \.loi-hero\{background:radial-gradient/,"The
 assert.match(landingCss,/\.loi-site \.loi-final-card\{background:linear-gradient\(120deg,var\(--color-brand\)/);
 assert.match(landingCss,/\.loi-public-header\{background:rgba\(252,248,250/);
 assert.doesNotMatch(landingCss,/#214936|#2d6449|#1e4031|#23503b/i,"Old green brand palette still visible");
-assert.match(landingUi,/name="Tu cafetería" color="#571c32"/,"The mock customer card also uses the new palette");
+assert.match(landingUi,/name="Tu cafetería" color="#5E1A2B"/,"The mock customer card also uses the new palette");
 
 
 // La home vende una experiencia para personas, no instrucciones técnicas.

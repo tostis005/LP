@@ -16,7 +16,7 @@
 .loyal-app-card-head span{display:flex;align-items:center;gap:8px}
 .loyal-app-stamps{display:flex;gap:8px;margin:29px 0 19px}
 .loyal-app-stamps span{width:29px;height:29px;border:1px dashed var(--color-brand-300);border-radius:50%;display:grid;place-items:center;color:var(--color-brand-300)}
-.loyal-app-stamps span.filled{background:#f2d0df;color:var(--color-brand-500);border-color:#f2d0df}
+.loyal-app-stamps span.filled{background:var(--color-accent-300);color:var(--color-brand-500);border-color:var(--color-accent-300)}
 .loyal-app-card>strong,.loyal-app-card>small{display:block}
 .loyal-app-card>strong{font-size:14px}
 .loyal-app-card>small{color:var(--color-brand-300);font-size:11px;margin-top:4px}

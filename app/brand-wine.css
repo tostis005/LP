@@ -17,7 +17,7 @@ body{background:var(--light)}
 .loi-site{--loi-dark:var(--color-brand-900);--loi-green:var(--color-brand);--loi-ink:var(--color-brand-900);--loi-sub:var(--color-text-2);--loi-line:var(--color-bg-2);background:var(--color-bg)}
 .loi-site h1 em,.loi-site h2 em{color:var(--color-brand-500)}
 .loi-button-main{box-shadow:0 12px 27px color-mix(in srgb, var(--color-brand) 17%, transparent)}
-.loi-status-dot{background:var(--color-brand-300);box-shadow:0 0 0 5px #f4e4eb}
+.loi-status-dot{background:var(--color-brand-300);box-shadow:0 0 0 5px var(--color-accent-100)}
 .loi-overline{color:var(--color-brand-500)}
 /* Canje visible y cómodo para personal de tienda */
 .staff-reward-focus{margin-top:24px;border:2px solid var(--color-bg-2);border-radius:22px;padding:23px;background:linear-gradient(135deg,var(--color-brand-100),#fff);box-shadow:0 12px 30px color-mix(in srgb, var(--color-brand) 8%, transparent)}
@@ -34,7 +34,7 @@ body{background:var(--light)}
 .lp-metric-delta{font-size:12px;font-weight:800}
 .lp-metric-delta.up{color:var(--color-brand-500)}.lp-metric-delta.down{color:#b03a4b}.lp-metric-delta.neutral{color:var(--color-text-2)}
 .lp-insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:17px 0 25px}
-.lp-insight-card{background:#fff;border:1px solid #ecdfe5;border-radius:19px;padding:21px;display:flex;flex-direction:column;gap:9px}
+.lp-insight-card{background:#fff;border:1px solid var(--color-bg-2);border-radius:19px;padding:21px;display:flex;flex-direction:column;gap:9px}
 .lp-insight-card span{color:var(--color-text-2);font-size:12px;font-weight:700}
 .lp-insight-card strong{font-size:28px;color:var(--color-brand);letter-spacing:-.05em}
 .lp-insight-card small{color:var(--color-text-2);font-size:11px}

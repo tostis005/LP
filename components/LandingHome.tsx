@@ -38,7 +38,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
        <div className="loi-phone-heading"><span>{t.hero.myCard}</span><span className="loi-phone-mini-icon"><Heart size={17}/></span></div>
        <div className="loi-phone-greeting">{t.hero.hello} <span>✳</span></div>
        <p>{t.hero.nearReward}</p>
-       <StampCard locale={lang} name="Tu cafetería" color="#571c32" stampColor="#f2b7ca" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/>
+       <StampCard locale={lang} name="Tu cafetería" color="#5E1A2B" stampColor="#f2b7ca" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/>
        <div className="loi-phone-progress"><span><Gift size={17}/> {t.hero.almost}</span><strong>{t.hero.progress}</strong></div>
        <div className="loi-phone-nav"><span className="active"><Ticket size={17}/> {t.hero.cardNav}</span><span><Store size={17}/> {t.hero.businessNav}</span><span><Users size={17}/> {t.hero.profileNav}</span></div>
       </div>

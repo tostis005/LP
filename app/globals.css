@@ -46,11 +46,11 @@
 /* Inicio de sesión con cuentas verificadas de Google y Apple. */
 .loyally-social-auth{margin:17px 0 22px}
 .loyally-social-divider{text-align:center;position:relative;font-size:11px;color:#947c88;font-weight:700;margin-bottom:14px}
-.loyally-social-divider:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#eadde4}
+.loyally-social-divider:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--color-bg-2)}
 .loyally-social-divider span{position:relative;background:#fff;padding:0 13px}
 .loyally-social-list{display:grid;gap:9px}
-.loyally-social-button{min-height:49px;border:1px solid #e7dbe1;background:#fff;border-radius:12px;display:flex;gap:12px;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#35252d;transition:background .15s ease,border .15s ease}
-.loyally-social-button:hover{background:#fcf6f9;border-color:#b98ba0}
+.loyally-social-button{min-height:49px;border:1px solid var(--color-bg-2);background:#fff;border-radius:12px;display:flex;gap:12px;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#35252d;transition:background .15s ease,border .15s ease}
+.loyally-social-button:hover{background:var(--color-bg);border-color:var(--color-brand-300)}
 .loyally-social-google-mark{font-size:20px;font-weight:900;background:conic-gradient(#4285f4 0deg 95deg,#34a853 95deg 185deg,#fbbc05 185deg 265deg,#ea4335 265deg 360deg);background-clip:text;-webkit-background-clip:text;color:transparent}
 .loyally-social-apple{background:var(--color-text);color:#fff;border-color:var(--color-text)}
 .loyally-social-apple:hover{background:#3b3037;color:#fff}
