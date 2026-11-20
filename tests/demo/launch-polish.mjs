@@ -38,5 +38,5 @@ assert.match(explore,/myCards\[e.business_id\]/,"Only own cards can create Walle
 const home=read("components/LandingHome.tsx");
 assert.match(home,/loi-audience-expanded/);
 assert.match(home,/cualquier negocio que quiera clientes que vuelvan/);
-assert.match(home,/\["coffee","burger","restaurant","beard","hair","pizza"/);
+assert.match(home,/\["cafeteria","hamburgueseria","restaurante","barberia","peluqueria","pizzeria"/);
 console.log("OK: polished role experience, clean campaigns, X-masked contacts, centralized franchise billing and premium discovery.");

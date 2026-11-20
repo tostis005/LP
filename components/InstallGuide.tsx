@@ -3,7 +3,8 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {QRCodeSVG} from "qrcode.react";
-import {ArrowRight,Check,Gift,Heart,Smartphone,Ticket} from "lucide-react";
+import {ArrowRight,Check,Smartphone} from "lucide-react";
+import {KreyvIcon} from "@/components/KreyvIcon";
 import type {LandingLanguage} from "@/lib/landing-copy";
 
 type InstallPrompt=Event&{prompt:()=>Promise<void>;userChoice:Promise<{outcome:string}>};
@@ -62,10 +63,10 @@ export function InstallGuide({lang="es"}:{lang?:LandingLanguage}){
  return <section className="loi-install-section" id="instalar" aria-labelledby="loi-install-heading">
   <div className="container loi-install-layout">
    <div className="loi-install-intro">
-    <span className="loi-overline"><Heart size={16}/>{t.kicker}</span>
+    <span className="loi-overline"><KreyvIcon name="mis-tarjetas" size={16}/>{t.kicker}</span>
     <h2 id="loi-install-heading">{t.head}<br/><em>{t.accent}</em></h2>
     <p>{t.intro}</p>
-    <div className="loi-install-benefits">{t.badges.map((name,i)=>{const Icon=[Ticket,Heart,Gift][i];return <span key={name}><Icon size={16}/>{name}</span>;})}</div>
+    <div className="loi-install-benefits">{t.badges.map((name,i)=>{const icon=(["mis-tarjetas","sellos","premios"] as const)[i];return <span key={name}><KreyvIcon name={icon} size={16}/>{name}</span>;})}</div>
     <div className="loi-install-actions">
      <button type="button" onClick={install} className="loi-button loi-button-main loi-install-primary"><Smartphone size={19}/>{t.add}<ArrowRight size={18}/></button>
      <Link href="/mi-loyally" className="loi-button loi-button-light">{t.open}</Link>
@@ -74,18 +75,18 @@ export function InstallGuide({lang="es"}:{lang?:LandingLanguage}){
     <p className="loi-install-note">{t.helper}</p>
    </div>
    <div className="loi-install-card loi-install-app-preview">
-    <div className="loi-install-app-top"><span className="loi-install-app-icon">L</span><strong>Kreyv</strong><span className="loi-install-app-love">♡</span></div>
+    <div className="loi-install-app-top"><span className="loi-install-app-icon"><img src="/icon.svg" alt=""/></span><strong>Kreyv</strong><span className="loi-install-app-love"><KreyvIcon name="recompensa" size={24}/></span></div>
     <span className="loi-install-app-caption">{t.phoneLabel}</span>
     <div className="loi-install-app-reward">
-     <div className="loi-install-app-reward-head"><strong>Café Noma</strong><Gift size={22}/></div>
+     <div className="loi-install-app-reward-head"><strong>Café Noma</strong><KreyvIcon name="premios" size={22}/></div>
      <p>{t.card}</p>
-     <div className="loi-install-app-stamps">{Array.from({length:8},(_,i)=><span className={i<5?"filled":""} key={i}><Heart size={15}/></span>)}</div>
+     <div className="loi-install-app-stamps">{Array.from({length:8},(_,i)=><span className={i<5?"filled":""} key={i}><KreyvIcon name="cafeteria" size={15}/></span>)}</div>
      <small>{t.cardDetail}</small>
     </div>
-    <div className="loi-install-app-nav"><span><Ticket size={17}/>{t.badges[0]}</span><span><Gift size={17}/>{t.badges[2]}</span><span><Heart size={17}/>{t.badges[1]}</span></div>
+    <div className="loi-install-app-nav"><span><KreyvIcon name="mis-tarjetas" size={17}/>{t.badges[0]}</span><span><KreyvIcon name="premios" size={17}/>{t.badges[2]}</span><span><KreyvIcon name="sellos" size={17}/>{t.badges[1]}</span></div>
     <div className="loi-install-qr">
      <div><strong>{t.qrTitle}</strong><p>{t.qrText}</p></div>
-     {origin&&<div className="loi-qr-box" aria-label="Código para abrir Kreyv en el móvil"><QRCodeSVG value={origin+"/mi-loyally?instalar=1"} size={84} fgColor="#571c32" bgColor="#ffffff"/></div>}
+     {origin&&<div className="loi-qr-box" aria-label="Código para abrir Kreyv en el móvil"><QRCodeSVG value={origin+"/mi-loyally?instalar=1"} size={84} fgColor="#5E1A2B" bgColor="#ffffff"/></div>}
     </div>
    </div>
   </div>
