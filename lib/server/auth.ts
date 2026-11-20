@@ -44,7 +44,7 @@ export async function emailToken(userId:string,purpose:"verify"|"reset",email:st
     [hashToken(token),userId,purpose,purpose==="reset"?"1 hour":"24 hours"]
   );
   const link=site.replace(/\/$/,"")+"/api/local/auth/verify?purpose="+purpose+"&token="+token;
-  const subject=purpose==="verify"?"Confirma tu cuenta de Loyally":"Recupera tu acceso a Loyally";
+  const subject=purpose==="verify"?"Confirma tu cuenta de Kreyv":"Recupera tu acceso a Kreyv";
   await sendMail(email,subject,"Utiliza el siguiente enlace, válido durante un tiempo limitado:\n\n"+link+"\n\nSi no lo solicitaste, ignora este correo.");
 }
 export async function rateLimit(key:string,max:number,minutes=15) {
