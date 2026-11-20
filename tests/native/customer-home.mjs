@@ -12,6 +12,9 @@ try{
  const customerId=user.rows[0].id;
 
  await client.query("BEGIN");
+ const hidden=(await client.query(
+  "INSERT INTO public.businesses(name,slug,public_listing,active) VALUES('Privado QA','ci-private-customer-visibility',false,true) RETURNING id"
+ )).rows[0].id;
  await client.query("SET LOCAL ROLE authenticated");
  await client.query("SELECT set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.email',$2,true)",
   [customerId,user.rows[0].email]);
@@ -33,7 +36,7 @@ try{
   assert.ok(card.businesses.id===card.business_id,"The merchant must match the membership");
   assert.match(card.card_token,/^[0-9a-f-]{36}$/i,"The card must have a valid QR token");
  }
- const unrelated=await client.query("SELECT id FROM public.businesses WHERE slug='interno-barba-norte'");
+ const unrelated=await client.query("SELECT id FROM public.businesses WHERE id=$1",[hidden]);
  assert.equal(unrelated.rowCount,0,"A customer must NOT see another private business without a membership");
  const ids=cards.rows.map(r=>r.business_id),membershipIds=cards.rows.map(r=>r.id);
  const programs=await client.query("SELECT * FROM public.loyalty_programs t WHERE t.business_id=ANY($1::uuid[])",
