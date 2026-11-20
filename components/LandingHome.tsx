@@ -8,9 +8,10 @@ import {InstallGuide} from "@/components/InstallGuide";
 import {Brand} from "@/components/Brand";
 import {StampCard} from "@/components/StampCard";
 import {StampMark} from "@/components/StampMarks";
+import {KreyvIcon} from "@/components/KreyvIcon";
 import {LANDING_COPY,landingHref,type LandingLanguage} from "@/lib/landing-copy";
 
-const BENEFIT_ICONS=[Heart,Gift,Store,Users];
+const BENEFIT_ICONS=["favoritos","premios","comercio","perfil"] as const;
 
 export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
  const t=LANDING_COPY[lang];
@@ -28,19 +29,19 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
        <Link href={landingHref(lang,"como-funciona")} className="loi-button loi-button-light">{t.hero.secondary} <ArrowRight size={18}/></Link>
        <Link href={landingHref(lang,"instalar")} className="loi-button loi-button-install"><Download size={18}/>{lang==="en"?"Kreyv on my phone":"Kreyv en mi móvil"}</Link>
       </div>
-      <div className="loi-hero-foot"><div className="loi-hero-foot-icons"><span><Heart size={17}/></span><span><Coffee size={17}/></span><span><Gift size={17}/></span></div><span>{t.hero.foot}<br/><strong>{t.hero.footBold}</strong></span></div>
+      <div className="loi-hero-foot"><div className="loi-hero-foot-icons"><span><KreyvIcon name="favoritos" size={17}/></span><span><KreyvIcon name="cafeteria" size={17}/></span><span><KreyvIcon name="premios" size={17}/></span></div><span>{t.hero.foot}<br/><strong>{t.hero.footBold}</strong></span></div>
      </div>
      <div className="loi-hero-showcase" aria-label={t.hero.previewLabel}>
       <div className="loi-hero-orbit orbit-a"/><div className="loi-hero-orbit orbit-b"/>
       <div className="loi-showcase-caption"><Sparkles size={17}/> {t.hero.previewLabel}</div>
       <div className="loi-showcase-phone">
        <div className="loi-phone-status"><span>9:41</span><span>●●●</span></div>
-       <div className="loi-phone-heading"><span>{t.hero.myCard}</span><span className="loi-phone-mini-icon"><Heart size={17}/></span></div>
+       <div className="loi-phone-heading"><span>{t.hero.myCard}</span><span className="loi-phone-mini-icon"><KreyvIcon name="favoritos" size={17}/></span></div>
        <div className="loi-phone-greeting">{t.hero.hello} <span>✳</span></div>
        <p>{t.hero.nearReward}</p>
        <StampCard locale={lang} name="Tu cafetería" color="#5E1A2B" stampColor="#f2b7ca" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/>
-       <div className="loi-phone-progress"><span><Gift size={17}/> {t.hero.almost}</span><strong>{t.hero.progress}</strong></div>
-       <div className="loi-phone-nav"><span className="active"><Ticket size={17}/> {t.hero.cardNav}</span><span><Store size={17}/> {t.hero.businessNav}</span><span><Users size={17}/> {t.hero.profileNav}</span></div>
+       <div className="loi-phone-progress"><span><KreyvIcon name="premios" size={17}/> {t.hero.almost}</span><strong>{t.hero.progress}</strong></div>
+       <div className="loi-phone-nav"><span className="active"><KreyvIcon name="mis-tarjetas" size={17}/> {t.hero.cardNav}</span><span><KreyvIcon name="comercio" size={17}/> {t.hero.businessNav}</span><span><KreyvIcon name="perfil" size={17}/> {t.hero.profileNav}</span></div>
       </div>
       <div className="loi-showcase-floating"><span className="loi-floating-icon"><BadgeCheck size={23}/></span><div><strong>{t.hero.floatingTitle}</strong><small>{t.hero.floatingDetail}</small></div></div>
       
@@ -54,7 +55,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
    <section className="loi-section" id="beneficios">
     <div className="container">
      <div className="loi-section-lead"><div><span className="loi-overline">{t.benefits.eyebrow}</span><h2>{t.benefits.first}<br/><em>{t.benefits.second}</em></h2></div><p>{t.benefits.intro}</p></div>
-     <div className="loi-feature-grid">{t.benefits.items.map((f,i)=>{const Icon=BENEFIT_ICONS[i];return <article className="loi-feature" key={f.title}><div className="loi-feature-icon"><Icon size={23}/></div><span className="loi-feature-index">0{i+1}</span><h3>{f.title}</h3><p>{f.text}</p></article>})}</div>
+     <div className="loi-feature-grid">{t.benefits.items.map((f,i)=>{const Icon=BENEFIT_ICONS[i];return <article className="loi-feature" key={f.title}><div className="loi-feature-icon"><KreyvIcon name={Icon} size={23}/></div><span className="loi-feature-index">0{i+1}</span><h3>{f.title}</h3><p>{f.text}</p></article>})}</div>
     </div>
    </section>
 

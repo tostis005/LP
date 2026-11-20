@@ -5,21 +5,22 @@ import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@/lib/supabase";
 import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, BellRing, Mail, Users, ChevronRight, Brush, Gift, MapPin, Store } from "lucide-react";
 import { Brand } from "@/components/Brand";
+import {KreyvIcon} from "@/components/KreyvIcon";
 import { configured, db } from "@/lib/supabase";
 export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employee"; active:boolean; businesses:{id:string;name:string;slug:string} | null };
 export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; refresh: () => void };
 type Area = "customer" | "business" | "staff" | "admin";
 const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
- customer:[{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<Compass size={18}/>},{href:"/app/ajustes",label:"Ajustes",icon:<Settings2 size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<UserRound size={18}/>}],
+ customer:[{href:"/app",label:"Mis tarjetas",icon:<KreyvIcon name="mis-tarjetas" size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<KreyvIcon name="buscar" size={18}/>},{href:"/app/ajustes",label:"Ajustes",icon:<KreyvIcon name="ajustes" size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<KreyvIcon name="perfil" size={18}/>}],
  business:[
-  {href:"/negocio",label:"Resumen",icon:<LayoutDashboard size={18}/>},
-  {href:"/negocio/tarjeta",label:"Mi tarjeta",icon:<CreditCard size={18}/>},
-  {href:"/negocio/team",label:"Empleados",icon:<Users size={18}/>},
-  {href:"/negocio/marketing",label:"Campañas",icon:<Mail size={18}/>},
-  {href:"/negocio/reports",label:"Indicadores",icon:<BarChart3 size={18}/>}
+  {href:"/negocio",label:"Resumen",icon:<KreyvIcon name="inicio" size={18}/>},
+  {href:"/negocio/tarjeta",label:"Mi tarjeta",icon:<KreyvIcon name="mi-tarjeta" size={18}/>},
+  {href:"/negocio/team",label:"Empleados",icon:<KreyvIcon name="perfil" size={18}/>},
+  {href:"/negocio/marketing",label:"Campañas",icon:<KreyvIcon name="campanas" size={18}/>},
+  {href:"/negocio/reports",label:"Indicadores",icon:<KreyvIcon name="recompensa" size={18}/>}
  ],
- staff:[{href:"/empleado",label:"Escanear tarjetas",icon:<ScanLine size={18}/>}],
- admin:[{href:"/admin",label:"Administración",icon:<Shield size={18}/>}]
+ staff:[{href:"/empleado",label:"Escanear tarjetas",icon:<KreyvIcon name="qr" size={18}/>}],
+ admin:[{href:"/admin",label:"Administración",icon:<KreyvIcon name="ajustes" size={18}/>}]
 };
 export function AppFrame({ area, title, subtitle, children }: {area:Area;title:string;subtitle:string;children:(a:Account)=>ReactNode}) {
  const router=useRouter(), pathname=usePathname();

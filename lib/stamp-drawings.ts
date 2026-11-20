@@ -1,3 +1,4 @@
+import {KREYV_FILLED_PATHS,type KreyvIconName} from "@/lib/kreyv-icon-paths";
 /**
  * Galería conceptual de Loyally.
  * Una sola colección de dibujos monocromos para sellos, tarjetas y marcadores.
@@ -33,25 +34,69 @@ export const STAMP_DRAWINGS = {
  juice:'<path d="M16 24h32l-4 34H20l-4-34ZM13 18h38M33 18l9-12h9"/>',
 } as const;
 
-export type StampKind=keyof typeof STAMP_DRAWINGS;
+export type StampKind=keyof typeof STAMP_DRAWINGS | KreyvIconName;
 export const STAMP_OPTIONS:ReadonlyArray<{id:StampKind;label:string}>=[
- {id:"coffee",label:"Café"},{id:"burger",label:"Hamburguesa"},
- {id:"restaurant",label:"Restaurante"},{id:"beard",label:"Barbería"},
- {id:"hair",label:"Peluquería"},{id:"pizza",label:"Pizza"},
- {id:"bread",label:"Panadería"},{id:"croissant",label:"Croissant"},
- {id:"icecream",label:"Helado"},{id:"flower",label:"Floristería"},
- {id:"scissors",label:"Tijeras"},{id:"star",label:"Estrella"},
- {id:"heart",label:"Corazón"},{id:"gift",label:"Regalo"},
- {id:"taco",label:"Taquería"},{id:"donut",label:"Dónut"},
- {id:"gym",label:"Gimnasio"},{id:"spa",label:"Spa"},
- {id:"pet",label:"Mascotas"},{id:"nails",label:"Manicura"},
- {id:"book",label:"Librería"},{id:"car",label:"Automóvil"},
- {id:"bicycle",label:"Bicicleta"},{id:"juice",label:"Zumos"}
+ {id:"cafeteria",label:"Cafetería"},
+ {id:"restaurante",label:"Restaurante"},
+ {id:"hamburgueseria",label:"Hamburguesería"},
+ {id:"pizzeria",label:"Pizzería"},
+ {id:"taqueria",label:"Taquería"},
+ {id:"panaderia",label:"Panadería"},
+ {id:"pasteleria",label:"Pastelería"},
+ {id:"heladeria",label:"Heladería"},
+ {id:"bar",label:"Bar"},
+ {id:"vinoteca",label:"Vinoteca"},
+ {id:"gastronomia",label:"Gastronomía"},
+ {id:"comida-para-llevar",label:"Comida para llevar"},
+ {id:"tienda",label:"Tienda"},
+ {id:"comercio",label:"Comercio"},
+ {id:"peluqueria",label:"Peluquería"},
+ {id:"barberia",label:"Barbería"},
+ {id:"gimnasio",label:"Gimnasio"},
+ {id:"spa",label:"Spa"},
+ {id:"bienestar",label:"Bienestar"},
+ {id:"salud",label:"Salud"},
+ {id:"mascotas",label:"Mascotas"},
+ {id:"libreria",label:"Librería"},
+ {id:"ocio",label:"Ocio"},
+ {id:"eventos",label:"Eventos"}
 ];
 export const DEFAULT_STAMP:StampKind="coffee";
 
+/** Los IDs antiguos se mantienen para que las tarjetas ya emitidas sigan funcionando. */
+const LEGACY_ICON_ALIASES:Record<keyof typeof STAMP_DRAWINGS,KreyvIconName>={
+ "coffee": "cafeteria",
+ "burger": "hamburgueseria",
+ "restaurant": "restaurante",
+ "beard": "barberia",
+ "hair": "peluqueria",
+ "pizza": "pizzeria",
+ "bread": "panaderia",
+ "croissant": "panaderia",
+ "icecream": "heladeria",
+ "flower": "spa",
+ "scissors": "peluqueria",
+ "star": "favoritos",
+ "heart": "salud",
+ "gift": "premios",
+ "taco": "taqueria",
+ "donut": "pasteleria",
+ "gym": "gimnasio",
+ "spa": "spa",
+ "pet": "mascotas",
+ "nails": "bienestar",
+ "book": "libreria",
+ "car": "comercio",
+ "bicycle": "gimnasio",
+ "juice": "bar"
+};
+export function resolveStampIcon(kind?:string|null):KreyvIconName {
+ if(kind && Object.prototype.hasOwnProperty.call(KREYV_FILLED_PATHS,kind))return kind as KreyvIconName;
+ if(kind && Object.prototype.hasOwnProperty.call(LEGACY_ICON_ALIASES,kind))return LEGACY_ICON_ALIASES[kind as keyof typeof STAMP_DRAWINGS];
+ return "cafeteria";
+}
 export function stampMarkup(kind?:string|null,size=28):string {
- const validated=kind && Object.prototype.hasOwnProperty.call(STAMP_DRAWINGS,kind)?kind as StampKind:DEFAULT_STAMP;
  const scale=Math.max(10,Math.min(200,Math.round(size)));
- return '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="'+scale+'" height="'+scale+'" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">'+STAMP_DRAWINGS[validated]+'</svg>';
+ const d=KREYV_FILLED_PATHS[resolveStampIcon(kind)];
+ return '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="'+scale+'" height="'+scale+'" viewBox="0 0 64 64" fill="currentColor"><path fill-rule="evenodd" d="'+d+'"/></svg>';
 }

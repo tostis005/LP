@@ -49,7 +49,7 @@ function Discover({account}:{account:Account}){
   [e.businesses?.name,e.businesses?.description,e.name,e.city,e.country,e.address,programByBusiness.get(e.business_id)?.reward_label]
    .join(" ").toLocaleLowerCase().includes(filter.toLocaleLowerCase())
  ).sort((a,b)=>distance(a)-distance(b)),[entries,category,rewardType,filter,center,programByBusiness]);
- const pins:DirectoryPin[]=filtered.map(e=>({...e,offerText:programPromise(programByBusiness.get(e.business_id))}));
+ const pins:DirectoryPin[]=filtered.map(e=>({...e,hasCard:Boolean(myCards[e.business_id]),offerText:programPromise(programByBusiness.get(e.business_id))}));
  return <>
   <div className="discover-intro"><div><span className="eyebrow">TU PRÓXIMO LUGAR FAVORITO</span><h2>Descubre lugares que premian tus visitas</h2><p>Conoce su historia, descubre qué puedes ganar y guarda las tarjetas de los que más te gusten.</p></div></div>
   <div className="discover-top"><div className="search-box"><Search size={19}/><input aria-label="Buscar negocios" placeholder="Busca por negocio, recompensa o zona..." value={filter} onChange={e=>setFilter(e.target.value)}/></div>
@@ -57,6 +57,7 @@ function Discover({account}:{account:Account}){
   <div className="directory-filter-group"><strong>¿Qué te apetece descubrir?</strong><div className="chip-row">{categories.map(c=><button className={"filter-chip"+(category===c?" selected":"")} aria-pressed={category===c} key={c} onClick={()=>setCategory(c)}>{c!=="Todos"&&<StampMark kind={categoryStampKind(c)} size={18}/>} {c}</button>)}</div></div>
   <div className="directory-filter-group"><strong>Elige el tipo de recompensa</strong><div className="chip-row">{["Todos",...PROGRAM_TYPES.map(x=>x.id)].map(t=><button className={"filter-chip"+(rewardType===t?" selected":"")} key={t} aria-pressed={rewardType===t} onClick={()=>setRewardType(t)}>{t==="Todos"?"Todas":PROGRAM_TYPES.find(x=>x.id===t)?.label}</button>)}</div></div>
   {error&&<div className="alert error" role="alert">{error}</div>}
+  <div className="directory-map-legend" aria-label="Significado de los marcadores del mapa"><span><span className="map-legend-star filled" aria-hidden="true">★</span> Ya tienes tarjeta</span><span><span className="map-legend-star outline" aria-hidden="true">☆</span> Aún no tienes tarjeta</span></div>
   <div className="directory-map directory-map-primary"><DirectoryMapView locations={pins} center={hasLocation?center:(filtered.length?[filtered[0].lat,filtered[0].lng]:TIJUANA)}/></div>
   <div className="content-heading spaced"><div><h2>{filtered.length} {filtered.length===1?"lugar para descubrir":"lugares para descubrir"}</h2><p>Explora el mapa o elige una tarjeta para conocer el negocio y su recompensa.</p></div></div>
   <div className="directory-results-grid">

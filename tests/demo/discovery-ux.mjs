@@ -10,16 +10,21 @@ function load(path,imports={}){
  runInNewContext(js,{module,exports:module.exports,require:(id)=>{if(!(id in imports))throw Error("Unexpected import "+id);return imports[id]},Intl});
  return module.exports;
 }
-const icons=load("../../lib/stamp-drawings.ts");
-assert.equal(icons.STAMP_OPTIONS.length,24);
+const filled=load("../../lib/kreyv-icon-paths.ts");
+const icons=load("../../lib/stamp-drawings.ts",{"@/lib/kreyv-icon-paths":filled});
+assert.equal(Object.keys(filled.KREYV_FILLED_PATHS).length,40,"Approved gallery must contain all 40 filled icons");
+assert.equal(icons.STAMP_OPTIONS.length,24,"Every approved business-category icon is selectable");
 for(const option of icons.STAMP_OPTIONS){
- assert.ok(icons.STAMP_DRAWINGS[option.id],option.id+" has no drawing");
+ assert.ok(filled.KREYV_FILLED_PATHS[option.id],option.id+" has no approved filled path");
  const svg=icons.stampMarkup(option.id,28);
  assert.match(svg,/width="28" height="28" viewBox="0 0 64 64"/);
- assert.match(svg,/stroke-width="3\.5"/);
- assert.match(svg,/fill="none"/);
- assert.doesNotMatch(icons.STAMP_DRAWINGS[option.id],/fill="currentColor"/);
+ assert.match(svg,/fill="currentColor"/);
+ assert.match(svg,/fill-rule="evenodd"/);
+ assert.doesNotMatch(svg,/stroke-width="3\.5"/);
 }
+assert.equal(icons.resolveStampIcon("coffee"),"cafeteria","Saved legacy stamps remain readable");
+assert.equal(icons.resolveStampIcon("beard"),"barberia","Legacy beard silhouette is upgraded");
+assert.equal(icons.resolveStampIcon("unknown"),"cafeteria","Unknown stamps have a safe fallback");
 const cats=load("../../lib/business-categories.ts",{"@/lib/stamp-drawings":icons});
 for(const [category,kind] of [["Cafetería","coffee"],["Restaurante","restaurant"],["Barbería","beard"],["Peluquería","hair"],["Panadería","bread"],["Taquería","taco"],["Heladería y postres","icecream"],["Gimnasio","gym"],["Librería","book"]]){
  assert.equal(cats.categoryStampKind(category),kind,category+" should have its product icon");
@@ -35,7 +40,13 @@ assert.match(presentation.programPromise({type:"cashback",cashback_bps:500}),/5 
 assert.doesNotMatch(presentation.programPromise({type:"stamps",reward_label:"Café gratis"}),/8/);
 const map=readFileSync(new URL("../../components/DirectoryMap.tsx",import.meta.url),"utf8");
 const css=readFileSync(new URL("../../app/workspace.css",import.meta.url),"utf8");
-assert.match(map,/stampMarkup\(stampKind\|\|categoryStampKind\(category\)/,"Markers should prefer the owner-selected stamp icon");
+assert.match(map,/pinIcon\(Boolean\(l\.hasCard\)\)/,"Map icons depend on membership, not business category");
+assert.match(map,/hasCard\?:boolean/);
+assert.match(map,/hasCard\?'currentColor':'none'/,"Owned stars fill, unknown stars stay outlined");
+assert.doesNotMatch(map,/stampMarkup|categoryStampKind|stampKind/,"Map must never show business-category stamp drawings");
+const discover=readFileSync(new URL("../../app/app/descubrir/page.tsx",import.meta.url),"utf8");
+assert.match(discover,/hasCard:Boolean\(myCards\[e\.business_id\]\)/,"Memberships drive markers per business");
+assert.match(discover,/directory-map-legend/);
 assert.match(map,/iconAnchor:\[23,52\]/);
 const outer=css.match(/\.loyally-map-marker\{([^}]*)\}/)?.[1]||"";
 assert.ok(outer&&!/transform\s*:/.test(outer),"Map marker must not override Leaflet positioning");
