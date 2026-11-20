@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
+import Link from "next/link";
 import {QRCodeSVG} from "qrcode.react";
 import {Download, X, Wallet} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
@@ -8,24 +9,12 @@ import {db} from "@/lib/supabase";
 import {StampGrid} from "@/components/StampMarks";
 import {WalletActions} from "@/components/WalletActions";
 export function LoyaltyCard({membership,business,program}:{membership:Membership;business:Business;program?:Program}){
- const [open,setOpen]=useState(false),[waConsent,setWaConsent]=useState(false),[wallets,setWallets]=useState({apple:false,google:false}),[consent,setConsent]=useState(false),[consentBusy,setConsentBusy]=useState(false),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
+ const [open,setOpen]=useState(false),[wallets,setWallets]=useState({apple:false,google:false}),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  useEffect(()=>{if(!open)return;let active=true;
   fetch("/api/local/wallet/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(active&&v)setWallets({apple:v.apple===true,google:v.google===true})}).catch(()=>{});
   db().from("reward_vouchers").select("token,reward_label").eq("membership_id",membership.id).eq("status","issued").maybeSingle().then(({data})=>{if(active)setVoucher(data as {token:string;reward_label:string}|null)});
-  db().from("marketing_consents").select("opted_in,whatsapp_opted_in").eq("customer_id",membership.customer_id).eq("business_id",membership.business_id).maybeSingle()
-   .then(({data})=>{if(active){setConsent(!!data?.opted_in);setWaConsent(!!data?.whatsapp_opted_in)}});
   return()=>{active=false};
- },[open,membership.customer_id,membership.business_id]);
- async function changeConsent(checked:boolean){setConsentBusy(true);setConsentError("");
-  const {error}=await db().rpc("business_upsert_consent",{p_business:membership.business_id,p_opted_in:checked});
-  setConsentBusy(false);if(error)setConsentError(error.message);else setConsent(checked)
- }
- async function changeWaConsent(checked:boolean){
-  setConsentBusy(true);setConsentError("");
-  const {error}=await db().rpc("business_upsert_whatsapp_consent",{p_business:membership.business_id,p_opted_in:checked});
-  setConsentBusy(false);
-  if(error)setConsentError(error.message);else setWaConsent(checked);
- }
+ },[open,membership.id]);
  async function downloadCard(){
   const qr=document.querySelector('[data-card-qr="'+membership.id+'"] svg');
   if(!qr){setConsentError("No se pudo preparar el QR de esta tarjeta.");return}
@@ -89,12 +78,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
  <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Guardar imagen con QR</button>
  <p className="tiny-note">{program?.type==="cashback"?"Puedes utilizar tu saldo en el establecimiento.":program?.reward_label||"Tu recompensa te espera."}</p>
  {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><div className="qr-box"><QRCodeSVG value={rewardQrUrl} size={190} level="M" includeMargin/></div></div>}
- <details className="loyalty-card-preferences"><summary>Preferencias de mensajes de este negocio</summary>
- <div className="check-control modal-consent"><input type="checkbox" id={"business-marketing-"+membership.id} checked={consent} disabled={consentBusy} onChange={e=>changeConsent(e.target.checked)}/>
- <label htmlFor={"business-marketing-"+membership.id}><strong>Ofertas y novedades de {business.name} por email</strong><small>Opcional. Puedes desactivarlas cuando quieras.</small></label></div>
- <div className="check-control modal-consent"><input type="checkbox" id={"whatsapp-marketing-"+membership.id} checked={waConsent} disabled={consentBusy} onChange={e=>changeWaConsent(e.target.checked)}/>
- <label htmlFor={"whatsapp-marketing-"+membership.id}><strong>Ofertas de {business.name} por WhatsApp</strong><small>Opcional. Requiere un teléfono en Mi perfil.</small></label></div>
- </details>
+ <Link className="button button-outline button-full" href="/app/ajustes" onClick={()=>setOpen(false)}>Configurar notificaciones de esta tarjeta</Link>
  {consentError&&<div className="alert error">{consentError}</div>}
  </div></div>}
  </>;
