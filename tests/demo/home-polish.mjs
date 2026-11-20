@@ -12,6 +12,7 @@ assert.equal(Object.keys(icons).length,43);
 for(const key of ["cafeteria","barberia","floristeria","spa","automocion","categorias"])assert.ok(icons[key],"Missing "+key);
 assert.notEqual(icons.floristeria,icons.spa,"Flower shops and spa must not share an icon");
 assert.notEqual(icons.cafeteria,icons.restaurante);
+assert.equal(m.exports.KREYV_ICON_BOXES.cafeteria,"-105 -11 650 650","Optically center the café cup and steam in its shared icon frame");
 assert.doesNotMatch(icons.cafeteria,/M6,54L52,54/,"Cafetería must not include an off-centre saucer");
 assert.ok(icons.cafeteria.length>180,"Cafetería needs a well-defined cup silhouette");
 assert.ok(icons.automocion.length>130,"Automoción must have a car icon");
