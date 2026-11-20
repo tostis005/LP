@@ -19,17 +19,17 @@ assert.notEqual(icons.automocion,icons.comercio);
 assert.notEqual(icons.categorias,icons.libreria);
 assert.ok(icons.barberia.length>180,"Barbería must have a full beard and distinct moustache");
 const iconBoxes=m.exports.KREYV_ICON_BOXES;
-assert.equal(iconBoxes.panaderia,"0 0 64 64","Panadería uses a centered optical grid");
-assert.equal(iconBoxes.barberia,"4 10 56 56","Barbería uses a centered optical grid");
-assert.equal((icons.panaderia.match(/M/g)||[]).length,4,"Hogaza: silueta compacta y tres cortes superiores");
-assert.match(icons.panaderia,/^M6 43C6 35/,"El pan aprobado debe estar centrado y sin reborde");
-assert.match(icons.panaderia,/M23 29C19 33/,"El pan debe conservar los tres cortes vaciados");
-assert.doesNotMatch(icons.panaderia,/M7 40C5 35/,"No reutilizar la baguette anterior");
-assert.equal((icons.barberia.match(/M/g)||[]).length,2,"Barba completa y bigote separados");
-assert.match(icons.barberia,/^M7 18C8 27/,"El bigote debe ser reconocible, con extremos curvos");
-assert.match(icons.barberia,/M10 32C16 39/,"La barba inferior debe terminar en punta");
-assert.doesNotMatch(icons.barberia,/M15 25C19 26/,"No reutilizar la barba anterior");
-assert.match(read("components/KreyvIcon.tsx"),/fill="currentColor"/,"El color debe heredarse de la marca");
+// Hashes de los trazados vectorizados directamente de la imagen aprobada de Kreyv.
+// Evitan que un rediseño aproximado sustituya sin querer las siluetas validadas.
+const {createHash}=await import("node:crypto");
+const hash=path=>createHash("sha256").update(path).digest("hex");
+assert.equal(iconBoxes.panaderia,"0 0 64 64");
+assert.equal(iconBoxes.barberia,"0 0 64 64");
+assert.equal(hash(icons.panaderia),"cfae981a20ddf5b76a937a82909299e376c171fb5415458371ec12813c026e4e");
+assert.equal(hash(icons.barberia),"5bb553f894187c72610a9f2374a7eee0db7f897830a5c18ebf6486eaaf5f74e0");
+assert.equal((icons.panaderia.match(/M/g)||[]).length,1,"Panadería: una hogaza con tres cortes, sin recortes añadidos");
+assert.equal((icons.barberia.match(/M/g)||[]).length,2,"Barbería: bigote y barba completos como en el diseño aprobado");
+assert.match(read("components/KreyvIcon.tsx"),/fill="currentColor"/,"Color heredado de Kreyv");
 
 const cats=read("lib/business-categories.ts");
 assert.match(cats,/name:"Floristería",stamp:"floristeria"/);
