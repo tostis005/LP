@@ -42,7 +42,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
   }
   load();return()=>{live=false}
  },[router,version]);
- async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en Loyally?"))return;await db().auth.signOut();router.replace("/acceder")}
+ async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en Kreyv?"))return;await db().auth.signOut();router.replace("/acceder")}
  const hasBusiness=roles.some(x=>x.role==="owner"||x.role==="manager");
  const allowed=area==="customer"?!admin&&roles.length===0:area==="admin"?admin:area==="business"?hasBusiness:roles.some(x=>x.role==="employee");
  if(loading)return <div className="loading-screen"><div className="spinner"/> Preparando tu espacio...</div>;
@@ -55,7 +55,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
   </nav><div className="sidebar-spacer"/><button type="button" className="side-logout" onClick={logout}><LogOut size={17}/> Cerrar sesión</button>
   </aside>
-  <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> Loyally / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user">{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
+  <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> Kreyv / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user">{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
   <Link href="/negocio/settings"><Store size={17}/> Datos del negocio</Link>
   <Link href="/negocio/locations"><MapPin size={17}/> Dirección y ubicación</Link>
   {roles.some(r=>r.role==="owner")&&<Link href="/negocio/facturacion"><CreditCard size={17}/> Facturación y pagos</Link>}

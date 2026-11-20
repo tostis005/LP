@@ -49,11 +49,11 @@ export function AppBottomNav(){
  // Nunca mostramos accesos a zonas ajenas al rol.
  const items=tabs[role];
  async function logout(){
-  if(!window.confirm("¿Quieres cerrar tu sesión en Loyally?"))return;
+  if(!window.confirm("¿Quieres cerrar tu sesión en Kreyv?"))return;
   await db().auth.signOut();
   router.replace("/acceder");
  }
- return <nav className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de Loyally">
+ return <nav className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de Kreyv">
   {items.map(item=>{
    const active=item.href==="/negocio"?pathname==="/negocio"||pathname==="/negocio/overview":pathname===item.href;
    const Icon=item.icon;

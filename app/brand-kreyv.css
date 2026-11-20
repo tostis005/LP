@@ -30,21 +30,16 @@ button,input,select,textarea{font-family:var(--font-body)}
 .workspace .side-link.active,.workspace .tab-bar button.active,.mobile-bottom-link.active{background:var(--color-brand-100);color:var(--color-brand)}
 .workspace .table-pill,.kpi-symbol.green,.panel-icon{background:var(--color-brand-100);color:var(--color-brand)}
 .kpi-card strong,.positive-text,.overview-stat strong{color:var(--color-brand)}
-.brand{display:inline-flex;align-items:center;line-height:1}
-.brand-logo-image{width:145px;height:auto;max-height:48px;display:none}
-.brand-logo-vino-light{display:block}
-.brand-light .brand-logo-vino-light{display:none}
-.brand-light .brand-logo-vino-dark{display:block}
-[data-theme="tinta-maiz"] .brand-logo-vino-light,[data-theme="tinta-maiz"] .brand-logo-vino-dark{display:none}
-[data-theme="tinta-maiz"] .brand-logo-ink-light{display:block}
-[data-theme="tinta-maiz"] .brand-light .brand-logo-ink-light{display:none}
-[data-theme="tinta-maiz"] .brand-light .brand-logo-ink-dark{display:block}
-.brand .brand-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.brand img{display:block}
-.brand .brand-logo-image:not(.brand-logo-vino-light){display:none}
-.brand-light .brand-logo-vino-dark{display:block}
-[data-theme="tinta-maiz"] .brand .brand-logo-vino-dark,[data-theme="tinta-maiz"] .brand .brand-logo-vino-light{display:none}
+/* Selección de logo según el fondo y la paleta, sin JavaScript. */
+.brand{display:inline-flex;align-items:center;line-height:1;position:relative}
+.brand .brand-logo-image{display:none;width:145px;height:auto;max-height:48px}
+.brand .brand-logo-vino-light{display:block}
+.brand.brand-light .brand-logo-vino-light{display:none}
+.brand.brand-light .brand-logo-vino-dark{display:block}
+[data-theme="tinta-maiz"] .brand .brand-logo-vino-light,
+[data-theme="tinta-maiz"] .brand .brand-logo-vino-dark{display:none}
 [data-theme="tinta-maiz"] .brand .brand-logo-ink-light{display:block}
-[data-theme="tinta-maiz"] .brand-light .brand-logo-ink-light{display:none}
-[data-theme="tinta-maiz"] .brand-light .brand-logo-ink-dark{display:block}
-@media(max-width:700px){.brand-logo-image{width:120px;max-height:42px}}
+[data-theme="tinta-maiz"] .brand.brand-light .brand-logo-ink-light{display:none}
+[data-theme="tinta-maiz"] .brand.brand-light .brand-logo-ink-dark{display:block}
+.brand .brand-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:700px){.brand .brand-logo-image{width:120px;max-height:42px}}
