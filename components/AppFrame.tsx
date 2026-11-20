@@ -10,7 +10,7 @@ export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employe
 export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; refresh: () => void };
 type Area = "customer" | "business" | "staff" | "admin";
 const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
- customer:[{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<Compass size={18}/>},{href:"/app/notificaciones",label:"Notificaciones",icon:<BellRing size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<UserRound size={18}/>}],
+ customer:[{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<Compass size={18}/>},{href:"/app/ajustes",label:"Ajustes",icon:<Settings2 size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<UserRound size={18}/>}],
  business:[
   {href:"/negocio",label:"Resumen",icon:<LayoutDashboard size={18}/>},
   {href:"/negocio/tarjeta",label:"Mi tarjeta",icon:<CreditCard size={18}/>},
