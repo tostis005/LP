@@ -51,14 +51,14 @@ try{
   let isNew=!r.rowCount;
   if(isNew){
    r=await db.query(
-    "INSERT INTO public.businesses(name,slug,category,accent_color,stamp_icon,stamp_color,card_text,public_listing,active,description) VALUES($1,$2,$3,'#571c32',$4,'#571c32','GRACIAS POR VOLVER',false,true,'') RETURNING id",
+    "INSERT INTO public.businesses(name,slug,category,accent_color,stamp_icon,stamp_color,card_text,public_listing,active,description) VALUES($1,$2,$3,'#571c32',$4,'#571c32','GRACIAS POR VOLVER',true,true,'') RETURNING id",
     [name,internalSlug,category,icon]);
   }
   const id=r.rows[0].id;existing[slug]=id;
   if(isNew){
    createdSlugs.add(slug);
    await db.query("INSERT INTO public.loyalty_programs(business_id,type,reward_label,reward_cost) VALUES($1,$2,$3,$4)",[id,type,reward,cost]);
-   await db.query("INSERT INTO public.business_locations(business_id,name,address,city,country,lat,lng,visible) VALUES($1,$2,$3,'Tijuana','México',$4,$5,false)",
+   await db.query("INSERT INTO public.business_locations(business_id,name,address,city,country,lat,lng,visible) VALUES($1,$2,$3,'Tijuana','México',$4,$5,true)",
     [id,name,"Dirección por configurar",lat,lng]);
   }
   await db.query("INSERT INTO public.business_members(business_id,user_id,role,active) VALUES($1,$2,'owner',true) ON CONFLICT (business_id,user_id) DO NOTHING",[id,ids.BUSINESS]);
