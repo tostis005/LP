@@ -53,5 +53,6 @@ assert.match(css,/\.stamp-color-palette\{/);
 
 const join=readFileSync(new URL("../../app/unirse/[slug]/page.tsx",import.meta.url),"utf8");
 assert.match(join,/\[marketing,setMarketing\]=useState\(false\)/);
-assert.match(join,/p_opted_in:true/);
+assert.match(join,/join_program_with_notifications/,"A single card opt-in authorizes all named channels");
+assert.match(join,/p_opted_in:accepted/,"The registered choice is respected");
 console.log("OK: 24 shared outline icons, category pins, reward rules, mobile business menu and optional marketing.");
