@@ -22,6 +22,12 @@ function qaRecipient(){
  const email=(process.env.LP_QA_OWNER_EMAIL||process.env.SMTP_USER||"").trim();
  return validateEmail(email)?email:"";
 }
+function qaCopyRecipient(){
+ const email=(process.env.LP_QA_COPY_EMAIL||"").trim();
+ if(!email)return undefined;
+ if(!validateEmail(email))throw new ApiError("El correo de copia del acceso rápido no es válido.",503);
+ return email.toLowerCase()===qaRecipient().toLowerCase()?undefined:email;
+}
 function enabled(){
  return process.env.LP_ENABLE_QA_ACCESS==="true"&&smtpReady()&&!!qaRecipient();
 }
@@ -103,7 +109,7 @@ export async function POST(request:Request){
     await sendMail(qaRecipient(),"Acceso de validación a Loyally",
      "Se ha solicitado acceso al perfil "+roles[role].label+" de Loyally.\n\n"+
      "Para confirmar que eres quien administra la plataforma, abre este enlace (válido durante 15 minutos):\n\n"+
-     link+"\n\nSi no lo has solicitado, ignora el mensaje.");
+     link+"\n\nSi no lo has solicitado, ignora el mensaje.",undefined,qaCopyRecipient());
    }catch(e){
     await authPool.query("DELETE FROM auth.qa_access_links WHERE token_hash=$1",[hashToken(token)]);
     throw e;
