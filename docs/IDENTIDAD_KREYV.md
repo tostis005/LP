@@ -31,3 +31,11 @@ Nota: una instalación PWA existente puede necesitar reinstalación o actualizac
 - Los sellos antiguos guardados en base de datos mantienen compatibilidad a través de `resolveStampIcon`; no se altera ninguna tarjeta existente.
 - En el mapa, **estrella rellena** significa que el usuario dispone de tarjeta de ese negocio y **estrella de contorno** que aún no dispone de ella. El estado utiliza `loyalty_memberships`, ya consultado por la página Descubrir; no se calcula por categoría ni por la preferencia del sello.
 - Se añade una leyenda sobre el mapa y el estado de cada negocio en el popup. Cada establecimiento del mismo negocio recibe el mismo estado de posesión.
+
+## Pulido de la home (20 noviembre 2026)
+
+- Portada unificada para español e inglés: bloques visualmente diferenciados (hero crema, sectores blancos, instalación mostaza suave, beneficios blancos, proceso vino oscuro, personalización marfil y CTA independiente).
+- Los iconos de la home se renderizan en SVG relleno y monocolor, con tamaños ópticos y rejilla uniformes, incluida la vista previa de instalación de la PWA.
+- Cafetería: taza rellena revisada. Barbería: bigote y barba inequívocos, sin silueta de cabeza. Floristería: flor en maceta diferenciada del loto de spa.
+- Añadido `floristeria` como ID de categoría y sello, con compatibilidad para tarjetas anteriores `flower`. La migración `270_floristeria_distinct_icon.sql` amplía el listado de iconos permitidos sin modificar registros existentes.
+- Pruebas de regresión específicas en `tests/demo/home-polish.mjs`, además de CI de PostgreSQL, Next.js y Docker.
