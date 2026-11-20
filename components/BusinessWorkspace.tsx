@@ -170,7 +170,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   e.preventDefault();setError("");setNotice("");
   const location=locations[0];
   if(!lat||!lng){setError("Marca la posición de tu local en el mapa.");return}
-  if(!location){setError("Loyally tiene que activar primero la dirección de este establecimiento.");return;}
+  if(!location){setError("Kreyv tiene que activar primero la dirección de este establecimiento.");return;}
   setBusy(true);
   const {error}=await db().from("business_locations").update({
    name:locationName,address,city,country,lat:Number(lat),lng:Number(lng)
@@ -247,7 +247,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
     body:JSON.stringify({campaign_id:draft.id,expected_total_cents:current.total_cents})});
    const value=await resp.json() as {error?:string;sent?:number;failed?:number;remaining?:number};
    if(!resp.ok||value.error)throw Error(value.error||"No se pudo enviar la campaña.");
-   success("Envío procesado: "+(value.sent||0)+" aceptados, "+(value.failed||0)+" fallidos y "+(value.remaining||0)+" pendientes. La actividad queda registrada en Loyally.");
+   success("Envío procesado: "+(value.sent||0)+" aceptados, "+(value.failed||0)+" fallidos y "+(value.remaining||0)+" pendientes. La actividad queda registrada en Kreyv.");
    await reload();
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
@@ -367,7 +367,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
 
      {locations.length?<><strong>{locations[0].name}</strong><p>{locations[0].address}<br/>{locations[0].city}, {locations[0].country}</p></>:
       <div className="info-callout">Este establecimiento todavía no tiene dirección asignada. Nuestro equipo puede activarla.</div>}
-     <div className="business-location-request"><strong>¿Necesitas otro establecimiento?</strong><p>Cada nuevo local se registra por separado en Loyally. Podemos vincular varios al mismo propietario y valorar condiciones especiales para cadenas.</p><Link href="/solicitar-acceso" className="button button-outline">Solicitar otro local <ArrowUpRight size={16}/></Link></div>
+     <div className="business-location-request"><strong>¿Necesitas otro establecimiento?</strong><p>Cada nuevo local se registra por separado en Kreyv. Podemos vincular varios al mismo propietario y valorar condiciones especiales para cadenas.</p><Link href="/solicitar-acceso" className="button button-outline">Solicitar otro local <ArrowUpRight size={16}/></Link></div>
     </section>
     {locations.length>0&&<form className="panel-card" onSubmit={saveLocation}>
      <h2>Editar dirección</h2>

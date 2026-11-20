@@ -1,10 +1,10 @@
-/* Loyally PWA: solo se guarda una página pública sin datos personales. */
-const CACHE="loyally-offline-v1";
+/* Kreyv PWA: solo se guarda una página pública sin datos personales. */
+const CACHE="kreyv-offline-v1";
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.add("/offline")).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",event=>{
- event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("loyally-offline-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+ event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith("loyally-offline-")||k.startsWith("kreyv-offline-"))&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
 self.addEventListener("fetch",event=>{
  if(event.request.method!=="GET"||event.request.mode!=="navigate")return;
@@ -15,12 +15,12 @@ self.addEventListener("fetch",event=>{
 self.addEventListener("push",event=>{
  let data={};
  try{data=event.data?event.data.json():{}}catch{}
- const title=typeof data.title==="string"?data.title.slice(0,180):"Loyally";
+ const title=typeof data.title==="string"?data.title.slice(0,180):"Kreyv";
  const body=typeof data.body==="string"?data.body.slice(0,500):"Tienes novedades de tus negocios favoritos.";
  const url=typeof data.url==="string"&&data.url.startsWith("/")&&!data.url.startsWith("//")?data.url:"/app";
  event.waitUntil(self.registration.showNotification(title,{
   body,icon:"/icon-192.png",badge:"/icon-192.png",
-  tag:typeof data.tag==="string"?data.tag:"loyally",
+  tag:typeof data.tag==="string"?data.tag:"kreyv",
   data:{url}
  }));
 });

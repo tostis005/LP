@@ -61,8 +61,8 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
  async function activate(){
   setBusy(true);setError("");setNotice("");
   try{
-   if(!config.enabled)throw new Error("Loyally todavía no ha activado el servicio push.");
-   if(!supported)throw new Error("Este navegador no admite push. En iPhone, abre Loyally desde el icono de la pantalla de inicio.");
+   if(!config.enabled)throw new Error("Kreyv todavía no ha activado el servicio push.");
+   if(!supported)throw new Error("Este navegador no admite push. En iPhone, abre Kreyv desde el icono de la pantalla de inicio.");
    // Debe solicitarse desde un clic del usuario, especialmente en iPhone.
    const permission=await Notification.requestPermission();
    if(permission!=="granted")throw new Error("Debes permitir las notificaciones en los ajustes del teléfono.");
@@ -110,7 +110,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
     body:JSON.stringify({action:"platform_consent",opted_in:next})
    });
    setPlatformOptedIn(next);showActionToast("Preferencias de notificaciones guardadas.");
-   setNotice(next?"Has aceptado los avisos de Loyally. También debes activar las notificaciones de este dispositivo para recibirlos.":"Has desactivado los avisos de Loyally.");
+   setNotice(next?"Has aceptado los avisos de Kreyv. También debes activar las notificaciones de este dispositivo para recibirlos.":"Has desactivado los avisos de Kreyv.");
   }catch(e){setError((e as Error).message)}
   finally{setBusy(false)}
  }
@@ -130,10 +130,10 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
  return <section className="panel-card" style={{marginTop:22}}>
   <div className="panel-icon"><Bell size={22}/></div>
   <h2>Notificaciones del teléfono</h2>
-  <p className="muted">Recibe ofertas de tus negocios favoritos en este móvil, incluso con Loyally cerrada. El permiso del teléfono y la aceptación de cada negocio son independientes.</p>
+  <p className="muted">Recibe ofertas de tus negocios favoritos en este móvil, incluso con Kreyv cerrada. El permiso del teléfono y la aceptación de cada negocio son independientes.</p>
   {loading?<p className="muted">Comprobando notificaciones...</p>:<>
-   {!config.enabled&&<div className="info-callout"><ShieldCheck size={18}/>El servicio push se activará cuando Loyally configure las claves VAPID y HTTPS.</div>}
-   {config.enabled&&!supported&&<div className="info-callout"><BellOff size={18}/>Necesitas HTTPS y un navegador compatible. En iPhone, instala Loyally en la pantalla de inicio y ábrela desde su icono (iOS 16.4 o posterior).</div>}
+   {!config.enabled&&<div className="info-callout"><ShieldCheck size={18}/>El servicio push se activará cuando Kreyv configure las claves VAPID y HTTPS.</div>}
+   {config.enabled&&!supported&&<div className="info-callout"><BellOff size={18}/>Necesitas HTTPS y un navegador compatible. En iPhone, instala Kreyv en la pantalla de inicio y ábrela desde su icono (iOS 16.4 o posterior).</div>}
    {config.enabled&&supported&&<div className="campaign-compose-actions" style={{marginBottom:14}}>
     <button className="button button-dark button-sm" type="button" disabled={busy}
      onClick={activate}><Bell size={16}/>{deviceActive?"Sincronizar este dispositivo":"Activar push en este dispositivo"}</button>
@@ -142,7 +142,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
    </div>}
    <div className="check-control lp-platform-push-consent">
     <input type="checkbox" id="push-consent-loyally" checked={platformOptedIn} disabled={busy} onChange={togglePlatform}/>
-    <label htmlFor="push-consent-loyally"><strong>Avisos de Loyally: regalos, novedades y nuevos negocios</strong>
+    <label htmlFor="push-consent-loyally"><strong>Avisos de Kreyv: regalos, novedades y nuevos negocios</strong>
      <small>Opcional y separado de cada establecimiento. El servicio de avisos de la plataforma se activará próximamente; cuando esté disponible necesitará el permiso de este dispositivo.</small></label>
    </div>
    {showBusinesses&&items.length>0&&<div className="form-stack">

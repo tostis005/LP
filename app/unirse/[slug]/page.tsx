@@ -22,7 +22,7 @@ export default function JoinPage(){
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
  const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[showMarketingPrompt,setShowMarketingPrompt]=useState(false),[marketingAccepted,setMarketingAccepted]=useState(false);
  useEffect(()=>{let alive=true;async function load(){
-  if(!configured()){setError("No se ha podido conectar con Loyally.");setLoading(false);return}
+  if(!configured()){setError("No se ha podido conectar con Kreyv.");setLoading(false);return}
   const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
   if(!alive)return;
   setSigned(!!u.data.user);
@@ -133,7 +133,7 @@ export default function JoinPage(){
       {hasLocation?locations.map(l=><div className="join-address" key={l.id}><strong>{l.name}</strong><span>{l.address}</span><span>{l.city}, {l.country}</span><a target="_blank" rel="noopener noreferrer" href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(l.lat+","+l.lng)}>Cómo llegar <ArrowUpRight size={14}/></a></div>):<p>Este negocio todavía no ha añadido una dirección pública.</p>}
      </section>
      {hasLocation&&<div className="join-mini-map"><DirectoryMapView locations={locations.map(l=>({...l,businesses:{name:offer.business_name,category,slug:params.slug,accent_color:offer.accent_color,stamp_icon:offer.stamp_icon,stamp_color:offer.stamp_color},offerText:programPromise(offerProgram)}))} center={[locations[0].lat,locations[0].lng]}/></div>}
-     <section className="join-side-card"><Heart size={23}/><h3>Cada visita tiene algo bueno</h3><p>Descubre negocios, elige tus favoritos y lleva todas tus tarjetas en Loyally.</p><Link href="/app/descubrir">Seguir explorando <ArrowUpRight size={15}/></Link></section>
+     <section className="join-side-card"><Heart size={23}/><h3>Cada visita tiene algo bueno</h3><p>Descubre negocios, elige tus favoritos y lleva todas tus tarjetas en Kreyv.</p><Link href="/app/descubrir">Seguir explorando <ArrowUpRight size={15}/></Link></section>
     </aside>
    </main>
   }
