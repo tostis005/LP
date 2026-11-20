@@ -50,6 +50,10 @@ jobs:
         run: node tests/demo/customer-resilience.mjs
       - name: Validar app simplificada, confirmaciones y tres canales de avisos
         run: node tests/demo/simplified-business-app.mjs
+      - name: Validar inscripción con único permiso y ajustes individuales por tarjeta
+        run: node tests/demo/customer-notification-settings.mjs
+      - name: Comprobar navegación del cliente hacia sus ajustes
+        run: node tests/demo/push-navigation.mjs
       - name: Comprobar TypeScript
         run: npm run typecheck
       - name: Construir Next.js
@@ -173,3 +177,4 @@ jobs:
           node tests/native/real-production.mjs
           node tests/native/product-polish.mjs
           node tests/native/customer-home.mjs
+          node tests/native/customer-channel-consent.mjs
