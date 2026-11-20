@@ -26,6 +26,8 @@ jobs:
         run: node tests/demo/discovery-ux.mjs
       - name: Verificar galería rellena Kreyv y estrellas por tarjeta en el mapa
         run: node tests/demo/kreyv-filled-icons-map.mjs
+      - name: Revisar home Kreyv, iconos de categorías, contraste y móvil
+        run: node tests/demo/home-polish.mjs
       - name: Textos bilingües y colección visual
         run: node tests/demo/landing.mjs
       - name: Verificar generación segura de claves Web Push
