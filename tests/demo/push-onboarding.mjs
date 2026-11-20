@@ -9,7 +9,8 @@ assert.match(onboard,/Notification\.requestPermission\(\)/,"El sistema solicita 
 assert.match(onboard,/onClick=\{activate\}/,"El sistema solicita permiso a partir de un clic explícito");
 assert.match(onboard,/localStorage\.setItem\(storageKey/,"No volver a mostrar aviso al descartarlo");
 assert.match(onboard,/action:"subscribe"/,"El dispositivo queda registrado");
-assert.match(onboard,/action:"consent"/,"El consentimiento de negocio es independiente");
+assert.doesNotMatch(onboard,/action:"consent"/,"La solicitud del teléfono no altera las preferencias de ningún negocio");
+assert.match(read("components/CustomerNotificationSettings.tsx"),/action:"consent"/,"Los consentimientos por negocio se gestionan en Ajustes");
 assert.match(join,/checked=\{marketing\}/,"Una única casilla expresa consentimiento a email, WhatsApp y push");
 assert.match(join,/join_program_with_notifications/,"La aceptación se guarda conjuntamente con la tarjeta");
 assert.match(read("db/migrations/250_unified_customer_marketing_opt_in.sql"),/push_opted_in=true/,"La aprobación también habilita push");
