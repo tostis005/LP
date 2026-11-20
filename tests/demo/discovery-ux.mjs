@@ -17,7 +17,7 @@ assert.equal(icons.STAMP_OPTIONS.length,25,"Every approved business-category ico
 for(const option of icons.STAMP_OPTIONS){
  assert.ok(filled.KREYV_FILLED_PATHS[option.id],option.id+" has no approved filled path");
  const svg=icons.stampMarkup(option.id,28);
- assert.match(svg,/width="28" height="28" viewBox="0 0 64 64"/);
+ assert.match(svg,/width="28" height="28" viewBox="[^"]+"/);
  assert.match(svg,/fill="currentColor"/);
  assert.match(svg,/fill-rule="evenodd"/);
  assert.doesNotMatch(svg,/stroke-width="3\.5"/);

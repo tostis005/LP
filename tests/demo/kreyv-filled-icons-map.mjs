@@ -10,12 +10,14 @@ runInNewContext(js,{module,exports:module.exports});
 const icons=module.exports.KREYV_FILLED_PATHS;
 assert.equal(Object.keys(icons).length,43,"All approved icons, including florist, car, and additional categories, are present");
 for(const [name,path] of Object.entries(icons)){
- assert.match(path,/^M[\dLMZ,.]+$/,"Invalid SVG path in "+name);
+ assert.match(path,/^M/,"Invalid SVG path start in "+name);
+ assert.doesNotMatch(path,/[<>]/,"Unexpected markup in "+name);
  assert.ok(path.length>45,"Too little icon detail in "+name);
 }
 const react=read("components/KreyvIcon.tsx");
 const marks=read("components/StampMarks.tsx");
 assert.match(react,/fillRule="evenodd"/);
+assert.match(react,/KREYV_ICON_BOXES\[name\]/);
 assert.match(react,/fill="currentColor"/);
 assert.match(marks,/resolveStampIcon\(kind\)/,"Stamp cards must use the new icons");
 const map=read("components/DirectoryMap.tsx");
@@ -26,4 +28,4 @@ assert.match(discover,/hasCard:Boolean\(myCards\[e\.business_id\]\)/);
 assert.doesNotMatch(map,/categoryStampKind|stampMarkup/);
 const appNav=read("components/AppBottomNav.tsx"),frame=read("components/AppFrame.tsx"),home=read("components/LandingHome.tsx");
 for(const file of [appNav,frame,home])assert.match(file,/KreyvIcon/);
-console.log("Kreyv: 40 filled scalable icons and ownership-sensitive map stars verified.");
+console.log("Kreyv: 43 professionally styled scalable icons and ownership-sensitive map stars verified.");

@@ -75,7 +75,7 @@ export function InstallGuide({lang="es"}:{lang?:LandingLanguage}){
     <p className="loi-install-note">{t.helper}</p>
    </div>
    <div className="loi-install-card loi-install-app-preview">
-    <div className="loi-install-app-top"><span className="loi-install-app-icon"><img src="/icon.svg" alt=""/></span><strong>Kreyv</strong><span className="loi-install-app-love"><KreyvIcon name="recompensa" size={24}/></span></div>
+    <div className="loi-install-app-top"><span className="loi-install-app-icon"><img src="/kreyv-mark-v3.svg" alt=""/></span><strong>Kreyv</strong><span className="loi-install-app-love"><KreyvIcon name="recompensa" size={24}/></span></div>
     <span className="loi-install-app-caption">{t.phoneLabel}</span>
     <div className="loi-install-app-reward">
      <div className="loi-install-app-reward-head"><strong>Café Noma</strong><KreyvIcon name="premios" size={22}/></div>

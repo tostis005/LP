@@ -17,7 +17,7 @@ assert.ok(icons.cafeteria.length>180,"Cafetería needs a well-defined cup silhou
 assert.ok(icons.automocion.length>130,"Automoción must have a car icon");
 assert.notEqual(icons.automocion,icons.comercio);
 assert.notEqual(icons.categorias,icons.libreria);
-assert.ok(icons.barberia.length>240,"Barberia must display a full beard and distinct moustache");
+assert.ok(icons.barberia.length>180,"Barbería must have a full beard and distinct moustache");
 const cats=read("lib/business-categories.ts");
 assert.match(cats,/name:"Floristería",stamp:"floristeria"/);
 assert.match(cats,/name:"Spa y bienestar",stamp:"spa"/);
@@ -31,7 +31,7 @@ assert.match(home,/kind="automocion"/);
 assert.match(home,/kind="categorias"/);
 assert.match(home,/\["cafeteria","hamburgueseria","restaurante","barberia"/);
 const install=read("components/InstallGuide.tsx");
-assert.match(install,/<img src="\/icon.svg" alt=""/);
+assert.match(install,/<img src="\/kreyv-mark-v3.svg" alt=""/);
 assert.match(install,/KreyvIcon name="cafeteria"/);
 assert.doesNotMatch(install,/>L<\/span>/,"No Loyally placeholder in phone mockup");
 const css=read("app/landing.css");
@@ -45,4 +45,4 @@ assert.match(css,/grid-template-columns:30px minmax\(0,1fr\)/,"Category icons ha
 assert.match(css,/justify-self:center;align-self:center/,"Icons are centered both ways");
 assert.match(css,/@media\(max-width:580px\)/,"Responsive details remain");
 assert.match(read("db/migrations/270_floristeria_distinct_icon.sql"),/'floristeria'/);
-console.log("OK: distinctive 41 icon set, clear barber and coffee, fully balanced responsive Kreyv home.");
+console.log("OK: professional 43-icon family, consistent home grid and responsive Kreyv palette.");

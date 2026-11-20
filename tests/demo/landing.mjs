@@ -76,4 +76,4 @@ assert.match(manifest,/start_url:"\/mi-loyally"/,"The installed icon opens the c
 assert.match(manifest,/display:"standalone"/,"The app has a standalone window");
 assert.doesNotMatch(rootLayout,/<InstallLoyally\/>/,"Remove the old floating install widget");
 
-console.log("Commercial landing: ES/EN copy parity, filled 24-category icon collection and logo verified.");
+console.log("Commercial landing: ES/EN copy parity, filled business icon collection and Kreyv mark verified.");
