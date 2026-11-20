@@ -46,7 +46,7 @@ const landingUi=readFileSync(new URL("../../components/LandingHome.tsx",import.m
 assert.match(landingCss,/--loi-dark:var\(--color-brand-900\)/,"The landing uses the wine-and-black brand tokens");
 assert.match(landingCss,/\.loi-site \.loi-hero\{background:radial-gradient/,"The hero gradient uses the new palette");
 assert.match(landingCss,/\.loi-site \.loi-final-card\{background:linear-gradient\(120deg,var\(--color-brand\)/);
-assert.match(landingCss,/\.loi-public-header\{background:rgba\(252,248,250/);
+assert.match(landingCss,/\.loi-public-header\{background:color-mix/);
 assert.doesNotMatch(landingCss,/#214936|#2d6449|#1e4031|#23503b/i,"Old green brand palette still visible");
 assert.match(landingUi,/name="Tu cafetería" color="#5E1A2B"/,"The mock customer card also uses the new palette");
 
