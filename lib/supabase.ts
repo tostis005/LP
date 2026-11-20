@@ -5,7 +5,7 @@
 export type User={id:string;email?:string;user_metadata?:{full_name?:string;whatsapp?:string}};
 import {showActionToast} from "@/lib/action-toast";
 const mutatingRpcs=new Set([
- "invite_staff","set_staff_active","join_program","staff_redeem_voucher_choice","staff_redeem_card_choice",
+ "invite_staff","set_staff_active","join_program","join_program_with_notifications","staff_redeem_voucher_choice","staff_redeem_card_choice",
  "staff_redeem_voucher","staff_award_card","staff_redeem_card","business_upsert_consent",
  "business_upsert_whatsapp_consent","platform_upsert_consent","admin_create_business",
  "admin_provision_business","admin_set_business_location","admin_set_business_contract","admin_set_business_currency",

@@ -18,7 +18,7 @@ async function jsonRequest(path:string,init?:RequestInit){
  return data;
 }
 
-export function PushPreferences(){
+export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}={}){
  const [config,setConfig]=useState<Config>({enabled:false,publicKey:""});
  const [items,setItems]=useState<Preference[]>([]),[platformOptedIn,setPlatformOptedIn]=useState(false);
  const [supported,setSupported]=useState(false),[deviceActive,setDeviceActive]=useState(false);
@@ -80,7 +80,7 @@ export function PushPreferences(){
     body:JSON.stringify({action:"subscribe",endpoint:sub.endpoint,keys:data.keys})
    });
    setDeviceActive(true);
-   setNotice("Dispositivo registrado. Ahora elige de qué negocios quieres recibir promociones.");showActionToast("Notificaciones activadas en este móvil.");
+   setNotice("Dispositivo registrado. Gestiona los negocios desde los ajustes de tus tarjetas.");showActionToast("Notificaciones activadas en este móvil.");
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
  }
@@ -129,7 +129,7 @@ export function PushPreferences(){
  }
  return <section className="panel-card" style={{marginTop:22}}>
   <div className="panel-icon"><Bell size={22}/></div>
-  <h2>Notificaciones push</h2>
+  <h2>Notificaciones del teléfono</h2>
   <p className="muted">Recibe ofertas de tus negocios favoritos en este móvil, incluso con Loyally cerrada. El permiso del teléfono y la aceptación de cada negocio son independientes.</p>
   {loading?<p className="muted">Comprobando notificaciones...</p>:<>
    {!config.enabled&&<div className="info-callout"><ShieldCheck size={18}/>El servicio push se activará cuando Loyally configure las claves VAPID y HTTPS.</div>}
@@ -145,14 +145,14 @@ export function PushPreferences(){
     <label htmlFor="push-consent-loyally"><strong>Avisos de Loyally: regalos, novedades y nuevos negocios</strong>
      <small>Opcional y separado de cada establecimiento. El servicio de avisos de la plataforma se activará próximamente; cuando esté disponible necesitará el permiso de este dispositivo.</small></label>
    </div>
-   {items.length>0&&<div className="form-stack">
+   {showBusinesses&&items.length>0&&<div className="form-stack">
     {items.map(item=><div key={item.business_id} className="check-control">
      <input type="checkbox" id={"push-consent-"+item.business_id} checked={item.opted_in}
       disabled={busy||!deviceActive||!config.enabled} onChange={()=>toggle(item)}/>
      <label htmlFor={"push-consent-"+item.business_id}><strong>{item.business_name}</strong><small>{item.opted_in?"Has aceptado sus notificaciones comerciales.":"No recibirás campañas push de este negocio."}</small></label>
     </div>)}
    </div>}
-   {!items.length&&<p className="muted">Cuando te unas a un negocio y guardes su tarjeta, podrás activar aquí sus notificaciones.</p>}
+   {showBusinesses&&!items.length&&<p className="muted">Cuando te unas a un negocio y guardes su tarjeta, podrás activar aquí sus notificaciones.</p>}
   </>}
   {error&&<div className="alert error" role="alert">{error}</div>}
   {notice&&<div className="alert success" role="status"><CheckCircle2 size={17}/>{notice}</div>}
