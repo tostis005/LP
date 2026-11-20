@@ -15,16 +15,18 @@ import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/BusinessAnalytics";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
-type Tab="overview"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
+type Tab="overview"|"card"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
+type CardArea="design"|"rules"|"rewards";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Resumen",icon:<BarChart3 size={17}/>},
+ {id:"card",label:"Mi tarjeta",icon:<CreditCard size={17}/>},
  {id:"settings",label:"Negocio",icon:<Store size={17}/>},
  {id:"designer",label:"Diseñar mi tarjeta",icon:<Brush size={17}/>},
  {id:"program",label:"Premios y sellos",icon:<Gift size={17}/>},
  {id:"team",label:"Empleados",icon:<Users size={17}/>},
  {id:"customers",label:"Clientes",icon:<CreditCard size={17}/>},
  {id:"locations",label:"Ubicaciones",icon:<MapPin size={17}/>},
- {id:"reports",label:"Resultados",icon:<Activity size={17}/>},
+ {id:"reports",label:"Indicadores",icon:<Activity size={17}/>},
  {id:"marketing",label:"Mensajes y ofertas",icon:<Mail size={17}/>}
 ];
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
@@ -48,8 +50,14 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const manageable=account.businesses.filter(b=>b.role!=="employee");
  const [selected,setSelected]=useState(manageable[0]?.business_id||"");
  const section=pathname.split("/")[2];
- const tab:Tab=tabs.find(t=>t.id===section)?.id||"overview";
- function openSection(next:Tab){router.push(next==="overview"?"/negocio":"/negocio/"+next);setError("");setNotice("");}
+ const tab:Tab=section==="designer"||section==="program"?"card":tabs.find(t=>t.id===section)?.id||"overview";
+ const [cardArea,setCardArea]=useState<CardArea>(section==="program"?"rules":"design");
+ function openSection(next:Tab){
+  if(next==="designer"||next==="program"||next==="card"){
+   setCardArea(next==="program"?"rules":"design");router.push("/negocio/tarjeta");
+  }else router.push(next==="overview"?"/negocio":"/negocio/"+next);
+  setError("");setNotice("");
+ }
  useEffect(()=>{try{const stored=window.sessionStorage.getItem("loyally_selected_business");if(stored&&manageable.some(b=>b.business_id===stored))setSelected(stored);}catch{}},[account.user.id]);
  const [biz,setBiz]=useState<Business|null>(null),[prog,setProg]=useState<Program|null>(null),[customers,setCustomers]=useState<Customer[]>([]),[staff,setStaff]=useState<Employee[]>([]),[invites,setInvites]=useState<{id:string;email:string;role:string;created_at:string}[]>([]),[locations,setLocations]=useState<Location[]>([]),[transactions,setTransactions]=useState<Tx[]>([]),[drafts,setDrafts]=useState<Draft[]>([]);
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
@@ -127,14 +135,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
   }).eq("id",selected);
   if(visualError){setBusy(false);setError(visualError.message);return}
-  const programChanges:Record<string,unknown>={reward_label:prog.reward_label};
-  if(prog.type==="stamps"){
-   programChanges.reward_cost=Math.min(30,Math.max(2,Number(prog.reward_cost)||8));
-   programChanges.max_stamps_per_action=Math.min(100,Math.max(1,Number(prog.max_stamps_per_action)||1));
-  }
-  const {error:programError}=await db().from("loyalty_programs").update(programChanges).eq("business_id",selected);
-  if(programError){setBusy(false);setError("El diseño se guardó, pero no se actualizó el programa: "+programError.message);return}
-  setBusy(false);success("Tarjeta y configuración guardadas. Los clientes verán el diseño actualizado.");await reload();
+  setBusy(false);success("Diseño de tarjeta guardado.");await reload();
  }
  async function reverseTransaction(transaction:Tx){
   if(transaction.kind==="reversal" || transactions.some(t=>t.reversal_of===transaction.id))return;
@@ -265,18 +266,23 @@ export default function BusinessWorkspace({account}:{account:Account}){
     <div className="workspace-section-body">
    {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success"><Check size={17}/>{notice}</div>}
    {loading&&!biz?<div className="soft-panel">Cargando negocio...</div>:biz&&prog&&<>
-   {tab==="overview"&&<><BusinessAnalytics metrics={metrics} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length}/>
-    <div className="demo-two-cols"><section className="panel-card"><h2>Últimos movimientos</h2><p className="muted">Cada visita es una oportunidad para fidelizar.</p>{transactions.slice(0,6).map(t=><div className="activity-row" key={t.id}><div className={"activity-icon "+(t.kind==="earn"?"positive":"negative")}>{t.kind==="earn"?<Plus size={18}/>:<Gift size={18}/>}</div><div><strong>{t.kind==="earn"?"Compra verificada":"Recompensa canjeada"}</strong><span>{dateShort(t.created_at)} {t.ticket_ref?"· Ticket "+t.ticket_ref:""}</span></div><b className={t.amount_delta>0?"positive-text":"negative-text"}>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></div>)}{transactions.length===0&&<p className="muted">Todavía no se han registrado movimientos.</p>}</section>
-    <section className="panel-card overview-card"><div className="panel-icon"><Gift size={23}/></div><h2>Tu programa en una mirada</h2><div className="overview-stat"><span>Modalidad</span><strong>{programType==="stamps"?"Sellos":programType==="points"?"Puntos":"Saldo a favor"}</strong></div><div className="overview-stat"><span>Recompensa</span><strong>{prog.reward_label}</strong></div><div className="overview-stat"><span>Clientes que reciben promociones</span><strong>{canvassed}</strong></div><a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Ver la tarjeta como cliente <ArrowUpRight size={16}/></a><Link href="/negocio/facturacion" className="button button-outline button-full">Facturación y suscripción <CreditCard size={16}/></Link><button className="button button-outline button-full" onClick={()=>openSection("program")}>Configurar programa <ArrowUpRight size={16}/></button></section></div>
-   </>}
-   {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido por tu categoría. Puedes elegir otro para el mapa y las tarjetas desde «Diseño de tarjeta».</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form><section className="panel-card"><h2>Tu identidad de marca</h2><p className="muted">Sube un logo para personalizar la tarjeta y la ficha de tu negocio.</p><div className="upload-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logo del negocio"/>:<div className="upload-logo" style={{background:biz.accent_color}}>{initials(biz.name)}</div>}</div><label className="file-input"><ImagePlus size={18}/> Subir logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label><div className="info-callout"><ShieldCheck size={18}/> Puedes usar una imagen de hasta 5 MB. Tu logotipo se mostrará a quienes descubran el negocio y guarden su tarjeta.</div></section></div>}
+   {tab==="card"&&<nav className="business-card-tabs" aria-label="Configurar mi tarjeta">
+    <button type="button" className={cardArea==="design"?"active":""} aria-pressed={cardArea==="design"} onClick={()=>setCardArea("design")}><Brush size={16}/> Diseño</button>
+    <button type="button" className={cardArea==="rules"?"active":""} aria-pressed={cardArea==="rules"} onClick={()=>setCardArea("rules")}><Ticket size={16}/> Sellos, puntos y reglas</button>
+    <button type="button" className={cardArea==="rewards"?"active":""} aria-pressed={cardArea==="rewards"} onClick={()=>setCardArea("rewards")}><Gift size={16}/> Premios</button>
+   </nav>}
 
-   {tab==="designer"&&<div className="designer-grid lp-new-designer">
+   {tab==="overview"&&<><div className="kpi-grid three"><KPI icon={<Users size={20}/>} theme="purple" title="Clientes" value={customers.length} helper="Tarjetas inscritas"/><KPI icon={<Activity size={20}/>} theme="green" title="Visitas" value={Number(metrics.find(m=>m.metric==="visits")?.current_value||0)} helper="Últimos "+periodDays+" días"/><KPI icon={<Gift size={20}/>} theme="peach" title="Premios canjeados" value={Number(metrics.find(m=>m.metric==="redemptions")?.current_value||0)} helper="Últimos "+periodDays+" días"/></div>
+    <div className="demo-two-cols"><section className="panel-card"><h2>Últimos movimientos</h2><p className="muted">Cada visita es una oportunidad para fidelizar.</p>{transactions.slice(0,6).map(t=><div className="activity-row" key={t.id}><div className={"activity-icon "+(t.kind==="earn"?"positive":"negative")}>{t.kind==="earn"?<Plus size={18}/>:<Gift size={18}/>}</div><div><strong>{t.kind==="earn"?"Compra verificada":"Recompensa canjeada"}</strong><span>{dateShort(t.created_at)} {t.ticket_ref?"· Ticket "+t.ticket_ref:""}</span></div><b className={t.amount_delta>0?"positive-text":"negative-text"}>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></div>)}{transactions.length===0&&<p className="muted">Todavía no se han registrado movimientos.</p>}</section>
+    <section className="panel-card overview-card"><div className="panel-icon"><Gift size={23}/></div><h2>Tu programa en una mirada</h2><div className="overview-stat"><span>Modalidad</span><strong>{programType==="stamps"?"Sellos":programType==="points"?"Puntos":"Saldo a favor"}</strong></div><div className="overview-stat"><span>Recompensa</span><strong>{prog.reward_label}</strong></div><div className="overview-stat"><span>Clientes que reciben promociones</span><strong>{canvassed}</strong></div><a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Ver la tarjeta como cliente <ArrowUpRight size={16}/></a><button className="button button-outline button-full" onClick={()=>openSection("card")}>Configurar mi tarjeta <ArrowUpRight size={16}/></button><Link href="/negocio/customers" className="button button-outline button-full">Ver mis clientes <Users size={16}/></Link></section></div>
+   </>}
+   {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido por tu categoría. Puedes elegir otro para el mapa y las tarjetas desde «Mi tarjeta».</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form><section className="panel-card"><h2>Tu identidad de marca</h2><p className="muted">Sube un logo para personalizar la tarjeta y la ficha de tu negocio.</p><div className="upload-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logo del negocio"/>:<div className="upload-logo" style={{background:biz.accent_color}}>{initials(biz.name)}</div>}</div><label className="file-input"><ImagePlus size={18}/> Subir logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label><div className="info-callout"><ShieldCheck size={18}/> Puedes usar una imagen de hasta 5 MB. Tu logotipo se mostrará a quienes descubran el negocio y guarden su tarjeta.</div></section></div>}
+
+   {tab==="card"&&cardArea==="design"&&<div className="designer-grid lp-new-designer">
     <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseña tu tarjeta</h2><p className="muted">Personaliza los sellos y sus colores. Tus clientes verán los cambios en sus tarjetas.</p>
      <div className="form-stack">
       <label>Mensaje en la tarjeta<input value={biz.card_text||""} maxLength={60} placeholder="GRACIAS POR VOLVER" onChange={e=>setBiz({...biz,card_text:e.target.value})}/></label>
-      <label>Nombre de la recompensa<input value={prog.reward_label} maxLength={150} onChange={e=>setProg({...prog,reward_label:e.target.value})}/></label>
-      {prog.type==="stamps"&&<div className="form-two"><label>Sellos necesarios<input type="number" min={2} max={30} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Math.min(30,Math.max(2,Number(e.target.value)||2))})}/></label><label>Máximo por compra<input type="number" min={1} max={100} value={prog.max_stamps_per_action} onChange={e=>setProg({...prog,max_stamps_per_action:Math.min(100,Math.max(1,Number(e.target.value)||1))})}/></label></div>}
+
       <label className="color-input-label">Fondo de la tarjeta <span><input aria-label="Elegir color de fondo" type="color" value={biz.accent_color} onChange={e=>setBiz({...biz,accent_color:e.target.value})}/><code>{biz.accent_color}</code></span></label>
       <div className="preset-palette">{COLOR_PRESETS.map(color=><button type="button" title={color} aria-label={"Elegir color "+color} onClick={()=>setBiz({...biz,accent_color:color})} style={{background:color}} key={color}/>)}</div>
       <label className="color-input-label">Color de las letras <span><input aria-label="Elegir color de las letras" type="color" value={biz.card_text_color||"#ffffff"} onChange={e=>setBiz({...biz,card_text_color:e.target.value})}/><code>{biz.card_text_color||"#ffffff"}</code></span></label>
@@ -299,7 +305,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
        <small className="muted">Elige uno de nuestros dibujos o, si lo prefieres, sube tu propia imagen. Todos tus clientes verán el sello que hayas elegido.</small>
       </>}
       <label className="file-input"><ImagePlus size={18}/> Subir imagen de fondo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"card_background")}/></label>{biz.card_background&&<button type="button" className="role-demo-textbutton" onClick={()=>saveBusiness({card_background:null})}>Quitar imagen de fondo</button>}
-      <button className="button button-dark button-full" disabled={busy} type="button" onClick={saveDesigner}>{busy?"Guardando...":"Guardar diseño y sellos"} <Check size={17}/></button>
+      <button className="button button-dark button-full" disabled={busy} type="button" onClick={saveDesigner}>{busy?"Guardando...":"Guardar diseño"} <Check size={17}/></button>
      </div>
     </section>
     <section className="panel-card designer-preview-wrap lp-designer-live">
@@ -310,7 +316,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
      <a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Previsualizar mi tarjeta <ArrowUpRight size={17}/></a>
     </section>
    </div>}
-   {tab==="program"&&<form className="panel-card program-form" onSubmit={saveProgram}><div className="panel-icon"><Gift size={22}/></div><h2>Tu programa de fidelización</h2><p className="muted">Elige cómo recompensar. Para evitar confusiones, configura la modalidad antes de que haya clientes inscritos.</p><div className="program-type-grid">{([{id:"stamps",label:"Sellos",desc:"Cada compra suma sellos",icon:<Ticket/>},{id:"points",label:"Puntos",desc:"Puntos por importe gastado",icon:<StarIcon/>},{id:"cashback",label:"Saldo a favor",desc:"Recupera parte de tus compras",icon:<Wallet/>}] as const).map(x=><button type="button" key={x.id} className={"program-type"+(prog.type===x.id?" selected":"")} disabled={customers.length>0&&prog.type!==x.id} onClick={()=>setProg({...prog,type:x.id})}><span>{x.icon}</span><strong>{x.label}</strong><small>{x.desc}</small></button>)}</div><div className="form-stack">
+   {tab==="card"&&cardArea==="rules"&&<form className="panel-card program-form" onSubmit={saveProgram}><div className="panel-icon"><Gift size={22}/></div><h2>Tu programa de fidelización</h2><p className="muted">Elige cómo recompensar. Para evitar confusiones, configura la modalidad antes de que haya clientes inscritos.</p><div className="program-type-grid">{([{id:"stamps",label:"Sellos",desc:"Cada compra suma sellos",icon:<Ticket/>},{id:"points",label:"Puntos",desc:"Puntos por importe gastado",icon:<StarIcon/>},{id:"cashback",label:"Saldo a favor",desc:"Recupera parte de tus compras",icon:<Wallet/>}] as const).map(x=><button type="button" key={x.id} className={"program-type"+(prog.type===x.id?" selected":"")} disabled={customers.length>0&&prog.type!==x.id} onClick={()=>setProg({...prog,type:x.id})}><span>{x.icon}</span><strong>{x.label}</strong><small>{x.desc}</small></button>)}</div><div className="form-stack">
    <label>Nombre de la recompensa<input value={prog.reward_label} required onChange={e=>setProg({...prog,reward_label:e.target.value})} placeholder="Café gratis"/></label>
    {prog.type==="stamps"&&<div className="form-two"><label>Sellos necesarios para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label><label>Máx. sellos por operación<input type="number" min={1} max={100} value={prog.max_stamps_per_action} onChange={e=>setProg({...prog,max_stamps_per_action:Number(e.target.value)})}/></label></div>}
    {prog.type==="points"&&<div className="form-two"><label>Puntos por cada unidad monetaria ({currency})<input type="number" min={0.01} max={100} step=".01" value={prog.points_per_euro} onChange={e=>setProg({...prog,points_per_euro:Number(e.target.value)})}/></label><label>Puntos para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label></div>}
@@ -320,7 +326,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    <div className="check-control"><input id="require-ticket" type="checkbox" checked={prog.require_ticket_reference} onChange={e=>setProg({...prog,require_ticket_reference:e.target.checked})}/><label htmlFor="require-ticket"><strong>Exigir referencia de ticket</strong><small>Evita reutilizar el mismo identificador de venta dentro del negocio.</small></label></div></div>
    <div className="info-callout"><ShieldCheck size={18}/> Cada visita queda registrada con la fecha y el empleado que la atendió, para que puedas consultar el historial y corregir errores.</div>
    <button disabled={busy} className="button button-dark">Guardar programa <Check size={17}/></button></div></form>}
-    {tab==="program"&&<RewardCatalog businessId={selected} options={rewardOptions} onSaved={reload}/>}
+    {tab==="card"&&cardArea==="rewards"&&<RewardCatalog businessId={selected} options={rewardOptions} onSaved={reload}/>}
    {tab==="team"&&<div className="team-section">
     {teamView==="list"?<>
      <div className="campaign-page-header team-page-header"><div><span className="page-eyebrow">PERSONAL DEL NEGOCIO</span><h2>Empleados y accesos</h2>
@@ -389,7 +395,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
         <td>{t.kind==="earn"?"Compra":t.kind==="redeem"?"Canje":"Corrección"}{reversed?" · Revertida":""}</td>
         <td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td>
         <td>{t.ticket_ref||"—"}</td>
-        <td>{t.purchase_cents==null?"—":(t.purchase_cents/100).toFixed(2)+" €"}</td>
+        <td>{t.purchase_cents==null?"—":new Intl.NumberFormat("es-MX",{style:"currency",currency}).format(t.purchase_cents/100)}</td>
         <td>{actor?.full_name||actor?.email||"—"}</td>
         <td>{t.kind!=="reversal"&&!reversed?
          <button type="button" disabled={busy||new Date(t.created_at).getTime()<Date.now()-72*60*60*1000} className="inline-table-button" onClick={()=>reverseTransaction(t)}>Revertir</button>:
