@@ -32,6 +32,8 @@ jobs:
         run: node tests/demo/discovery-ux.mjs
       - name: Verificar textos comerciales ES/EN, iconos y logotipo
         run: node tests/demo/landing.mjs
+      - name: Verificar la marca Kreyv y sus dos paletas
+        run: node tests/demo/brand-kreyv.mjs
       - name: Verificar paleta vinotinto y colores configurables
         run: node tests/demo/theme.mjs
       - name: Verificar experiencia final por rol, iconos, campañas y Wallet

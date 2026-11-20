@@ -43,9 +43,9 @@ assert.doesNotMatch(brand,/<span>\.<\/span>/);
 
 const landingCss=readFileSync(new URL("../../app/landing.css",import.meta.url),"utf8");
 const landingUi=readFileSync(new URL("../../components/LandingHome.tsx",import.meta.url),"utf8");
-assert.match(landingCss,/--loi-dark:#27131e/,"The landing uses the wine-and-black brand tokens");
+assert.match(landingCss,/--loi-dark:var\(--color-brand-900\)/,"The landing uses the wine-and-black brand tokens");
 assert.match(landingCss,/\.loi-site \.loi-hero\{background:radial-gradient/,"The hero gradient uses the new palette");
-assert.match(landingCss,/\.loi-site \.loi-final-card\{background:linear-gradient\(120deg,#571c32/);
+assert.match(landingCss,/\.loi-site \.loi-final-card\{background:linear-gradient\(120deg,var\(--color-brand\)/);
 assert.match(landingCss,/\.loi-public-header\{background:rgba\(252,248,250/);
 assert.doesNotMatch(landingCss,/#214936|#2d6449|#1e4031|#23503b/i,"Old green brand palette still visible");
 assert.match(landingUi,/name="Tu cafetería" color="#571c32"/,"The mock customer card also uses the new palette");
@@ -58,7 +58,7 @@ const appEntry=readFileSync(new URL("../../app/mi-loyally/page.tsx",import.meta.
 const manifest=readFileSync(new URL("../../app/manifest.ts",import.meta.url),"utf8");
 const rootLayout=readFileSync(new URL("../../app/layout.tsx",import.meta.url),"utf8");
 
-assert.match(landingUi,/Loyally en mi móvil/,"Consumer-friendly action in the landing");
+assert.match(landingUi,/Kreyv en mi móvil/,"Consumer-friendly action in the landing");
 assert.match(landingUi,/<InstallGuide lang=\{lang\}\/>/,"The install section stays on the landing");
 assert.match(headerUi,/"La app"/,"The top navigation links to the app");
 assert.match(installUi,/Tus próximos premios/,"The install section is customer-focused");
