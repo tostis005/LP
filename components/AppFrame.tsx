@@ -13,15 +13,10 @@ const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
  customer:[{href:"/app",label:"Mis tarjetas",icon:<CreditCard size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<Compass size={18}/>},{href:"/app/notificaciones",label:"Notificaciones",icon:<BellRing size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<UserRound size={18}/>}],
  business:[
   {href:"/negocio",label:"Resumen",icon:<LayoutDashboard size={18}/>},
-  {href:"/negocio/customers",label:"Clientes",icon:<Users size={18}/>},
-  {href:"/negocio/marketing",label:"Campañas",icon:<Mail size={18}/>},
-  {href:"/negocio/reports",label:"Resultados",icon:<BarChart3 size={18}/>},
+  {href:"/negocio/tarjeta",label:"Mi tarjeta",icon:<CreditCard size={18}/>},
   {href:"/negocio/team",label:"Empleados",icon:<Users size={18}/>},
-  {href:"/negocio/designer",label:"Diseño de tarjeta",icon:<Brush size={18}/>},
-  {href:"/negocio/program",label:"Premios y sellos",icon:<Gift size={18}/>},
-  {href:"/negocio/locations",label:"Dirección",icon:<MapPin size={18}/>},
-  {href:"/negocio/settings",label:"Datos del negocio",icon:<Settings2 size={18}/>},
-  {href:"/negocio/facturacion",label:"Facturación",icon:<CreditCard size={18}/>}
+  {href:"/negocio/marketing",label:"Campañas",icon:<Mail size={18}/>},
+  {href:"/negocio/reports",label:"Indicadores",icon:<BarChart3 size={18}/>}
  ],
  staff:[{href:"/empleado",label:"Escanear tarjetas",icon:<ScanLine size={18}/>}],
  admin:[{href:"/admin",label:"Administración",icon:<Shield size={18}/>}]
@@ -57,16 +52,22 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
  return <div className={"workspace workspace-"+area}>
   <aside className="sidebar"><div className="sidebar-brand"><Brand/></div><div className="sidebar-caption">NAVEGACIÓN</div><nav className="side-links" aria-label="Menú principal">
-   {menus[area].filter(i=>!(area==="business"&&i.href==="/negocio/facturacion"&&!roles.some(r=>r.role==="owner"))).map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
+   {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
   </nav><div className="sidebar-spacer"/><button type="button" className="side-logout" onClick={logout}><LogOut size={17}/> Cerrar sesión</button>
   </aside>
-  <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> Loyally / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user"><span>{user.user_metadata?.full_name||({business:"Mi negocio",staff:"Personal",admin:"Administración",customer:"Mi cuenta"}[area])}</span><div className="user-avatar">{(user.user_metadata?.full_name||"L").slice(0,1).toUpperCase()}</div><button type="button" className="mobile-logout" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20}/></button></div></header>
+  <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> Loyally / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user">{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
+  <Link href="/negocio/settings"><Store size={17}/> Datos del negocio</Link>
+  <Link href="/negocio/locations"><MapPin size={17}/> Dirección y ubicación</Link>
+  {roles.some(r=>r.role==="owner")&&<Link href="/negocio/facturacion"><CreditCard size={17}/> Facturación y pagos</Link>}
+  <Link href="/app/perfil"><UserRound size={17}/> Mi perfil</Link>
+ </div></details>:<><span>{user.user_metadata?.full_name||({business:"Mi negocio",staff:"Personal",admin:"Administración",customer:"Mi cuenta"}[area])}</span><div className="user-avatar">{(user.user_metadata?.full_name||"L").slice(0,1).toUpperCase()}</div></>}
+ <button type="button" className="mobile-logout" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20}/></button></div></header>
    <div className="workspace-content">{area==="business"&&pathname.startsWith("/negocio/")&&<nav className="workspace-breadcrumbs" aria-label="Ruta de navegación">
      <Link href="/negocio">Mi negocio</Link><ChevronRight size={14}/>
      <span aria-current="page">{menus.business.find(i=>i.href===pathname)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
     </nav>}
     {area==="business"&&<nav className="business-mobile-all-sections" aria-label="Secciones del negocio">
-     {menus.business.filter(i=>i.href!=="/negocio/facturacion"||roles.some(r=>r.role==="owner")).map(i=><Link href={i.href} key={i.href} aria-current={pathname===i.href?"page":undefined} className={pathname===i.href?"active":""}>{i.icon}<span>{i.label}</span></Link>)}
+     {menus.business.map(i=><Link href={i.href} key={i.href} aria-current={pathname===i.href?"page":undefined} className={pathname===i.href?"active":""}>{i.icon}<span>{i.label}</span></Link>)}
     </nav>}<div className="workspace-title"><div><h1>{title}</h1><p>{subtitle}</p></div></div>{children(account)}</div>
 
   </div>
