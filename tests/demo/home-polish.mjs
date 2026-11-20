@@ -45,4 +45,4 @@ assert.match(css,/grid-template-columns:30px minmax\(0,1fr\)/,"Category icons ha
 assert.match(css,/justify-self:center;align-self:center/,"Icons are centered both ways");
 assert.match(css,/@media\(max-width:580px\)/,"Responsive details remain");
 assert.match(read("db/migrations/270_floristeria_distinct_icon.sql"),/'floristeria'/);
-console.log("OK: distinctive 41 icon set, clear barber and coffee, fully balanced responsive Kreyv home.");
+console.log("OK: professional 43-icon family, consistent home grid and responsive Kreyv palette.");

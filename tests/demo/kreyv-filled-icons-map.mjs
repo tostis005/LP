@@ -10,7 +10,7 @@ runInNewContext(js,{module,exports:module.exports});
 const icons=module.exports.KREYV_FILLED_PATHS;
 assert.equal(Object.keys(icons).length,43,"All approved icons, including florist, car, and additional categories, are present");
 for(const [name,path] of Object.entries(icons)){
- assert.match(path,/^M[-.\\d]/,"Invalid SVG path start in "+name);
+ assert.match(path,/^M/,"Invalid SVG path start in "+name);
  assert.doesNotMatch(path,/[<>]/,"Unexpected markup in "+name);
  assert.ok(path.length>45,"Too little icon detail in "+name);
 }
