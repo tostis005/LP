@@ -1,5 +1,5 @@
 /* Kreyv PWA: solo se guarda una página pública sin datos personales. */
-const CACHE="kreyv-offline-v1";
+const CACHE="kreyv-offline-v3";
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.add("/offline")).then(()=>self.skipWaiting()));
 });
@@ -19,7 +19,7 @@ self.addEventListener("push",event=>{
  const body=typeof data.body==="string"?data.body.slice(0,500):"Tienes novedades de tus negocios favoritos.";
  const url=typeof data.url==="string"&&data.url.startsWith("/")&&!data.url.startsWith("//")?data.url:"/app";
  event.waitUntil(self.registration.showNotification(title,{
-  body,icon:"/icon-192.png",badge:"/icon-192.png",
+  body,icon:"/kreyv-mark-v3-192.png",badge:"/kreyv-mark-v3-192.png",
   tag:typeof data.tag==="string"?data.tag:"kreyv",
   data:{url}
  }));

@@ -19,7 +19,7 @@ COPY . .
 RUN node -e 'const fs=require("fs"),s=fs.readFileSync("lib/landing-copy.ts","utf8"),home=fs.readFileSync("app/page.tsx","utf8");const es=s.includes("Haz que cada visita"),en=s.includes("Turn every visit into"),present=home.includes("LandingHome");console.log("Docker bilingual homepage:",es,en,present);if(!es||!en||!present)process.exit(1)'
 ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
-RUN mkdir -p public && npm run build
+RUN mkdir -p public && npm run build && node scripts/verify-kreyv-brand-assets.mjs
 RUN node -e 'const fs=require("fs"),s=fs.readFileSync(".next/server/app/page.js","utf8");console.log("Docker build compiled homepage chunk:",s.includes("Haz que cada visita"),"rootHTML:",fs.existsSync(".next/server/app/index.html"));'
 
 FROM node:22-bookworm-slim AS runner

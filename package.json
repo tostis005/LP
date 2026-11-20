@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
     "db:admin": "node scripts/bootstrap-admin.mjs",
-    "db:seed:tijuana": "node scripts/seed-tijuana-demo.mjs"
+    "db:seed:tijuana": "node scripts/seed-tijuana-demo.mjs",
+    "prebuild": "node scripts/generate-kreyv-brand-assets.mjs"
   },
   "dependencies": {
     "@zxing/browser": "^0.1.5",
@@ -24,7 +25,8 @@
     "react-dom": "^19.1.0",
     "react-leaflet": "^5.0.0",
     "stripe": "^23.0.0",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.20",
