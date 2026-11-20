@@ -59,7 +59,6 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
   <Link href="/negocio/settings"><Store size={17}/> Datos del negocio</Link>
   <Link href="/negocio/locations"><MapPin size={17}/> Dirección y ubicación</Link>
   {roles.some(r=>r.role==="owner")&&<Link href="/negocio/facturacion"><CreditCard size={17}/> Facturación y pagos</Link>}
-  <Link href="/app/perfil"><UserRound size={17}/> Mi perfil</Link>
  </div></details>:<><span>{user.user_metadata?.full_name||({business:"Mi negocio",staff:"Personal",admin:"Administración",customer:"Mi cuenta"}[area])}</span><div className="user-avatar">{(user.user_metadata?.full_name||"L").slice(0,1).toUpperCase()}</div></>}
  <button type="button" className="mobile-logout" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20}/></button></div></header>
    <div className="workspace-content">{area==="business"&&pathname.startsWith("/negocio/")&&<nav className="workspace-breadcrumbs" aria-label="Ruta de navegación">
