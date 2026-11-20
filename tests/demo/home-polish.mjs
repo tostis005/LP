@@ -31,7 +31,7 @@ assert.match(home,/kind="automocion"/);
 assert.match(home,/kind="categorias"/);
 assert.match(home,/\["cafeteria","hamburgueseria","restaurante","barberia"/);
 const install=read("components/InstallGuide.tsx");
-assert.match(install,/<img src="\/icon.svg" alt=""/);
+assert.match(install,/<img src="\/kreyv-mark-v3.svg" alt=""/);
 assert.match(install,/KreyvIcon name="cafeteria"/);
 assert.doesNotMatch(install,/>L<\/span>/,"No Loyally placeholder in phone mockup");
 const css=read("app/landing.css");
