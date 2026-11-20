@@ -378,3 +378,22 @@
  .loi-site .loi-stamp-library>div>span{width:32px;height:32px}
  .loi-site .loi-stamp-library>div>span>.kreyv-icon{width:21px;height:21px}
 }
+
+/* Celdas de categoría: iconos sobre una misma retícula óptica, sin desplazamientos. */
+.loi-site .loi-audience-expanded .loi-audience-list>span{
+ display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:12px;
+ align-items:center;justify-items:start;min-height:68px;
+}
+.loi-site .loi-audience-expanded .loi-audience-list>span>.kreyv-icon{
+ display:block;box-sizing:content-box;width:27px;height:27px;
+ grid-column:1;justify-self:center;align-self:center;flex:none;
+ margin:0;vertical-align:initial;transform:none;
+}
+@media(max-width:580px){
+ .loi-site .loi-audience-expanded .loi-audience-list>span{
+  grid-template-columns:27px minmax(0,1fr);column-gap:9px;min-height:60px;
+ }
+ .loi-site .loi-audience-expanded .loi-audience-list>span>.kreyv-icon{
+  width:25px;height:25px;flex-basis:auto;
+ }
+}
