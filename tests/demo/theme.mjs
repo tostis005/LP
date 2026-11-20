@@ -30,21 +30,21 @@ const demo=read("lib/demo-local.ts");
 const clientCard=read("components/LoyaltyCard.tsx");
 const login=read("app/acceder/page.tsx");
 const tableDefault=read("db/migrations/130_brand_defaults.sql");
-assert.match(base,/--brand-wine:#571c32/,"Global brand colors must be centralized");
-assert.match(shell,/\.auth-story\{background:#351623/,"Login must use the dark wine background");
-assert.match(shell,/\.workspace\{min-height:100vh;background:#fcf8fa/,"Workspace must use off-white");
-assert.match(shell,/\.side-link\.active\{background:#f6ebf0;color:#571c32/,"Side navigation must be wine");
-assert.match(shell,/\.mobile-bottom-link\.active\{color:#571c32;background:#f6ebf0/,"Mobile navigation must be wine");
-assert.match(shell,/\.scanner-placeholder\{[^}]+background:#fbf5f8/,"Staff scanner must not use sage");
-assert.match(shell,/\.data-table th\{[^}]+background:#fbf5f8/,"Tables must use pink-tinted header");
-assert.match(secondary,/\.button-dark,\.loi-button-main\{background:#571c32/,"Buttons must use wine");
+assert.match(base,/--brand-wine:var\(--color-brand\)/,"Global brand colors must be centralized");
+assert.match(shell,/\.auth-story\{background:var\(--color-brand-900\)/,"Login must use the dark wine background");
+assert.match(shell,/\.workspace\{min-height:100vh;background:var\(--color-bg\)/,"Workspace must use off-white");
+assert.match(shell,/\.side-link\.active\{background:var\(--color-brand-100\);color:var\(--color-brand\)/,"Side navigation must be wine");
+assert.match(shell,/\.mobile-bottom-link\.active\{color:var\(--color-brand\);background:var\(--color-brand-100\)/,"Mobile navigation must be wine");
+assert.match(shell,/\.scanner-placeholder\{[^}]+background:var\(--color-bg\)/,"Staff scanner must not use sage");
+assert.match(shell,/\.data-table th\{[^}]+background:var\(--color-bg\)/,"Tables must use pink-tinted header");
+assert.match(secondary,/\.button-dark,\.loi-button-main\{background:var\(--color-brand\)/,"Buttons must use wine");
 assert.match(designer,/const COLOR_PRESETS=\["#571c32"/,"Business designer starts with wine");
 assert.match(designer,/const STAMP_COLOR_PRESETS=\["#571c32"/,"Stamp palette starts with wine");
 assert.match(designer,/accent_color:biz\.accent_color/,"Business settings keep their customized card colors");
 assert.match(clientCard,/backgroundColor:color/,"Customer cards keep the business color");
 assert.match(demo,/loyally_role_sample_tijuana_v6/,"Demo data must refresh to new palette");
 assert.match(demo,/slug:"cafe-noma",category:"Cafetería",color:"#571c32"/);
-assert.match(login,/name="Tu cafetería" color="#571c32"/,"The login example uses a generic business name");
+assert.match(login,/name="Tu cafetería" color="#5E1A2B"/,"The login example uses a generic business name");
 assert.match(tableDefault,/ALTER COLUMN accent_color SET DEFAULT '#571c32'/);
 assert.match(tableDefault,/ALTER COLUMN stamp_color SET DEFAULT '#571c32'/);
 function luminance(hex){
@@ -54,4 +54,4 @@ function luminance(hex){
 }
 const contrast=(1.05/(luminance("#845268")+.05));
 assert.ok(contrast>=4.5,"Small secondary text must contrast with light backgrounds");
-console.log("Loyally theme: consistent wine shell, accessible secondary color, and independent merchant colors.");
+console.log("Kreyv theme: consistent wine shell, accessible secondary color, and independent merchant colors.");

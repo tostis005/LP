@@ -31,7 +31,7 @@ export async function GET(request:NextRequest,{params}:Params){
   const pass=await appleWalletPass(card);
   return new Response(new Uint8Array(pass),{
    headers:{"Content-Type":"application/vnd.apple.pkpass",
-    "Content-Disposition":'attachment; filename="Loyally-'+card.slug+'.pkpass"',
+    "Content-Disposition":'attachment; filename="Kreyv-'+card.slug+'.pkpass"',
     "Cache-Control":"private, no-store",
     "Content-Length":String(pass.length)}
   });

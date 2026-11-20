@@ -25,7 +25,7 @@ export default function ConfirmProfileAccess(){
   <section className="recovery-card">
    <div className="panel-icon"><LockKeyhole size={25}/></div>
    <h1>Confirma el acceso</h1>
-   <p>Vas a entrar con un perfil de Loyally para revisar la aplicación. La autorización será temporal y podrás cambiar de perfil desde la pantalla de acceso.</p>
+   <p>Vas a entrar con un perfil de Kreyv para revisar la aplicación. La autorización será temporal y podrás cambiar de perfil desde la pantalla de acceso.</p>
    {error&&<div className="alert error" role="alert">{error}</div>}
    <button type="button" className="button button-dark button-full" disabled={busy||!/^[a-f0-9]{64}$/.test(token)} onClick={()=>void confirm()}>
     {busy?"Comprobando...":"Confirmar acceso"} {busy?<CheckCircle2 size={17}/>:<ArrowRight size={17}/>}

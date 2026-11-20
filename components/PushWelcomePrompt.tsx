@@ -94,8 +94,8 @@ export function PushWelcomePrompt(){
      <p>Tu teléfono está registrado. Podrás cambiar tus preferencias en «Ajustes».</p>
      <button type="button" className="button button-dark button-full" onClick={()=>setShow(false)}><CheckCircle2 size={17}/> Continuar a mis tarjetas</button>
     </>:<>
-     <h2 id="lp-push-welcome-title">¿Quieres recibir avisos de Loyally?</h2>
-     <p>Permite las notificaciones del móvil para recibir promociones de las tarjetas cuyos avisos ya hayas aceptado. Podrás recibirlas aunque Loyally esté cerrada.</p>
+     <h2 id="lp-push-welcome-title">¿Quieres recibir avisos de Kreyv?</h2>
+     <p>Permite las notificaciones del móvil para recibir promociones de las tarjetas cuyos avisos ya hayas aceptado. Podrás recibirlas aunque Kreyv esté cerrada.</p>
      <p className="lp-push-welcome-privacy"><ShieldCheck size={15}/> Este permiso es opcional y no activa avisos de ningún negocio por sí solo. Los canales de cada tarjeta se gestionan en Ajustes.</p>
      {error&&<p role="alert" className="alert error">{error}</p>}
      <button type="button" className="button button-dark button-full" disabled={busy} onClick={activate}>

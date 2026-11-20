@@ -1,47 +1,47 @@
-/* Identidad de Loyally: vinotinto, tinta, rosa empolvado y marfil. Tarjetas de negocios independientes. */
-:root{--ink:#241b21;--muted:#786a72;--green:var(--brand-wine);--green-dark:#351623;--sage:#e6cbd5;--light:var(--brand-cream);--cream:#f7eef1;--peach:#eac2b6;--line:var(--brand-border)}
+/* Identidad anterior, adaptada a Kreyv: vinotinto, tinta, rosa empolvado y marfil. Tarjetas de negocios independientes. */
+:root{--ink:var(--color-text);--muted:var(--color-text-2);--green:var(--brand-wine);--green-dark:var(--color-brand-900);--sage:#e6cbd5;--light:var(--brand-cream);--cream:var(--color-bg);--peach:var(--color-accent-300);--line:var(--brand-border)}
 body{background:var(--light)}
-.workspace{background:#fbf7f8}
-.sidebar,.workspace-header,.panel-card,.soft-panel,.kpi-card{border-color:#eee4e7}
-.sidebar{background:#fffafc}
-.workspace-header{background:#fffafb}
-.button-dark,.loi-button-main{background:#571c32;color:#fff}
-.button-dark:hover,.loi-button-main:hover{background:#371020}
-.side-link.active,.mobile-bottom-link.active,.workspace .tab-bar button.active{background:#f7e9ef;color:#571c32}
-.kpi-card strong,.positive-text,.overview-stat strong{color:#571c32}
-.kpi-symbol.green,.panel-icon,.activity-icon.positive{background:#f5e5ec;color:#762e49}
-.kpi-symbol.peach{background:#f9e8e2;color:#934e49}
-.kpi-symbol.purple{background:#f0e6f5;color:#6b397d}
-.workspace .table-pill{background:#f6e9ef;color:#6e2e45}
-.business-selector,.loyalty-card{border-color:#eddfe5}
-.loi-site{--loi-dark:#27121c;--loi-green:#571c32;--loi-ink:#281820;--loi-sub:#74646a;--loi-line:#eee2e7;background:#fcf8fa}
-.loi-site h1 em,.loi-site h2 em{color:#8a3f59}
-.loi-button-main{box-shadow:0 12px 27px #571c322c}
-.loi-status-dot{background:#a15a72;box-shadow:0 0 0 5px #f4e4eb}
-.loi-overline{color:#8b3c58}
+.workspace{background:var(--color-bg)}
+.sidebar,.workspace-header,.panel-card,.soft-panel,.kpi-card{border-color:var(--color-bg-2)}
+.sidebar{background:var(--color-bg)}
+.workspace-header{background:var(--color-bg)}
+.button-dark,.loi-button-main{background:var(--color-brand);color:#fff}
+.button-dark:hover,.loi-button-main:hover{background:var(--color-brand-900)}
+.side-link.active,.mobile-bottom-link.active,.workspace .tab-bar button.active{background:var(--color-brand-100);color:var(--color-brand)}
+.kpi-card strong,.positive-text,.overview-stat strong{color:var(--color-brand)}
+.kpi-symbol.green,.panel-icon,.activity-icon.positive{background:var(--color-brand-100);color:var(--color-brand-500)}
+.kpi-symbol.peach{background:var(--color-brand-100);color:var(--color-brand-500)}
+.kpi-symbol.purple{background:var(--color-brand-100);color:var(--color-brand)}
+.workspace .table-pill{background:var(--color-brand-100);color:var(--color-brand)}
+.business-selector,.loyalty-card{border-color:var(--color-bg-2)}
+.loi-site{--loi-dark:var(--color-brand-900);--loi-green:var(--color-brand);--loi-ink:var(--color-brand-900);--loi-sub:var(--color-text-2);--loi-line:var(--color-bg-2);background:var(--color-bg)}
+.loi-site h1 em,.loi-site h2 em{color:var(--color-brand-500)}
+.loi-button-main{box-shadow:0 12px 27px color-mix(in srgb, var(--color-brand) 17%, transparent)}
+.loi-status-dot{background:var(--color-brand-300);box-shadow:0 0 0 5px var(--color-accent-100)}
+.loi-overline{color:var(--color-brand-500)}
 /* Canje visible y cómodo para personal de tienda */
-.staff-reward-focus{margin-top:24px;border:2px solid #e1b1c5;border-radius:22px;padding:23px;background:linear-gradient(135deg,#fff4f8,#fff);box-shadow:0 12px 30px #571c3214}
+.staff-reward-focus{margin-top:24px;border:2px solid var(--color-bg-2);border-radius:22px;padding:23px;background:linear-gradient(135deg,var(--color-brand-100),#fff);box-shadow:0 12px 30px color-mix(in srgb, var(--color-brand) 8%, transparent)}
 .staff-reward-focus h3{font-size:23px;margin:8px 0}
-.staff-reward-focus p{font-weight:700;color:#68243e;font-size:18px;margin:10px 0}
+.staff-reward-focus p{font-weight:700;color:var(--color-brand);font-size:18px;margin:10px 0}
 .staff-reward-focus .button{font-size:15px;min-height:53px}
 .reward-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:14px 0}
-.reward-choice{border:1px solid #e4cbd5;background:#fff;border-radius:15px;padding:14px;display:flex;flex-direction:column;align-items:start;gap:5px;cursor:pointer;color:#452334;text-align:left}
-.reward-choice strong{font-size:13px}.reward-choice small{font-size:11px;color:#836273}
-.reward-choice.selected{background:#571c32;border-color:#571c32;color:#fff}
+.reward-choice{border:1px solid var(--color-bg-2);background:#fff;border-radius:15px;padding:14px;display:flex;flex-direction:column;align-items:start;gap:5px;cursor:pointer;color:#452334;text-align:left}
+.reward-choice strong{font-size:13px}.reward-choice small{font-size:11px;color:var(--color-text-2)}
+.reward-choice.selected{background:var(--color-brand);border-color:var(--color-brand);color:#fff}
 .reward-choice.selected small{color:#f2d7e2}
 .lp-insights-controls{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
-.lp-insights-controls select{border:1px solid #e5d6df;border-radius:12px;padding:10px 14px;background:#fff}
+.lp-insights-controls select{border:1px solid var(--color-bg-2);border-radius:12px;padding:10px 14px;background:#fff}
 .lp-metric-delta{font-size:12px;font-weight:800}
-.lp-metric-delta.up{color:#76354e}.lp-metric-delta.down{color:#b03a4b}.lp-metric-delta.neutral{color:#847780}
+.lp-metric-delta.up{color:var(--color-brand-500)}.lp-metric-delta.down{color:#b03a4b}.lp-metric-delta.neutral{color:var(--color-text-2)}
 .lp-insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:17px 0 25px}
-.lp-insight-card{background:#fff;border:1px solid #ecdfe5;border-radius:19px;padding:21px;display:flex;flex-direction:column;gap:9px}
-.lp-insight-card span{color:#826a76;font-size:12px;font-weight:700}
-.lp-insight-card strong{font-size:28px;color:#571c32;letter-spacing:-.05em}
-.lp-insight-card small{color:#897680;font-size:11px}
+.lp-insight-card{background:#fff;border:1px solid var(--color-bg-2);border-radius:19px;padding:21px;display:flex;flex-direction:column;gap:9px}
+.lp-insight-card span{color:var(--color-text-2);font-size:12px;font-weight:700}
+.lp-insight-card strong{font-size:28px;color:var(--color-brand);letter-spacing:-.05em}
+.lp-insight-card small{color:var(--color-text-2);font-size:11px}
 .lp-reward-option-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px}
 .lp-reward-option-row input{width:100%}
 .lp-reward-option-row label{font-size:11px}
-.lp-savings{background:linear-gradient(120deg,#571c32,#27121c);border-radius:23px;color:white;padding:25px;display:flex;gap:24px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:28px}
+.lp-savings{background:linear-gradient(120deg,var(--color-brand),var(--color-brand-900));border-radius:23px;color:white;padding:25px;display:flex;gap:24px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:28px}
 .lp-savings span{color:#f0cfde;font-size:12px}
 .lp-savings strong{font-size:33px;display:block;margin:4px 0}
 .lp-savings small{color:#e7bece}

@@ -1,4 +1,5 @@
 "use client";
+import {Brand} from "@/components/Brand";
 
 import {useEffect,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
@@ -55,7 +56,7 @@ export default function MiLoyally(){
     await installPrompt.prompt();
     const {outcome}=await installPrompt.userChoice;
     setInstallPrompt(null);
-    if(outcome==="accepted"){setMessage("¡Perfecto! Abre Loyally desde el icono de tu móvil.");setShowInstall(false);return;}
+    if(outcome==="accepted"){setMessage("¡Perfecto! Abre Kreyv desde el icono de tu móvil.");setShowInstall(false);return;}
    }catch{ /* Manual instructions remain available. */ }
   }
   setShowInstall(true);
@@ -85,11 +86,11 @@ export default function MiLoyally(){
    }
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
- const intro=mode==="signup"?"Crea tu espacio":mode==="forgot"?"Recupera tu acceso":"Bienvenido a Loyally";
+ const intro=mode==="signup"?"Crea tu espacio":mode==="forgot"?"Recupera tu acceso":"Bienvenido a Kreyv";
  return <main className="loyal-app-entry">
   <div className="loyal-app-entry-inner">
    <header className="loyal-app-top">
-    <div className="loyal-app-logo" aria-label="Loyally"><span>L</span> Loyally</div>
+    <div className="loyal-app-logo"><Brand/></div>
     {!standalone&&<button type="button" className="loyal-app-add" onClick={addToHome}><Smartphone size={16}/> Añadir a mi móvil</button>}
    </header>
    <div className="loyal-app-hero">
@@ -113,37 +114,37 @@ export default function MiLoyally(){
      {mode==="signup"&&<label>Tu nombre<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder="¿Cómo te llamas?"/></label>}
      <label>Correo electrónico<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
      {mode!=="forgot"&&<label>Contraseña<input type="password" required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña"/></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero ofertas y novedades de Loyally por correo</strong><small>Opcional. Puedes cambiarlo desde Mi perfil.</small></span></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={pushOptIn} onChange={e=>setPushOptIn(e.target.checked)}/><span><strong>Quiero avisos de Loyally en mi móvil</strong><small>Puedes activarlos al entrar en la aplicación.</small></span></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero ofertas y novedades de Kreyv por correo</strong><small>Opcional. Puedes cambiarlo desde Mi perfil.</small></span></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={pushOptIn} onChange={e=>setPushOptIn(e.target.checked)}/><span><strong>Quiero avisos de Kreyv en mi móvil</strong><small>Puedes activarlos al entrar en la aplicación.</small></span></label>}
      {error&&<p role="alert" className="loyal-app-error">{error}</p>}
      {message&&<p role="status" className="loyal-app-success">{message}</p>}
-     <button type="submit" className="loyal-app-submit" disabled={busy||!ready}>{busy?"Un momento...":mode==="login"?"Entrar en Loyally":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"}<ArrowRight size={18}/></button>
+     <button type="submit" className="loyal-app-submit" disabled={busy||!ready}>{busy?"Un momento...":mode==="login"?"Entrar en Kreyv":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"}<ArrowRight size={18}/></button>
     </form>
     {mode==="login"?<div className="loyal-app-links"><button type="button" onClick={()=>{setMode("signup");setError("");setMessage("");}}>Quiero crear una cuenta</button><button type="button" onClick={()=>{setMode("forgot");setError("");setMessage("");}}>Olvidé mi contraseña</button></div>:<button type="button" className="loyal-app-back" onClick={()=>{setMode("login");setError("");setMessage("");}}><ChevronLeft size={16}/> Ya tengo cuenta</button>}
    </section>
-   {!standalone&&<footer className="loyal-app-footer"><span>Hecho para volver ♡</span><Link href="/">Conocer Loyally</Link></footer>}
+   {!standalone&&<footer className="loyal-app-footer"><span>Hecho para volver ♡</span><Link href="/">Conocer Kreyv</Link></footer>}
   </div>
   {showInstall&&!standalone&&<div className="loyal-app-sheet-overlay" role="presentation">
    <div className="loyal-app-sheet" role="dialog" aria-modal="true" aria-labelledby="loyal-app-install-title">
     <button type="button" className="loyal-app-sheet-close" onClick={()=>setShowInstall(false)} aria-label="Cerrar"><X size={19}/></button>
     <div className="loyal-app-sheet-icon"><Smartphone size={28}/></div>
-    <h2 id="loyal-app-install-title">Loyally en tu pantalla de inicio</h2>
-    <p>Así podrás abrir tus tarjetas desde el icono de Loyally, sin la barra del navegador.</p>
+    <h2 id="loyal-app-install-title">Kreyv en tu pantalla de inicio</h2>
+    <p>Así podrás abrir tus tarjetas desde el icono de Kreyv, sin la barra del navegador.</p>
     {platform==="ios"?<>
      <ol className="loyal-app-sheet-steps">
       <li><span>1</span><p>Abre esta pantalla en <strong>Safari</strong>.</p></li>
       <li><span>2</span><p>Toca <Share2 size={15} aria-hidden="true"/> <strong>Compartir</strong> y después <strong>Agregar a Inicio</strong>.</p></li>
       <li><span>3</span><p>Activa <strong>«Abrir como app web»</strong> y toca <strong>Agregar</strong>.</p></li>
      </ol>
-     <p className="loyal-app-sheet-hint">Después, abre Loyally desde el nuevo icono.</p>
+     <p className="loyal-app-sheet-hint">Después, abre Kreyv desde el nuevo icono.</p>
     </>:platform==="android"?<>
      <ol className="loyal-app-sheet-steps">
       <li><span>1</span><p>Abre esta pantalla en <strong>Chrome</strong>.</p></li>
       <li><span>2</span><p>Toca el menú <strong>⋮</strong> y <strong>Instalar aplicación</strong>.</p></li>
-      <li><span>3</span><p>Abre Loyally desde el icono que aparecerá en tu móvil.</p></li>
+      <li><span>3</span><p>Abre Kreyv desde el icono que aparecerá en tu móvil.</p></li>
      </ol>
-     <button type="button" className="loyal-app-sheet-action" onClick={addToHome}>Añadir Loyally <ArrowRight size={17}/></button>
-    </>:<p className="loyal-app-sheet-hint">Abre esta página desde tu iPhone o Android para tener Loyally en tu pantalla de inicio.</p>}
+     <button type="button" className="loyal-app-sheet-action" onClick={addToHome}>Añadir Kreyv <ArrowRight size={17}/></button>
+    </>:<p className="loyal-app-sheet-hint">Abre esta página desde tu iPhone o Android para tener Kreyv en tu pantalla de inicio.</p>}
     <button type="button" className="loyal-app-sheet-secondary" onClick={()=>setShowInstall(false)}><Check size={15}/> Entendido</button>
    </div>
   </div>}

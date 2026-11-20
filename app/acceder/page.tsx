@@ -65,22 +65,22 @@ export default function Login(){
     <div className="auth-story-label"><Sparkles size={16}/> UNA VISITA MÁS, UNA HISTORIA MÁS</div>
     <h1>Un detalle.<br/><em>Mil motivos<br/>para volver.</em></h1>
     <p>La fidelización que pone a las personas y a los pequeños negocios en el centro.</p>
-    <div className="auth-stamp-illustration"><StampCard name="Tu cafetería" color="#571c32" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/></div>
+    <div className="auth-stamp-illustration"><StampCard name="Tu cafetería" color="#5E1A2B" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/></div>
    </div>
-   <div className="auth-story-foot">Loyally ♡ · Tan sencillo como volver.</div>
+   <div className="auth-story-foot">Kreyv ♡ · Tan sencillo como volver.</div>
   </aside>
   <section className="auth-right auth-right-compact">
    <div className="auth-mobile-logo"><Brand/></div>
    <div className="auth-form-wrap auth-choice-wrap auth-full-login">
-    <div className="eyebrow">BIENVENIDO A LOYALLY</div>
+    <div className="eyebrow">BIENVENIDO A KREYV</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
-    <p className="auth-intro">{mode==="login"?"Accede a Loyally y descubre tu espacio según el tipo de cuenta.":mode==="signup"?"Crea tu cuenta y guarda todas tus tarjetas en un solo lugar.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
+    <p className="auth-intro">{mode==="login"?"Accede a Kreyv y descubre tu espacio según el tipo de cuenta.":mode==="signup"?"Crea tu cuenta y guarda todas tus tarjetas en un solo lugar.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
     <SocialAuthButtons next="/entrar"/>
     <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
      {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div></>}
      <label>Correo electrónico<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>
      {mode!=="forgot"&&<label>Contraseña<div className="password-input"><input value={password} type={visible?"text":"password"} onChange={e=>setPassword(e.target.value)} required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} placeholder="Tu contraseña"/><button type="button" aria-label={visible?"Ocultar contraseña":"Mostrar contraseña"} onClick={()=>setVisible(v=>!v)}>{visible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y novedades por correo</strong><small>De Loyally. Opcional y modificable desde mi perfil.</small></span></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y novedades por correo</strong><small>De Kreyv. Opcional y modificable desde mi perfil.</small></span></label>}
      {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={pushOptIn} onChange={e=>setPushOptIn(e.target.checked)}/><span><strong>Quiero recibir avisos en mi móvil</strong><small>Puedes activarlos al entrar en la aplicación.</small></span></label>}
      {mode==="login"&&<button className="inline-action forgot-action" type="button" onClick={()=>switchMode("forgot")}>¿Olvidaste la contraseña?</button>}
      {error&&<div className="alert error" role="alert">{error}</div>}

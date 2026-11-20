@@ -53,7 +53,7 @@ function Preview({account}:{account:Account}){
       stampColor={business.stamp_color} message={business.card_text||"GRACIAS POR VOLVER"}/>:
      <div className="business-preview-nonstamp" style={{backgroundColor:business.accent_color,color:business.card_text_color||"#fff",
       backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.35),rgba(0,0,0,.16)),url("+business.card_background+")":undefined}}>
-      <div className="stamp-visual-head"><span className="stamp-business-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:business.name.slice(0,1)}</span><span className="stamp-visual-pill">LOYALLY CLUB</span></div>
+      <div className="stamp-visual-head"><span className="stamp-business-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:business.name.slice(0,1)}</span><span className="stamp-visual-pill">KREYV CLUB</span></div>
       <div className="business-preview-nonstamp-body"><small>{business.card_text||"GRACIAS POR VOLVER"}</small>
        <h3>{business.name}</h3><p>{program.reward_label}</p></div>
       <div className="business-preview-nonstamp-bottom"><div><span>SALDO DE EJEMPLO</span><strong>{program.type==="points"?"120 puntos":money(15000,business.currency)}</strong></div>

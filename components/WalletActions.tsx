@@ -15,6 +15,6 @@ export function WalletActions({cardId,available,compact=false}:{cardId:string;av
    <div key={p.id} className="lp-wallet-choice lp-wallet-disabled" aria-label={p.label+" pendiente de activación"}>
     <Wallet size={19}/><span>{p.label}<small>Pendiente de activación</small></span>
    </div>)}
-  {!available.apple&&!available.google&&<p className="lp-wallet-choices-note"><Info size={15}/> Loyally está preparando los pases oficiales. Mientras tanto, tu tarjeta y su QR funcionan desde la app y puedes guardar una copia en tu móvil.</p>}
+  {!available.apple&&!available.google&&<p className="lp-wallet-choices-note"><Info size={15}/> Kreyv está preparando los pases oficiales. Mientras tanto, tu tarjeta y su QR funcionan desde la app y puedes guardar una copia en tu móvil.</p>}
  </div>;
 }

@@ -44,10 +44,10 @@ export function googleWalletUrl(card:WalletCard){
     genericType:"GENERIC_TYPE_UNSPECIFIED",
     hexBackgroundColor:safeColor(card.accent_color),
     cardTitle:localized(card.name),header:localized(card.reward_label),
-    subheader:localized("Tarjeta Loyally"),
+    subheader:localized("Tarjeta Kreyv"),
     barcode:{type:"QR_CODE",value:site+"/t/"+card.card_token,alternateText:"Escanea en el establecimiento"},
     textModulesData:[{header:"Saldo al guardar",body:String(card.balance)+(card.type==="stamps"?" / "+card.reward_cost+" sellos":card.type==="points"?" puntos":" de saldo"),id:"progress"}],
-    linksModuleData:{uris:[{uri:site+"/app",description:"Consultar saldo actualizado en Loyally"}]}
+    linksModuleData:{uris:[{uri:site+"/app",description:"Consultar saldo actualizado en Kreyv"}]}
    }]
   }
  };
@@ -93,7 +93,7 @@ export async function appleWalletPass(card:WalletCard):Promise<Buffer>{
  const site=baseUrl()!;
  const fields={
   formatVersion:1,passTypeIdentifier:type,teamIdentifier:team,
-  serialNumber:card.id,organizationName:"Loyally",
+  serialNumber:card.id,organizationName:"Kreyv",
   description:"Tarjeta de fidelización de "+card.name,
   logoText:card.name,foregroundColor:"rgb(255,255,255)",
   backgroundColor:"rgb("+[1,3,5].map(i=>parseInt(safeColor(card.accent_color).slice(i,i+2),16)).join(",")+")",

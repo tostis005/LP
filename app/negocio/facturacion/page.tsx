@@ -54,7 +54,7 @@ function OwnerBilling({account}:{account:Account}){
   <div className="billing-grid">
    <section className="panel-card billing-plan"><div className="panel-icon"><CreditCard size={23}/></div>
     <div className="eyebrow">PLAN BUSINESS</div><h2>Una comunidad que vale mucho más.</h2>
-    <div className="billing-price">Loyally Business</div>
+    <div className="billing-price">Kreyv Business</div>
     <p className="muted">Tus tarjetas, recompensas, clientes, resultados y personalización desde un mismo espacio.</p>
     {loading?<p className="muted">Cargando suscripción...</p>:billing&&<>
       <div className="billing-status"><span>Estado</span><strong>{statusLabels[billing.status]||billing.status}</strong></div>
@@ -73,13 +73,13 @@ function OwnerBilling({account}:{account:Account}){
     <div className="privacy-item"><Check size={19}/> Los importes de campañas se registran por separado para facilitar su revisión.</div>
    </section>
    <section className="panel-card billing-marketing-usage"><div className="panel-icon"><CreditCard size={23}/></div>
-    <h2>Consumo de campañas</h2><p className="muted">El correo y WhatsApp se contabilizan por separado, en función de los mensajes aceptados por el proveedor. Los precios los fija Loyally.</p>
+    <h2>Consumo de campañas</h2><p className="muted">El correo y WhatsApp se contabilizan por separado, en función de los mensajes aceptados por el proveedor. Los precios los fija Kreyv.</p>
     {loading?<p className="muted">Consultando uso...</p>:usage.length?usage.map(x=>
      <div key={x.channel+"-"+x.currency} className="billing-status">
       <span>{x.channel==="email"?"Correo electrónico":"WhatsApp"} · {x.messages} mensajes</span>
       <strong>{new Intl.NumberFormat("es-MX",{style:"currency",currency:x.currency}).format(Number(x.amount_cents)/100)}</strong>
      </div>):<p className="muted">Aún no tienes consumo adicional.</p>}
-    <p className="tiny-note">Este es el registro de consumo, no una factura emitida. La facturación de los mensajes se habilitará cuando Loyally active el servicio comercial y el sistema de cobros correspondiente.</p>
+    <p className="tiny-note">Este es el registro de consumo, no una factura emitida. La facturación de los mensajes se habilitará cuando Kreyv active el servicio comercial y el sistema de cobros correspondiente.</p>
    </section>
   </div>
  </>;

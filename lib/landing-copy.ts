@@ -9,8 +9,8 @@ export const LANDING_COPY = {
     hero: {
       eyebrow:"TU NEGOCIO MERECE CLIENTES QUE VUELVAN",
       title:"Haz que cada visita", accent:"invite a volver.",
-      description:"Convierte los buenos momentos en relaciones duraderas. Loyally ayuda a tu negocio a agradecer cada visita, sorprender con recompensas y estar presente en la memoria de tus clientes.",
-      primary:"Quiero conocer Loyally", secondary:"Descubre cómo funciona",
+      description:"Convierte los buenos momentos en relaciones duraderas. Kreyv ayuda a tu negocio a agradecer cada visita, sorprender con recompensas y estar presente en la memoria de tus clientes.",
+      primary:"Quiero conocer Kreyv", secondary:"Descubre cómo funciona",
       foot:"Una buena experiencia deja huella.", footBold:"Una recompensa invita a regresar.",
       previewLabel:"Cada visita cuenta. Cada cliente importa.",
       myCard:"Mi tarjeta", hello:"Hola, Martina",
@@ -39,7 +39,7 @@ export const LANDING_COPY = {
       eyebrow:"TAN NATURAL COMO DAR LAS GRACIAS",
       first:"Hacer que vuelvan", second:"puede ser así de fácil.",
       intro:"Sin complicaciones para ti ni para tus clientes. Una forma cercana de reconocer a quienes eligen tu negocio.",
-      cta:"Descubre lo que Loyally puede hacer por ti",
+      cta:"Descubre lo que Kreyv puede hacer por ti",
       items:[
         {title:"Dales la bienvenida",text:"Invita a tus clientes a formar parte de algo especial desde su primera visita."},
         {title:"Haz que cada visita cuente",text:"Reconoce su confianza mientras se acercan a una nueva recompensa."},
@@ -53,7 +53,7 @@ export const LANDING_COPY = {
       iconsLabel:"UN PREMIO PARA CADA PASIÓN",
       eyebrow:"LA ESENCIA DE TU NEGOCIO",
       first:"Tu marca es única.", second:"La manera de agradecer también.",
-      description:"Sea cual sea tu actividad, cada negocio tiene su historia. Loyally te ayuda a convertirla en una experiencia que tus clientes recuerden.",
+      description:"Sea cual sea tu actividad, cada negocio tiene su historia. Kreyv te ayuda a convertirla en una experiencia que tus clientes recuerden.",
       points:[
         "Recompensas que enamoran a tus clientes",
         "Una experiencia que habla de tu marca",
@@ -64,8 +64,8 @@ export const LANDING_COPY = {
     final: {
       eyebrow:"EL PRÓXIMO REGRESO EMPIEZA HOY",
       first:"Que te recuerden.",second:"Que quieran volver.",
-      description:"Haz de cada visita una oportunidad para construir algo duradero. Descubre cómo Loyally puede acompañar el crecimiento de tu negocio.",
-      primary:"Solicitar información",secondary:"Acceder a Loyally",
+      description:"Haz de cada visita una oportunidad para construir algo duradero. Descubre cómo Kreyv puede acompañar el crecimiento de tu negocio.",
+      primary:"Solicitar información",secondary:"Acceder a Kreyv",
     },
     footer: {
       tagline:"Pequeños gestos. Grandes relaciones.",
@@ -82,8 +82,8 @@ export const LANDING_COPY = {
     hero: {
       eyebrow:"YOUR BUSINESS DESERVES CUSTOMERS WHO COME BACK",
       title:"Turn every visit into", accent:"a reason to return.",
-      description:"Turn great moments into lasting relationships. Loyally helps your business celebrate every visit, delight customers with rewards, and stay top of mind.",
-      primary:"Discover Loyally", secondary:"See how it works",
+      description:"Turn great moments into lasting relationships. Kreyv helps your business celebrate every visit, delight customers with rewards, and stay top of mind.",
+      primary:"Discover Kreyv", secondary:"See how it works",
       foot:"A great experience leaves a mark.", footBold:"A reward brings them back.",
       previewLabel:"Every visit counts. Every customer matters.",
       myCard:"My card", hello:"Hi, Martina",
@@ -112,7 +112,7 @@ export const LANDING_COPY = {
       eyebrow:"AS NATURAL AS SAYING THANK YOU",
       first:"Bringing people back", second:"can be this simple.",
       intro:"No fuss for you or your customers. Just a thoughtful way to recognize the people who choose your business.",
-      cta:"See what Loyally can do for you",
+      cta:"See what Kreyv can do for you",
       items:[
         {title:"Make them feel welcome",text:"Invite customers to become part of something special from their first visit."},
         {title:"Make every visit count",text:"Show your appreciation as they move closer to their next reward."},
@@ -126,7 +126,7 @@ export const LANDING_COPY = {
       iconsLabel:"A REWARD FOR EVERY PASSION",
       eyebrow:"AS UNIQUE AS YOUR BUSINESS",
       first:"Your brand is one of a kind.", second:"Your thank-you can be too.",
-      description:"Whatever your industry, every business has its own story. Loyally helps turn yours into an experience customers remember.",
+      description:"Whatever your industry, every business has its own story. Kreyv helps turn yours into an experience customers remember.",
       points:[
         "Rewards your customers will love",
         "An experience that feels like your brand",
@@ -137,8 +137,8 @@ export const LANDING_COPY = {
     final: {
       eyebrow:"THE NEXT VISIT STARTS TODAY",
       first:"Stay in their hearts.",second:"Keep them coming back.",
-      description:"Make every visit a chance to build something lasting. Discover how Loyally can help your business grow through meaningful relationships.",
-      primary:"Get in touch",secondary:"Log in to Loyally",
+      description:"Make every visit a chance to build something lasting. Discover how Kreyv can help your business grow through meaningful relationships.",
+      primary:"Get in touch",secondary:"Log in to Kreyv",
     },
     footer: {
       tagline:"Small gestures. Lasting relationships.",

@@ -7,8 +7,8 @@ const store=read("lib/demo-local.ts"),db=read("db/migrations/160_admin_business_
 assert.doesNotMatch(shell,/MODO PRUEBA|Reiniciar datos|Cambiar perfil|sidebar-help|demo-workspace-banner/,"Customer-facing frame cannot show demo chrome");
 assert.doesNotMatch(login,/O ENTRA CON UN PERFIL DE PRUEBA|auth-demo-note|perfiles de demostración/);
 assert.doesNotMatch(explore,/negocios de la demostración de Tijuana/);
-assert.match(shell,/window.confirm\("¿Quieres cerrar tu sesión en Loyally\?"\)/);
-assert.match(nav,/window.confirm\("¿Quieres cerrar tu sesión en Loyally\?"\)/);
+assert.match(shell,/window.confirm\("¿Quieres cerrar tu sesión en Kreyv\?"\)/);
+assert.match(nav,/window.confirm\("¿Quieres cerrar tu sesión en Kreyv\?"\)/);
 assert.match(shell,/workspace-breadcrumbs/,"Breadcrumb visible throughout business sections");
 assert.doesNotMatch(shell.match(/business:\[[\s\S]*?\],\s*staff:/)?.[0]||"",/Escanear|\/empleado/,"Owner cannot navigate to scanner");
 assert.doesNotMatch(business,/manager_create_branch|<BranchCreator|onSubmit=\{addLocation\}/,"Manager cannot create branch/location");
