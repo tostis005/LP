@@ -1,0 +1,50 @@
+/* Adaptación visual Kreyv: solo marco de la plataforma. Colores y logos propios de las tarjetas permanecen independientes. */
+:root{
+ --brand-wine:var(--color-brand);--brand-wine-hover:var(--color-brand-500);--brand-ink:var(--color-text);
+ --brand-cream:var(--color-bg);--brand-blush:var(--color-brand-100);--brand-border:var(--color-bg-2);
+ --ink:var(--color-text);--muted:var(--color-text-2);--green:var(--color-brand);--green-dark:var(--color-brand-900);
+ --sage:var(--color-brand-100);--light:var(--color-bg);--cream:var(--color-bg-2);--line:var(--color-bg-2);
+ --loi-dark:var(--color-brand-900);--loi-green:var(--color-brand);--loi-ink:var(--color-text);--loi-sub:var(--color-text-2);
+}
+body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-text)}
+h1,h2,h3,h4,h5,h6{font-family:var(--font-heading);letter-spacing:-.045em}
+button,input,select,textarea{font-family:var(--font-body)}
+.loi-site{--loi-dark:var(--color-brand-900);--loi-green:var(--color-brand);--loi-ink:var(--color-text);--loi-sub:var(--color-text-2);--loi-line:var(--color-bg-2);background:var(--color-bg);color:var(--color-text)}
+.loi-site h1,.loi-site h2,.loi-phone-greeting{font-family:var(--font-heading);color:var(--color-text)}
+.workspace,.demo-page,.hero-section{background:var(--color-bg)}
+.public-header,.loi-public-header{background:color-mix(in srgb,var(--color-bg) 91%,white)}
+.loi-hero{background:radial-gradient(circle at 87% 10%,var(--color-accent-100),transparent 39%),linear-gradient(120deg,var(--color-bg),#fff)}
+.loi-hero-orbit.orbit-a,.orb-one{background:var(--color-bg-2)}
+.loi-hero-orbit.orbit-b,.orb-two{border-color:var(--color-accent-300)}
+.loi-button-main,.button-dark,.loi-button-main:hover,.button-dark:hover{background:var(--color-brand);color:var(--color-on-brand)}
+.loi-button-main:hover,.button-dark:hover{filter:brightness(1.12)}
+.loi-button-light,.button-outline{border-color:var(--color-bg-2);color:var(--color-brand)}
+.loi-button-cream{background:var(--color-accent-100);color:var(--color-on-accent)}
+.loi-site h1 em,.loi-site h2 em,.loi-overline,.loi-text-link,.loi-phone-greeting span{color:var(--color-accent-600)}
+.loi-status-dot{background:var(--color-accent);box-shadow:0 0 0 5px var(--color-accent-100)}
+.loi-phone-progress{background:var(--color-accent-100)}
+.loi-phone-progress span,.loi-phone-progress strong{color:var(--color-on-accent)}
+.loi-feature-icon,.loi-floating-icon{background:var(--color-accent-100);color:var(--color-accent-600)}
+.loi-site .loi-showcase-phone .stamp-visual-card{ /* tarjeta de un comercio: sin cambio de marca global */ }
+.sidebar,.workspace-header{background:var(--color-surface);border-color:var(--color-bg-2)}
+.workspace .side-link.active,.workspace .tab-bar button.active,.mobile-bottom-link.active{background:var(--color-brand-100);color:var(--color-brand)}
+.workspace .table-pill,.kpi-symbol.green,.panel-icon{background:var(--color-brand-100);color:var(--color-brand)}
+.kpi-card strong,.positive-text,.overview-stat strong{color:var(--color-brand)}
+.brand{display:inline-flex;align-items:center;line-height:1}
+.brand-logo-image{width:145px;height:auto;max-height:48px;display:none}
+.brand-logo-vino-light{display:block}
+.brand-light .brand-logo-vino-light{display:none}
+.brand-light .brand-logo-vino-dark{display:block}
+[data-theme="tinta-maiz"] .brand-logo-vino-light,[data-theme="tinta-maiz"] .brand-logo-vino-dark{display:none}
+[data-theme="tinta-maiz"] .brand-logo-ink-light{display:block}
+[data-theme="tinta-maiz"] .brand-light .brand-logo-ink-light{display:none}
+[data-theme="tinta-maiz"] .brand-light .brand-logo-ink-dark{display:block}
+.brand .brand-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.brand img{display:block}
+.brand .brand-logo-image:not(.brand-logo-vino-light){display:none}
+.brand-light .brand-logo-vino-dark{display:block}
+[data-theme="tinta-maiz"] .brand .brand-logo-vino-dark,[data-theme="tinta-maiz"] .brand .brand-logo-vino-light{display:none}
+[data-theme="tinta-maiz"] .brand .brand-logo-ink-light{display:block}
+[data-theme="tinta-maiz"] .brand-light .brand-logo-ink-light{display:none}
+[data-theme="tinta-maiz"] .brand-light .brand-logo-ink-dark{display:block}
+@media(max-width:700px){.brand-logo-image{width:120px;max-height:42px}}
