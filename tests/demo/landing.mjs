@@ -37,7 +37,7 @@ assert.match(iconSource,/fill="currentColor"/);
 assert.match(iconSource,/beard:/);
 assert.match(iconSource,/hair:/);
 assert.match(iconSource,/bread:/);
-assert.equal((iconSource.match(/\{id:"/g)||[]).length,24,"All 24 approved business icons remain available");
+assert.equal((iconSource.match(/\{id:"/g)||[]).length,25,"All 25 approved business icons remain available");
 const brand=readFileSync(new URL("../../components/Brand.tsx",import.meta.url),"utf8");
 assert.doesNotMatch(brand,/<span>\.<\/span>/);
 

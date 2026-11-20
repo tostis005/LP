@@ -8,7 +8,7 @@ const js=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.CommonJS,
 const module={exports:{}};
 runInNewContext(js,{module,exports:module.exports});
 const icons=module.exports.KREYV_FILLED_PATHS;
-assert.equal(Object.keys(icons).length,40,"The exact 40 pictograms from the approved sheet are present");
+assert.equal(Object.keys(icons).length,41,"40 approved pictograms plus a distinct florist icon are present");
 for(const [name,path] of Object.entries(icons)){
  assert.match(path,/^M[\dLMZ,.]+$/,"Invalid SVG path in "+name);
  assert.ok(path.length>45,"Too little icon detail in "+name);

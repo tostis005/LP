@@ -12,8 +12,8 @@ function load(path,imports={}){
 }
 const filled=load("../../lib/kreyv-icon-paths.ts");
 const icons=load("../../lib/stamp-drawings.ts",{"@/lib/kreyv-icon-paths":filled});
-assert.equal(Object.keys(filled.KREYV_FILLED_PATHS).length,40,"Approved gallery must contain all 40 filled icons");
-assert.equal(icons.STAMP_OPTIONS.length,24,"Every approved business-category icon is selectable");
+assert.equal(Object.keys(filled.KREYV_FILLED_PATHS).length,41,"Approved gallery must contain all 40 filled icons");
+assert.equal(icons.STAMP_OPTIONS.length,25,"Every approved business-category icon is selectable");
 for(const option of icons.STAMP_OPTIONS){
  assert.ok(filled.KREYV_FILLED_PATHS[option.id],option.id+" has no approved filled path");
  const svg=icons.stampMarkup(option.id,28);
@@ -26,10 +26,13 @@ assert.equal(icons.resolveStampIcon("coffee"),"cafeteria","Saved legacy stamps r
 assert.equal(icons.resolveStampIcon("beard"),"barberia","Legacy beard silhouette is upgraded");
 assert.equal(icons.resolveStampIcon("unknown"),"cafeteria","Unknown stamps have a safe fallback");
 const cats=load("../../lib/business-categories.ts",{"@/lib/stamp-drawings":icons});
-for(const [category,kind] of [["Cafetería","coffee"],["Restaurante","restaurant"],["Barbería","beard"],["Peluquería","hair"],["Panadería","bread"],["Taquería","taco"],["Heladería y postres","icecream"],["Gimnasio","gym"],["Librería","book"]]){
+for(const [category,kind] of [["Cafetería","cafeteria"],["Restaurante","restaurante"],["Barbería","barberia"],["Peluquería","peluqueria"],["Panadería","panaderia"],["Taquería","taqueria"],["Heladería y postres","heladeria"],["Gimnasio","gimnasio"],["Librería","libreria"]]){
  assert.equal(cats.categoryStampKind(category),kind,category+" should have its product icon");
 }
-assert.equal(cats.categoryStampKind("no identificada"),"star");
+assert.equal(cats.categoryStampKind("no identificada"),"comercio");
+assert.equal(cats.categoryStampKind("Floristería"),"floristeria");
+assert.equal(icons.resolveStampIcon("flower"),"floristeria");
+assert.notEqual(filled.KREYV_FILLED_PATHS.floristeria,filled.KREYV_FILLED_PATHS.spa);
 assert.match(icons.STAMP_DRAWINGS.beard,/M32 26/,"Barber must be mustache and beard");
 assert.ok(!/circle[^>]+cx="32" cy="34"/.test(icons.STAMP_DRAWINGS.beard),"Barber does not include a head");
 assert.ok(!/M21 33v9/.test(icons.STAMP_DRAWINGS.hair),"Old face silhouette removed");
