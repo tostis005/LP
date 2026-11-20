@@ -1,0 +1,48 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
+const frame=read("components/AppFrame.tsx");
+const nav=read("components/AppBottomNav.tsx");
+const workspace=read("components/BusinessWorkspace.tsx");
+const join=read("app/unirse/[slug]/page.tsx");
+const loginFinish=read("app/entrar/page.tsx");
+const toast=read("components/ActionToast.tsx");
+const client=read("lib/supabase.ts");
+const migration=read("db/migrations/240_showcase_businesses_visible.sql");
+const seed=read("scripts/provision-showcase-real.mjs");
+const items=frame.match(/business:\[([\s\S]*?)\],\s*staff:/)?.[1]||"";
+const menu=items.match(/href:"\/negocio[^"]*"/g)||[];
+assert.deepEqual(menu,[
+ 'href:"/negocio"','href:"/negocio/tarjeta"','href:"/negocio/team"',
+ 'href:"/negocio/marketing"','href:"/negocio/reports"'
+],"Only five primary navigation areas");
+assert.match(frame,/business-account-dropdown/);
+assert.match(frame,/href="\/negocio\/facturacion"/,"Billing belongs to the account menu");
+assert.doesNotMatch(items,/facturacion|\/negocio\/designer|\/negocio\/program/);
+assert.match(nav,/label:"Tarjeta"/);
+assert.match(nav,/label:"Datos"/);
+assert.match(workspace,/tab==="card"&&cardArea==="design"/);
+assert.match(workspace,/tab==="card"&&cardArea==="rules"/);
+assert.match(workspace,/tab==="card"&&cardArea==="rewards"/);
+assert.match(workspace,/onClick=\{\(\)=>setCardArea\("design"\)\}/);
+assert.match(workspace,/onClick=\{\(\)=>setCardArea\("rules"\)\}/);
+assert.match(workspace,/onClick=\{\(\)=>setCardArea\("rewards"\)\}/);
+assert.match(workspace,/RewardCatalog businessId=\{selected\}/);
+assert.match(join,/checked=\{pushMarketing\}/);
+assert.match(join,/checked=\{marketing\}/);
+assert.match(join,/checked=\{whatsappMarketing\}/);
+assert.match(join,/business_upsert_whatsapp_consent/);
+assert.match(join,/business_upsert_consent/);
+assert.match(join,/action:"consent",business_id:offer\.business_id,opted_in:true/);
+assert.match(join,/No, solo mi tarjeta/);
+assert.match(loginFinish,/router\.replace\("\/unirse\/"/);
+assert.doesNotMatch(loginFinish,/db\(\)\.rpc\("join_program"/,"The join process cannot skip channel choice after login");
+assert.match(client,/mutatingRpcs/);
+assert.match(client,/showActionToast\("Cambios guardados correctamente\."\)/);
+assert.match(toast,/role=\{notice\.tone==="error"\?"alert":"status"\}/);
+assert.match(migration,/slug IN \(/,"Only known QA shops become public");
+assert.match(migration,/public_listing=true/);
+assert.match(migration,/visible=true/);
+assert.doesNotMatch(migration,/UPDATE public\.businesses SET public_listing=true\s*;/);
+assert.match(seed,/'GRACIAS POR VOLVER',true,true/);
+console.log("OK: five business tabs, unified card, three voluntary channels, save confirmation and QA shops visibility.");
