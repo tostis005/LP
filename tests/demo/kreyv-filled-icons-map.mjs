@@ -10,19 +10,19 @@ runInNewContext(js,{module,exports:module.exports});
 const icons=module.exports.KREYV_FILLED_PATHS;
 assert.equal(Object.keys(icons).length,40,"The exact 40 pictograms from the approved sheet are present");
 for(const [name,path] of Object.entries(icons)){
- assert.match(path,/^M[\\dLMZ,.]+$/,"Invalid SVG path in "+name);
+ assert.match(path,/^M[\dLMZ,.]+$/,"Invalid SVG path in "+name);
  assert.ok(path.length>45,"Too little icon detail in "+name);
 }
 const react=read("components/KreyvIcon.tsx");
 const marks=read("components/StampMarks.tsx");
 assert.match(react,/fillRule="evenodd"/);
 assert.match(react,/fill="currentColor"/);
-assert.match(marks,/resolveStampIcon\\(kind\\)/,"Stamp cards must use the new icons");
+assert.match(marks,/resolveStampIcon\(kind\)/,"Stamp cards must use the new icons");
 const map=read("components/DirectoryMap.tsx");
 const discover=read("app/app/descubrir/page.tsx");
-assert.match(map,/hasCard\\?:boolean/);
-assert.match(map,/hasCard\\?'currentColor':'none'/);
-assert.match(discover,/hasCard:Boolean\\(myCards\\[e\\.business_id\\]\\)/);
+assert.match(map,/hasCard\?:boolean/);
+assert.match(map,/hasCard\?'currentColor':'none'/);
+assert.match(discover,/hasCard:Boolean\(myCards\[e\.business_id\]\)/);
 assert.doesNotMatch(map,/categoryStampKind|stampMarkup/);
 const appNav=read("components/AppBottomNav.tsx"),frame=read("components/AppFrame.tsx"),home=read("components/LandingHome.tsx");
 for(const file of [appNav,frame,home])assert.match(file,/KreyvIcon/);

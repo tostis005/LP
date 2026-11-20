@@ -20,7 +20,7 @@ for(const option of icons.STAMP_OPTIONS){
  assert.match(svg,/width="28" height="28" viewBox="0 0 64 64"/);
  assert.match(svg,/fill="currentColor"/);
  assert.match(svg,/fill-rule="evenodd"/);
- assert.doesNotMatch(svg,/stroke-width="3\\.5"/);
+ assert.doesNotMatch(svg,/stroke-width="3\.5"/);
 }
 assert.equal(icons.resolveStampIcon("coffee"),"cafeteria","Saved legacy stamps remain readable");
 assert.equal(icons.resolveStampIcon("beard"),"barberia","Legacy beard silhouette is upgraded");
@@ -40,12 +40,12 @@ assert.match(presentation.programPromise({type:"cashback",cashback_bps:500}),/5 
 assert.doesNotMatch(presentation.programPromise({type:"stamps",reward_label:"Café gratis"}),/8/);
 const map=readFileSync(new URL("../../components/DirectoryMap.tsx",import.meta.url),"utf8");
 const css=readFileSync(new URL("../../app/workspace.css",import.meta.url),"utf8");
-assert.match(map,/pinIcon\\(Boolean\\(l\\.hasCard\\)\\)/,"Map icons depend on membership, not business category");
-assert.match(map,/hasCard\\?:boolean/);
-assert.match(map,/hasCard\\?'currentColor':'none'/,"Owned stars fill, unknown stars stay outlined");
+assert.match(map,/pinIcon\(Boolean\(l\.hasCard\)\)/,"Map icons depend on membership, not business category");
+assert.match(map,/hasCard\?:boolean/);
+assert.match(map,/hasCard\?'currentColor':'none'/,"Owned stars fill, unknown stars stay outlined");
 assert.doesNotMatch(map,/stampMarkup|categoryStampKind|stampKind/,"Map must never show business-category stamp drawings");
 const discover=readFileSync(new URL("../../app/app/descubrir/page.tsx",import.meta.url),"utf8");
-assert.match(discover,/hasCard:Boolean\\(myCards\\[e\\.business_id\\]\\)/,"Memberships drive markers per business");
+assert.match(discover,/hasCard:Boolean\(myCards\[e\.business_id\]\)/,"Memberships drive markers per business");
 assert.match(discover,/directory-map-legend/);
 assert.match(map,/iconAnchor:\[23,52\]/);
 const outer=css.match(/\.loyally-map-marker\{([^}]*)\}/)?.[1]||"";
