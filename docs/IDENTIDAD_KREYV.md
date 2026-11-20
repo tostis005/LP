@@ -23,3 +23,11 @@ La implementación se encuentra en la rama `feat/kreyv-brand-phase1-20261120` so
 6. **Logotipos finales convertidos a curvas y refinados**: el kit lo recomienda antes de hacer pública la marca definitiva.
 
 Nota: una instalación PWA existente puede necesitar reinstalación o actualización de icono por la caché del sistema operativo.
+
+## Galería de iconos rellenos (fase 2)
+
+- La colección aprobada de **40 pictogramas monocolor** se ha convertido a vectores en `lib/kreyv-icon-paths.ts`. Se dibujan como SVG con un único `currentColor`; el color y el tamaño pueden ajustarse sin alterar el arte.
+- El componente `KreyvIcon` muestra los 16 iconos de navegación. Los 24 iconos de categorías también se ofrecen en el selector de sellos del negocio mediante `StampMark`.
+- Los sellos antiguos guardados en base de datos mantienen compatibilidad a través de `resolveStampIcon`; no se altera ninguna tarjeta existente.
+- En el mapa, **estrella rellena** significa que el usuario dispone de tarjeta de ese negocio y **estrella de contorno** que aún no dispone de ella. El estado utiliza `loyalty_memberships`, ya consultado por la página Descubrir; no se calcula por categoría ni por la preferencia del sello.
+- Se añade una leyenda sobre el mapa y el estado de cada negocio en el popup. Cada establecimiento del mismo negocio recibe el mismo estado de posesión.

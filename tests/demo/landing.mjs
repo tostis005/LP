@@ -32,12 +32,12 @@ for(const lang of [es,en]){
  assert.doesNotMatch(all,/SVG|cuatro perfiles|four profiles|tablet|tableta/i);
 }
 const iconSource=readFileSync(new URL("../../lib/stamp-drawings.ts",import.meta.url),"utf8");
-assert.match(iconSource,/stroke-width="3\.5"/);
-assert.doesNotMatch(iconSource,/fill="currentColor"/);
+assert.match(iconSource,/fill-rule="evenodd"/);
+assert.match(iconSource,/fill="currentColor"/);
 assert.match(iconSource,/beard:/);
 assert.match(iconSource,/hair:/);
 assert.match(iconSource,/bread:/);
-assert.equal((iconSource.match(/\{id:"/g)||[]).length,24,"All 24 stamps remain available");
+assert.equal((iconSource.match(/\{id:"/g)||[]).length,24,"All 24 approved business icons remain available");
 const brand=readFileSync(new URL("../../components/Brand.tsx",import.meta.url),"utf8");
 assert.doesNotMatch(brand,/<span>\.<\/span>/);
 
@@ -76,4 +76,4 @@ assert.match(manifest,/start_url:"\/mi-loyally"/,"The installed icon opens the c
 assert.match(manifest,/display:"standalone"/,"The app has a standalone window");
 assert.doesNotMatch(rootLayout,/<InstallLoyally\/>/,"Remove the old floating install widget");
 
-console.log("Commercial landing: ES/EN copy parity, 24-icon collection and logo verified.");
+console.log("Commercial landing: ES/EN copy parity, filled 24-category icon collection and logo verified.");
