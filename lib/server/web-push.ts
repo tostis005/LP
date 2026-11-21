@@ -42,5 +42,6 @@ export async function sendWebPush(item:PushDelivery){
   tag:"loyally-"+item.delivery_id
  });
  await webpush.sendNotification({endpoint:item.endpoint,keys:{p256dh:item.p256dh,auth:item.auth}},
-  payload,{TTL:3600,urgency:"normal"});
+  // Mantener el aviso hasta 24 h si Android retrasa la entrega por ahorro de batería.
+  payload,{TTL:86400,urgency:"normal"});
 }

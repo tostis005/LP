@@ -84,8 +84,17 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
    }
    if(isPending(current))pending=true;
   }
-  setNotice("Campaña enviada: "+sent+" entregas aceptadas, "+failed+" rechazadas."+
-   (pending?" Quedan envíos pendientes; puedes continuarlos desde la campaña.":""));
+  const final=await request("/api/local/offers/send?offer_id="+encodeURIComponent(offerId)) as unknown as SendState;
+  const push=final.campaigns.find(c=>c.channel==="push");
+  const pushProblems=push&&Number(push.failed_count)>0;
+  if(pushProblems&&Number(push.sent_count)===0){
+   setError("La campaña se ha procesado, pero el proveedor no ha aceptado ninguna notificación push. Los clientes deben comprobar o reparar sus suscripciones en Ajustes.");
+  }else{
+   setNotice("Campaña procesada: "+sent+" mensajes aceptados por los proveedores, "+failed+" rechazados."+
+    (pending?" Quedan envíos pendientes; puedes continuarlos desde la campaña.":"")+
+    (pushProblems?" Algunas notificaciones push fueron rechazadas.":"")+
+    " La aceptación del proveedor no garantiza que Android haya mostrado el aviso.");
+  }
   await refresh();
  }
  async function sendOffer(offer:Offer){

@@ -136,18 +136,20 @@ export async function POST(request:Request){
    const role=roleOf(consumed.rows[0].role);
    const user=await targetUser(role);
    const operator=await createSession(admin.id,OPERATOR_MS);
-   const chosen=await createSession(user.id,OPERATOR_MS);
+   // El permiso para CAMBIAR de perfil dura 45 minutos; la sesión elegida
+   // permanece abierta en el dispositivo hasta salir o ser revocada.
+   const chosen=await createSession(user.id);
    const res=reply({success:true,route:roles[role].route});
    res.headers.append("Set-Cookie",operatorSessionCookie(operator.token));
-   return setSessionCookie(res,chosen.token,chosen.expires,OPERATOR_MINUTES*60);
+   return setSessionCookie(res,chosen.token,chosen.expires);
   }
 
   if(action==="switch"){
    const role=roleOf(input.role);
    if(!await operatorAllowed(request,admin.id))throw new ApiError("Vuelve a autorizar el acceso con el correo de administración.",403);
    const user=await targetUser(role);
-   const session=await createSession(user.id,OPERATOR_MS);
-   return setSessionCookie(reply({success:true,route:roles[role].route}),session.token,session.expires,OPERATOR_MINUTES*60);
+   const session=await createSession(user.id);
+   return setSessionCookie(reply({success:true,route:roles[role].route}),session.token,session.expires);
   }
   throw new ApiError("Acción no admitida.",400);
  }catch(e){return responseError(e)}

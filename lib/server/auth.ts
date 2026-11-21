@@ -5,6 +5,7 @@ import { authPool, hashToken, ApiError, type Actor } from "./db";
 
 const scrypt=promisify(scryptCallback);
 const DAY=24*3600*1000;
+const PERSISTENT_SESSION_DAYS=365;
 export async function hashPassword(password:string):Promise<string> {
   const salt=randomBytes(16).toString("hex");
   const key=await scrypt(password,salt,64) as Buffer;
@@ -54,7 +55,7 @@ export async function rateLimit(key:string,max:number,minutes=15) {
   );
   if(result.rows[0].hits>max)throw new ApiError("Demasiados intentos. Inténtalo más tarde.",429);
 }
-export async function createSession(userId:string,ttlMs=30*DAY) {
+export async function createSession(userId:string,ttlMs=PERSISTENT_SESSION_DAYS*DAY) {
   const token=randomBytes(32).toString("hex");
   const expires=new Date(Date.now()+ttlMs);
   await authPool.query(
@@ -63,9 +64,28 @@ export async function createSession(userId:string,ttlMs=30*DAY) {
   );
   return {token,expires};
 }
-export function setSessionCookie(response:Response,token:string,expires:Date,maxAgeSeconds=2592000) {
+// Activa una sesión persistente mientras la persona utilice Kreyv.
+ // Las sesiones existentes de 45 minutos/30 días también se pueden renovar
+ // sin cambiar su token, siempre que aún sean válidas.
+export async function extendSession(userId:string,token:string):Promise<Date>{
+ const renewed=await authPool.query<{expires_at:Date}>(
+  "UPDATE auth.sessions SET expires_at=now()+($3::int * interval '1 day') "+
+  "WHERE user_id=$1::uuid AND token_hash=$2 AND expires_at>now() "+
+  "AND expires_at<now()+(($3::int-30)* interval '1 day') RETURNING expires_at",
+  [userId,hashToken(token),PERSISTENT_SESSION_DAYS]
+ );
+ if(renewed.rows[0]?.expires_at)return new Date(renewed.rows[0].expires_at);
+ const existing=await authPool.query<{expires_at:Date}>(
+  "SELECT expires_at FROM auth.sessions WHERE user_id=$1::uuid AND token_hash=$2 AND expires_at>now()",
+  [userId,hashToken(token)]
+ );
+ if(existing.rows[0]?.expires_at)return new Date(existing.rows[0].expires_at);
+ throw new ApiError("La sesión ha expirado.",401);
+}
+export function setSessionCookie(response:Response,token:string,expires:Date,maxAgeSeconds?:number) {
   const secure=process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://")?" Secure;":"";
-  response.headers.append("Set-Cookie","lp_session="+token+"; Path=/; HttpOnly; SameSite=Lax;"+secure+" Max-Age="+maxAgeSeconds+"; Expires="+expires.toUTCString());
+  const age=maxAgeSeconds??Math.max(1,Math.floor((expires.getTime()-Date.now())/1000));
+  response.headers.append("Set-Cookie","lp_session="+token+"; Path=/; HttpOnly; SameSite=Lax;"+secure+" Max-Age="+age+"; Expires="+expires.toUTCString());
   response.headers.set("Cache-Control","no-store");
   return response;
 }

@@ -44,6 +44,8 @@ jobs:
         run: node tests/demo/auth-rate-limits.mjs
       - name: Verificar generación segura de claves Web Push
         run: node tests/demo/push-vapid.mjs
+      - name: Verificar sesion persistente y recuperacion push
+        run: node tests/demo/push-session-recovery.mjs
       - name: Validar perfil, QR y notificaciones del cliente
         run: node tests/demo/customer-profile-final.mjs
       - name: Verificar Wallet y QR ampliado

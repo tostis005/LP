@@ -40,6 +40,9 @@ export async function POST(request:Request){
    await authPool.query("SELECT public.finish_push_delivery($1::uuid,$2::boolean,$3::boolean)",
     [item.delivery_id,ok,expired]);
   }
-  return Response.json({sent,failed},{headers:{"Cache-Control":"no-store"}});
+  const status=await asActor(actor,async client=>(await client.query(
+   "SELECT status,recipient_count,sent_count,failed_count FROM public.push_campaigns WHERE id=$1::uuid",
+   [id])).rows[0] as {status:string;recipient_count:number;sent_count:number;failed_count:number}|undefined);
+  return Response.json({sent,failed,campaign:status},{headers:{"Cache-Control":"no-store"}});
  }catch(e){return responseError(e);}
 }

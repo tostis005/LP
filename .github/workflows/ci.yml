@@ -26,6 +26,8 @@ jobs:
         run: bash -n scripts/apply-gmail-credentials.sh
       - name: Solicitud push contextual en PWA
         run: node tests/demo/push-onboarding.mjs
+      - name: Verificar sesion persistente y recuperacion push
+        run: node tests/demo/push-session-recovery.mjs
       - name: Comprobar ofertas, novedades y recuperación de notificaciones push
         run: node tests/demo/offers-inbox.mjs
       - name: Verificar campañas unificadas y facturación por canal

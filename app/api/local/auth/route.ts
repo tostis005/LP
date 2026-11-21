@@ -1,5 +1,5 @@
 import { actorFromRequest,asActor,authPool,cookieToken,hashToken,ApiError,checkOrigin,responseError } from "@/lib/server/db";
-import { hashPassword,passwordMatches,validateEmail,emailToken,rateLimit,createSession,setSessionCookie,clearSessionCookie,publicUser,smtpReady } from "@/lib/server/auth";
+import { hashPassword,passwordMatches,validateEmail,emailToken,rateLimit,createSession,extendSession,setSessionCookie,clearSessionCookie,publicUser,smtpReady } from "@/lib/server/auth";
 export const runtime="nodejs";
 
 export async function POST(request:Request) {
@@ -10,8 +10,13 @@ export async function POST(request:Request) {
     const input=JSON.parse(raw) as Record<string,unknown>;
     const action=String(input.action||"");
     const actor=await actorFromRequest(request);
-    if(action==="getUser")return Response.json({data:{user:actor?publicUser(actor):null},error:null});
-    if(action==="getSession")return Response.json({data:{session:actor?{access_token:"cookie",user:publicUser(actor),expires_at:actor.expires_at}:null},error:null});
+    if(action==="getUser"||action==="getSession"){
+      const expires=actor?await extendSession(actor.id,cookieToken(request)):null;
+      const data=action==="getUser"?{user:actor?publicUser(actor):null}:
+       {session:actor?{access_token:"cookie",user:publicUser(actor),expires_at:expires?.toISOString()}:null};
+      const response=Response.json({data,error:null});
+      return actor&&expires?setSessionCookie(response,cookieToken(request),expires):response;
+    }
     if(action==="signOut") {
       const token=cookieToken(request);
       if(token)await authPool.query("DELETE FROM auth.sessions WHERE token_hash=$1",[hashToken(token)]);

@@ -8,6 +8,7 @@ import { Brand } from "@/components/Brand";
 import {KreyvIcon} from "@/components/KreyvIcon";
 import {CustomerInboxBell} from "@/components/CustomerInboxBell";
 import { configured, db } from "@/lib/supabase";
+import {syncExistingPushSubscription} from "@/lib/client/push-sync";
 export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employee"; active:boolean; businesses:{id:string;name:string;slug:string} | null };
 export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; refresh: () => void };
 type Area = "customer" | "business" | "staff" | "admin";
@@ -33,6 +34,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    try{
     const auth=await db().auth.getUser(); if(auth.error) throw auth.error;
     if(!auth.data.user){if(live){setLoading(false);router.replace("/acceder?next="+encodeURIComponent(pathname))}return}
+    if(area==="customer")void syncExistingPushSubscription(auth.data.user.id);
     try { await db().rpc("claim_invitations"); } catch { /* invitaciones opcionales */ }
     const [members,admins]=await Promise.all([
       db().from("business_members").select("business_id,role,active,businesses(id,name,slug)").eq("user_id",auth.data.user.id).eq("active",true),
