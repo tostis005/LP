@@ -70,7 +70,10 @@ function safeEqual(a:string,b:string){
 export async function beginOauth(p:OAuthProvider,returnTo:string){
  const {clientId}=credentials(p);
  const state=randomToken(),nonce=randomToken(),verifier=randomToken();
- const destination=["/mi-loyally","/app","/entrar"].includes(returnTo)?returnTo:"/entrar";
+ // Mantener enlaces a avisos concretos al autenticar con Google o Apple;
+ // ninguna ruta externa ni otra ruta privada puede inyectarse como destino.
+ const destination=["/mi-loyally","/app","/entrar"].includes(returnTo)||
+  /^\/app\/novedades\/[a-f0-9-]{36}$/i.test(returnTo)?returnTo:"/entrar";
  await authPool.query("DELETE FROM auth.oauth_attempts WHERE expires_at<now()");
  await authPool.query(
   "INSERT INTO auth.oauth_attempts(state_hash,provider,nonce,code_verifier,return_to) VALUES($1,$2,$3,$4,$5)",

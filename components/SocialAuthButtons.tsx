@@ -3,7 +3,7 @@ import {useEffect,useState} from "react";
 
 type Provider="google"|"apple";
 type Availability=Record<Provider,boolean>;
-export function SocialAuthButtons({next="/app"}:{next?:"/app"|"/entrar"}){
+export function SocialAuthButtons({next="/app"}:{next?:string}){
  const [available,setAvailable]=useState<Availability>({google:false,apple:false});
  useEffect(()=>{
   let active=true;
