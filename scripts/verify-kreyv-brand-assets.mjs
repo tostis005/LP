@@ -21,8 +21,8 @@ assert.match(layout,/kreyv-apple-touch-v3.png/);
 assert.match(manifest,/kreyv-mark-v3-512.png/);
 const sender=read("lib/server/web-push.ts").toString("utf8");
 for(const code of [sw,sender]){
- assert.match(code,/kreyv-notification-icon-v1-192\.png/,"La notificación debe usar la lupa y estrella a color sin fondo.");
- assert.match(code,/kreyv-notification-badge-v1-96\.png/,"Android necesita un badge pequeño monocromo y transparente.");
+ assert.match(code,/kreyv-notification-icon-v2-192\.png/,"La notificación debe usar la lupa y estrella a color sin fondo.");
+ assert.match(code,/kreyv-notification-badge-v2-96\.png/,"Android necesita un badge pequeño monocromo y transparente.");
 }
 const badge=await sharp(read("public/kreyv-notification-badge-v2-96.png")).ensureAlpha().raw().toBuffer({resolveWithObject:true});
 assert.equal(badge.info.channels,4);
