@@ -25,6 +25,7 @@
 .workspace-customer .customer-toolbar-summary,.workspace-customer .customer-toolbar-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .workspace-customer .customer-card-count{font-size:13px;color:var(--color-text-2)}
 .workspace-customer .customer-reward-ready{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--color-brand);background:var(--color-brand-100);border-radius:8px;padding:8px 10px}
+.workspace-customer .customer-preferences-link{font-size:12px;color:var(--color-brand);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--color-brand-300);font-weight:650}
 .workspace-customer .loyalty-card{border-radius:16px;box-shadow:0 5px 18px rgba(42,21,32,.10);transition:box-shadow .18s ease,transform .18s ease}
 .workspace-customer .loyalty-card:hover:not(.static-card){transform:translateY(-2px);box-shadow:0 10px 24px rgba(42,21,32,.13)}
 .workspace-customer .loyalty-card:after{display:none}

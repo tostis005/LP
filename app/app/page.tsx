@@ -76,6 +76,7 @@ function CustomerHome({account}:{account:Account}){
    <div className="customer-toolbar-summary">
     <span className="customer-card-count">{cards.length} {cards.length===1?"tarjeta":"tarjetas"}</span>
     {readyRewards>0&&<span className="customer-reward-ready"><Gift size={15}/>{readyRewards} {readyRewards===1?"recompensa disponible":"recompensas disponibles"}</span>}
+    <Link className="customer-preferences-link" href="/app/ajustes">Gestionar notificaciones</Link>
    </div>
    <div className="customer-toolbar-actions">
     <Link className="button button-outline button-sm" href="/app/novedades">Avisos {unreadOffers>0&&<span className="kreyv-offer-count">{unreadOffers}</span>}</Link>
