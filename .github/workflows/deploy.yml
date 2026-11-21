@@ -46,6 +46,8 @@ jobs:
         run: node tests/demo/push-vapid.mjs
       - name: Verificar sesion persistente y recuperacion push
         run: node tests/demo/push-session-recovery.mjs
+      - name: Verificar prueba push autorreparable y enlace directo a tarjetas
+        run: node tests/demo/push-recovery-card-deeplink.mjs
       - name: Validar perfil, QR y notificaciones del cliente
         run: node tests/demo/customer-profile-final.mjs
       - name: Verificar Wallet y QR ampliado

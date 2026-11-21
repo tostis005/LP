@@ -28,6 +28,8 @@ jobs:
         run: node tests/demo/push-onboarding.mjs
       - name: Verificar sesion persistente y recuperacion push
         run: node tests/demo/push-session-recovery.mjs
+      - name: Verificar prueba push autorreparable y enlace directo a tarjetas
+        run: node tests/demo/push-recovery-card-deeplink.mjs
       - name: Comprobar ofertas, novedades y recuperación de notificaciones push
         run: node tests/demo/offers-inbox.mjs
       - name: Verificar campañas unificadas y facturación por canal

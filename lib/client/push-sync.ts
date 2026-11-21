@@ -1,4 +1,4 @@
-// Recupera en segundo plano las suscripciones push que el usuario ya autorizó.
+// Mantiene activa la suscripción push si el usuario ya concedió permiso al dispositivo.
 // Nunca solicita permisos al abrir la aplicación: el permiso inicial sigue siendo explícito.
 type PushConfig={enabled?:boolean;publicKey?:string};
 let inFlight:Promise<void>|null=null;
@@ -31,10 +31,8 @@ async function sync(userId:string){
  // Esperar al worker ya registrado por PwaSetup sin solicitar permiso otra vez.
  const worker=await navigator.serviceWorker.ready;
  let sub=await worker.pushManager.getSubscription();
- // No crear una suscripción nueva al abrir la app: si el usuario la desactivó
- // voluntariamente, ese deseo debe respetarse aunque el permiso Android siga activo.
- if(!sub)return;
- if(!sameKey(sub.options.applicationServerKey,config.publicKey)){
+ // Si el permiso sigue concedido, recuperar suscripciones perdidas o con VAPID antiguo.
+ if(sub&&!sameKey(sub.options.applicationServerKey,config.publicKey)){
   // La clave VAPID puede cambiar durante un despliegue. Una suscripción con
   // una clave anterior puede provocar rechazos aunque el móvil tenga permiso.
   await sub.unsubscribe();
@@ -57,7 +55,7 @@ export function syncExistingPushSubscription(userId:string,force=false):Promise<
   lastAccount=userId;
   lastSync=Date.now();
  }).catch(()=>{
-  // No bloquear la aplicación ni pedir permisos inesperados: Ajustes permite reparar.
+  // No bloquear la aplicación ni pedir permisos inesperados; Probar permite reintentar.
  }).finally(()=>{inFlight=null});
  return inFlight;
 }

@@ -12,6 +12,10 @@ export function LoyaltyCard({membership,business,program,offersCount=0}:{members
  const [open,setOpen]=useState(false),[wallets,setWallets]=useState({apple:false,google:false}),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null),[walletNotice,setWalletNotice]=useState("");
  const qrCloseRef=useRef<HTMLButtonElement>(null);
+ useEffect(()=>{
+  // Solo se abre la tarjeta cuya membresía pertenece al usuario y aparece en su listado.
+  if(new URLSearchParams(window.location.search).get("card")===membership.id)setOpen(true);
+ },[membership.id]);
  useEffect(()=>{let active=true;
   fetch("/api/local/wallet/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(active&&v)setWallets({apple:v.apple===true,google:v.google===true})}).catch(()=>{});
   return()=>{active=false};
@@ -29,7 +33,14 @@ export function LoyaltyCard({membership,business,program,offersCount=0}:{members
   window.addEventListener("keydown",onEscape);
   return()=>{document.body.style.overflow=previousOverflow;window.removeEventListener("keydown",onEscape)};
  },[expandedQr]);
- function closeCard(){setExpandedQr(null);setWalletNotice("");setOpen(false);}
+ function closeCard(){
+  setExpandedQr(null);setWalletNotice("");setOpen(false);
+  const url=new URL(window.location.href);
+  if(url.pathname==="/app"&&url.searchParams.get("card")===membership.id){
+   url.searchParams.delete("card");
+   window.history.replaceState(window.history.state,"",url.pathname+url.search+url.hash);
+  }
+ }
  function unavailableWallet(provider:"apple"|"google"){
   setWalletNotice((provider==="apple"?"Apple Wallet":"Google Wallet")+" necesita que Kreyv active la emisión de tarjetas. Tener Wallet instalada en el teléfono no es suficiente. Mientras tanto, puedes guardar tu tarjeta con QR como imagen.");
   setOpen(true);

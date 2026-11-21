@@ -6,16 +6,51 @@ import {showActionToast} from "@/lib/action-toast";
 type Preference={business_id:string;business_name:string;opted_in:boolean};
 type Config={enabled:boolean;publicKey:string};
 
+class PushRequestError extends Error {
+ constructor(message:string,readonly status:number){super(message);this.name="PushRequestError";}
+}
 function keyBytes(value:string):Uint8Array{
  const padded=(value+"=".repeat((4-value.length%4)%4)).replace(/-/g,"+").replace(/_/g,"/");
- const binary=atob(padded);
- return Uint8Array.from(binary,c=>c.charCodeAt(0));
+ return Uint8Array.from(atob(padded),c=>c.charCodeAt(0));
+}
+function sameServerKey(current:ArrayBuffer|null,key:string){
+ if(!current)return false;
+ const a=new Uint8Array(current),b=keyBytes(key);
+ return a.length===b.length&&a.every((byte,index)=>byte===b[index]);
 }
 async function jsonRequest(path:string,init?:RequestInit){
  const res=await fetch(path,{credentials:"same-origin",cache:"no-store",...init});
  const data=await res.json() as {error?:string;[key:string]:unknown};
- if(!res.ok||data.error)throw new Error(data.error||"No se pudo completar la solicitud.");
+ if(!res.ok||data.error)throw new PushRequestError(data.error||"No se pudo completar la solicitud.",res.status);
  return data;
+}
+function postPush(path:string,body:Record<string,unknown>){
+ return jsonRequest(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+}
+async function register(sub:PushSubscription){
+ await postPush("/api/local/push/preferences",{action:"subscribe",endpoint:sub.endpoint,keys:sub.toJSON().keys});
+}
+async function clearOldSubscription(sub:PushSubscription){
+ const endpoint=sub.endpoint;
+ const removed=await sub.unsubscribe();
+ if(!removed)throw new Error("No se pudo renovar la suscripción del teléfono. Vuelve a intentarlo.");
+ // Se retira solo un endpoint obsoleto; no se modifican los consentimientos de los negocios.
+ await postPush("/api/local/push/preferences",{action:"unsubscribe",endpoint}).catch(()=>{});
+}
+async function ensureSubscription(reg:ServiceWorkerRegistration,publicKey:string,renew=false){
+ let sub=await reg.pushManager.getSubscription();
+ if(sub&&(renew||!sameServerKey(sub.options.applicationServerKey,publicKey))){
+  await clearOldSubscription(sub);
+  sub=null;
+ }
+ if(!sub)sub=await reg.pushManager.subscribe({
+  userVisibleOnly:true,applicationServerKey:keyBytes(publicKey) as BufferSource
+ });
+ await register(sub);
+ return sub;
+}
+function sendTest(sub:PushSubscription){
+ return postPush("/api/local/push/test",{endpoint:sub.endpoint});
 }
 
 export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}={}){
@@ -41,114 +76,54 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
     if(isSupported){
      const reg=await navigator.serviceWorker.getRegistration();
      const sub=reg?await reg.pushManager.getSubscription():null;
-     if(mounted)setDeviceActive(!!sub&&Notification.permission==="granted");
      if(sub&&Notification.permission==="granted"&&c.enabled){
-      // Al entrar con otra cuenta en el mismo móvil, vincular la suscripción con la cuenta actual.
-      const data=sub.toJSON();
-      await jsonRequest("/api/local/push/preferences",{
-       method:"POST",headers:{"Content-Type":"application/json"},
-       body:JSON.stringify({action:"subscribe",endpoint:sub.endpoint,keys:data.keys})
-      });
+      // Volver a vincular el móvil a la cuenta activa sin pedir permisos nuevos.
+      await register(sub);
      }
      if(mounted)setDeviceActive(!!sub&&Notification.permission==="granted");
     }
    }catch(e){if(mounted)setError((e as Error).message);}
    finally{if(mounted)setLoading(false);}
   }
-  load();
+  void load();
   return()=>{mounted=false;};
  },[]);
- async function activate(){
-  setBusy(true);setError("");setNotice("");
-  try{
-   if(!config.enabled)throw new Error("Kreyv todavía no ha activado el servicio push.");
-   if(!supported)throw new Error("Este navegador no admite push. En iPhone, abre Kreyv desde el icono de la pantalla de inicio.");
-   // Debe solicitarse desde un clic del usuario, especialmente en iPhone.
-   const permission=await Notification.requestPermission();
-   if(permission!=="granted")throw new Error("Debes permitir las notificaciones en los ajustes del teléfono.");
-   const reg=await navigator.serviceWorker.ready;
-   let sub=await reg.pushManager.getSubscription();
-   if(!sub){
-    sub=await reg.pushManager.subscribe({
-     userVisibleOnly:true,
-     applicationServerKey:keyBytes(config.publicKey) as BufferSource
-    });
-   }
-   const data=sub.toJSON();
-   await jsonRequest("/api/local/push/preferences",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({action:"subscribe",endpoint:sub.endpoint,keys:data.keys})
-   });
-   setDeviceActive(true);
-   setNotice("Dispositivo registrado. Gestiona los negocios desde los ajustes de tus tarjetas.");showActionToast("Notificaciones activadas en este móvil.");
-  }catch(e){setError((e as Error).message);}
-  finally{setBusy(false);}
- }
- async function repair(){
-  if(!window.confirm("¿Reparar los avisos de este móvil? Se renovará la suscripción, sin cambiar tus preferencias de los negocios."))return;
-  setBusy(true);setError("");setNotice("");
-  try{
-   if(!config.enabled||!supported||Notification.permission!=="granted")
-    throw new Error("Antes debes permitir las notificaciones en este móvil.");
-   const reg=await navigator.serviceWorker.ready;
-   const previous=await reg.pushManager.getSubscription();
-   if(previous){
-    await jsonRequest("/api/local/push/preferences",{method:"POST",headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({action:"unsubscribe",endpoint:previous.endpoint})});
-    await previous.unsubscribe();
-   }
-   const sub=await reg.pushManager.subscribe({userVisibleOnly:true,
-    applicationServerKey:keyBytes(config.publicKey) as BufferSource});
-   await jsonRequest("/api/local/push/preferences",{method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({action:"subscribe",endpoint:sub.endpoint,keys:sub.toJSON().keys})});
-   setDeviceActive(true);setNotice("Suscripción renovada. Ya puedes probar otra notificación.");
-   showActionToast("Notificaciones reparadas en este móvil.");
-  }catch(e){setDeviceActive(false);setError((e as Error).message);}
-  finally{setBusy(false);}
- }
  async function testNotification(){
   setBusy(true);setError("");setNotice("");
   try{
-   if(!config.enabled||!supported||Notification.permission!=="granted")
-    throw new Error("Primero debes permitir las notificaciones en este móvil.");
-   const reg=await navigator.serviceWorker.ready;
-   const sub=await reg.pushManager.getSubscription();
-   if(!sub)throw new Error("No hay suscripción activa. Pulsa «Activar push» o «Reparar notificaciones».");
-   await jsonRequest("/api/local/push/test",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({endpoint:sub.endpoint})
-   });
-   setNotice("Prueba enviada al proveedor. Si el aviso no aparece, revisa las notificaciones y el ahorro de batería del teléfono.");
-  }catch(e){setError((e as Error).message);}
-  finally{setBusy(false);}
- }
- async function deactivate(){
-  setBusy(true);setError("");setNotice("");
-  try{
-   const reg=await navigator.serviceWorker.ready;
-   const sub=await reg.pushManager.getSubscription();
-   if(sub){
-    await jsonRequest("/api/local/push/preferences",{
-     method:"POST",headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({action:"unsubscribe",endpoint:sub.endpoint})
-    });
-    await sub.unsubscribe();
+   if(!config.enabled||!config.publicKey)throw new Error("Las notificaciones no están disponibles en este momento.");
+   if(!supported)throw new Error("Este navegador no admite notificaciones push. En iPhone, abre Kreyv desde el icono de inicio.");
+   if(Notification.permission==="denied")throw new Error("Las notificaciones están bloqueadas en el teléfono. Actívalas en los ajustes del sistema y vuelve a probar.");
+   // El permiso inicial solo puede solicitarse al pulsar el botón.
+   if(Notification.permission!=="granted"){
+    const permission=await Notification.requestPermission();
+    if(permission!=="granted")throw new Error("Necesitas permitir las notificaciones del teléfono para recibir avisos.");
    }
-   setDeviceActive(false);
-   setNotice("Push desactivado en este dispositivo. Tus preferencias de los negocios se mantienen para otros dispositivos.");showActionToast("Notificaciones desactivadas en este móvil.");
-  }catch(e){setError((e as Error).message);}
-  finally{setBusy(false);}
+   const reg=await navigator.serviceWorker.ready;
+   let sub=await ensureSubscription(reg,config.publicKey);
+   setDeviceActive(true);
+   try{
+    await sendTest(sub);
+   }catch(e){
+    // Un endpoint rechazado (409) puede recuperarse sin mostrar un botón de reparación.
+    if(!(e instanceof PushRequestError)||![404,409,410].includes(e.status))throw e;
+    sub=await ensureSubscription(reg,config.publicKey,true);
+    await sendTest(sub);
+   }
+   setNotice("Prueba enviada. Si el aviso no aparece, revisa los permisos y el ahorro de batería del teléfono.");
+   showActionToast("Prueba de notificaciones enviada.");
+  }catch(e){
+   if(typeof Notification!=="undefined"&&Notification.permission!=="granted")setDeviceActive(false);
+   setError((e as Error).message);
+  }finally{setBusy(false);}
  }
  async function toggle(item:Preference){
   setBusy(true);setError("");setNotice("");
   try{
    const opted_in=!item.opted_in;
-   await jsonRequest("/api/local/push/preferences",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({action:"consent",business_id:item.business_id,opted_in})
-   });
-   setItems(prev=>prev.map(p=>p.business_id===item.business_id?{...p,opted_in}:p));showActionToast("Preferencia de "+item.business_name+" guardada.");
+   await postPush("/api/local/push/preferences",{action:"consent",business_id:item.business_id,opted_in});
+   setItems(prev=>prev.map(p=>p.business_id===item.business_id?{...p,opted_in}:p));
+   showActionToast("Preferencia de "+item.business_name+" guardada.");
    setNotice(opted_in?"Promociones activadas para "+item.business_name+".":"Promociones desactivadas para "+item.business_name+".");
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
@@ -156,26 +131,23 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
  return <section className="panel-card" style={{marginTop:22}}>
   <div className="panel-icon"><Bell size={22}/></div>
   <h2>Notificaciones del teléfono</h2>
-  <p className="muted">Permite que Kreyv te avise de las ofertas de tus tarjetas, incluso cuando la aplicación esté cerrada.</p>
+  <p className="muted">Prueba que los avisos llegan a este móvil. Si la suscripción se ha perdido o ha caducado, Kreyv intentará recuperarla automáticamente.</p>
   {loading?<p className="muted">Comprobando notificaciones...</p>:<>
-   {!config.enabled&&<div className="info-callout"><ShieldCheck size={18}/>El servicio push se activará cuando Kreyv configure las claves VAPID y HTTPS.</div>}
-   {config.enabled&&!supported&&<div className="info-callout"><BellOff size={18}/>Necesitas HTTPS y un navegador compatible. En iPhone, instala Kreyv en la pantalla de inicio y ábrela desde su icono (iOS 16.4 o posterior).</div>}
+   {!config.enabled&&<div className="info-callout"><ShieldCheck size={18}/>Las notificaciones no están disponibles en este momento.</div>}
+   {config.enabled&&!supported&&<div className="info-callout"><BellOff size={18}/>Necesitas un navegador compatible. En iPhone, instala Kreyv en la pantalla de inicio y ábrela desde su icono (iOS 16.4 o posterior).</div>}
    {config.enabled&&supported&&<div className="campaign-compose-actions" style={{marginBottom:14}}>
     <button className="button button-dark button-sm" type="button" disabled={busy}
-     onClick={activate}><Bell size={16}/>{deviceActive?"Sincronizar este dispositivo":"Activar push en este dispositivo"}</button>
-    {deviceActive&&<button className="button button-outline button-sm" type="button" disabled={busy} onClick={testNotification}><Bell size={16}/>Enviar prueba</button>}
-    {deviceActive&&<button className="button button-outline button-sm" type="button" disabled={busy} onClick={repair}><Bell size={16}/>Reparar notificaciones</button>}
-    {deviceActive&&<button className="button button-outline button-sm" type="button" disabled={busy}
-     onClick={deactivate}><BellOff size={16}/>Desactivar aquí</button>}
+     onClick={testNotification}><Bell size={16}/>{busy?"Comprobando...":"Probar notificaciones"}</button>
+    {deviceActive&&<span className="muted" role="status">Avisos permitidos en este móvil</span>}
    </div>}
    {showBusinesses&&items.length>0&&<div className="form-stack">
     {items.map(item=><div key={item.business_id} className="check-control">
      <input type="checkbox" id={"push-consent-"+item.business_id} checked={item.opted_in}
-      disabled={busy||!deviceActive||!config.enabled} onChange={()=>toggle(item)}/>
+      disabled={busy||!config.enabled} onChange={()=>toggle(item)}/>
      <label htmlFor={"push-consent-"+item.business_id}><strong>{item.business_name}</strong><small>{item.opted_in?"Has aceptado sus notificaciones comerciales.":"No recibirás campañas push de este negocio."}</small></label>
     </div>)}
    </div>}
-   {showBusinesses&&!items.length&&<p className="muted">Cuando te unas a un negocio y guardes su tarjeta, podrás activar aquí sus notificaciones.</p>}
+   {showBusinesses&&!items.length&&<p className="muted">Cuando guardes una tarjeta, podrás elegir qué negocios pueden enviarte avisos.</p>}
   </>}
   {error&&<div className="alert error" role="alert">{error}</div>}
   {notice&&<div className="alert success" role="status"><CheckCircle2 size={17}/>{notice}</div>}

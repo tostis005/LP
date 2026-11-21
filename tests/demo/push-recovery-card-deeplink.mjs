@@ -1,0 +1,27 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
+const settings=read("components/PushPreferences.tsx");
+const sync=read("lib/client/push-sync.ts");
+const testRoute=read("app/api/local/push/test/route.ts");
+const discover=read("app/app/descubrir/page.tsx");
+const cards=read("components/LoyaltyCard.tsx");
+const home=read("app/app/page.tsx");
+
+assert.match(settings,/onClick=\{testNotification\}/,"Una sola acción prueba y repara la suscripción");
+assert.match(settings,/Notification.requestPermission\(\)/,"El primer permiso sigue siendo explícito");
+assert.match(settings,/await ensureSubscription\(reg,config.publicKey\)/,"La prueba crea o sincroniza la suscripción");
+assert.match(settings,/\[404,409,410\]\.includes\(e.status\)/,"Si el endpoint caducó se intenta recuperar");
+assert.match(settings,/ensureSubscription\(reg,config.publicKey,true\)/,"La recuperación obliga a crear un endpoint nuevo");
+assert.match(settings,/await sendTest\(sub\)/,"Tras renovar se repite el envío de prueba");
+assert.doesNotMatch(settings,/onClick=\{deactivate\}|onClick=\{repair\}|Desactivar aquí|Reparar notificaciones/);
+assert.match(sync,/Notification.permission!=="granted"/,"Sin autorización del sistema no se reactivan avisos");
+assert.doesNotMatch(sync,/if\(!sub\)return;/,"Con permiso concedido se autorrecuperan suscripciones");
+assert.match(sync,/if\(!sub\)\{/);
+assert.match(testRoute,/customer_push_subscription/,"La prueba sigue validando la titularidad del endpoint");
+assert.match(testRoute,/rateLimit\("push-self-test:/,"Se mantiene el límite de pruebas");
+assert.match(discover,/href=\{already\?"\/app\?card="\+encodeURIComponent\(cardId\)/,"Descubrir enlaza directamente a la membresía del cliente");
+assert.match(cards,/new URLSearchParams\(window.location.search\).get\("card"\)===membership.id/,"Solo la tarjeta seleccionada se abre");
+assert.match(cards,/window.history.replaceState\(window.history.state/,"Cerrar la tarjeta elimina el enlace temporal");
+assert.match(home,/\.eq\("customer_id",account.user.id\)/,"La tarjeta procede del listado autorizado del cliente");
+console.log("OK: prueba push con autorrecuperación y enlace directo a tarjeta de cliente.");

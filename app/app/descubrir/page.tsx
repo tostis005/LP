@@ -74,7 +74,7 @@ function Discover({account}:{account:Account}){
      <p className="directory-location"><MapPin size={15}/><span>{e.address} · {e.city}, {e.country}</span></p>
      <div className="directory-card-footer">
       {hasLocation&&<span className="distance-tag">{distance(e)} km aprox.</span>}
-      <Link href={already?"/app":"/unirse/"+encodeURIComponent(e.businesses.slug)} className="button button-dark button-sm">{already?"Ver tarjeta":"Conseguir tarjeta"} <ArrowUpRight size={16}/></Link>
+      <Link href={already?"/app?card="+encodeURIComponent(cardId):"/unirse/"+encodeURIComponent(e.businesses.slug)} className="button button-dark button-sm">{already?"Ver tarjeta":"Conseguir tarjeta"} <ArrowUpRight size={16}/></Link>
      </div>
      {already&&(wallets.apple||wallets.google)&&<div className="directory-wallet-links">
       {wallets.apple&&<a href={"/api/local/wallet/apple?card="+encodeURIComponent(cardId)}><Wallet size={16}/> Apple Wallet</a>}
