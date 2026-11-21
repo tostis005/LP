@@ -26,7 +26,7 @@ export async function GET(request:Request){
     const ok=await client.query<{allowed:boolean}>("SELECT (public.is_business_manager($1::uuid) OR public.is_platform_admin()) AS allowed",[business]);
     if(!ok.rows[0]?.allowed)throw new ApiError("No autorizado.",403);
     return (await client.query(
-     "SELECT o.id,o.title,o.preview,o.details,o.terms,o.image_url,o.valid_until,o.created_at,o.push_campaign_id, "+
+     "SELECT o.id,o.title,o.preview,o.details,o.terms,o.image_url,to_char(o.valid_until,'YYYY-MM-DD') AS valid_until,o.created_at,o.push_campaign_id, "+
      "(SELECT count(*)::int FROM public.offer_receipts r WHERE r.offer_id=o.id) AS delivered "+
      "FROM public.business_offers o WHERE o.business_id=$1::uuid ORDER BY o.created_at DESC LIMIT 100",[business])).rows;
    });
@@ -35,7 +35,7 @@ export async function GET(request:Request){
   if(id&&!uuid.test(id))throw new ApiError("Oferta inválida.");
   const rows=await asActor(actor,async client=>{
    return (await client.query(
-    "SELECT o.id,o.business_id,o.title,o.preview,o.details,o.terms,o.image_url,o.valid_until,o.created_at, "+
+    "SELECT o.id,o.business_id,o.title,o.preview,o.details,o.terms,o.image_url,to_char(o.valid_until,'YYYY-MM-DD') AS valid_until,o.created_at, "+
     "r.received_at,r.seen_at,b.name AS business_name,b.logo_url AS business_logo "+
     "FROM public.offer_receipts r JOIN public.business_offers o ON o.id=r.offer_id "+
     "JOIN public.businesses b ON b.id=o.business_id "+
