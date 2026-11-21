@@ -25,3 +25,9 @@ assert.match(style,/\.qr-fullscreen-image\{[\s\S]*?width:min\(88vw,66dvh,488px\)
 assert.match(backend,/APPLE_WALLET_CERT_PEM_B64/);
 assert.match(backend,/GOOGLE_WALLET_ISSUER_ID/);
 console.log("OK: every Wallet control responds, official passes stay gated by credentials, and card/reward QR expands fullscreen.");
+
+assert.match(style,/\.loyalty-global-bottom-nav\{z-index:150\}/,"Find existing bottom navigation stacking order");
+assert.match(style,/\.qr-modal-backdrop\{z-index:500/,"Card modal must always render over the fixed bottom navigation");
+assert.match(style,/\.qr-modal\{padding-bottom:calc\(42px \+ env\(safe-area-inset-bottom,0px\)\)/,"Modal must have room to reach the last action");
+assert.match(card,/Kreyv active la emisión de tarjetas/,"Wallet copy explains what is missing, not whether the app is installed");
+console.log("OK: card modal sits above fixed navigation and its final actions stay scrollable.");

@@ -31,7 +31,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
  },[expandedQr]);
  function closeCard(){setExpandedQr(null);setWalletNotice("");setOpen(false);}
  function unavailableWallet(provider:"apple"|"google"){
-  setWalletNotice((provider==="apple"?"Apple Wallet":"Google Wallet")+" todavía no está configurado para emitir pases de Kreyv. Puedes guardar la tarjeta como imagen con QR desde esta pantalla.");
+  setWalletNotice((provider==="apple"?"Apple Wallet":"Google Wallet")+" necesita que Kreyv active la emisión de tarjetas. Tener Wallet instalada en el teléfono no es suficiente. Mientras tanto, puedes guardar tu tarjeta con QR como imagen.");
   setOpen(true);
  }
  async function downloadCard(){

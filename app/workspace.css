@@ -1178,3 +1178,13 @@
  width:min(88vw,66dvh,488px);aspect-ratio:1;padding:9px;border-radius:12px}
 .qr-fullscreen-image svg{display:block;width:100%;height:auto;max-width:100%;background:white}
 .qr-fullscreen-help{margin:0;max-width:310px;font-size:14px;line-height:1.5;color:#67525e}
+
+
+/* La ficha de tarjeta debe quedar sobre el menú fijo del móvil y permitir ver el último botón. */
+.qr-modal-backdrop{z-index:500;overflow-y:auto;overscroll-behavior:contain}
+.qr-modal{padding-bottom:calc(42px + env(safe-area-inset-bottom,0px));scroll-padding-bottom:40px}
+@media(max-width:700px){
+ .qr-modal-backdrop{z-index:500}
+ .qr-modal{max-height:calc(100dvh - 16px);padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
+ .qr-modal .button-full:last-of-type{margin-bottom:8px}
+}
