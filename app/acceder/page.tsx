@@ -20,6 +20,11 @@ export default function Login(){
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[surname,setSurname]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[whatsapp,setWhatsapp]=useState("");
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
  const [qaEnabled,setQaEnabled]=useState(false),[qaAuthorized,setQaAuthorized]=useState(false);
+ const [loginTarget,setLoginTarget]=useState("/entrar");
+ useEffect(()=>{
+  const candidate=new URLSearchParams(window.location.search).get("next")||"";
+  if(/^\/app\/novedades\/[a-f0-9-]{36}$/i.test(candidate))setLoginTarget(candidate);
+ },[]);
  useEffect(()=>{let active=true;
   fetch("/api/local/qa-access",{credentials:"same-origin",cache:"no-store"})
    .then(r=>r.ok?r.json():null).then(v=>{
@@ -52,7 +57,7 @@ export default function Login(){
     if(data.session)router.push("/entrar");else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");
    }else{
     const {error}=await db().auth.signInWithPassword({email,password});
-    if(error)throw error;router.push("/entrar");
+    if(error)throw error;router.push(loginTarget);
    }
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
@@ -75,7 +80,7 @@ export default function Login(){
     <div className="eyebrow">BIENVENIDO A KREYV</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
     <p className="auth-intro">{mode==="login"?"Accede a Kreyv y descubre tu espacio según el tipo de cuenta.":mode==="signup"?"Crea tu cuenta y guarda todas tus tarjetas en un solo lugar.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
-    <SocialAuthButtons next="/entrar"/>
+    <SocialAuthButtons next={loginTarget}/>
     <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
      {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div></>}
      <label>Correo electrónico<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>

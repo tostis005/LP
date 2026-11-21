@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import sharp from "sharp";
 import {readFileSync,statSync} from "node:fs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url));
-const pngs={"kreyv-mark-v3-192.png":[192,192],"kreyv-mark-v3-512.png":[512,512],"kreyv-apple-touch-v3.png":[180,180],"kreyv-favicon-v3-48.png":[48,48],"icon-192.png":[192,192],"icon-512.png":[512,512],"apple-touch-icon.png":[180,180],"kreyv-notification-icon-v1-192.png":[192,192],"kreyv-notification-badge-v1-96.png":[96,96]};
+const pngs={"kreyv-mark-v3-192.png":[192,192],"kreyv-mark-v3-512.png":[512,512],"kreyv-apple-touch-v3.png":[180,180],"kreyv-favicon-v3-48.png":[48,48],"icon-192.png":[192,192],"icon-512.png":[512,512],"apple-touch-icon.png":[180,180],"kreyv-notification-icon-v2-192.png":[192,192],"kreyv-notification-badge-v2-96.png":[96,96]};
 for(const [name,[w,h]] of Object.entries(pngs)){
  const buf=read("public/"+name);
  assert.equal(buf.subarray(0,8).toString("hex"),"89504e470d0a1a0a","PNG corrupto: "+name);
@@ -24,7 +24,7 @@ for(const code of [sw,sender]){
  assert.match(code,/kreyv-notification-icon-v1-192\.png/,"La notificación debe usar la lupa y estrella a color sin fondo.");
  assert.match(code,/kreyv-notification-badge-v1-96\.png/,"Android necesita un badge pequeño monocromo y transparente.");
 }
-const badge=await sharp(read("public/kreyv-notification-badge-v1-96.png")).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+const badge=await sharp(read("public/kreyv-notification-badge-v2-96.png")).ensureAlpha().raw().toBuffer({resolveWithObject:true});
 assert.equal(badge.info.channels,4);
 let visible=0,transparent=0;
 for(let i=0;i<badge.data.length;i+=4){
@@ -36,6 +36,6 @@ for(let i=0;i<badge.data.length;i+=4){
  }
 }
 assert.ok(transparent>1000&&visible>100,"El badge debe tener fondo transparente y la silueta visible.");
-const notificationIcon=await sharp(read("public/kreyv-notification-icon-v1-192.png")).metadata();
+const notificationIcon=await sharp(read("public/kreyv-notification-icon-v2-192.png")).metadata();
 assert.equal(notificationIcon.hasAlpha,true,"El icono a color debe ser transparente para evitar cuadrados.");
 console.log("OK: iconos Kreyv y push (color transparente y badge blanco con canal alfa) válidos.");

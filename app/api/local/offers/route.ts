@@ -1,10 +1,12 @@
 import {actorFromRequest,asActor,checkOrigin,responseError,ApiError} from "@/lib/server/db";
+import {smtpReady} from "@/lib/server/auth";
+import {pushConfigured} from "@/lib/server/web-push";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 type Channel="email"|"whatsapp"|"push";
 type NewOffer={action?:string;business_id?:string;title?:string;preview?:string;details?:string;
- terms?:string;image_url?:string|null;valid_until?:string|null;valid_from?:string|null;kind?:"offer"|"news"|"notice";channels?:Channel[];offer_id?:string};
+ terms?:string;image_url?:string|null;valid_until?:string|null;valid_from?:string|null;kind?:"offer"|"news"|"notice";channels?:Channel[];offer_id?:string;expected_total_cents?:number};
 function imagePath(raw:string|null|undefined,origin:string,business:string){
  if(!raw)return null;
  let url:URL;
@@ -70,7 +72,20 @@ export async function POST(request:Request){
     [actor.id,input.offer_id]));
    return Response.json({ok:true},{headers});
   }
-  if(input.action!=="create"||!uuid.test(input.business_id||""))throw new ApiError("Negocio inválido.");
+  const sendNow=input.action==="create_send";
+  if((input.action!=="create"&&!sendNow)||!uuid.test(input.business_id||""))throw new ApiError("Negocio inválido.");
+  if(sendNow&&(!Number.isSafeInteger(input.expected_total_cents)||Number(input.expected_total_cents)<0))
+   throw new ApiError("No se ha podido confirmar el precio de la campaña.");
+  if(sendNow){
+   for(const channel of input.channels||[]){
+    if(channel==="push"&&!pushConfigured())throw new ApiError("Las notificaciones push no están disponibles.",503);
+    if(channel==="email"&&!(process.env.LP_ENABLE_MARKETING_SEND==="true"&&smtpReady()&&process.env.NEXT_PUBLIC_SITE_URL))
+     throw new ApiError("El correo no está disponible.",503);
+    if(channel==="whatsapp"&&!(process.env.LP_ENABLE_WHATSAPP_SEND==="true"&&
+      process.env.WHATSAPP_ACCESS_TOKEN&&process.env.WHATSAPP_PHONE_NUMBER_ID&&process.env.WHATSAPP_MARKETING_TEMPLATE))
+     throw new ApiError("WhatsApp no está disponible.",503);
+   }
+  }
   const title=input.title?.trim()||"",preview=input.preview?.trim()||"",details=input.details?.trim()||"";
   const terms=input.terms?.trim()||"";const kind=input.kind||"offer";
   const channels=[...new Set(input.channels||[])];
@@ -116,6 +131,16 @@ export async function POST(request:Request){
        channel==="whatsapp"?(process.env.WHATSAPP_TEMPLATE_LANGUAGE||"es_MX"):null,id]);
     }
     prepared.push(channel);
+   }
+   if(sendNow){
+    // Crear y confirmar en la misma transacción: si el precio cambia, no queda
+    // un borrador que requiera una segunda confirmación.
+    await client.query("SELECT public.confirm_offer_campaign($1::uuid,$2::bigint)",[id,input.expected_total_cents]);
+    const marketing=await client.query<{id:string;channel:Channel;status:string;recipient_count:number;sent_count:number;failed_count:number}>(
+     "SELECT id,channel,status,recipient_count,sent_count,failed_count FROM public.marketing_campaigns WHERE offer_id=$1::uuid",[id]);
+    const push=await client.query<{id:string;channel:Channel;status:string;recipient_count:number;sent_count:number;failed_count:number}>(
+     "SELECT p.id,'push'::text AS channel,p.status,p.recipient_count,p.sent_count,p.failed_count FROM public.push_campaigns p JOIN public.business_offers o ON o.push_campaign_id=p.id WHERE o.id=$1::uuid",[id]);
+    return {id,channels:prepared,campaigns:[...marketing.rows,...push.rows],confirmed:true};
    }
    return {id,channels:prepared};
   });

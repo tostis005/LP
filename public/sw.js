@@ -1,13 +1,25 @@
 /* Kreyv PWA: solo se guarda una página pública sin datos personales. */
-const CACHE="kreyv-offline-v3";
+const CACHE="kreyv-offline-v4";
+const PUSH_ICON="/kreyv-notification-icon-v2-192.png";
+const PUSH_BADGE="/kreyv-notification-badge-v2-96.png";
 self.addEventListener("install",event=>{
- event.waitUntil(caches.open(CACHE).then(cache=>cache.add("/offline")).then(()=>self.skipWaiting()));
+ event.waitUntil(caches.open(CACHE).then(async cache=>{
+  await cache.add("/offline");
+  // Tener los símbolos de marca incluso cuando Chrome muestre una notificación sin la app abierta.
+  await Promise.allSettled([cache.add(PUSH_ICON),cache.add(PUSH_BADGE)]);
+ }).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",event=>{
  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith("loyally-offline-")||k.startsWith("kreyv-offline-"))&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
 self.addEventListener("fetch",event=>{
- if(event.request.method!=="GET"||event.request.mode!=="navigate")return;
+ if(event.request.method!=="GET")return;
+ const path=new URL(event.request.url);
+ if(path.origin===self.location.origin&&(path.pathname===PUSH_ICON||path.pathname===PUSH_BADGE)){
+  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
+  return;
+ }
+ if(event.request.mode!=="navigate")return;
  event.respondWith(fetch(event.request).catch(()=>caches.match("/offline")));
 });
 
@@ -21,7 +33,8 @@ self.addEventListener("push",event=>{
  const tag=typeof data.tag==="string"?data.tag:"kreyv";
  // Un fallo de decodificación de imágenes no debe impedir que llegue el aviso.
  const display=()=>self.registration.showNotification(title,{
-  body,icon:"/kreyv-notification-icon-v1-192.png",badge:"/kreyv-notification-badge-v1-96.png",
+  body,icon:new URL(PUSH_ICON,self.location.origin).href,
+  badge:new URL(PUSH_BADGE,self.location.origin).href,
   tag,data:{url}
  }).catch(error=>{
   console.warn("Icono push no disponible; mostrando notificación de texto",error);
@@ -29,18 +42,33 @@ self.addEventListener("push",event=>{
  });
  event.waitUntil(display());
 });
+// Al tocar una notificación abre directamente su detalle; si ya hay una ventana
+// abierta se prioriza la ruta solicitada, no una pantalla antigua en primer plano.
 self.addEventListener("notificationclick",event=>{
  event.notification.close();
- const path=event.notification.data?.url||"/app";
+ const raw=event.notification.data?.url;
+ const path=typeof raw==="string"&&raw.startsWith("/")&&!raw.startsWith("//")?raw:"/app/novedades";
  const target=new URL(path,self.location.origin);
  if(target.origin!==self.location.origin)return;
- event.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:true}).then(async clients=>{
-  for(const client of clients){
-   if(new URL(client.url).origin===target.origin){
-    await client.navigate(target.href);
-    return client.focus();
-   }
+ event.waitUntil((async()=>{
+  const tabs=await self.clients.matchAll({type:"window",includeUncontrolled:true});
+  const exact=tabs.find(client=>client.url===target.href);
+  if(exact){await exact.focus();return;}
+  // Chrome/Android puede abrir directamente la PWA instalada con esta ruta.
+  try{
+   const opened=await self.clients.openWindow(target.href);
+   if(opened){await opened.focus();return;}
+  }catch(error){console.warn("No se pudo abrir la vista del aviso",error);}
+  // Alternativa para navegadores que bloquean openWindow o devuelven null.
+  for(const client of tabs){
+   if(new URL(client.url).origin!==target.origin)continue;
+   try{
+    const navigated=await client.navigate(target.href);
+    if(navigated){await navigated.focus();return;}
+   }catch(error){console.warn("No se pudo navegar la ventana existente",error);}
   }
-  return self.clients.openWindow(target.href);
- }));
+  try{await self.clients.openWindow(target.href);}catch(error){
+   console.error("No se pudo abrir el detalle de la notificación",error);
+  }
+ })());
 });

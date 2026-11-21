@@ -32,7 +32,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    if(!configured()){if(live){setError("No podemos abrir tu cuenta ahora mismo. Inténtalo de nuevo.");setLoading(false)}return}
    try{
     const auth=await db().auth.getUser(); if(auth.error) throw auth.error;
-    if(!auth.data.user){if(live){setLoading(false);router.replace("/acceder")}return}
+    if(!auth.data.user){if(live){setLoading(false);router.replace("/acceder?next="+encodeURIComponent(pathname))}return}
     try { await db().rpc("claim_invitations"); } catch { /* invitaciones opcionales */ }
     const [members,admins]=await Promise.all([
       db().from("business_members").select("business_id,role,active,businesses(id,name,slug)").eq("user_id",auth.data.user.id).eq("active",true),
@@ -43,7 +43,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    }catch(e){if(live){setError((e as Error).message);setLoading(false)}}
   }
   load();return()=>{live=false}
- },[router,version]);
+ },[router,version,pathname]);
  async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en Kreyv?"))return;await db().auth.signOut();router.replace("/acceder")}
  const hasBusiness=roles.some(x=>x.role==="owner"||x.role==="manager");
  const allowed=area==="customer"?!admin&&roles.length===0:area==="admin"?admin:area==="business"?hasBusiness:roles.some(x=>x.role==="employee");

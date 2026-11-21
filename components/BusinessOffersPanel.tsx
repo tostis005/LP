@@ -3,12 +3,13 @@ import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import {ArrowUpRight,BellRing,Check,ImagePlus,Mail,Plus,RefreshCcw,Users} from "lucide-react";
 import {db} from "@/lib/supabase";
 type Channel="email"|"whatsapp"|"push";
-type Kind="offer"|"news"|"notice";
-const kindLabels:Record<Kind,string>={offer:"Promoción",news:"Novedad",notice:"Aviso"};
+type Kind="offer"|"notice";
+type StoredKind=Kind|"news";
+const kindLabels:Record<StoredKind,string>={offer:"Oferta",news:"Aviso",notice:"Aviso"};
 type Rate={recipients:number;unit_price_cents:number|null;total_cents:number|null;currency:string;enabled:boolean};
 type Price={channels:Record<Channel,Rate>};
 type Campaign={id:string;channel:Channel;status:string;recipient_count:number;sent_count:number;failed_count:number};
-type Offer={id:string;title:string;preview:string;image_url:string|null;kind:Kind;valid_from:string|null;valid_until:string|null;
+type Offer={id:string;title:string;preview:string;image_url:string|null;kind:StoredKind;valid_from:string|null;valid_until:string|null;
  created_at:string;campaigns:Campaign[];confirmed_cents:number|string;confirmed_currency:string|null;
  charged_channels:number};
 type SendState={campaigns:Campaign[];confirmed:boolean;total_cents:number;currency:string};
@@ -61,7 +62,7 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
   setSelected(current=>current.includes(channel)?current.filter(c=>c!==channel):[...current,channel]);
  }
  const selectedTotal=useMemo(()=>selected.reduce((sum,ch)=>sum+Number(pricing?.channels[ch]?.total_cents||0),0),[selected,pricing]);
- const currency=pricing?.channels.email?.currency||pricing?.channels.push?.currency||"MXN";
+ const currency=pricing?.channels[selected[0]]?.currency||"MXN";
  function totalFor(chs:Channel[],price:Price){
   if(!chs.length||chs.some(ch=>!readyPrice(price.channels[ch])))throw new Error("Selecciona canales disponibles con destinatarios.");
   const codes=new Set(chs.map(ch=>price.channels[ch].currency));
@@ -83,9 +84,8 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
    }
    if(isPending(current))pending=true;
   }
-  setNotice("Campaña procesada: "+sent+" entregas aceptadas, "+failed+" rechazadas."+
-   (pending?" Quedan destinatarios pendientes; utiliza «Continuar envío».":"")+
-   " El importe confirmado está registrado en Facturación.");
+  setNotice("Campaña enviada: "+sent+" entregas aceptadas, "+failed+" rechazadas."+
+   (pending?" Quedan envíos pendientes; puedes continuarlos desde la campaña.":""));
   await refresh();
  }
  async function sendOffer(offer:Offer){
@@ -102,8 +102,7 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
      return channels.find(x=>x[0]===ch)?.[1]+": "+r.recipients+" × "+money(Number(r.unit_price_cents),r.currency)+" = "+money(Number(r.total_cents),r.currency);
     });
     const message="¿Confirmar y enviar esta campaña?\n\n"+details.join("\n")+
-     "\n\nTOTAL A FACTURAR: "+money(amount,fresh.channels[chs[0]].currency)+
-     "\n\nEs un precio cerrado por destinatarios incluidos en el envío; no disminuye si algún proveedor rechaza el mensaje. Quedará registrado para la próxima factura.";
+     "\n\nPRECIO TOTAL DE LA CAMPAÑA: "+money(amount,fresh.channels[chs[0]].currency);
     if(!window.confirm(message))return;
     state=await post("/api/local/offers/send",{action:"confirm",offer_id:offer.id,expected_total_cents:amount}) as unknown as SendState;
    }else{
@@ -115,21 +114,17 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
  }
  async function create(e:React.FormEvent){
   e.preventDefault();setError("");setNotice("");
-  const draftOnly=((e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement|null)?.value==="draft";
-  if(!pricing)return;
-  if(!draftOnly&&kind==="offer"&&validFrom&&validFrom>new Date().toISOString().slice(0,10)){
-   setError("La campaña empieza más adelante. Guárdala como borrador y envíala al llegar la fecha de inicio.");return;
-  }
+  if(!pricing||busy)return;
   let amount:number;
-  try{if(!selected.length)throw new Error("Elige al menos un canal.");amount=draftOnly?0:totalFor(selected,pricing)}
-  catch(e){setError((e as Error).message);return;}
+  try{amount=totalFor(selected,pricing)}catch(e){setError((e as Error).message);return;}
   const detail=selected.map(ch=>{
    const r=pricing.channels[ch];
-   return channels.find(x=>x[0]===ch)?.[1]+": "+r.recipients+" × "+money(Number(r.unit_price_cents),r.currency)+" = "+money(Number(r.total_cents),r.currency);
+   return channels.find(x=>x[0]===ch)?.[1]+": "+r.recipients+" × "+
+    money(Number(r.unit_price_cents),r.currency)+" = "+money(Number(r.total_cents),r.currency);
   });
-  if(!draftOnly&&!window.confirm("¿Guardar y confirmar el envío de esta campaña?\n\n"+detail.join("\n")+
-   "\n\nTOTAL A FACTURAR: "+money(amount,currency)+
-   "\n\nSe cobra por los destinatarios incluidos al confirmar, aunque el proveedor rechace algún envío. El precio se registra para la factura."))return;
+  // Esta confirmación inicia el envío. No se crea un borrador intermedio.
+  if(!window.confirm("¿Enviar esta campaña ahora?\n\n"+detail.join("\n")+
+   "\n\nPRECIO TOTAL DE LA CAMPAÑA: "+money(amount,currency)))return;
   setBusy(true);
   try{
    let image="";
@@ -143,23 +138,20 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
     if(uploaded.error)throw uploaded.error;
     image=new URL(db().storage.from("business-assets").getPublicUrl(key).data.publicUrl).pathname;
    }
-   const created=await post("/api/local/offers",{action:"create",business_id:businessId,title:title.trim(),preview:preview.trim(),
-    details:details.trim(),terms:kind==="offer"?terms.trim():"",kind,valid_from:kind==="offer"?validFrom||null:null,
-    valid_until:kind==="offer"?validUntil||null:null,image_url:image||null,channels:selected});
-   const id=String(created.id||"");
-   if(!id)throw new Error("No se pudo crear la campaña.");
+   // Alta y confirmación del precio en una transacción: no requiere pulsar enviar otra vez.
+   const created=await post("/api/local/offers",{
+    action:"create_send",business_id:businessId,title:title.trim(),preview:preview.trim(),
+    details:details.trim(),terms:kind==="offer"?terms.trim():"",kind,
+    valid_from:kind==="offer"?validFrom||null:null,
+    valid_until:kind==="offer"?validUntil||null:null,
+    image_url:image||null,channels:selected,expected_total_cents:amount
+   }) as {id?:string;campaigns?:Campaign[]};
+   if(!created.id||!created.campaigns)throw new Error("No se pudo iniciar el envío.");
    setTitle("");setPreview("");setDetails("");setTerms("");setValidFrom("");setValidUntil("");setKind("offer");
    if(imageRef.current)imageRef.current.value="";
    setShowEditor(false);
    onCreated();
-   if(draftOnly){
-    setNotice("Borrador guardado. Puedes confirmarlo más adelante desde la lista de campañas.");
-    await refresh();
-   }else{
-    // Una sola confirmación conserva el importe de todos los canales.
-    const state=await post("/api/local/offers/send",{action:"confirm",offer_id:id,expected_total_cents:amount}) as unknown as SendState;
-    await deliver(id,state.campaigns);
-   }
+   await deliver(created.id,created.campaigns);
   }catch(e){setError((e as Error).message);await refresh().catch(()=>{});}
   finally{setBusy(false)}
  }
@@ -170,10 +162,10 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
     {showEditor?"Cerrar":"Crear nueva"} <Plus size={16}/></button>
   </div>
   {showEditor&&<form className="form-stack kreyv-offer-editor kreyv-campaign-form" onSubmit={create}>
-   <div className="kreyv-editor-section"><span className="kreyv-editor-step">01</span><div><strong>¿Qué quieres comunicar?</strong><p>Todas las campañas recibidas se guardan en la bandeja de avisos del cliente.</p></div></div>
+   <div className="kreyv-editor-section"><span className="kreyv-editor-step">01</span><div><strong>¿Qué quieres comunicar?</strong><p>El aviso comunica una novedad; la oferta añade vigencia y condiciones.</p></div></div>
    <label>Tipo de campaña
     <select className="kreyv-campaign-kind" value={kind} onChange={e=>setKind(e.target.value as Kind)}>
-     <option value="offer">Promoción u oferta</option><option value="news">Novedad del negocio</option><option value="notice">Aviso importante</option>
+     <option value="notice">Enviar aviso</option><option value="offer">Crear oferta</option>
     </select>
    </label>
    <label>Título <small>({title.length}/50)</small>
@@ -186,7 +178,7 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
     <textarea required minLength={3} maxLength={6000} rows={6} value={details} onChange={e=>setDetails(e.target.value)}
      placeholder="Explica la oferta para que los clientes puedan consultarla dentro de Kreyv."/></label>
    {kind==="offer"&&<div className="kreyv-campaign-validity">
-    <div className="kreyv-editor-section"><span className="kreyv-editor-step">02</span><div><strong>Vigencia de la promoción</strong><p>Las fechas son opcionales. No se programa automáticamente el envío.</p></div></div>
+    <div className="kreyv-editor-section"><span className="kreyv-editor-step">02</span><div><strong>Vigencia de la promoción</strong><p>Las fechas indican cuándo es válida la oferta; el aviso se envía al confirmar.</p></div></div>
     <div className="kreyv-campaign-dates">
      <label>Fecha de inicio<input type="date" value={validFrom} onChange={e=>setValidFrom(e.target.value)}/></label>
      <label>Fecha de fin<input type="date" min={validFrom||new Date().toISOString().slice(0,10)} value={validUntil} onChange={e=>setValidUntil(e.target.value)}/></label>
@@ -217,22 +209,16 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
      </label>
     })}
    </fieldset>
-   <div className="kreyv-price-summary"><div><span>Total de la campaña</span>
+   <div className="kreyv-price-summary"><div><span>Precio total de la campaña</span>
     <strong>{money(selectedTotal,currency)}</strong></div>
-    <small>Importe cerrado al confirmar, según destinatarios y tarifas vigentes.
-     Quedará pendiente de facturar. Los mensajes rechazados también se incluyen en el precio confirmado.</small>
     <button className="button button-outline button-sm" type="button" disabled={busy||priceLoading}
      onClick={()=>void loadPricing().catch(e=>setError((e as Error).message))}><RefreshCcw size={15}/>Actualizar destinatarios</button>
    </div>
    <div className="kreyv-campaign-actions">
-    <button type="submit" value="draft" className="button button-outline" disabled={busy||priceLoading||!pricing||
-     !selected.length||title.trim().length<3||preview.trim().length<3||details.trim().length<3}>
-     Guardar borrador
-    </button>
-    <button type="submit" value="send" className="button button-dark" disabled={busy||priceLoading||!pricing||
+    <button type="submit" className="button button-dark" disabled={busy||priceLoading||!pricing||
      !selected.length||selected.some(ch=>!readyPrice(pricing?.channels[ch]))||
      title.trim().length<3||preview.trim().length<3||details.trim().length<3}>
-     {busy?"Preparando envío…":"Confirmar precio y enviar"} <ArrowUpRight size={16}/>
+     {busy?"Enviando campaña…":"Confirmar y enviar"} <ArrowUpRight size={16}/>
     </button>
    </div>
   </form>}
@@ -254,7 +240,7 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
        {c.status==="draft"?" Borrador":isPending(c)?" Enviando":c.status==="sent"?" Enviada":c.status==="partial"?" Parcial":" Fallida"}
        {c.status!=="draft"?" ("+Number(c.sent_count)+" aceptados)":""}</span>)}</div>
      <div className="kreyv-offer-campaign-bottom"><div>
-      <small>{confirmed?"Cargo confirmado · pendiente de facturar":"Precio actual de la campaña"}</small>
+      <small>{confirmed?"Precio total confirmado":"Precio total de la campaña"}</small>
       <strong>{money(confirmed?Number(offer.confirmed_cents):currentPrice,confirmed?(offer.confirmed_currency||currency):currency)}</strong>
      </div>
      {!done&&<button className="button button-dark button-sm" type="button" disabled={busy||priceLoading}

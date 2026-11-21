@@ -7,10 +7,14 @@ await mkdir(dir,{recursive:true});
 const app=await readFile(path.join(dir,"kreyv-mark-v3.svg"));
 const mark=await readFile(path.join(dir,"kreyv-favicon-v3.svg"));
 // La notificación grande muestra los colores reales de Kreyv, sin recuadro de fondo.
-await sharp(mark).resize(192,192).png({compressionLevel:9}).toFile(path.join(dir,"kreyv-notification-icon-v1-192.png"));
+await sharp(mark).resize(192,192).png({compressionLevel:9}).toFile(path.join(dir,"kreyv-notification-icon-v2-192.png"));
 // Android exige un badge monocromo: usa solamente el canal alfa para la barra de estado.
-const whiteMark=mark.toString("utf8").replace(/#5E1A2B|#D9A23A/gi,"#FFFFFF");
-await sharp(Buffer.from(whiteMark)).resize(96,96).png({compressionLevel:9}).toFile(path.join(dir,"kreyv-notification-badge-v1-96.png"));
+// Acabado de silueta reconocible a 24 px: trazos de la lupa ligeramente reforzados.
+const whiteMark=mark.toString("utf8")
+ .replace(/#5E1A2B|#D9A23A/gi,"#FFFFFF")
+ .replace('stroke-width="9"','stroke-width="11"')
+ .replace('stroke-width="12"','stroke-width="14"');
+await sharp(Buffer.from(whiteMark)).resize(96,96).png({compressionLevel:9}).toFile(path.join(dir,"kreyv-notification-badge-v2-96.png"));
 for(const [name,size] of [["kreyv-mark-v3-192.png",192],["kreyv-mark-v3-512.png",512],["kreyv-apple-touch-v3.png",180],["icon-192.png",192],["icon-512.png",512],["apple-touch-icon.png",180]]){
  await sharp(app).resize(size,size).png({compressionLevel:9}).toFile(path.join(dir,name));
 }

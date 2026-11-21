@@ -29,9 +29,9 @@ assert.match(send,/confirm_offer_campaign/);
 assert.match(send,/expected_total_cents/);
 assert.match(getOffer,/confirmed_cents/);
 assert.match(form,/type="checkbox"/);
-assert.match(form,/Total de la campaña/);
-assert.match(form,/TOTAL A FACTURAR/);
-assert.match(form,/Confirmar precio y enviar/);
+assert.match(form,/Precio total de la campaña/);
+assert.match(form,/PRECIO TOTAL DE LA CAMPAÑA/);
+assert.match(form,/Confirmar y enviar/);
 assert.match(form,/api\/local\/offers\/pricing/);
 assert.match(form,/api\/local\/offers\/send/);
 assert.match(form,/Continuar envío/);
@@ -48,5 +48,5 @@ console.log("OK: campaña unificada, precio por canal, confirmación atómica y 
 
 assert.match(read("db/migrations/310_campaign_types_dates.sql"),/valid_from/);
 assert.match(form,/Tipo de campaña/);
-assert.match(form,/Guardar borrador/);
+assert.doesNotMatch(form,/Guardar borrador/);
 assert.match(read("components/CustomerInboxBell.tsx"),/kreyv-unread-badge/);
