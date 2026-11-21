@@ -8,7 +8,7 @@ export const LANDING_COPY = {
     },
     hero: {
       eyebrow:"FIDELIZACIÓN PARA NEGOCIOS LOCALES",
-      title:"se convierta en una recompensa.", accent:"invite a volver.",
+      title:"Tarjetas de fidelización", accent:"para tu negocio.",
       description:"Crea tarjetas digitales de sellos, puntos o cashback. Gestiona las recompensas desde tu negocio y permite que tus clientes las consulten en su móvil.",
       primary:"Quiero conocer Kreyv", secondary:"Descubre cómo funciona",
       foot:"Tus tarjetas, en el móvil.", footBold:"Sin tarjetas de papel.",
@@ -81,7 +81,7 @@ export const LANDING_COPY = {
     },
     hero: {
       eyebrow:"LOYALTY TOOLS FOR LOCAL BUSINESSES",
-      title:"a reward.", accent:"a reason to return.",
+      title:"Digital loyalty cards", accent:"for your business.",
       description:"Create digital stamp, points or cashback cards. Manage rewards in your business and let customers check their progress on their phone.",
       primary:"Discover Kreyv", secondary:"See how it works",
       foot:"Your cards, on their phone.", footBold:"No paper cards needed.",

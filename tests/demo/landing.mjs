@@ -25,8 +25,10 @@ function assertSameKeys(left,right,name="root"){
  for(const key of Object.keys(left))assertSameKeys(left[key],right[key],name+"."+key);
 }
 assertSameKeys(es,en);
-assert.match(es.hero.title,/Haz que cada visita/);
-assert.match(en.hero.title,/Turn every visit into/);
+assert.equal(es.hero.title,"Tarjetas de fidelización");
+assert.equal(en.hero.title,"Digital loyalty cards");
+assert.match(es.hero.description,/sellos, puntos o cashback/);
+assert.match(en.hero.description,/stamp, points or cashback/);
 for(const lang of [es,en]){
  const all=JSON.stringify(lang);
  assert.doesNotMatch(all,/SVG|cuatro perfiles|four profiles|tablet|tableta/i);
