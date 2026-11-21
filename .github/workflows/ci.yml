@@ -32,6 +32,8 @@ jobs:
         run: node tests/demo/unified-campaigns.mjs
       - name: Verificar una sola confirmación y el acceso al detalle desde Android
         run: node tests/demo/campaign-push-navigation.mjs
+      - name: Verificar permisos de imagenes en campanas
+        run: node tests/demo/campaign-image-upload.mjs
       - name: Generación y persistencia VAPID sin exponer secretos
         run: node tests/demo/push-vapid.mjs
       - name: Verificar iconos, mapa, premios y navegación del negocio
@@ -197,6 +199,7 @@ jobs:
         run: |
           node scripts/provision-showcase-real.mjs
           node tests/native/real-production.mjs
+          node tests/native/business-asset-uploads.mjs
           node tests/native/product-polish.mjs
           node tests/native/customer-home.mjs
           node tests/native/customer-channel-consent.mjs

@@ -28,7 +28,9 @@ export async function POST(request:Request) {
   const dir=path.join(process.cwd(),"uploads","business-assets",match[1]);
   const full=path.join(dir,match[2]);
   await asActor(actor,async client=>{
-   await client.query("INSERT INTO storage.objects(bucket_id,name) VALUES($1,$2)",[bucket,key]);
+   // La autorización de imágenes usa el mismo permiso que crear campañas.
+   // No depende de los privilegios de escritura directos sobre storage.objects.
+   await client.query("SELECT public.register_business_asset($1::uuid,$2::text)",[match[1],match[2]]);
    await mkdir(dir,{recursive:true});
    try{await writeFile(full,image,{flag:"wx",mode:0o640})}
    catch(e){throw e}

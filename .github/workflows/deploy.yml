@@ -36,6 +36,8 @@ jobs:
         run: node tests/demo/unified-campaigns.mjs
       - name: Verificar una sola confirmación y el acceso al detalle desde Android
         run: node tests/demo/campaign-push-navigation.mjs
+      - name: Verificar permisos de imagenes en campanas
+        run: node tests/demo/campaign-image-upload.mjs
       - name: Comprobar limites de acceso legitimos y proteccion antiabuso
         run: node tests/demo/auth-rate-limits.mjs
       - name: Verificar generación segura de claves Web Push
