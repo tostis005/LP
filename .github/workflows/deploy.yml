@@ -38,6 +38,8 @@ jobs:
         run: node tests/demo/campaign-push-navigation.mjs
       - name: Verificar permisos de imagenes en campanas
         run: node tests/demo/campaign-image-upload.mjs
+      - name: Comprobar acceso al historial push del negocio
+        run: node tests/demo/campaign-history-permissions.mjs
       - name: Comprobar limites de acceso legitimos y proteccion antiabuso
         run: node tests/demo/auth-rate-limits.mjs
       - name: Verificar generación segura de claves Web Push

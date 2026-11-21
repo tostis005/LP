@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=p=>readFileSync(p,"utf8");
+const migration=read("db/migrations/340_push_campaign_manager_read.sql");
+const listing=read("app/api/local/offers/route.ts");
+const snapshot=read("app/api/local/offers/send/route.ts");
+assert.match(migration,/GRANT SELECT \(id,business_id,status,recipient_count,sent_count,failed_count\)/);
+assert.match(migration,/CREATE POLICY push_campaign_manager_read/);
+assert.match(migration,/FOR SELECT TO authenticated/);
+assert.match(migration,/public\.is_business_manager\(business_id\)/);
+assert.match(migration,/public\.is_platform_admin\(\)/);
+assert.doesNotMatch(migration,/GRANT (?:ALL|INSERT|UPDATE|DELETE)/);
+assert.doesNotMatch(migration,/web_push_subscriptions|push_deliveries/);
+assert.match(listing,/FROM public\.push_campaigns p WHERE p\.id=o\.push_campaign_id/);
+assert.match(snapshot,/FROM public\.push_campaigns WHERE id=\$1::uuid/);
+console.log("OK: el historial push de campañas se puede consultar sin abrir datos privados.");
