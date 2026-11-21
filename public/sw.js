@@ -18,11 +18,16 @@ self.addEventListener("push",event=>{
  const title=typeof data.title==="string"?data.title.slice(0,180):"Kreyv";
  const body=typeof data.body==="string"?data.body.slice(0,500):"Tienes novedades de tus negocios favoritos.";
  const url=typeof data.url==="string"&&data.url.startsWith("/")&&!data.url.startsWith("//")?data.url:"/app";
- event.waitUntil(self.registration.showNotification(title,{
+ const tag=typeof data.tag==="string"?data.tag:"kreyv";
+ // Un fallo de decodificación de imágenes no debe impedir que llegue el aviso.
+ const display=()=>self.registration.showNotification(title,{
   body,icon:"/kreyv-notification-icon-v1-192.png",badge:"/kreyv-notification-badge-v1-96.png",
-  tag:typeof data.tag==="string"?data.tag:"kreyv",
-  data:{url}
- }));
+  tag,data:{url}
+ }).catch(error=>{
+  console.warn("Icono push no disponible; mostrando notificación de texto",error);
+  return self.registration.showNotification(title,{body,tag,data:{url}});
+ });
+ event.waitUntil(display());
 });
 self.addEventListener("notificationclick",event=>{
  event.notification.close();
