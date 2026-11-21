@@ -9,6 +9,7 @@ export type DirectoryPin=Omit<Location,"businesses">&{
  businesses?:{name:string;category:string|null;slug:string;accent_color?:string;description?:string|null;stamp_icon?:string|null;stamp_color?:string|null};
  offerText?:string;
  hasCard?:boolean;
+ cardId?:string;
 };
 function Recenter({center}:{center:[number,number]}){
  const map=useMap();
@@ -35,7 +36,7 @@ function Pins({locations}:{locations:DirectoryPin[]}){
     {x.businesses?.description&&<p>{x.businesses.description}</p>}
     {x.offerText&&<div className="loyally-map-reward">{x.offerText}</div>}
     <div className="loyally-map-address">{x.address}, {x.city}</div>
-    <Link href={x.hasCard?"/app":"/unirse/"+encodeURIComponent(x.businesses?.slug||"")}>{x.hasCard?"Ver mi tarjeta":"Conocer el negocio y su tarjeta"}</Link>
+    <Link href={x.cardId?"/app?card="+encodeURIComponent(x.cardId):"/unirse/"+encodeURIComponent(x.businesses?.slug||"")}>{x.hasCard?"Ver mi tarjeta":"Conocer el negocio y su tarjeta"}</Link>
    </div>
   </Popup>
  </Marker>)}</>;
