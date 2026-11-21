@@ -106,14 +106,14 @@ jobs:
             echo "::error::La imagen Docker no responde en /"
             exit 1
           fi
-          if ! grep -q "Haz que cada visita" /tmp/lp-root-smoke.html || grep -q "Preparando tu espacio" /tmp/lp-root-smoke.html; then
+          if ! grep -q "Tarjetas de fidelización" /tmp/lp-root-smoke.html || grep -q "Preparando tu espacio" /tmp/lp-root-smoke.html; then
             echo "::error::Docker sigue devolviendo el router de acceso en la raiz."
-            grep -oE "Preparando tu espacio|Accede a tu espacio|Haz que cada visita" /tmp/lp-root-smoke.html || true
+            grep -oE "Preparando tu espacio|Accede a tu espacio|Tarjetas de fidelización" /tmp/lp-root-smoke.html || true
             exit 1
           fi
           curl -fsS --max-time 8 'http://127.0.0.1:3156/?lang=en' -o /tmp/lp-root-en.html
-          if ! grep -q 'Turn every visit into' /tmp/lp-root-en.html ||
-             grep -q 'Haz que cada visita' /tmp/lp-root-en.html; then
+          if ! grep -q 'Digital loyalty cards' /tmp/lp-root-en.html ||
+             grep -q 'Tarjetas de fidelización' /tmp/lp-root-en.html; then
             echo "::error::Docker no devuelve la portada en inglés."
             exit 1
           fi
@@ -133,9 +133,9 @@ jobs:
             if curl -fsS --max-time 5 http://127.0.0.1:3155/ -o /tmp/loyally-root.html 2>/dev/null; then break; fi
             sleep 1
           done
-          if ! grep -q 'Haz que cada visita' /tmp/loyally-root.html; then
+          if ! grep -q 'Tarjetas de fidelización' /tmp/loyally-root.html; then
             echo "::error::La raiz / no muestra la presentacion de Loyally."
-            grep -oE 'Preparando tu espacio|Accede a tu espacio|Haz que cada visita' /tmp/loyally-root.html || true
+            grep -oE 'Preparando tu espacio|Accede a tu espacio|Tarjetas de fidelización' /tmp/loyally-root.html || true
             tail -35 /tmp/loyally-root.log
             exit 1
           fi

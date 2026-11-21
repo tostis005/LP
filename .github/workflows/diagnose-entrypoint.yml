@@ -23,7 +23,7 @@ jobs:
             code="$(curl -k -sS --max-time 18 -D "$headers" -o "$body" -w "%{http_code}" "$url" || true)"
             echo "HTTP: $code"
             grep -Ei '^(HTTP/|location:|server:)' "$headers" || true
-            if grep -q "Haz que cada visita" "$body"; then
+            if grep -q "Tarjetas de fidelización" "$body"; then
               echo "CONTENIDO: PRESENTACION LOYALLY"
             elif grep -q "Accede a tu espacio" "$body"; then
               echo "CONTENIDO: LOGIN /ACCEDeR"
@@ -39,7 +39,7 @@ jobs:
           console.log("TITLE:",extract(/<title[^>]*>([\s\S]*?)<\/title>/i));
           console.log("H1:",extract(/<h1[^>]*>([\s\S]*?)<\/h1>/i));
           console.log("BODY_FIRST:",html.slice(0,320).replace(/\s+/g," "));
-          for(const phrase of ["Preparando tu espacio", "Redirigiendo al acceso", "Loyally transforma", "Accede a tu espacio", "Haz que cada visita"]){
+          for(const phrase of ["Preparando tu espacio", "Redirigiendo al acceso", "Loyally transforma", "Accede a tu espacio", "Tarjetas de fidelización"]){
             if(html.includes(phrase))console.log("MARCADOR:",phrase);
           }
           NODE
@@ -79,7 +79,7 @@ jobs:
             tmp="$(mktemp)"
             status="$(curl -sS --max-time 15 -o "$tmp" -w "%{http_code}" "http://127.0.0.1:3100$path" || true)"
             echo "NEXT_DIRECT: $path = $status"
-            for phrase in "Haz que cada visita" "Preparando tu espacio" "Accede a tu espacio"; do
+            for phrase in "Tarjetas de fidelización" "Preparando tu espacio" "Accede a tu espacio"; do
               if grep -q "$phrase" "$tmp"; then echo "MARKER: $phrase"; fi
             done
             rm -f "$tmp"
@@ -95,28 +95,28 @@ jobs:
           echo "LOCAL_WORKTREE_STATUS:"
           git status --short -- app/page.tsx || true
           echo "LOCAL_LANDING_PRESENT:"
-          if grep -q "Haz que cada visita" app/page.tsx; then echo YES; else echo NO; fi
+          if grep -q "Tarjetas de fidelización" app/page.tsx; then echo YES; else echo NO; fi
           echo "LOCAL_ENTRAR_PRESENT:"
           if grep -q "Preparando tu espacio" app/page.tsx; then echo YES; else echo NO; fi
           echo "LOCAL_PAGE_DIFF:"
           git diff -- app/page.tsx | head -70 || true
           echo "GIT_LANDING_PRESENT:"
-          if git show HEAD:app/page.tsx | grep -q "Haz que cada visita"; then echo "YES"; else echo "NO"; fi
+          if git show HEAD:app/page.tsx | grep -q "Tarjetas de fidelización"; then echo "YES"; else echo "NO"; fi
           echo "NEXT_CONTAINER_STATUS:"
           docker ps --format '{{.Names}} {{.Image}} {{.Ports}}' | grep -E '^lp-web-1 ' || true
           echo "DYNAMIC_SOURCE_FLAG:"
           if grep -q 'export const dynamic = "force-dynamic"' app/page.tsx; then echo PRESENT; else echo ABSENT; fi
           echo "COMPILED_PAGE_MARKERS:"
-          docker exec lp-web-1 node -e 'const fs=require("fs");for(const f of ["/app/.next/server/app/page.js","/app/.next/server/app/entrar/page.js","/app/.next/server/app/index.html"]){if(!fs.existsSync(f))continue;const s=fs.readFileSync(f,"utf8");console.log(f,"bytes="+s.length,"home="+s.includes("Haz que cada visita"),"router="+s.includes("Preparando tu espacio"),"dynamic="+s.includes("force-dynamic"));}' || true
+          docker exec lp-web-1 node -e 'const fs=require("fs");for(const f of ["/app/.next/server/app/page.js","/app/.next/server/app/entrar/page.js","/app/.next/server/app/index.html"]){if(!fs.existsSync(f))continue;const s=fs.readFileSync(f,"utf8");console.log(f,"bytes="+s.length,"home="+s.includes("Tarjetas de fidelización"),"router="+s.includes("Preparando tu espacio"),"dynamic="+s.includes("force-dynamic"));}' || true
           echo "LOCATE_LANDING_IN_COMPILED_IMAGE:"
-          docker exec lp-web-1 sh -c 'grep -rl "Haz que cada visita" /app/.next/server 2>/dev/null | head -15' || true
+          docker exec lp-web-1 sh -c 'grep -rl "Tarjetas de fidelización" /app/.next/server 2>/dev/null | head -15' || true
           docker exec lp-web-1 sh -c 'grep -rl "Loyally transforma" /app/.next/server 2>/dev/null | head -15' || true
           echo "ROOT_MODULE_FIRST_CHARS:"
           docker exec lp-web-1 node -e 'const f=require("fs").readFileSync("/app/.next/server/app/page.js","utf8");console.log(f.slice(0,580).replace(/\\n/g," "));'
           echo "NEXT_BUILD_ROOT_FILES:"
           docker exec lp-web-1 sh -c 'ls -l /app/.next/server/app/index.html /app/.next/server/app/entrar.html /app/.next/server/app/page.js 2>/dev/null || true'
           echo "NEXT_BUILD_ROOT_MARKERS:"
-          docker exec lp-web-1 sh -c 'for f in /app/.next/server/app/index.html /app/.next/server/app/entrar.html; do if test -f "$f"; then echo "$f"; for marker in "Haz que cada visita" "Preparando tu espacio" "Accede a tu espacio"; do if grep -q "$marker" "$f"; then echo "MARKER: $marker"; fi; done; fi; done'
+          docker exec lp-web-1 sh -c 'for f in /app/.next/server/app/index.html /app/.next/server/app/entrar.html; do if test -f "$f"; then echo "$f"; for marker in "Tarjetas de fidelización" "Preparando tu espacio" "Accede a tu espacio"; do if grep -q "$marker" "$f"; then echo "MARKER: $marker"; fi; done; fi; done'
           echo "NEXT_ROUTE_CONFIG:"
           docker exec lp-web-1 node -e 'try { const m=require("/app/.next/routes-manifest.json"); console.log(JSON.stringify({redirects:m.redirects,rewrites:m.rewrites}).slice(0,1200)) } catch(e) { console.log("UNAVAILABLE",e.message) }' || true
           if test -r /etc/caddy/Caddyfile; then
