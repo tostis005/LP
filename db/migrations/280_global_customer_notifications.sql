@@ -67,44 +67,7 @@ BEGIN
  END IF;
  IF v_global AND NOT EXISTS(
   SELECT 1 FROM auth.users u WHERE u.id=auth.uid()
-    AND u.raw_user_meta_data->>'whatsapp' ~ '^\+[1-9][0-9]{7,14}
-   customer_id,business_id,opted_in,whatsapp_opted_in,push_opted_in
-  ) VALUES(auth.uid(),p_business,true,true,true)
-  ON CONFLICT(customer_id,business_id) WHERE business_id IS NOT NULL DO NOTHING;
- END IF;
- RETURN v_id;
-END $$;
-REVOKE ALL ON FUNCTION public.join_program_with_notifications(uuid,boolean) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.join_program_with_notifications(uuid,boolean) TO authenticated;
-
--- Registro: la única casilla elegida se conserva al verificar el correo,
--- sin revocar nunca cambios que el usuario haya hecho posteriormente.
-CREATE OR REPLACE FUNCTION public.confirm_initial_platform_marketing()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-BEGIN
- IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
-  IF NEW.raw_user_meta_data->>'card_notifications_opt_in'='true' THEN
-   INSERT INTO public.marketing_consents(
-    customer_id,business_id,opted_in,push_opted_in,global_business_opt_in
-   ) VALUES(
-    NEW.id,NULL,
-    NEW.raw_user_meta_data->>'platform_marketing_opt_in'='true',
-    NEW.raw_user_meta_data->>'platform_push_opt_in'='true',
-    NEW.raw_user_meta_data->>'card_notifications_opt_in'='true'
-   )
-   ON CONFLICT(customer_id) WHERE business_id IS NULL DO NOTHING;
-  ELSIF NEW.raw_user_meta_data->>'platform_marketing_opt_in'='true'
-     OR NEW.raw_user_meta_data->>'platform_push_opt_in'='true' THEN
-   INSERT INTO public.marketing_consents(customer_id,business_id,opted_in,push_opted_in)
-   VALUES(NEW.id,NULL,
-    NEW.raw_user_meta_data->>'platform_marketing_opt_in'='true',
-    NEW.raw_user_meta_data->>'platform_push_opt_in'='true')
-   ON CONFLICT(customer_id) WHERE business_id IS NULL DO NOTHING;
-  END IF;
- END IF;
- RETURN NEW;
-END $$;
-
+    AND u.raw_user_meta_data->>'whatsapp' ~ '^\+[1-9][0-9]{7,14}$'
  ) THEN RAISE EXCEPTION 'Añade tu número de WhatsApp con prefijo internacional'; END IF;
  IF v_global THEN
   INSERT INTO public.marketing_consents(
@@ -117,20 +80,19 @@ END $$;
 REVOKE ALL ON FUNCTION public.join_program_with_notifications(uuid,boolean) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.join_program_with_notifications(uuid,boolean) TO authenticated;
 
--- Registro: la única casilla elegida se conserva al verificar el correo,
--- sin revocar nunca cambios que el usuario haya hecho posteriormente.
+-- Una aceptación en el registro solo se conserva después de verificar el correo.
 CREATE OR REPLACE FUNCTION public.confirm_initial_platform_marketing()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
  IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
-  IF NEW.raw_user_meta_data ? 'card_notifications_opt_in' THEN
+  IF NEW.raw_user_meta_data->>'card_notifications_opt_in'='true' THEN
    INSERT INTO public.marketing_consents(
     customer_id,business_id,opted_in,push_opted_in,global_business_opt_in
    ) VALUES(
     NEW.id,NULL,
     NEW.raw_user_meta_data->>'platform_marketing_opt_in'='true',
     NEW.raw_user_meta_data->>'platform_push_opt_in'='true',
-    NEW.raw_user_meta_data->>'card_notifications_opt_in'='true'
+    true
    )
    ON CONFLICT(customer_id) WHERE business_id IS NULL DO NOTHING;
   ELSIF NEW.raw_user_meta_data->>'platform_marketing_opt_in'='true'
