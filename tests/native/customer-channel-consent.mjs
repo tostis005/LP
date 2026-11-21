@@ -32,10 +32,18 @@ try{
   "SELECT opted_in,whatsapp_opted_in,push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id=$2",
   [user.id,business[0].id]);
  assert.equal(noMarketing.rowCount,0,"Declining marketing never creates an opt-in");
+ const second=(await client.query(
+  "SELECT public.join_program_with_notifications($1::uuid,false) AS card",
+  [business[1].id])).rows[0];
+ assert.ok(second.card,"A second card can be saved without renewed permission");
+ const globalDeclined=(await client.query(
+  "SELECT global_business_opt_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id IS NULL",
+  [user.id])).rows[0];
+ assert.equal(globalDeclined.global_business_opt_in,false,"A declined choice is remembered for later cards");
  await client.query("SAVEPOINT no_phone");
  let rejected=false;
  try{
-  await client.query("SELECT public.join_program_with_notifications($1::uuid,true)",[business[1].id]);
+  await client.query("SELECT public.customer_set_all_notifications(true)");
  }catch(e){rejected=true;assert.match(e.message,/WhatsApp|prefijo/i);}
  assert.equal(rejected,true,"All-channel approval requires a valid WhatsApp contact number");
  await client.query("ROLLBACK TO SAVEPOINT no_phone");
@@ -45,10 +53,15 @@ try{
   "UPDATE auth.users SET raw_user_meta_data=jsonb_set(coalesce(raw_user_meta_data,'{}'::jsonb),'{whatsapp}',to_jsonb($1::text),true) WHERE id=$2",
   ["+526641234567",user.id]);
  await client.query("SET LOCAL ROLE authenticated");
+ await client.query("SELECT public.customer_set_all_notifications(true)");
  const approved=(await client.query(
-  "SELECT public.join_program_with_notifications($1::uuid,true) AS card",
+  "SELECT public.join_program_with_notifications($1::uuid,false) AS card",
   [business[1].id])).rows[0];
- assert.ok(approved.card,"The approved signup creates a real card");
+ assert.ok(approved.card,"The approved global preference is applied without a second opt-in");
+ const firstChannels=(await client.query(
+  "SELECT opted_in,whatsapp_opted_in,push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id=$2",
+  [user.id,business[0].id])).rows[0];
+ assert.deepEqual(firstChannels,{opted_in:true,whatsapp_opted_in:true,push_opted_in:true},"The global choice also updates existing cards");
  const channels=(await client.query(
   "SELECT opted_in,whatsapp_opted_in,push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id=$2",
   [user.id,business[1].id])).rows[0];

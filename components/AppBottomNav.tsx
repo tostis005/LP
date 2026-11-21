@@ -9,7 +9,7 @@ import {KreyvIcon} from "@/components/KreyvIcon";
 
 type Role="customer"|"business"|"staff"|"admin";
 const tabs={
- customer:[{href:"/app",label:"Tarjetas",icon:"mis-tarjetas"},{href:"/app/descubrir",label:"Descubrir",icon:"buscar"},{href:"/app/ajustes",label:"Ajustes",icon:"ajustes"},{href:"/app/perfil",label:"Mi cuenta",icon:"perfil"}],
+ customer:[{href:"/app",label:"Tarjetas",icon:"mis-tarjetas"},{href:"/app/descubrir",label:"Descubrir",icon:"buscar"},{href:"/app/ajustes",label:"Ajustes",icon:"ajustes"},{href:"/app/perfil",label:"Mi perfil",icon:"perfil"}],
  business:[{href:"/negocio",label:"Inicio",icon:"inicio"},{href:"/negocio/tarjeta",label:"Tarjeta",icon:"mis-tarjetas"},{href:"/negocio/team",label:"Equipo",icon:"perfil"},{href:"/negocio/marketing",label:"Campañas",icon:"campanas"},{href:"/negocio/reports",label:"Datos",icon:"recompensa"}],
  staff:[{href:"/empleado",label:"Escanear",icon:"qr"}],
  admin:[{href:"/admin",label:"Panel",icon:"ajustes"}]

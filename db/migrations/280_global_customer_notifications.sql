@@ -43,9 +43,8 @@ BEGIN
  SELECT c.global_business_opt_in INTO v_global FROM public.marketing_consents c
  WHERE c.customer_id=auth.uid() AND c.business_id IS NULL;
  IF v_global IS NULL THEN
-  SELECT CASE WHEN u.raw_user_meta_data ? 'card_notifications_opt_in'
-              THEN (u.raw_user_meta_data->>'card_notifications_opt_in')::boolean
-              ELSE NULL END INTO v_signup
+  SELECT CASE WHEN u.raw_user_meta_data->>'card_notifications_opt_in'='true'
+              THEN true ELSE NULL END INTO v_signup
   FROM auth.users u WHERE u.id=auth.uid();
   IF v_signup IS NOT NULL THEN
    v_global:=v_signup;
@@ -66,6 +65,47 @@ BEGIN
    DO UPDATE SET global_business_opt_in=false,updated_at=now();
   END IF;
  END IF;
+ IF v_global AND NOT EXISTS(
+  SELECT 1 FROM auth.users u WHERE u.id=auth.uid()
+    AND u.raw_user_meta_data->>'whatsapp' ~ '^\+[1-9][0-9]{7,14}
+   customer_id,business_id,opted_in,whatsapp_opted_in,push_opted_in
+  ) VALUES(auth.uid(),p_business,true,true,true)
+  ON CONFLICT(customer_id,business_id) WHERE business_id IS NOT NULL DO NOTHING;
+ END IF;
+ RETURN v_id;
+END $$;
+REVOKE ALL ON FUNCTION public.join_program_with_notifications(uuid,boolean) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.join_program_with_notifications(uuid,boolean) TO authenticated;
+
+-- Registro: la única casilla elegida se conserva al verificar el correo,
+-- sin revocar nunca cambios que el usuario haya hecho posteriormente.
+CREATE OR REPLACE FUNCTION public.confirm_initial_platform_marketing()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+BEGIN
+ IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
+  IF NEW.raw_user_meta_data->>'card_notifications_opt_in'='true' THEN
+   INSERT INTO public.marketing_consents(
+    customer_id,business_id,opted_in,push_opted_in,global_business_opt_in
+   ) VALUES(
+    NEW.id,NULL,
+    NEW.raw_user_meta_data->>'platform_marketing_opt_in'='true',
+    NEW.raw_user_meta_data->>'platform_push_opt_in'='true',
+    NEW.raw_user_meta_data->>'card_notifications_opt_in'='true'
+   )
+   ON CONFLICT(customer_id) WHERE business_id IS NULL DO NOTHING;
+  ELSIF NEW.raw_user_meta_data->>'platform_marketing_opt_in'='true'
+     OR NEW.raw_user_meta_data->>'platform_push_opt_in'='true' THEN
+   INSERT INTO public.marketing_consents(customer_id,business_id,opted_in,push_opted_in)
+   VALUES(NEW.id,NULL,
+    NEW.raw_user_meta_data->>'platform_marketing_opt_in'='true',
+    NEW.raw_user_meta_data->>'platform_push_opt_in'='true')
+   ON CONFLICT(customer_id) WHERE business_id IS NULL DO NOTHING;
+  END IF;
+ END IF;
+ RETURN NEW;
+END $$;
+
+ ) THEN RAISE EXCEPTION 'Añade tu número de WhatsApp con prefijo internacional'; END IF;
  IF v_global THEN
   INSERT INTO public.marketing_consents(
    customer_id,business_id,opted_in,whatsapp_opted_in,push_opted_in

@@ -45,7 +45,7 @@ export default function JoinPage(){
     db().from("platform_admins").select("user_id").eq("user_id",u.data.user.id).maybeSingle(),
     db().from("marketing_consents").select("global_business_opt_in").eq("customer_id",u.data.user.id).is("business_id",null).maybeSingle()
    ]);
-   if(alive){setJoined(!!m.data);setIsBusinessAccount(!!admin.data||!!roles.data?.length);setGlobalConsent(defaultChoice.data?.global_business_opt_in??null);}
+   if(alive){setJoined(!!m.data);setIsBusinessAccount(!!admin.data||!!roles.data?.length);setGlobalConsent(defaultChoice.data?.global_business_opt_in??(u.data.user?.user_metadata?.card_notifications_opt_in===true?true:null));}
   }
   if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);

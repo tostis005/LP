@@ -2,10 +2,10 @@
 
 // Ruta histórica de importación; NO utiliza SDK, Auth ni Storage de Supabase.
 // Todas las operaciones pasan por el backend local, que aplica RLS en PostgreSQL.
-export type User={id:string;email?:string;user_metadata?:{full_name?:string;whatsapp?:string}};
+export type User={id:string;email?:string;user_metadata?:{full_name?:string;whatsapp?:string;card_notifications_opt_in?:boolean}};
 import {showActionToast} from "@/lib/action-toast";
 const mutatingRpcs=new Set([
- "invite_staff","set_staff_active","join_program","join_program_with_notifications","staff_redeem_voucher_choice","staff_redeem_card_choice",
+ "invite_staff","set_staff_active","join_program","join_program_with_notifications","customer_set_all_notifications","staff_redeem_voucher_choice","staff_redeem_card_choice",
  "staff_redeem_voucher","staff_award_card","staff_redeem_card","business_upsert_consent",
  "business_upsert_whatsapp_consent","platform_upsert_consent","admin_create_business",
  "admin_provision_business","admin_set_business_location","admin_set_business_contract","admin_set_business_currency",
@@ -66,7 +66,7 @@ const auth={
  getSession:async()=>post<{session:{access_token:string;user:User}|null}>("/api/local/auth",{action:"getSession"}),
  signOut:async()=>post("/api/local/auth",{action:"signOut"}),
  signInWithPassword:async(data:{email:string;password:string})=>post("/api/local/auth",{action:"signInWithPassword",...data}),
- signUp:async(data:{email:string;password:string;options?:{data?:{full_name?:string;whatsapp?:string;platform_marketing_opt_in?:boolean;platform_push_opt_in?:boolean};emailRedirectTo?:string}})=>post<{user:User|null;session:unknown}>("/api/local/auth",{action:"signUp",email:data.email,password:data.password,full_name:data.options?.data?.full_name,whatsapp:data.options?.data?.whatsapp,platform_marketing_opt_in:data.options?.data?.platform_marketing_opt_in===true,platform_push_opt_in:data.options?.data?.platform_push_opt_in===true}),
+ signUp:async(data:{email:string;password:string;options?:{data?:{full_name?:string;whatsapp?:string;platform_marketing_opt_in?:boolean;platform_push_opt_in?:boolean;card_notifications_opt_in?:boolean};emailRedirectTo?:string}})=>post<{user:User|null;session:unknown}>("/api/local/auth",{action:"signUp",email:data.email,password:data.password,full_name:data.options?.data?.full_name,whatsapp:data.options?.data?.whatsapp,platform_marketing_opt_in:data.options?.data?.platform_marketing_opt_in===true,platform_push_opt_in:data.options?.data?.platform_push_opt_in===true,card_notifications_opt_in:data.options?.data?.card_notifications_opt_in===true}),
  resetPasswordForEmail:async(email:string,_options?:{redirectTo?:string})=>post("/api/local/auth",{action:"resetPasswordForEmail",email}),
  updateUser:async(data:{email?:string;password?:string;whatsapp?:string})=>post("/api/local/auth",{action:"updateUser",...data}),
  exchangeCodeForSession:async(_code:string)=>({data:null,error:err("El enlace de acceso ya no utiliza códigos externos.")}),
