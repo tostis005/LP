@@ -36,7 +36,13 @@ try{
   const metadata=await client.query(
    "SELECT count(*)::int AS count FROM storage.objects WHERE bucket_id='business-assets' AND name=$1",
    [manager.business_id+"/"+fileName]);
-  assert.equal(metadata.rows[0].count,1,"Owner must be allowed to add campaign images");
+  // No se concede SELECT sobre metadatos: el registro funciona aunque RLS los oculte.
+  assert.equal(metadata.rows[0].count,0,"El listado de archivos debe mantenerse privado");
+  await client.query("SAVEPOINT duplicate_image");
+  await assert.rejects(
+   ()=>client.query("SELECT public.register_business_asset($1::uuid,$2::text)",[manager.business_id,fileName]),
+   error=>error.code==="23505","No se debe permitir registrar el mismo archivo dos veces");
+  await client.query("ROLLBACK TO SAVEPOINT duplicate_image");
  });
  await assert.rejects(
   ()=>impersonate(customer.id,client=>client.query(
