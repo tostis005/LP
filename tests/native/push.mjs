@@ -26,6 +26,13 @@ try{
   [ids.cliente,endpoint,"B".repeat(87),"C".repeat(22)]);
  await client.query("SET LOCAL ROLE authenticated");
  await client.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[ids.cliente]);
+ const owned=await client.query("SELECT * FROM public.customer_push_subscription($1::text)",[endpoint]);
+ assert.equal(owned.rowCount,1,"El cliente puede revisar su propia suscripción push");
+ assert.equal(owned.rows[0].endpoint,endpoint);
+ await client.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[ids.gestor]);
+ const foreign=await client.query("SELECT * FROM public.customer_push_subscription($1::text)",[endpoint]);
+ assert.equal(foreign.rowCount,0,"Otro usuario no puede leer claves push ajenas");
+ await client.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[ids.cliente]);
  const before=await client.query("SELECT * FROM public.customer_push_preferences()");
  assert.ok(before.rows.some(x=>x.business_id===shop.id&&!x.opted_in),"Push inicialmente desactivado");
  await client.query("SAVEPOINT no_other_business");

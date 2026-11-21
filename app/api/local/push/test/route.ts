@@ -1,5 +1,5 @@
 import {randomUUID} from "node:crypto";
-import {actorFromRequest,authPool,checkOrigin,hashToken,responseError,ApiError} from "@/lib/server/db";
+import {actorFromRequest,asActor,authPool,checkOrigin,hashToken,responseError,ApiError} from "@/lib/server/db";
 import {rateLimit} from "@/lib/server/auth";
 import {pushConfigured,sendWebPush,trustedPushEndpoint} from "@/lib/server/web-push";
 export const runtime="nodejs";
@@ -16,10 +16,8 @@ export async function POST(request:Request){
   const input=JSON.parse(raw) as {endpoint?:string};
   const endpoint=input.endpoint||"";
   if(!trustedPushEndpoint(endpoint))throw new ApiError("Este dispositivo no tiene una suscripción push válida.",400);
-  const device=(await authPool.query<Device>(
-   "SELECT endpoint,p256dh,auth FROM public.web_push_subscriptions "+
-   "WHERE customer_id=$1::uuid AND endpoint=$2 AND active=true LIMIT 1",
-   [actor.id,endpoint])).rows[0];
+  const device=await asActor(actor,async client=>(await client.query<Device>(
+   "SELECT * FROM public.customer_push_subscription($1::text)",[endpoint])).rows[0]);
   if(!device)throw new ApiError("Este móvil no está vinculado a tu cuenta. Repara las notificaciones en Ajustes.",409);
   await rateLimit("push-self-test:"+hashToken(actor.id).slice(0,24),3,10);
   try{
