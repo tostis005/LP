@@ -40,6 +40,6 @@ assert.match(home,/offerCounts/);
 assert.match(card,/offersCount/);
 assert.match(nav,/app\/novedades/);
 assert.match(frame,/app\/novedades/);
-assert.match(list,/Mostrar ofertas caducadas/);
+assert.match(list,/Mostrar promociones caducadas/);
 assert.match(detail,/action:"read"/);
 console.log("OK: ofertas vinculadas a campañas, bandeja privada, lectura, caducidad y push tolerante a iconos.");
