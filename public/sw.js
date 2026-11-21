@@ -19,7 +19,7 @@ self.addEventListener("push",event=>{
  const body=typeof data.body==="string"?data.body.slice(0,500):"Tienes novedades de tus negocios favoritos.";
  const url=typeof data.url==="string"&&data.url.startsWith("/")&&!data.url.startsWith("//")?data.url:"/app";
  event.waitUntil(self.registration.showNotification(title,{
-  body,icon:"/kreyv-mark-v3-192.png",badge:"/kreyv-mark-v3-192.png",
+  body,icon:"/kreyv-notification-icon-v1-192.png",badge:"/kreyv-notification-badge-v1-96.png",
   tag:typeof data.tag==="string"?data.tag:"kreyv",
   data:{url}
  }));

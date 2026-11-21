@@ -36,8 +36,8 @@ export async function sendWebPush(item:PushDelivery){
  const payload=JSON.stringify({
   title:item.business_name+" · "+item.title,
   body:item.body_text,
-  icon:"/icon-192.png",
-  badge:"/icon-192.png",
+  icon:"/kreyv-notification-icon-v1-192.png",
+  badge:"/kreyv-notification-badge-v1-96.png",
   url:"/app",
   tag:"loyally-"+item.delivery_id
  });
