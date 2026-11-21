@@ -28,6 +28,8 @@ jobs:
         run: node tests/demo/push-onboarding.mjs
       - name: Comprobar ofertas, novedades y recuperación de notificaciones push
         run: node tests/demo/offers-inbox.mjs
+      - name: Verificar campañas unificadas y facturación por canal
+        run: node tests/demo/unified-campaigns.mjs
       - name: Generación y persistencia VAPID sin exponer secretos
         run: node tests/demo/push-vapid.mjs
       - name: Verificar iconos, mapa, premios y navegación del negocio

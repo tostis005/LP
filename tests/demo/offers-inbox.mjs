@@ -30,7 +30,7 @@ assert.match(api,/action==="read"/);
 assert.match(editor,/maxLength=\{50\}/);
 assert.match(editor,/maxLength=\{120\}/);
 assert.match(editor,/maxLength=\{6000\}/);
-assert.match(editor,/Nueva oferta/);
+assert.match(editor,/Crear campaña/);
 assert.match(sender,/offer_id/);
 assert.match(push,/novedades/);
 assert.match(sw,/showNotification\(title,\{body,tag,data:\{url\}\}\)/,

@@ -27,7 +27,16 @@ export async function GET(request:Request){
     if(!ok.rows[0]?.allowed)throw new ApiError("No autorizado.",403);
     return (await client.query(
      "SELECT o.id,o.title,o.preview,o.details,o.terms,o.image_url,to_char(o.valid_until,'YYYY-MM-DD') AS valid_until,o.created_at,o.push_campaign_id, "+
-     "(SELECT count(*)::int FROM public.offer_receipts r WHERE r.offer_id=o.id) AS delivered "+
+     "(SELECT count(*)::int FROM public.offer_receipts r WHERE r.offer_id=o.id) AS delivered, "+
+     "(SELECT coalesce(json_agg(json_build_object('id',q.id,'channel',q.channel,'status',q.status,"+
+     "'recipient_count',q.recipient_count,'sent_count',q.sent_count,'failed_count',q.failed_count)), '[]'::json) "+
+     "FROM (SELECT c.id,c.channel,c.status,c.recipient_count,c.sent_count,c.failed_count "+
+     "FROM public.marketing_campaigns c WHERE c.offer_id=o.id UNION ALL "+
+     "SELECT p.id,'push'::text,p.status,p.recipient_count,p.sent_count,p.failed_count "+
+     "FROM public.push_campaigns p WHERE p.id=o.push_campaign_id) q) AS campaigns, "+
+     "(SELECT count(*)::int FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS charged_channels, "+
+     "(SELECT coalesce(sum(x.amount_cents),0)::bigint FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS confirmed_cents, "+
+     "(SELECT min(x.currency) FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS confirmed_currency "+
      "FROM public.business_offers o WHERE o.business_id=$1::uuid ORDER BY o.created_at DESC LIMIT 100",[business])).rows;
    });
    return Response.json({offers},{headers});

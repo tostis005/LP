@@ -69,6 +69,11 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState("Tijuana"),[country,setCountry]=useState("México"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState(""),[quote,setQuote]=useState<MailQuote|null>(null);
  const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp"|"push">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null),[campaignView,setCampaignView]=useState<"list"|"editor">("list");
+ const [groupedCampaignIds,setGroupedCampaignIds]=useState<string[]>([]),[groupedOfferCount,setGroupedOfferCount]=useState(0);
+ const onGroupedCampaigns=useCallback((ids:string[],count:number)=>{
+  setGroupedCampaignIds(old=>old.length===ids.length&&old.every((v,i)=>v===ids[i])?old:ids);
+  setGroupedOfferCount(count);
+ },[]);
  const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,push:false,template_name:"",template_language:""});
  useEffect(()=>{fetch("/api/local/marketing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setMarketingStatus(v as MarketingStatus)}).catch(()=>{});},[]);
  const [previewEarned,setPreviewEarned]=useState(3),[siteOrigin,setSiteOrigin]=useState("");
@@ -252,6 +257,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    await reload();
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
+ const standaloneDrafts=drafts.filter(d=>!groupedCampaignIds.includes(d.id));
  const repeatCount=customers.filter(c=>Number(c.visits)>=2).length,canvassed=customers.filter(c=>c.marketing_ok).length;
  const programType=prog?.type;
  const currency=displayCurrency(biz?.currency);
@@ -407,23 +413,17 @@ export default function BusinessWorkspace({account}:{account:Account}){
  </>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">
     {campaignView==="list"?<>
-      {!!selected&&<BusinessOffersPanel businessId={selected} channelsEnabled={marketingStatus} onCreated={()=>void reload()}/>}
+      {!!selected&&<BusinessOffersPanel businessId={selected} onCreated={()=>void reload()} onCampaignsLoaded={onGroupedCampaigns}/>}
 
-     <div className="campaign-page-header">
-      <div>
-       <h2>Campañas</h2></div>
-      <div className="campaign-compose-actions">
-       <button type="button" className="button button-dark campaign-new-button" onClick={()=>{setEditingDraft(null);setMailSubject("");setMailBody("");setCampaignView("editor")}}><Plus size={18}/> Crear campaña</button>
-      </div>
-     </div>
+
      <div className="campaign-overview-grid">
-      <div className="panel-card campaign-overview-stat"><span>Campañas creadas</span><strong>{drafts.length}</strong><small>Correo, WhatsApp y push</small></div>
+      <div className="panel-card campaign-overview-stat"><span>Campañas creadas</span><strong>{groupedOfferCount+standaloneDrafts.length}</strong><small>Campañas creadas</small></div>
       <div className="panel-card campaign-overview-stat"><span>Enviados</span><strong>{drafts.reduce((sum,d)=>sum+(Number(d.sent_count)||0),0)}</strong><small>Mensajes aceptados</small></div>
       <div className="panel-card campaign-overview-stat"><span>Consumo de campañas</span><strong>{usage.length?usage.map(u=>new Intl.NumberFormat("es-MX",{style:"currency",currency:u.currency}).format(Number(u.amount_cents)/100)).join(" · "):"—"}</strong><small>Importes registrados por canal</small></div>
      </div>
-     <section className="panel-card campaign-list-panel">
-      <div className="content-heading"><div><h3>Todas tus campañas</h3><p>Edita tus borradores o revisa las campañas que ya has preparado.</p></div></div>
-      {drafts.length?<div className="campaign-management-list">{drafts.map(d=><article key={d.id} className="campaign-management-row">
+     {standaloneDrafts.length>0&&<section className="panel-card campaign-list-panel">
+      <div className="content-heading"><div><h3>Campañas antiguas</h3><p>Campañas por canal creadas antes de unificar los envíos.</p></div></div>
+      <div className="campaign-management-list">{standaloneDrafts.map(d=><article key={d.id} className="campaign-management-row">
        <div className="campaign-management-icon">{d.channel==="push"?<BellRing size={21}/>:d.channel==="whatsapp"?<Users size={21}/>:<Mail size={21}/>}</div>
        <div className="campaign-management-main"><strong>{d.subject}</strong><p>{d.channel==="push"?"Notificación push":d.channel==="whatsapp"?"WhatsApp":"Correo"} · {dateShort(d.created_at)}</p>
         <span className={"campaign-status campaign-status-"+d.status}>{d.status==="draft"?"Borrador":d.status==="sent"?"Enviada":d.status==="partial"?"Parcial":d.status==="failed"?"Fallida":"En proceso"}</span>
@@ -433,11 +433,8 @@ export default function BusinessWorkspace({account}:{account:Account}){
         {d.status==="draft"&&<button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>editDraft(d)}>Editar <Brush size={16}/></button>}
         {["draft","queued","sending"].includes(d.status)&&<button type="button" className="button button-dark button-sm" disabled={busy||!marketingStatus[d.channel||"email"]} onClick={()=>sendCampaign(d)}>{d.status==="draft"?"Enviar":"Continuar"} <ArrowUpRight size={16}/></button>}
        </div>
-      </article>)}</div>:<div className="campaign-empty-state"><div className="panel-icon"><Mail size={24}/></div>
-       <h3>Tu primera campaña empieza aquí</h3><p>Cuenta una novedad, presenta una oferta o invita a tus clientes a volver.</p>
-       <button type="button" className="button button-dark" onClick={()=>setCampaignView("editor")}>Crear campaña <Plus size={16}/></button>
-      </div>}
-     </section>
+      </article>)}</div>
+     </section>}
     </>:<>
      <div className="campaign-page-header">
       <div><button type="button" className="campaign-editor-back" onClick={clearComposer}><ArrowUpRight size={16}/> Todas las campañas</button>

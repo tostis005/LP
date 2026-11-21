@@ -37,3 +37,31 @@
 .kreyv-offer-count{display:inline-block;margin-left:5px;padding:2px 7px;border-radius:12px;font-size:12px;font-weight:700;background:#f2e0a4;color:#4b2c08}
 .kreyv-loyalty-offers{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font-size:13px}
 @media(max-width:620px){.kreyv-offer-channels{flex-direction:column}.kreyv-news-grid{grid-template-columns:1fr}}
+
+/* Campañas unificadas: precio por canal y cargo confirmado. */
+.kreyv-offer-channels .kreyv-priced-channel{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:14px;flex:1 1 100%;padding:13px;border:1px solid #e3d8dd;border-radius:12px;cursor:pointer}
+.kreyv-priced-channel>input{width:18px;height:18px;flex-shrink:0}
+.kreyv-priced-channel-name{display:flex;align-items:center;gap:9px;flex:1;flex-wrap:wrap}
+.kreyv-priced-channel-name strong{font-size:14px}
+.kreyv-priced-channel-name small{width:100%;padding-left:27px}
+.kreyv-priced-channel-cost{display:flex;flex-direction:column;text-align:right;gap:4px;min-width:118px}
+.kreyv-priced-channel-cost b{font-size:12px;font-weight:500}
+.kreyv-priced-channel-cost strong{font-size:16px}
+.kreyv-price-summary{display:grid;gap:12px;padding:18px;border:1px solid #d8c3cf;border-radius:14px;background:rgba(108,32,62,.04)}
+.kreyv-price-summary>div{display:flex;justify-content:space-between;gap:16px;align-items:center}
+.kreyv-price-summary>div>strong{font-size:25px}
+.kreyv-price-summary>small{line-height:1.5}
+.kreyv-price-summary>button{justify-self:start}
+.kreyv-offer-campaign{display:grid;gap:14px;padding:16px;border:1px solid #e8dce2;border-radius:14px}
+.kreyv-offer-heading{display:flex;align-items:center;gap:13px}
+.kreyv-offer-heading img{width:88px;height:72px;object-fit:cover;border-radius:10px}
+.kreyv-offer-heading strong{font-size:16px}
+.kreyv-offer-heading p{margin:6px 0}
+.kreyv-offer-heading small{opacity:.7}
+.kreyv-offer-campaign-channels{display:flex;flex-wrap:wrap;gap:8px}
+.kreyv-offer-campaign-channels span{border-radius:50px;border:1px solid #e8dce2;padding:6px 10px;font-size:12px}
+.kreyv-offer-campaign-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #eee4e8;padding-top:12px}
+.kreyv-offer-campaign-bottom>div{display:grid;gap:4px}
+.kreyv-offer-campaign-bottom>div>small{opacity:.7}
+.kreyv-offer-campaign-bottom>div>strong{font-size:22px}
+@media(max-width:620px){.kreyv-priced-channel-cost{min-width:100px}.kreyv-offer-campaign-bottom{flex-wrap:wrap}.kreyv-price-summary>div>strong{font-size:21px}}
