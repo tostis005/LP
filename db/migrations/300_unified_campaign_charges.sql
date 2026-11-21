@@ -51,7 +51,7 @@ BEGIN
   FROM public.offer_campaign_charges oc WHERE oc.business_id=p_business
   GROUP BY oc.channel,oc.currency
  ) q GROUP BY q.channel,q.currency ORDER BY q.channel,q.currency;
-END $;
+END $$;
 REVOKE ALL ON FUNCTION public.business_marketing_usage(uuid) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.business_marketing_usage(uuid) TO authenticated;
 

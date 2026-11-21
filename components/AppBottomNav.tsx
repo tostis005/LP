@@ -5,11 +5,12 @@ import {usePathname,useRouter} from "next/navigation";
 import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound,BellRing,Brush} from "lucide-react";
 import {db} from "@/lib/supabase";
 import {KreyvIcon} from "@/components/KreyvIcon";
+import {CustomerInboxNavCount} from "@/components/CustomerInboxBell";
 
 
 type Role="customer"|"business"|"staff"|"admin";
 const tabs={
- customer:[{href:"/app",label:"Tarjetas",icon:"mis-tarjetas"},{href:"/app/descubrir",label:"Descubrir",icon:"buscar"},{href:"/app/novedades",label:"Novedades",icon:"campanas"},{href:"/app/ajustes",label:"Ajustes",icon:"ajustes"},{href:"/app/perfil",label:"Mi perfil",icon:"perfil"}],
+ customer:[{href:"/app",label:"Tarjetas",icon:"mis-tarjetas"},{href:"/app/descubrir",label:"Descubrir",icon:"buscar"},{href:"/app/novedades",label:"Avisos",icon:"campanas"},{href:"/app/ajustes",label:"Ajustes",icon:"ajustes"},{href:"/app/perfil",label:"Mi perfil",icon:"perfil"}],
  business:[{href:"/negocio",label:"Inicio",icon:"inicio"},{href:"/negocio/tarjeta",label:"Tarjeta",icon:"mis-tarjetas"},{href:"/negocio/team",label:"Equipo",icon:"perfil"},{href:"/negocio/marketing",label:"Campañas",icon:"campanas"},{href:"/negocio/reports",label:"Datos",icon:"recompensa"}],
  staff:[{href:"/empleado",label:"Escanear",icon:"qr"}],
  admin:[{href:"/admin",label:"Panel",icon:"ajustes"}]
@@ -57,7 +58,7 @@ export function AppBottomNav(){
  return <nav className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de Kreyv">
   {items.map(item=>{
    const active=item.href==="/negocio"?pathname==="/negocio"||pathname==="/negocio/overview":pathname===item.href;
-   return <Link key={item.href} href={item.href} aria-current={active?"page":undefined} className={"mobile-bottom-link"+(active?" active":"")}><KreyvIcon name={item.icon} size={20}/><span>{item.label}</span></Link>;
+   return <Link key={item.href} href={item.href} aria-current={active?"page":undefined} className={"mobile-bottom-link"+(active?" active":"")}><KreyvIcon name={item.icon} size={20}/><span>{item.label}</span>{role==="customer"&&item.href==="/app/novedades"&&<CustomerInboxNavCount/>}</Link>;
   })}
   {(role==="staff"||role==="admin")&&<button type="button" className="mobile-bottom-link" onClick={logout}><LogOut size={20}/><span>Salir</span></button>}
  </nav>;

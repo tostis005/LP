@@ -4,7 +4,7 @@ export const dynamic="force-dynamic";
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 type Channel="email"|"whatsapp"|"push";
 type NewOffer={action?:string;business_id?:string;title?:string;preview?:string;details?:string;
- terms?:string;image_url?:string|null;valid_until?:string|null;channels?:Channel[];offer_id?:string};
+ terms?:string;image_url?:string|null;valid_until?:string|null;valid_from?:string|null;kind?:"offer"|"news"|"notice";channels?:Channel[];offer_id?:string};
 function imagePath(raw:string|null|undefined,origin:string,business:string){
  if(!raw)return null;
  let url:URL;
@@ -26,7 +26,7 @@ export async function GET(request:Request){
     const ok=await client.query<{allowed:boolean}>("SELECT (public.is_business_manager($1::uuid) OR public.is_platform_admin()) AS allowed",[business]);
     if(!ok.rows[0]?.allowed)throw new ApiError("No autorizado.",403);
     return (await client.query(
-     "SELECT o.id,o.title,o.preview,o.details,o.terms,o.image_url,to_char(o.valid_until,'YYYY-MM-DD') AS valid_until,o.created_at,o.push_campaign_id, "+
+     "SELECT o.id,o.title,o.preview,o.details,o.terms,o.image_url,o.kind,to_char(o.valid_from,'YYYY-MM-DD') AS valid_from,to_char(o.valid_until,'YYYY-MM-DD') AS valid_until,o.created_at,o.push_campaign_id, "+
      "(SELECT count(*)::int FROM public.offer_receipts r WHERE r.offer_id=o.id) AS delivered, "+
      "(SELECT coalesce(json_agg(json_build_object('id',q.id,'channel',q.channel,'status',q.status,"+
      "'recipient_count',q.recipient_count,'sent_count',q.sent_count,'failed_count',q.failed_count)), '[]'::json) "+
@@ -44,7 +44,7 @@ export async function GET(request:Request){
   if(id&&!uuid.test(id))throw new ApiError("Oferta inválida.");
   const rows=await asActor(actor,async client=>{
    return (await client.query(
-    "SELECT o.id,o.business_id,o.title,o.preview,o.details,o.terms,o.image_url,to_char(o.valid_until,'YYYY-MM-DD') AS valid_until,o.created_at, "+
+    "SELECT o.id,o.business_id,o.title,o.preview,o.details,o.terms,o.image_url,o.kind,to_char(o.valid_from,'YYYY-MM-DD') AS valid_from,to_char(o.valid_until,'YYYY-MM-DD') AS valid_until,o.created_at, "+
     "r.received_at,r.seen_at,b.name AS business_name,b.logo_url AS business_logo "+
     "FROM public.offer_receipts r JOIN public.business_offers o ON o.id=r.offer_id "+
     "JOIN public.businesses b ON b.id=o.business_id "+
@@ -72,16 +72,20 @@ export async function POST(request:Request){
   }
   if(input.action!=="create"||!uuid.test(input.business_id||""))throw new ApiError("Negocio inválido.");
   const title=input.title?.trim()||"",preview=input.preview?.trim()||"",details=input.details?.trim()||"";
-  const terms=input.terms?.trim()||"";
+  const terms=input.terms?.trim()||"";const kind=input.kind||"offer";
   const channels=[...new Set(input.channels||[])];
   if(title.length<3||title.length>50||preview.length<3||preview.length>120||
     details.length<3||details.length>6000||terms.length>1500||
     channels.length<1||channels.length>3||channels.some(ch=>!["email","whatsapp","push"].includes(ch)))
     throw new ApiError("Revisa el título (50), resumen (120), descripción (6000) y canales.");
-  const expiry=input.valid_until||null;
+  if(!["offer","news","notice"].includes(kind))throw new ApiError("Tipo de campaña inválido.");
+  const beginning=input.valid_from||null,expiry=input.valid_until||null;
+  const dateValid=(value:string)=>/^\d{4}-\d{2}-\d{2}$/.test(value)&&
+   !Number.isNaN(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
+  if(beginning&&!dateValid(beginning))throw new ApiError("La fecha de inicio no es válida.");
+  if(beginning&&expiry&&beginning>expiry)throw new ApiError("El inicio no puede ser posterior al fin.");
   if(expiry){
-   if(!/^\d{4}-\d{2}-\d{2}$/.test(expiry)||Number.isNaN(Date.parse(expiry))||
-    new Date(expiry).toISOString().slice(0,10)!==expiry||expiry<new Date().toISOString().slice(0,10))
+   if(!dateValid(expiry)||expiry<new Date().toISOString().slice(0,10))
     throw new ApiError("La fecha de caducidad no es válida.");
   }
   const image=imagePath(input.image_url,new URL(request.url).origin,input.business_id!);
@@ -90,9 +94,9 @@ export async function POST(request:Request){
     "SELECT public.is_business_manager($1::uuid) AS allowed",[input.business_id]);
    if(!can.rows[0]?.allowed)throw new ApiError("No tienes permiso para crear ofertas de este negocio.",403);
    const o=await client.query<{id:string}>(
-    "INSERT INTO public.business_offers(business_id,created_by,title,preview,details,terms,image_url,valid_until) "+
-    "VALUES($1::uuid,$2::uuid,$3,$4,$5,$6,$7,$8::date) RETURNING id",
-    [input.business_id,actor.id,title,preview,details,terms,image,expiry]);
+    "INSERT INTO public.business_offers(business_id,created_by,title,preview,details,terms,image_url,valid_from,valid_until,kind) "+
+    "VALUES($1::uuid,$2::uuid,$3,$4,$5,$6,$7,$8::date,$9::date,$10) RETURNING id",
+    [input.business_id,actor.id,title,preview,details,terms,image,beginning,expiry,kind]);
    const id=o.rows[0].id;
    const prepared:Channel[]=[];
    for(const channel of channels){

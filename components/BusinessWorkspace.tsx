@@ -29,7 +29,7 @@ const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"customers",label:"Clientes",icon:<CreditCard size={17}/>},
  {id:"locations",label:"Ubicaciones",icon:<MapPin size={17}/>},
  {id:"reports",label:"Indicadores",icon:<Activity size={17}/>},
- {id:"marketing",label:"Mensajes y ofertas",icon:<Mail size={17}/>}
+ {id:"marketing",label:"Campañas",icon:<Mail size={17}/>}
 ];
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
 type Employee={user_id:string;full_name:string;email:string;role:string;active:boolean};

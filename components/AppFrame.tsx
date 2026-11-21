@@ -6,12 +6,13 @@ import type { User } from "@/lib/supabase";
 import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, BellRing, Mail, Users, ChevronRight, Brush, Gift, MapPin, Store } from "lucide-react";
 import { Brand } from "@/components/Brand";
 import {KreyvIcon} from "@/components/KreyvIcon";
+import {CustomerInboxBell} from "@/components/CustomerInboxBell";
 import { configured, db } from "@/lib/supabase";
 export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employee"; active:boolean; businesses:{id:string;name:string;slug:string} | null };
 export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; refresh: () => void };
 type Area = "customer" | "business" | "staff" | "admin";
 const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
- customer:[{href:"/app",label:"Mis tarjetas",icon:<KreyvIcon name="mis-tarjetas" size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<KreyvIcon name="buscar" size={18}/>},{href:"/app/novedades",label:"Novedades",icon:<KreyvIcon name="campanas" size={18}/>},{href:"/app/ajustes",label:"Ajustes",icon:<KreyvIcon name="ajustes" size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<KreyvIcon name="perfil" size={18}/>}],
+ customer:[{href:"/app",label:"Mis tarjetas",icon:<KreyvIcon name="mis-tarjetas" size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<KreyvIcon name="buscar" size={18}/>},{href:"/app/novedades",label:"Avisos",icon:<KreyvIcon name="campanas" size={18}/>},{href:"/app/ajustes",label:"Ajustes",icon:<KreyvIcon name="ajustes" size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<KreyvIcon name="perfil" size={18}/>}],
  business:[
   {href:"/negocio",label:"Resumen",icon:<KreyvIcon name="inicio" size={18}/>},
   {href:"/negocio/tarjeta",label:"Mi tarjeta",icon:<KreyvIcon name="mi-tarjeta" size={18}/>},
@@ -56,7 +57,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
   </nav><div className="sidebar-spacer"/><button type="button" className="side-logout" onClick={logout}><LogOut size={17}/> Cerrar sesión</button>
   </aside>
-  <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> Kreyv / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user">{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
+  <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> Kreyv / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user">{area==="customer"&&<CustomerInboxBell/>}{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
   <Link href="/negocio/settings"><Store size={17}/> Datos del negocio</Link>
   <Link href="/negocio/locations"><MapPin size={17}/> Dirección y ubicación</Link>
   {roles.some(r=>r.role==="owner")&&<Link href="/negocio/facturacion"><CreditCard size={17}/> Facturación y pagos</Link>}
