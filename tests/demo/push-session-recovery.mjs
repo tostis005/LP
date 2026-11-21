@@ -25,6 +25,7 @@ assert.match(qa,/const session=await createSession\(user.id\)/);
 assert.doesNotMatch(qa,/setSessionCookie\([^\n]+OPERATOR_MINUTES\*60/);
 assert.match(sync,/Notification\.permission!=="granted"/,"No pedir permisos sin consentimiento");
 assert.match(sync,/getSubscription\(\)/);
+assert.match(sync,/if\(!sub\)return;/,"La sincronización no debe reactivar push tras una baja explícita");
 assert.match(sync,/applicationServerKey/);
 assert.match(sync,/sub\.unsubscribe\(\)/);
 assert.match(sync,/pushManager\.subscribe\(/);

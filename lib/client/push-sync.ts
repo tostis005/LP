@@ -31,7 +31,10 @@ async function sync(userId:string){
  // Esperar al worker ya registrado por PwaSetup sin solicitar permiso otra vez.
  const worker=await navigator.serviceWorker.ready;
  let sub=await worker.pushManager.getSubscription();
- if(sub&&!sameKey(sub.options.applicationServerKey,config.publicKey)){
+ // No crear una suscripción nueva al abrir la app: si el usuario la desactivó
+ // voluntariamente, ese deseo debe respetarse aunque el permiso Android siga activo.
+ if(!sub)return;
+ if(!sameKey(sub.options.applicationServerKey,config.publicKey)){
   // La clave VAPID puede cambiar durante un despliegue. Una suscripción con
   // una clave anterior puede provocar rechazos aunque el móvil tenga permiso.
   await sub.unsubscribe();
