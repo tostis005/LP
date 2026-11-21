@@ -97,8 +97,16 @@ export async function POST(request:Request){
    const origin=(process.env.NEXT_PUBLIC_SITE_URL||"").replace(/\/$/,"");
    if(!origin.startsWith("https://"))throw new ApiError("El acceso rápido requiere HTTPS.",503);
    const forwarded=request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"desconocida";
-   await rateLimit("qa-email-global",20,1440);
-   await rateLimit("qa-email-ip:"+hashToken(forwarded).slice(0,24),5,1440);
+   // Limita las solicitudes reales de correo, sin bloquear un día entero las pruebas
+   // legítimas del administrador. No elimina la aprobación de email ni los enlaces de un solo uso.
+   try{
+    await rateLimit("qa-email-global-v2",40,1440);
+    await rateLimit("qa-email-ip-v2:"+hashToken(forwarded).slice(0,24),8,60);
+   }catch(error){
+    if(error instanceof ApiError&&error.status===429)
+     throw new ApiError("Has solicitado varios enlaces de acceso. Revisa el último correo recibido o inténtalo más adelante.",429);
+    throw error;
+   }
    const token=randomBytes(32).toString("hex");
    await authPool.query(
     "INSERT INTO auth.qa_access_links(token_hash,role,expires_at) VALUES($1,$2,now()+interval '15 minutes')",

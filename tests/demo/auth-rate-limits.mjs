@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const load=path=>readFileSync(path,"utf8");
+const login=load("app/api/local/auth/route.ts");
+const qa=load("app/api/local/qa-access/route.ts");
+const limiter=load("lib/server/auth.ts");
+assert.match(qa,/qa-email-ip-v2:[\s\S]{0,90}8,60\)/,"QA requests are throttled hourly per IP rather than blocking a full day after five uses");
+assert.match(qa,/qa-email-global-v2",40,1440\)/,"QA requests also have a global daily cap");
+assert.match(qa,/qa_access_links/,"QA email verification remains one-time use");
+assert.match(qa,/operatorAllowed\(request,admin\.id\)/,"QA role switching still requires operator authorization");
+assert.match(qa,/Has solicitado varios enlaces de acceso/,"Rate limit message explains how to recover");
+assert.match(login,/login-request-ip-v2:[\s\S]{0,90}90,15\)/,"High-volume login requests stay rate limited");
+assert.match(login,/if\(!verified\)\{\s*await rateLimit\("login-fail-v2:"\+email,10,15\)/,"Only failed passwords consume the account's failure quota");
+assert.doesNotMatch(login,/rateLimit\("login:"\+email,10,15\)/,"Successful logins must not consume a shared-account quota");
+assert.match(limiter,/auth\.rate_limits/);
+console.log("OK: authentication throttles failed passwords and QA mail requests without unnecessary account lockouts.");

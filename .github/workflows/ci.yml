@@ -56,6 +56,8 @@ jobs:
         run: node tests/demo/product-polish.mjs
       - name: Verificar acceso rápido de perfiles con autorización por correo
         run: node tests/demo/qa-access.mjs
+      - name: Comprobar limites de acceso legitimos y proteccion antiabuso
+        run: node tests/demo/auth-rate-limits.mjs
       - name: Evitar caída del cliente cuando faltan detalles de una tarjeta
         run: node tests/demo/customer-resilience.mjs
       - name: Validar app simplificada, confirmaciones y tres canales de avisos

@@ -46,11 +46,17 @@ export async function POST(request:Request) {
       const email=String(input.email||"").trim().toLowerCase(),password=String(input.password||"");
       if(!validateEmail(email)||!password)throw new ApiError("Email o contraseña incorrectos.",401);
        if(email.endsWith("@demo.loyally.test")&&process.env.LP_SANDBOX_MODE!=="true")throw new ApiError("Las cuentas de prueba reales solo están habilitadas en el entorno sandbox.",403);
-      await rateLimit("login:"+email,10,15);
+      // El acceso correcto no consume cuota de fallos de este correo:
+      // evita que un tercero pueda bloquear a su propietario al probar contraseñas.
+      const forwarded=request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
+      await rateLimit("login-request-ip-v2:"+hashToken(forwarded).slice(0,24),90,15);
       const r=await authPool.query("SELECT id,email,password_hash,email_confirmed_at,raw_user_meta_data FROM auth.users WHERE lower(email)=$1",[email]);
       const u=r.rows[0];
       const verified=u?await passwordMatches(password,u.password_hash):false;
-      if(!verified)throw new ApiError("Email o contraseña incorrectos.",401);
+      if(!verified){
+        await rateLimit("login-fail-v2:"+email,10,15);
+        throw new ApiError("Email o contraseña incorrectos.",401);
+      }
       if(!u.email_confirmed_at)throw new ApiError("Confirma tu email antes de iniciar sesión.",403);
       const session=await createSession(u.id);
       const user=publicUser({id:u.id,email:u.email,user_metadata:u.raw_user_meta_data});
