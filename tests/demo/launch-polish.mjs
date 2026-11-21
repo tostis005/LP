@@ -15,8 +15,8 @@ assert.doesNotMatch(business,/manager_create_branch|<BranchCreator|onSubmit=\{ad
 assert.doesNotMatch(business,/href="\/empleado"/,"Owner does not access employee scanner");
 assert.match(business,/onSubmit=\{saveLocation\}/,"Managers edit existing address");
 assert.match(business,/campaignView==="list"/,"Campaigns open as a list");
-assert.match(business,/Crear campaña/);
-assert.match(business,/Todas tus campañas/);
+assert.match(read("components/BusinessOffersPanel.tsx"),/Crear nueva/);
+assert.match(business,/standaloneDrafts/);
 assert.match(business,/editingDraft/);
 assert.match(business,/privateEmail\(x.email\)/);
 assert.match(admin,/admin_provision_business/);
