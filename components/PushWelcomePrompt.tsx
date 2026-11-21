@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {BellRing,CheckCircle2,ShieldCheck,X} from "lucide-react";
+import {BellRing,CheckCircle2,X} from "lucide-react";
 import {demoRole} from "@/lib/demo-local";
 
 type PushConfig={enabled:boolean;publicKey:string};
@@ -95,8 +95,7 @@ export function PushWelcomePrompt(){
      <button type="button" className="button button-dark button-full" onClick={()=>setShow(false)}><CheckCircle2 size={17}/> Continuar a mis tarjetas</button>
     </>:<>
      <h2 id="lp-push-welcome-title">¿Quieres recibir avisos de Kreyv?</h2>
-     <p>Permite las notificaciones del móvil para recibir promociones de las tarjetas cuyos avisos ya hayas aceptado. Podrás recibirlas aunque Kreyv esté cerrada.</p>
-     <p className="lp-push-welcome-privacy"><ShieldCheck size={15}/> Este permiso es opcional y no activa avisos de ningún negocio por sí solo. Los canales de cada tarjeta se gestionan en Ajustes.</p>
+     <p>Recibe en tu móvil las ofertas y novedades de tus tarjetas, incluso con Kreyv cerrada.</p>
      {error&&<p role="alert" className="alert error">{error}</p>}
      <button type="button" className="button button-dark button-full" disabled={busy} onClick={activate}>
       <BellRing size={17}/>{busy?"Activando...":"Permitir notificaciones"}

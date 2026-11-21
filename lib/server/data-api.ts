@@ -140,6 +140,7 @@ const rpcMap:Record<string,Spec>={
  set_staff_active:{args:[["p_business","uuid"],["p_user","uuid"],["p_active","boolean"]],returns:"scalar"},
  join_program:{args:[["p_business","uuid"]],returns:"scalar"},
  join_program_with_notifications:{args:[["p_business","uuid"],["p_opted_in","boolean"]],returns:"scalar"},
+ customer_set_all_notifications:{args:[["p_opted_in","boolean"]],returns:"scalar"},
  staff_lookup_card:{args:[["p_token","uuid"]],returns:"table"},
  staff_lookup_voucher:{args:[["p_token","uuid"]],returns:"table"},
  staff_redeem_voucher:{args:[["p_token","uuid"]],returns:"scalar"},

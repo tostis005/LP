@@ -9,7 +9,7 @@ const frame=read("components/AppFrame.tsx");
 const nav=read("components/AppBottomNav.tsx");
 const widget=read("components/PushPreferences.tsx");
 assert.match(home,/href="\/app\/ajustes"/,"Las tarjetas deben mostrar un acceso visible a avisos");
-assert.match(profile,/href="\/app\/ajustes"/,"El perfil debe tener entrada a la configuración");
+assert.doesNotMatch(profile,/href="\/app\/ajustes"/,"Mi perfil no debe mezclar ajustes ni notificaciones");
 assert.match(nav,/href:"\/app\/ajustes",label:"Ajustes"/,"El menú inferior móvil debe incluir Avisos");
 assert.match(frame,/href:"\/app\/ajustes",label:"Ajustes"/,"El menú de escritorio debe incluir Notificaciones");
 assert.match(route,/<PushPreferences showBusinesses=\{false\}\/>/,"Ajustes incluye control real del teléfono");

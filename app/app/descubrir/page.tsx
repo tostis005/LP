@@ -88,7 +88,6 @@ function Discover({account}:{account:Account}){
     </div>
    </article>})}
   </div>
-  <p className="tiny-note map-note">El mapa utiliza OpenStreetMap. La ubicación solo se consulta si lo autorizas en tu dispositivo.</p>
  </>;
 }
 export default function DiscoverPage(){return <AppFrame area="customer" title="Encuentra tu próxima recompensa" subtitle="Cada negocio tiene algo especial que ofrecerte.">{a=><Discover account={a}/>}</AppFrame>}

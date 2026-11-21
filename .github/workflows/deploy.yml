@@ -32,6 +32,8 @@ jobs:
         run: node tests/demo/landing.mjs
       - name: Verificar generación segura de claves Web Push
         run: node tests/demo/push-vapid.mjs
+      - name: Validar perfil, QR y notificaciones del cliente
+        run: node tests/demo/customer-profile-final.mjs
       - name: TypeScript
         run: npm run typecheck
       - name: Build de Next.js

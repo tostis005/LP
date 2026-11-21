@@ -58,6 +58,8 @@ jobs:
         run: node tests/demo/simplified-business-app.mjs
       - name: Validar inscripción con único permiso y ajustes individuales por tarjeta
         run: node tests/demo/customer-notification-settings.mjs
+      - name: Validar perfil del cliente, QR adaptable y consentimiento general
+        run: node tests/demo/customer-profile-final.mjs
       - name: Comprobar navegación del cliente hacia sus ajustes
         run: node tests/demo/push-navigation.mjs
       - name: Comprobar TypeScript

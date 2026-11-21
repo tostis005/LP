@@ -25,7 +25,7 @@ export default function MiLoyally(){
  const [ready,setReady]=useState(false);
  const [showInstall,setShowInstall]=useState(false);
  const [installPrompt,setInstallPrompt]=useState<InstallPrompt|null>(null);
- const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[pushOptIn,setPushOptIn]=useState(false);
+ const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false);
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
 
  useEffect(()=>{
@@ -74,7 +74,7 @@ export default function MiLoyally(){
    }else if(mode==="signup"){
     const {data,error}=await db().auth.signUp({
      email,password,
-     options:{data:{full_name:name.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:pushOptIn},emailRedirectTo:window.location.origin+"/auth/callback"}
+     options:{data:{full_name:name.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn},emailRedirectTo:window.location.origin+"/auth/callback"}
     });
     if(error)throw error;
     if(data.session)router.replace("/app");
@@ -114,8 +114,8 @@ export default function MiLoyally(){
      {mode==="signup"&&<label>Tu nombre<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder="¿Cómo te llamas?"/></label>}
      <label>Correo electrónico<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
      {mode!=="forgot"&&<label>Contraseña<input type="password" required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña"/></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero ofertas y novedades de Kreyv por correo</strong><small>Opcional. Puedes cambiarlo desde Mi perfil.</small></span></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={pushOptIn} onChange={e=>setPushOptIn(e.target.checked)}/><span><strong>Quiero avisos de Kreyv en mi móvil</strong><small>Puedes activarlos al entrar en la aplicación.</small></span></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y avisos</strong><small>De Kreyv y mis tarjetas, por correo, WhatsApp y push. Aplicable a las tarjetas futuras; configurable desde Ajustes.</small></span></label>}
+     
      {error&&<p role="alert" className="loyal-app-error">{error}</p>}
      {message&&<p role="status" className="loyal-app-success">{message}</p>}
      <button type="submit" className="loyal-app-submit" disabled={busy||!ready}>{busy?"Un momento...":mode==="login"?"Entrar en Kreyv":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"}<ArrowRight size={18}/></button>

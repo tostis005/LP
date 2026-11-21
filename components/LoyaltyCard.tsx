@@ -10,8 +10,11 @@ import {StampGrid} from "@/components/StampMarks";
 import {WalletActions} from "@/components/WalletActions";
 export function LoyaltyCard({membership,business,program}:{membership:Membership;business:Business;program?:Program}){
  const [open,setOpen]=useState(false),[wallets,setWallets]=useState({apple:false,google:false}),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
- useEffect(()=>{if(!open)return;let active=true;
+ useEffect(()=>{let active=true;
   fetch("/api/local/wallet/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(active&&v)setWallets({apple:v.apple===true,google:v.google===true})}).catch(()=>{});
+  return()=>{active=false};
+ },[]);
+ useEffect(()=>{if(!open)return;let active=true;
   db().from("reward_vouchers").select("token,reward_label").eq("membership_id",membership.id).eq("status","issued").maybeSingle().then(({data})=>{if(active)setVoucher(data as {token:string;reward_label:string}|null)});
   return()=>{active=false};
  },[open,membership.id]);
@@ -60,8 +63,9 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   <div className="lc-bottom"><span>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" · "+program.reward_cost+" para canjear":""}</span><span className="lc-qr-small lc-qr-live"><QRCodeSVG value={qrUrl} size={44} level="M" includeMargin/></span></div>
  </button>
  <button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><Wallet size={17}/> Ver tarjeta y QR</button>
+ <WalletActions cardId={membership.id} available={wallets} compact/>
  </div>
- {open&&<div className="modal-backdrop" onMouseDown={()=>setOpen(false)}><div className="modal-card qr-modal" onMouseDown={e=>e.stopPropagation()}>
+ {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={()=>setOpen(false)}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
  <button className="modal-close" aria-label="Cerrar" onClick={()=>setOpen(false)}><X size={20}/></button>
  <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
  <div className="loyally-modal-card-preview" style={{backgroundColor:color,color:business.card_text_color||"#ffffff"}}>
@@ -72,12 +76,12 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   <small>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</small>
  </div>
  <p>Enseña este QR en el establecimiento.</p>
- <div className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={220} level="M" includeMargin/></div>
+ <div className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={200} level="M" includeMargin/></div>
  <div className="lp-wallet-intro"><h3>Guarda tu tarjeta</h3></div>
  <WalletActions cardId={membership.id} available={wallets}/>
  <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Guardar imagen con QR</button>
  <p className="tiny-note">{program?.type==="cashback"?"Puedes utilizar tu saldo en el establecimiento.":program?.reward_label||"Tu recompensa te espera."}</p>
- {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><div className="qr-box"><QRCodeSVG value={rewardQrUrl} size={190} level="M" includeMargin/></div></div>}
+ {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><div className="qr-box"><QRCodeSVG value={rewardQrUrl} size={180} level="M" includeMargin/></div></div>}
  <Link className="button button-outline button-full" href="/app/ajustes" onClick={()=>setOpen(false)}>Configurar notificaciones de esta tarjeta</Link>
  {consentError&&<div className="alert error">{consentError}</div>}
  </div></div>}

@@ -17,7 +17,7 @@ function Recenter({center}:{center:[number,number]}){
 }
 /** Marcador independiente de la categoría: estrella rellena = tarjeta guardada. */
 function pinIcon(hasCard:boolean){
- const star='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="29" height="29" aria-hidden="true" fill="'+(hasCard?'currentColor':'none')+'" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="m12 2.8 2.85 5.8 6.4.93-4.63 4.52 1.1 6.38L12 17.4l-5.72 3.03 1.1-6.38-4.63-4.52 6.4-.93L12 2.8Z"/></svg>';
+ const star='<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="25" height="25" aria-hidden="true" fill="'+(hasCard?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 2.8 2.85 5.8 6.4.93-4.63 4.52 1.1 6.38L12 17.4l-5.72 3.03 1.1-6.38-4.63-4.52 6.4-.93L12 2.8Z"/></svg>';
  return divIcon({
   className:"loyally-map-marker",
   html:'<span class="loyally-map-pin '+(hasCard?'is-owned':'is-unowned')+'"><span class="loyally-map-symbol">'+star+'</span></span>',

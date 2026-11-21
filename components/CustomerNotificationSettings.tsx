@@ -21,6 +21,7 @@ export function CustomerNotificationSettings({account}:{account:Account}){
  const [cards,setCards]=useState<CardChoice[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState<string|null>(null);
  const [error,setError]=useState(""),[notice,setNotice]=useState("");
+ const [globalOptIn,setGlobalOptIn]=useState<boolean|null>(null);
  const whatsappReady=/^\+[1-9][0-9]{7,14}$/.test(account.user.user_metadata?.whatsapp||"");
  const load=useCallback(async()=>{
   setLoading(true);setError("");
@@ -31,6 +32,10 @@ export function CustomerNotificationSettings({account}:{account:Account}){
    if(result.error)throw result.error;
    const memberships=(result.data||[]) as MembershipRow[];
    if(!memberships.length){setCards([]);return;}
+   const defaultResult=await db().from("marketing_consents").select("global_business_opt_in")
+    .eq("customer_id",account.user.id).is("business_id",null).maybeSingle();
+   if(defaultResult.error)throw defaultResult.error;
+   setGlobalOptIn(defaultResult.data?.global_business_opt_in??null);
    const consent=await db().from("marketing_consents")
     .select("business_id,opted_in,whatsapp_opted_in,push_opted_in")
     .eq("customer_id",account.user.id).in("business_id",memberships.map(x=>x.business_id));
@@ -49,6 +54,20 @@ export function CustomerNotificationSettings({account}:{account:Account}){
   finally{setLoading(false);}
  },[account.user.id]);
  useEffect(()=>{void load()},[load]);
+ async function activateAll(){
+  if(busy)return;
+  if(!whatsappReady){setError("Añade primero tu número de WhatsApp en Mi perfil para activar los tres canales.");return;}
+  setBusy("all");setError("");setNotice("");
+  try{
+   const result=await db().rpc("customer_set_all_notifications",{p_opted_in:true});
+   if(result.error)throw result.error;
+   setGlobalOptIn(true);
+   setCards(prev=>prev.map(c=>({...c,email:true,whatsapp:true,push:true})));
+   setNotice("Avisos activados para tus tarjetas actuales y futuras.");
+   showActionToast("Notificaciones activadas para todas tus tarjetas.");
+  }catch(e){const message=(e as Error).message||"No se pudieron activar las notificaciones.";setError(message);showActionToast(message,"error");}
+  finally{setBusy(null);}
+ }
  async function change(card:CardChoice,channel:Channel,checked:boolean){
   if(busy)return;
   if(channel==="whatsapp"&&checked&&!whatsappReady){
@@ -83,9 +102,10 @@ export function CustomerNotificationSettings({account}:{account:Account}){
  return <section className="panel-card customer-channel-settings">
   <div className="panel-icon"><Settings2 size={22}/></div>
   <h2>Notificaciones de mis tarjetas</h2>
-  <p className="muted">Elige qué promociones quieres recibir de cada negocio. Puedes desactivar cualquier canal cuando quieras, sin perder tu tarjeta ni tus premios.</p>
+  <p className="muted">Puedes cambiar los canales de cada tarjeta cuando quieras.</p>
   {loading?<p className="muted">Cargando tus tarjetas...</p>:cards.length===0?
    <div className="empty-state compact"><Store size={25}/><h3>Todavía no tienes tarjetas</h3><p>Descubre un negocio y guarda su tarjeta para configurar sus avisos.</p><Link href="/app/descubrir" className="button button-dark">Descubrir negocios</Link></div>:
+   <><div className="customer-enable-all"><div><strong>{globalOptIn?"Notificaciones generales activadas":"Recibe avisos de todas tus tarjetas"}</strong><p>Un solo permiso para correo, WhatsApp y push de tus tarjetas actuales y futuras.</p></div><button type="button" className="button button-dark button-sm" disabled={busy!==null||!whatsappReady} onClick={()=>void activateAll()}>{busy==="all"?"Activando...":"Activar todas"}</button>{!whatsappReady&&<small>Añade tu número de WhatsApp en <Link href="/app/perfil">Mi perfil</Link> para activar los tres canales.</small>}</div>
    <div className="customer-channel-cards">{cards.map(card=>
     <details className="customer-channel-business" key={card.business_id}>
      <summary>
@@ -106,7 +126,7 @@ export function CustomerNotificationSettings({account}:{account:Account}){
       {!whatsappReady&&<p className="tiny-note">Para recibir WhatsApp, <Link href="/app/perfil">añade tu número en Mi perfil</Link>.</p>}
      </div>
     </details>
-   )}</div>}
+   )}</div></>}
   {notice&&<div className="alert success" role="status">{notice}</div>}
   {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button></div>}
  </section>;

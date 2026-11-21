@@ -20,7 +20,7 @@ async function jsonRequest(path:string,init?:RequestInit){
 
 export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}={}){
  const [config,setConfig]=useState<Config>({enabled:false,publicKey:""});
- const [items,setItems]=useState<Preference[]>([]),[platformOptedIn,setPlatformOptedIn]=useState(false);
+ const [items,setItems]=useState<Preference[]>([]);
  const [supported,setSupported]=useState(false),[deviceActive,setDeviceActive]=useState(false);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(""),[notice,setNotice]=useState("");
@@ -35,7 +35,6 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
     if(!mounted)return;
     setConfig({enabled:!!c.enabled,publicKey:String(c.publicKey||"")});
     setItems((p.businesses||[]) as Preference[]);
-    setPlatformOptedIn(p.platform_opted_in===true);
     const isSupported=window.isSecureContext&&"serviceWorker" in navigator
      &&"PushManager" in window&&"Notification" in window;
     setSupported(isSupported);
@@ -101,19 +100,6 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
  }
- async function togglePlatform(){
-  setBusy(true);setError("");setNotice("");
-  const next=!platformOptedIn;
-  try{
-   await jsonRequest("/api/local/push/preferences",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({action:"platform_consent",opted_in:next})
-   });
-   setPlatformOptedIn(next);showActionToast("Preferencias de notificaciones guardadas.");
-   setNotice(next?"Has aceptado los avisos de Kreyv. También debes activar las notificaciones de este dispositivo para recibirlos.":"Has desactivado los avisos de Kreyv.");
-  }catch(e){setError((e as Error).message)}
-  finally{setBusy(false)}
- }
  async function toggle(item:Preference){
   setBusy(true);setError("");setNotice("");
   try{
@@ -130,7 +116,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
  return <section className="panel-card" style={{marginTop:22}}>
   <div className="panel-icon"><Bell size={22}/></div>
   <h2>Notificaciones del teléfono</h2>
-  <p className="muted">Recibe ofertas de tus negocios favoritos en este móvil, incluso con Kreyv cerrada. El permiso del teléfono y la aceptación de cada negocio son independientes.</p>
+  <p className="muted">Permite que Kreyv te avise de las ofertas de tus tarjetas, incluso cuando la aplicación esté cerrada.</p>
   {loading?<p className="muted">Comprobando notificaciones...</p>:<>
    {!config.enabled&&<div className="info-callout"><ShieldCheck size={18}/>El servicio push se activará cuando Kreyv configure las claves VAPID y HTTPS.</div>}
    {config.enabled&&!supported&&<div className="info-callout"><BellOff size={18}/>Necesitas HTTPS y un navegador compatible. En iPhone, instala Kreyv en la pantalla de inicio y ábrela desde su icono (iOS 16.4 o posterior).</div>}
@@ -140,11 +126,6 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
     {deviceActive&&<button className="button button-outline button-sm" type="button" disabled={busy}
      onClick={deactivate}><BellOff size={16}/>Desactivar aquí</button>}
    </div>}
-   <div className="check-control lp-platform-push-consent">
-    <input type="checkbox" id="push-consent-loyally" checked={platformOptedIn} disabled={busy} onChange={togglePlatform}/>
-    <label htmlFor="push-consent-loyally"><strong>Avisos de Kreyv: regalos, novedades y nuevos negocios</strong>
-     <small>Opcional y separado de cada establecimiento. El servicio de avisos de la plataforma se activará próximamente; cuando esté disponible necesitará el permiso de este dispositivo.</small></label>
-   </div>
    {showBusinesses&&items.length>0&&<div className="form-stack">
     {items.map(item=><div key={item.business_id} className="check-control">
      <input type="checkbox" id={"push-consent-"+item.business_id} checked={item.opted_in}
@@ -156,6 +137,5 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
   </>}
   {error&&<div className="alert error" role="alert">{error}</div>}
   {notice&&<div className="alert success" role="status"><CheckCircle2 size={17}/>{notice}</div>}
-  <p className="tiny-note">Solo llegan notificaciones a dispositivos compatibles, registrados y autorizados. Puedes desactivar cada negocio cuando quieras.</p>
  </section>;
 }
