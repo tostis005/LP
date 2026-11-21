@@ -34,6 +34,8 @@ jobs:
         run: node tests/demo/push-vapid.mjs
       - name: Validar perfil, QR y notificaciones del cliente
         run: node tests/demo/customer-profile-final.mjs
+      - name: Verificar Wallet y QR ampliado
+        run: node tests/demo/wallet-fullscreen-qr.mjs
       - name: TypeScript
         run: npm run typecheck
       - name: Build de Next.js

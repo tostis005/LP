@@ -1,8 +1,8 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {QRCodeSVG} from "qrcode.react";
-import {Download, X, Wallet} from "lucide-react";
+import {Download, Maximize2, X, Wallet} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
 import {initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
@@ -10,6 +10,8 @@ import {StampGrid} from "@/components/StampMarks";
 import {WalletActions} from "@/components/WalletActions";
 export function LoyaltyCard({membership,business,program}:{membership:Membership;business:Business;program?:Program}){
  const [open,setOpen]=useState(false),[wallets,setWallets]=useState({apple:false,google:false}),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
+ const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null),[walletNotice,setWalletNotice]=useState("");
+ const qrCloseRef=useRef<HTMLButtonElement>(null);
  useEffect(()=>{let active=true;
   fetch("/api/local/wallet/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(active&&v)setWallets({apple:v.apple===true,google:v.google===true})}).catch(()=>{});
   return()=>{active=false};
@@ -18,6 +20,20 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   db().from("reward_vouchers").select("token,reward_label").eq("membership_id",membership.id).eq("status","issued").maybeSingle().then(({data})=>{if(active)setVoucher(data as {token:string;reward_label:string}|null)});
   return()=>{active=false};
  },[open,membership.id]);
+ useEffect(()=>{
+  if(!expandedQr)return;
+  const previousOverflow=document.body.style.overflow;
+  document.body.style.overflow="hidden";
+  qrCloseRef.current?.focus();
+  const onEscape=(event:KeyboardEvent)=>{if(event.key==="Escape"){event.stopPropagation();setExpandedQr(null)}};
+  window.addEventListener("keydown",onEscape);
+  return()=>{document.body.style.overflow=previousOverflow;window.removeEventListener("keydown",onEscape)};
+ },[expandedQr]);
+ function closeCard(){setExpandedQr(null);setWalletNotice("");setOpen(false);}
+ function unavailableWallet(provider:"apple"|"google"){
+  setWalletNotice((provider==="apple"?"Apple Wallet":"Google Wallet")+" todavía no está configurado para emitir pases de Kreyv. Puedes guardar la tarjeta como imagen con QR desde esta pantalla.");
+  setOpen(true);
+ }
  async function downloadCard(){
   const qr=document.querySelector('[data-card-qr="'+membership.id+'"] svg');
   if(!qr){setConsentError("No se pudo preparar el QR de esta tarjeta.");return}
@@ -63,11 +79,12 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   <div className="lc-bottom"><span>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" · "+program.reward_cost+" para canjear":""}</span><span className="lc-qr-small lc-qr-live"><QRCodeSVG value={qrUrl} size={44} level="M" includeMargin/></span></div>
  </button>
  <button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><Wallet size={17}/> Ver tarjeta y QR</button>
- <WalletActions cardId={membership.id} available={wallets} compact/>
+ <WalletActions cardId={membership.id} available={wallets} compact onUnavailable={unavailableWallet}/>
  </div>
- {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={()=>setOpen(false)}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
- <button className="modal-close" aria-label="Cerrar" onClick={()=>setOpen(false)}><X size={20}/></button>
+ {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={closeCard}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
+ <button className="modal-close" aria-label="Cerrar" onClick={closeCard}><X size={20}/></button>
  <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
+ {walletNotice&&<div className="wallet-status-notice" role="status">{walletNotice}</div>}
  <div className="loyally-modal-card-preview" style={{backgroundColor:color,color:business.card_text_color||"#ffffff"}}>
   <div className="loyally-modal-card-top"><span>{business.name}</span><span>KREYV</span></div>
   <strong>{program?.reward_label||"Mis recompensas"}</strong>
@@ -76,14 +93,37 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   <small>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</small>
  </div>
  <p>Enseña este QR en el establecimiento.</p>
- <div className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={200} level="M" includeMargin/></div>
+ <button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("card")} aria-label={"Ampliar QR de "+business.name}>
+  <span className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={200} level="M" includeMargin/></span>
+  <span className="qr-enlarge-hint"><Maximize2 size={16}/> Toca el QR para ampliarlo</span>
+ </button>
  <div className="lp-wallet-intro"><h3>Guarda tu tarjeta</h3></div>
- <WalletActions cardId={membership.id} available={wallets}/>
+ <WalletActions cardId={membership.id} available={wallets} onUnavailable={unavailableWallet}/>
  <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Guardar imagen con QR</button>
  <p className="tiny-note">{program?.type==="cashback"?"Puedes utilizar tu saldo en el establecimiento.":program?.reward_label||"Tu recompensa te espera."}</p>
- {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><div className="qr-box"><QRCodeSVG value={rewardQrUrl} size={180} level="M" includeMargin/></div></div>}
- <Link className="button button-outline button-full" href="/app/ajustes" onClick={()=>setOpen(false)}>Configurar notificaciones de esta tarjeta</Link>
+ {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("reward")} aria-label="Ampliar QR del premio">
+  <span className="qr-box"><QRCodeSVG value={rewardQrUrl} size={180} level="M" includeMargin/></span>
+  <span className="qr-enlarge-hint"><Maximize2 size={16}/> Ampliar QR del premio</span>
+ </button></div>}
+ <Link className="button button-outline button-full" href="/app/ajustes" onClick={closeCard}>Configurar notificaciones de esta tarjeta</Link>
  {consentError&&<div className="alert error">{consentError}</div>}
  </div></div>}
+ {open&&expandedQr&&<div className="qr-fullscreen-overlay" onMouseDown={()=>setExpandedQr(null)}>
+  <section className="qr-fullscreen-content" role="dialog" aria-modal="true"
+   aria-label={expandedQr==="reward"?"QR de canje de "+business.name:"QR de la tarjeta de "+business.name}
+   onMouseDown={e=>e.stopPropagation()}>
+   <button ref={qrCloseRef} type="button" className="qr-fullscreen-close" onClick={()=>setExpandedQr(null)}>
+    <X size={21}/> Cerrar
+   </button>
+   <div className="qr-fullscreen-heading">
+    <span>{expandedQr==="reward"?"TU PREMIO":"TU TARJETA"}</span>
+    <strong>{business.name}</strong>
+   </div>
+   <div className="qr-fullscreen-image">
+    <QRCodeSVG value={expandedQr==="reward"?rewardQrUrl:qrUrl} size={480} level="M" includeMargin/>
+   </div>
+   <p className="qr-fullscreen-help">Muestra este QR al personal para escanearlo.</p>
+  </section>
+ </div>}
  </>;
 }

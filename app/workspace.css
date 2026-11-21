@@ -1150,3 +1150,31 @@
  .qr-modal .qr-box svg{max-width:180px}
  .customer-enable-all .button{width:100%}
 }
+
+
+/* Wallet: ninguna opción queda sin respuesta; la alternativa abre la tarjeta. */
+.lp-wallet-help{font:inherit;cursor:pointer;width:100%}
+.lp-wallet-help:hover,.lp-wallet-help:focus-visible{border-color:#a87388;background:#f1e3ea;color:var(--color-brand-900)}
+.lp-wallet-help:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
+.wallet-status-notice{background:#f7eef3;color:#5b2d43;border:1px solid #e9d4df;
+ border-radius:12px;font-size:12px;line-height:1.55;text-align:left;padding:12px 14px;margin:12px 0}
+.qr-enlarge-button{display:grid;justify-items:center;gap:8px;max-width:100%;width:100%;
+ padding:0;margin:0;border:0;background:transparent;font:inherit;color:var(--color-brand);cursor:zoom-in}
+.qr-enlarge-button:focus-visible{outline:2px solid var(--color-brand);outline-offset:3px;border-radius:10px}
+.qr-enlarge-button .qr-box{display:grid;place-items:center}
+.qr-enlarge-hint{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:750}
+.qr-fullscreen-overlay{position:fixed;inset:0;z-index:1200;background:#fff;overflow-y:auto;overscroll-behavior:contain}
+.qr-fullscreen-content{position:relative;box-sizing:border-box;min-height:100dvh;max-width:620px;
+ margin:0 auto;padding:calc(72px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,3vh,27px);color:#281620;text-align:center}
+.qr-fullscreen-close{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #e1d6dc;
+ border-radius:12px;padding:10px 14px;background:#fff;color:#382231;font:inherit;font-weight:800;font-size:13px;cursor:pointer}
+.qr-fullscreen-close:focus-visible{outline:3px solid var(--color-brand)}
+.qr-fullscreen-heading{display:grid;gap:6px;max-width:100%;overflow-wrap:anywhere}
+.qr-fullscreen-heading>span{color:#785b6b;font-size:11px;font-weight:850;letter-spacing:.11em}
+.qr-fullscreen-heading>strong{color:#281620;font-size:clamp(20px,6vw,29px);line-height:1.2}
+.qr-fullscreen-image{box-sizing:border-box;display:grid;place-items:center;background:#fff;
+ width:min(88vw,66dvh,488px);aspect-ratio:1;padding:9px;border-radius:12px}
+.qr-fullscreen-image svg{display:block;width:100%;height:auto;max-width:100%;background:white}
+.qr-fullscreen-help{margin:0;max-width:310px;font-size:14px;line-height:1.5;color:#67525e}
