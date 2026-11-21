@@ -16,6 +16,7 @@ import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/BusinessAnalytics";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
+import {BusinessOffersPanel} from "@/components/BusinessOffersPanel";
 type Tab="overview"|"card"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 type CardArea="design"|"rules"|"rewards";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
@@ -183,9 +184,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
  function clearComposer(){setEditingDraft(null);setMailSubject("");setMailBody("");setCampaignView("list");}
  async function saveDraft(e:React.FormEvent){
   e.preventDefault();setError("");setNotice("");
-  const max=marketingChannel==="push"?500:marketingChannel==="whatsapp"?900:12000;
+  const max=marketingChannel==="push"?120:marketingChannel==="whatsapp"?900:12000;
   if(mailBody.trim().length<3||mailBody.length>max){setError("Revisa la longitud del mensaje.");return;}
-  if(marketingChannel==="push"&&mailSubject.length>120){setError("El título debe tener hasta 120 caracteres.");return;}
+  if(marketingChannel==="push"&&mailSubject.length>50){setError("El título debe tener hasta 50 caracteres.");return;}
   setBusy(true);
   let error:Error|null=null;
   if(marketingChannel==="push"){
@@ -406,6 +407,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  </>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">
     {campaignView==="list"?<>
+      {!!selected&&<BusinessOffersPanel businessId={selected} channelsEnabled={marketingStatus} onCreated={()=>void reload()}/>}
 
      <div className="campaign-page-header">
       <div>
@@ -450,9 +452,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
       </div>
       {!marketingStatus[marketingChannel]&&<div className="info-callout"><ShieldCheck size={18}/>{marketingChannel==="push"?"Las notificaciones aún no están disponibles.":marketingChannel==="whatsapp"?"WhatsApp aún no está disponible.":"El correo aún no está disponible."}</div>}
       <div className="form-stack">
-       <label>{marketingChannel==="push"?"Título de la notificación":marketingChannel==="email"?"Asunto":"Nombre de campaña"}<input required maxLength={marketingChannel==="push"?120:180} value={mailSubject} onChange={e=>setMailSubject(e.target.value)} placeholder="¡Tenemos una sorpresa para ti!"/></label>
+       <label>{marketingChannel==="push"?"Título de la notificación":marketingChannel==="email"?"Asunto":"Nombre de campaña"}<input required maxLength={marketingChannel==="push"?50:180} value={mailSubject} onChange={e=>setMailSubject(e.target.value)} placeholder="¡Tenemos una sorpresa para ti!"/></label>
        <div><label className="campaign-editor-label">Mensaje</label>
-        {marketingChannel==="push"?<textarea className="campaign-push-textarea" minLength={3} maxLength={500} value={mailBody} onChange={e=>setMailBody(e.target.value)} placeholder="Vuelve esta semana y disfruta de una promoción exclusiva." rows={6}/>:
+        {marketingChannel==="push"?<textarea className="campaign-push-textarea" minLength={3} maxLength={120} value={mailBody} onChange={e=>setMailBody(e.target.value)} placeholder="Vuelve esta semana y disfruta de una promoción exclusiva." rows={6}/>:
          <RichMessageEditor value={mailBody} onChange={setMailBody} channel={marketingChannel}/>}
        </div>
        <div className="campaign-editor-budget"><strong>Previsión del envío</strong>

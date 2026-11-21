@@ -83,6 +83,29 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
  }
+ async function repair(){
+  if(!window.confirm("¿Reparar los avisos de este móvil? Se renovará la suscripción, sin cambiar tus preferencias de los negocios."))return;
+  setBusy(true);setError("");setNotice("");
+  try{
+   if(!config.enabled||!supported||Notification.permission!=="granted")
+    throw new Error("Antes debes permitir las notificaciones en este móvil.");
+   const reg=await navigator.serviceWorker.ready;
+   const previous=await reg.pushManager.getSubscription();
+   if(previous){
+    await jsonRequest("/api/local/push/preferences",{method:"POST",headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({action:"unsubscribe",endpoint:previous.endpoint})});
+    await previous.unsubscribe();
+   }
+   const sub=await reg.pushManager.subscribe({userVisibleOnly:true,
+    applicationServerKey:keyBytes(config.publicKey) as BufferSource});
+   await jsonRequest("/api/local/push/preferences",{method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({action:"subscribe",endpoint:sub.endpoint,keys:sub.toJSON().keys})});
+   setDeviceActive(true);setNotice("Suscripción renovada. Ya puedes probar otra notificación.");
+   showActionToast("Notificaciones reparadas en este móvil.");
+  }catch(e){setDeviceActive(false);setError((e as Error).message);}
+  finally{setBusy(false);}
+ }
  async function deactivate(){
   setBusy(true);setError("");setNotice("");
   try{
@@ -123,6 +146,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
    {config.enabled&&supported&&<div className="campaign-compose-actions" style={{marginBottom:14}}>
     <button className="button button-dark button-sm" type="button" disabled={busy}
      onClick={activate}><Bell size={16}/>{deviceActive?"Sincronizar este dispositivo":"Activar push en este dispositivo"}</button>
+    {deviceActive&&<button className="button button-outline button-sm" type="button" disabled={busy} onClick={repair}><Bell size={16}/>Reparar notificaciones</button>}
     {deviceActive&&<button className="button button-outline button-sm" type="button" disabled={busy}
      onClick={deactivate}><BellOff size={16}/>Desactivar aquí</button>}
    </div>}

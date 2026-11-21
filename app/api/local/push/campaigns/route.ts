@@ -37,10 +37,10 @@ export async function POST(request:Request){
   const input=JSON.parse(text) as {business_id?:string;title?:string;body?:string;expected_total_cents?:number};
   if(!/^[a-f0-9-]{36}$/i.test(input.business_id||"")
     ||typeof input.title!=="string"||typeof input.body!=="string"
-    ||input.title.trim().length<3||input.title.length>120
-    ||input.body.trim().length<3||input.body.length>500
+    ||input.title.trim().length<3||input.title.length>50
+    ||input.body.trim().length<3||input.body.length>120
     ||!Number.isSafeInteger(input.expected_total_cents)||Number(input.expected_total_cents)<0)
-   throw new ApiError("Completa el título y el mensaje (máximo 500 caracteres).");
+   throw new ApiError("Completa el título y el mensaje (50 caracteres de título y 120 de resumen).");
   const id=await asActor(actor,async client=>{
    const r=await client.query<{id:string}>("SELECT public.business_create_push_campaign($1::uuid,$2::text,$3::text,$4::bigint) AS id",
     [input.business_id,input.title,input.body,input.expected_total_cents]);

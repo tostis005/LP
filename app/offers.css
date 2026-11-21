@@ -1,0 +1,39 @@
+.kreyv-offers-panel{margin:0 0 22px}
+.kreyv-offers-panel .content-heading{margin-bottom:16px}
+.kreyv-offer-editor{padding-top:16px;border-top:1px solid var(--border,#eadce4)}
+.kreyv-offer-editor label{display:flex;flex-direction:column;gap:7px;font-weight:600}
+.kreyv-offer-editor label small{font-weight:400;color:var(--color-text-2,#75636b)}
+.kreyv-offer-editor input:not([type="checkbox"]):not([type="file"]),.kreyv-offer-editor textarea{width:100%;padding:12px;border:1px solid #ddd2d8;border-radius:11px;background:var(--color-bg,#fff);font:inherit;box-sizing:border-box}
+.kreyv-offer-editor textarea{resize:vertical}
+.kreyv-offer-editor .file-input{display:inline-flex;flex-direction:row;flex-wrap:wrap;align-items:center;font-weight:500}
+.kreyv-offer-channels{display:flex;flex-wrap:wrap;gap:12px;border:1px solid #ddd2d8;border-radius:12px;padding:15px}
+.kreyv-offer-channels legend{font-weight:700;padding:0 6px}
+.kreyv-offer-channels label{flex-direction:row;display:inline-flex;align-items:center;gap:8px;font-weight:500}
+.kreyv-offers-list{display:grid;gap:10px;margin-top:20px}
+.kreyv-offers-row{display:flex;gap:14px;align-items:center;border-top:1px solid #eadce4;padding:12px 0}
+.kreyv-offers-row img{width:80px;height:68px;object-fit:cover;border-radius:10px}
+.kreyv-offers-row p{margin:5px 0;color:var(--color-text-2,#75636b)}
+.kreyv-offers-row small{color:var(--color-text-2,#75636b)}
+.kreyv-news{display:grid;gap:17px}
+.kreyv-news-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:16px}
+.kreyv-news-item{display:flex;flex-direction:column;text-decoration:none;color:inherit;border:1px solid #e8dce2;border-radius:18px;overflow:hidden;background:var(--color-bg,#fff);box-shadow:0 4px 24px rgba(40,15,25,.04)}
+.kreyv-news-item>img{width:100%;height:170px;object-fit:cover}
+.kreyv-news-item-content{padding:18px;flex:1}
+.kreyv-news-meta{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--color-text-2,#75636b);margin-bottom:10px}
+.kreyv-news-item-content>strong{display:block;font-size:19px;line-height:1.3}
+.kreyv-news-item-content>p{line-height:1.5;margin:9px 0 18px}
+.kreyv-news-item-content>small{color:var(--color-text-2,#75636b)}
+.kreyv-news-item>svg{align-self:flex-end;margin:0 16px 16px}
+.kreyv-new-dot{border-radius:18px;padding:3px 8px;background:#f2e0a4;color:#4b2c08;font-weight:700}
+.kreyv-expired-toggle{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.kreyv-offer-detail{max-width:760px;display:grid;gap:20px}
+.kreyv-offer-detail>.panel-card{display:grid;gap:16px}
+.kreyv-offer-hero{display:block;width:100%;max-height:360px;object-fit:cover;border-radius:13px}
+.kreyv-offer-detail h2{margin:0;font-size:clamp(26px,4vw,36px);line-height:1.2}
+.kreyv-offer-detail h3{margin:10px 0 0;font-size:18px}
+.kreyv-offer-lead{font-size:18px;line-height:1.55;margin:0}
+.kreyv-offer-copy{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;margin:0}
+.kreyv-offer-validity{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.kreyv-offer-count{display:inline-block;margin-left:5px;padding:2px 7px;border-radius:12px;font-size:12px;font-weight:700;background:#f2e0a4;color:#4b2c08}
+.kreyv-loyalty-offers{display:inline-flex;align-items:center;gap:5px;margin-top:7px;font-size:13px}
+@media(max-width:620px){.kreyv-offer-channels{flex-direction:column}.kreyv-news-grid{grid-template-columns:1fr}}

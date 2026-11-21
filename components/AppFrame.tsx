@@ -11,7 +11,7 @@ export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employe
 export type Account = { user: User; businesses: BusinessRole[]; admin: boolean; refresh: () => void };
 type Area = "customer" | "business" | "staff" | "admin";
 const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
- customer:[{href:"/app",label:"Mis tarjetas",icon:<KreyvIcon name="mis-tarjetas" size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<KreyvIcon name="buscar" size={18}/>},{href:"/app/ajustes",label:"Ajustes",icon:<KreyvIcon name="ajustes" size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<KreyvIcon name="perfil" size={18}/>}],
+ customer:[{href:"/app",label:"Mis tarjetas",icon:<KreyvIcon name="mis-tarjetas" size={18}/>},{href:"/app/descubrir",label:"Descubrir",icon:<KreyvIcon name="buscar" size={18}/>},{href:"/app/novedades",label:"Novedades",icon:<KreyvIcon name="campanas" size={18}/>},{href:"/app/ajustes",label:"Ajustes",icon:<KreyvIcon name="ajustes" size={18}/>},{href:"/app/perfil",label:"Mi perfil",icon:<KreyvIcon name="perfil" size={18}/>}],
  business:[
   {href:"/negocio",label:"Resumen",icon:<KreyvIcon name="inicio" size={18}/>},
   {href:"/negocio/tarjeta",label:"Mi tarjeta",icon:<KreyvIcon name="mi-tarjeta" size={18}/>},

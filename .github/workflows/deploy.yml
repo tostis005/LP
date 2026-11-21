@@ -30,6 +30,8 @@ jobs:
         run: node tests/demo/home-polish.mjs
       - name: Textos bilingües y colección visual
         run: node tests/demo/landing.mjs
+      - name: Comprobar ofertas, novedades y recuperación de notificaciones push
+        run: node tests/demo/offers-inbox.mjs
       - name: Verificar generación segura de claves Web Push
         run: node tests/demo/push-vapid.mjs
       - name: Validar perfil, QR y notificaciones del cliente

@@ -8,7 +8,7 @@ import {initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {StampGrid} from "@/components/StampMarks";
 import {WalletActions} from "@/components/WalletActions";
-export function LoyaltyCard({membership,business,program}:{membership:Membership;business:Business;program?:Program}){
+export function LoyaltyCard({membership,business,program,offersCount=0}:{membership:Membership;business:Business;program?:Program;offersCount?:number}){
  const [open,setOpen]=useState(false),[wallets,setWallets]=useState({apple:false,google:false}),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null),[walletNotice,setWalletNotice]=useState("");
  const qrCloseRef=useRef<HTMLButtonElement>(null);
@@ -79,6 +79,7 @@ export function LoyaltyCard({membership,business,program}:{membership:Membership
   <div className="lc-bottom"><span>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" · "+program.reward_cost+" para canjear":""}</span><span className="lc-qr-small lc-qr-live"><QRCodeSVG value={qrUrl} size={44} level="M" includeMargin/></span></div>
  </button>
  <button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><Wallet size={17}/> Ver tarjeta y QR</button>
+ {offersCount>0&&<Link className="kreyv-loyalty-offers" href={"/app/novedades?business="+business.id}>Ver ofertas de este negocio ({offersCount})</Link>}
  <WalletActions cardId={membership.id} available={wallets} compact onUnavailable={unavailableWallet}/>
  </div>
  {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={closeCard}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>

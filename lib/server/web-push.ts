@@ -3,7 +3,7 @@ import {ApiError} from "@/lib/server/db";
 
 export type PushDelivery={
  delivery_id:string;endpoint:string;p256dh:string;auth:string;
- title:string;body_text:string;business_name:string;
+ title:string;body_text:string;business_name:string;offer_id?:string|null;
 };
 
 export function pushConfigured(){
@@ -38,7 +38,7 @@ export async function sendWebPush(item:PushDelivery){
   body:item.body_text,
   icon:"/kreyv-notification-icon-v1-192.png",
   badge:"/kreyv-notification-badge-v1-96.png",
-  url:"/app",
+  url:item.offer_id?"/app/novedades/"+item.offer_id:"/app",
   tag:"loyally-"+item.delivery_id
  });
  await webpush.sendNotification({endpoint:item.endpoint,keys:{p256dh:item.p256dh,auth:item.auth}},

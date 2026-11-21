@@ -84,11 +84,11 @@ export function PushCampaignPanel({businessId}:{businessId:string}){
     <h2>Enviar notificación push</h2>
     <p className="muted">Solo se enviará a los dispositivos de clientes que tienen tarjeta de este negocio y aceptaron sus promociones push.</p>
     <div className="form-stack">
-     <label>Título<input required minLength={3} maxLength={120} value={title}
+     <label>Título<input required minLength={3} maxLength={50} value={title}
       onChange={e=>setTitle(e.target.value)} placeholder="¡Hoy tienes una sorpresa!"/></label>
-     <label>Mensaje<textarea required rows={5} minLength={3} maxLength={500} value={body}
+     <label>Mensaje<textarea required rows={5} minLength={3} maxLength={120} value={body}
       onChange={e=>setBody(e.target.value)} placeholder="Visítanos esta semana y consigue un sello extra."/></label>
-     <small>{body.length}/500 caracteres</small>
+     <small>{body.length}/120 caracteres</small>
      <div className="campaign-compose-actions"><button className="button button-dark" type="submit"
       disabled={busy||loading||!overview.enabled||overview.devices===0||title.trim().length<3||body.trim().length<3}>
       {busy?"Enviando...":"Enviar push"} <BellRing size={17}/></button></div>
