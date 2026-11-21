@@ -16,8 +16,9 @@ export function BusinessOffersPanel({businessId,channelsEnabled,onCreated}:{
 }){
  const [offers,setOffers]=useState<Offer[]>([]),[open,setOpen]=useState(false);
  const [title,setTitle]=useState(""),[preview,setPreview]=useState(""),[details,setDetails]=useState("");
- const [terms,setTerms]=useState(""),[validUntil,setValidUntil]=useState(""),[imageUrl,setImageUrl]=useState("");
- const [channels,setChannels]=useState<Channel[]>(["push"]);
+ const [terms,setTerms]=useState(""),[validUntil,setValidUntil]=useState("");
+ const [channels,setChannels]=useState<Channel[]>([]);
+ useEffect(()=>{setChannels(channelsEnabled.push?["push"]:channelsEnabled.email?["email"]:channelsEnabled.whatsapp?["whatsapp"]:[])},[businessId,channelsEnabled.push,channelsEnabled.email,channelsEnabled.whatsapp]);
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const refresh=useCallback(async()=>{const r=await request("/api/local/offers?business="+encodeURIComponent(businessId));setOffers((r.offers||[]) as Offer[])},[businessId]);
  useEffect(()=>{setOpen(false);setError("");void refresh().catch(e=>setError((e as Error).message))},[refresh]);
@@ -26,7 +27,7 @@ export function BusinessOffersPanel({businessId,channelsEnabled,onCreated}:{
   e.preventDefault();setBusy(true);setError("");setNotice("");
   try{
    if(!channels.length)throw new Error("Selecciona al menos un canal.");
-   let image=imageUrl;
+   let image="";
    const file=document.getElementById("kreyv-offer-image") as HTMLInputElement|null;
    const photo=file?.files?.[0];
    if(photo){
@@ -36,14 +37,14 @@ export function BusinessOffersPanel({businessId,channelsEnabled,onCreated}:{
     const key=businessId+"/oferta-"+crypto.randomUUID()+"."+ext;
     const upload=await db().storage.from("business-assets").upload(key,photo,{contentType:photo.type});
     if(upload.error)throw upload.error;
-    image=db().storage.from("business-assets").getPublicUrl(key).data.publicUrl;
+    image=new URL(db().storage.from("business-assets").getPublicUrl(key).data.publicUrl).pathname;
    }
    const result=await request("/api/local/offers",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({action:"create",business_id:businessId,title:title.trim(),preview:preview.trim(),
      details:details.trim(),terms:terms.trim(),valid_until:validUntil||null,image_url:image||null,channels})});
    if(!result.id)throw new Error("No se pudo guardar la oferta.");
-   setTitle("");setPreview("");setDetails("");setTerms("");setValidUntil("");setImageUrl("");
-   setOpen(false);setChannels(["push"]);setNotice("Oferta guardada. Revisa las campañas creadas y confirma cada envío desde «Todas tus campañas».");
+   setTitle("");setPreview("");setDetails("");setTerms("");setValidUntil("");
+   setOpen(false);setChannels(channelsEnabled.push?["push"]:channelsEnabled.email?["email"]:channelsEnabled.whatsapp?["whatsapp"]:[]);setNotice("Oferta guardada. Revisa las campañas creadas y confirma cada envío desde «Todas tus campañas».");
    await refresh();onCreated();
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
@@ -71,7 +72,6 @@ export function BusinessOffersPanel({businessId,channelsEnabled,onCreated}:{
     <input type="date" min={new Date().toISOString().slice(0,10)} value={validUntil} onChange={e=>setValidUntil(e.target.value)}/></label>
    <label className="file-input"><ImagePlus size={18}/> Añadir imagen (opcional, máximo 5 MB)
     <input id="kreyv-offer-image" type="file" accept="image/png,image/jpeg,image/webp"/></label>
-   {imageUrl&&<img src={imageUrl} alt="Imagen de la oferta" style={{maxWidth:220,borderRadius:12}}/>}
    <fieldset className="kreyv-offer-channels">
     <legend>Preparar campañas para</legend>
     {(["push","email","whatsapp"] as Channel[]).map(ch=><label key={ch}>
