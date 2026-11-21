@@ -1,7 +1,7 @@
 "use client";
 import {useCallback,useEffect,useState} from "react";
 import Link from "next/link";
-import {ArrowUpRight,BellRing,Clock3,Compass,Gift,Plus,Wallet} from "lucide-react";
+import {ArrowUpRight,Compass,Gift,Plus} from "lucide-react";
 import {AppFrame, type Account} from "@/components/AppFrame";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
 import {PushWelcomePrompt} from "@/components/PushWelcomePrompt";
@@ -69,13 +69,25 @@ function CustomerHome({account}:{account:Account}){
  },[account.user.id]);
  useEffect(()=>{load()},[load]);
  const prog=(id:string)=>programs.find(x=>x.business_id===id);
- return <div className="customer-first-layout"><PushWelcomePrompt/><div className="push-home-shortcut"><div className="push-home-shortcut-main"><BellRing size={22}/><div><strong>¿Quieres recibir ofertas y avisos?</strong><span>Activa las notificaciones de tus negocios en este móvil.</span></div></div><Link className="button button-dark button-sm" href="/app/ajustes">Activar notificaciones <ArrowUpRight size={16}/></Link></div><div className="kpi-grid three"><div className="kpi-card"><div className="kpi-symbol green"><Wallet size={21}/></div><span>Mis tarjetas</span><strong>{cards.length}</strong><small>Tus negocios favoritos</small></div><div className="kpi-card"><div className="kpi-symbol peach"><Gift size={21}/></div><span>Recompensas disponibles</span><strong>{cards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length}</strong><small>Listas para canjear</small></div><div className="kpi-card"><div className="kpi-symbol purple"><Clock3 size={21}/></div><span>Movimientos recientes</span><strong>{movements.length}</strong><small>Últimas operaciones</small></div></div>
-
- <div className="content-heading"><div><h2>Tus tarjetas favoritas</h2><p>Todos tus lugares especiales, en un mismo sitio.</p></div><div className="campaign-compose-actions"><Link className="button button-outline button-sm" href="/app/novedades">Novedades {unreadOffers>0&&<span className="kreyv-offer-count">{unreadOffers}</span>}</Link><Link className="button button-dark button-sm" href="/app/descubrir">Descubrir negocios <Plus size={16}/></Link></div></div>
- {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button></div>}
- {loading?<div className="soft-panel">Cargando tus tarjetas...</div>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Tu primera tarjeta está a un paso</h3><p>Descubre negocios cerca de ti y únete a sus programas de fidelización.</p><Link className="button button-dark" href="/app/descubrir">Explorar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid">{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0}/>)}</div>}
- <div className="content-heading spaced"><div><h2>Actividad reciente</h2><p>Así avanzan tus recompensas.</p></div></div>
- <div className="soft-panel">{movements.length?movements.map(m=><div className="activity-row" key={m.id}><div className={"activity-icon "+(m.kind==="earn"?"positive":"negative")}>{m.kind==="earn"?<Plus size={19}/>:<Gift size={19}/>}</div><div><strong>{cards.find(c=>c.business_id===m.business_id)?.businesses.name||"Negocio"}</strong><span>{m.kind==="earn"?"Compra registrada":m.kind==="redeem"?"Recompensa canjeada":"Corrección de movimiento"} · {dateShort(m.created_at)}</span></div><b className={m.amount_delta>0?"positive-text":"negative-text"}>{m.amount_delta>0?"+":""}{units(m.amount_delta,prog(m.business_id)?.type,cards.find(c=>c.business_id===m.business_id)?.businesses.currency)}</b></div>):<p className="muted no-margin">Todavía no hay movimientos.</p>}</div>
+ const readyRewards=cards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length;
+ return <div className="customer-first-layout">
+  <PushWelcomePrompt/>
+  <div className="customer-toolbar">
+   <div className="customer-toolbar-summary">
+    <span className="customer-card-count">{cards.length} {cards.length===1?"tarjeta":"tarjetas"}</span>
+    {readyRewards>0&&<span className="customer-reward-ready"><Gift size={15}/>{readyRewards} {readyRewards===1?"recompensa disponible":"recompensas disponibles"}</span>}
+   </div>
+   <div className="customer-toolbar-actions">
+    <Link className="button button-outline button-sm" href="/app/novedades">Avisos {unreadOffers>0&&<span className="kreyv-offer-count">{unreadOffers}</span>}</Link>
+    <Link className="button button-dark button-sm" href="/app/descubrir"><Plus size={16}/> Añadir tarjeta</Link>
+   </div>
+  </div>
+  {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button></div>}
+  {loading?<div className="soft-panel">Cargando tarjetas...</div>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid">{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0}/>)}</div>}
+  {movements.length>0&&<section className="customer-activity-section" aria-label="Últimos movimientos">
+   <h2>Actividad reciente</h2>
+   <div className="customer-activity-list">{movements.map(m=><div className="activity-row" key={m.id}><div className={"activity-icon "+(m.kind==="earn"?"positive":"negative")}>{m.kind==="earn"?<Plus size={19}/>:<Gift size={19}/>}</div><div><strong>{cards.find(c=>c.business_id===m.business_id)?.businesses.name||"Negocio"}</strong><span>{m.kind==="earn"?"Compra registrada":m.kind==="redeem"?"Recompensa canjeada":"Corrección de movimiento"} · {dateShort(m.created_at)}</span></div><b className={m.amount_delta>0?"positive-text":"negative-text"}>{m.amount_delta>0?"+":""}{units(m.amount_delta,prog(m.business_id)?.type,cards.find(c=>c.business_id===m.business_id)?.businesses.currency)}</b></div>)}</div>
+  </section>}
  </div>;
 }
-export default function CustomerPage(){return <AppFrame area="customer" title="Tus sitios favoritos ♡" subtitle="Cada visita cuenta. Aquí empieza tu próxima recompensa.">{a=><CustomerHome account={a}/>}</AppFrame>}
+export default function CustomerPage(){return <AppFrame area="customer" title="Mis tarjetas" subtitle="">{a=><CustomerHome account={a}/>}</AppFrame>}

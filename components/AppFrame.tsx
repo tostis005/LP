@@ -59,7 +59,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
   </nav><div className="sidebar-spacer"/><button type="button" className="side-logout" onClick={logout}><LogOut size={17}/> Cerrar sesión</button>
   </aside>
-  <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label"><span className="online-dot"/> Kreyv / {area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Clientes"}</div><div className="workspace-user">{area==="customer"&&<CustomerInboxBell/>}{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
+  <div className="workspace-main"><header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label">{area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Mi cuenta"}</div><div className="workspace-user">{area==="customer"&&<CustomerInboxBell/>}{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
   <Link href="/negocio/settings"><Store size={17}/> Datos del negocio</Link>
   <Link href="/negocio/locations"><MapPin size={17}/> Dirección y ubicación</Link>
   {roles.some(r=>r.role==="owner")&&<Link href="/negocio/facturacion"><CreditCard size={17}/> Facturación y pagos</Link>}
@@ -71,7 +71,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
     </nav>}
     {area==="business"&&<nav className="business-mobile-all-sections" aria-label="Secciones del negocio">
      {menus.business.map(i=><Link href={i.href} key={i.href} aria-current={pathname===i.href?"page":undefined} className={pathname===i.href?"active":""}>{i.icon}<span>{i.label}</span></Link>)}
-    </nav>}<div className="workspace-title"><div><h1>{title}</h1><p>{subtitle}</p></div></div>{children(account)}</div>
+    </nav>}<div className="workspace-title"><div><h1>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div></div>{children(account)}</div>
 
   </div>
  </div>;
