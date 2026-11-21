@@ -67,9 +67,9 @@ jobs:
             if curl -fsS --max-time 5 http://127.0.0.1:3155/ -o /tmp/loyally-root.html 2>/dev/null; then break; fi
             sleep 1
           done
-          if ! grep -q 'Haz que cada visita' /tmp/loyally-root.html; then
-            echo "::error::La raiz / no muestra la presentacion de Loyally."
-            grep -oE 'Preparando tu espacio|Accede a tu espacio|Haz que cada visita' /tmp/loyally-root.html || true
+          if ! grep -q 'Tarjetas de fidelización' /tmp/loyally-root.html; then
+            echo "::error::La raiz / no muestra la presentación de Kreyv."
+            grep -oE 'Preparando tu espacio|Accede a tu espacio|Tarjetas de fidelización' /tmp/loyally-root.html || true
             tail -35 /tmp/loyally-root.log
             exit 1
           fi
@@ -77,7 +77,7 @@ jobs:
             echo "::error::La raiz / esta mostrando el router de acceso."
             exit 1
           fi
-          echo "La raiz / muestra la presentacion de Loyally."
+          echo "La raiz / muestra la presentación de Kreyv."
 
   verificar-postgresql:
     runs-on: ubuntu-latest
@@ -241,11 +241,11 @@ jobs:
           for i in $(seq 1 40); do
             if curl -fsS --max-time 5 http://127.0.0.1:3100/api/health >/dev/null &&
                curl -fsS --max-time 8 http://127.0.0.1:3100/ -o "$homepage" &&
-               grep -q 'Haz que cada visita' "$homepage" &&
+               grep -q 'Tarjetas de fidelización' "$homepage" &&
                ! grep -q 'Preparando tu espacio' "$homepage" &&
                curl -fsS --max-time 8 'http://127.0.0.1:3100/?lang=en' -o "$homepage_en" &&
-               grep -q 'Turn every visit into' "$homepage_en" &&
-               ! grep -q 'Haz que cada visita' "$homepage_en"; then
+               grep -q 'Digital loyalty cards' "$homepage_en" &&
+               ! grep -q 'Tarjetas de fidelización' "$homepage_en"; then
               # Evitar que un enlace de vista previa o una sección interna vuelva a responder 404/500.
               for route in /negocio /negocio/marketing /negocio/vista-previa /app/descubrir /api/local/wallet/status /api/local/marketing/status /kreyv-mark-v3.svg /kreyv-mark-v3-192.png /kreyv-mark-v3-512.png /kreyv-favicon-v3.svg /kreyv-apple-touch-v3.png /manifest.webmanifest; do
                 if ! curl -fsS --max-time 12 "http://127.0.0.1:3100${route}" >/dev/null; then
@@ -262,13 +262,13 @@ jobs:
                 echo "ERROR: no se ha podido verificar Web Push por HTTPS público con certificado válido."
                 exit 1
               fi
-              echo "Loyally responde correctamente: home ES/EN, negocio, campañas, Wallet y Web Push HTTPS activo."
+              echo "Kreyv responde correctamente: home ES/EN, negocio, campañas, Wallet y Web Push HTTPS activo."
               exit 0
             fi
             sleep 3
           done
-          echo "ERROR: el servicio no devuelve la portada de Loyally en /."
-          grep -oE 'Haz que cada visita|Preparando tu espacio|Accede a tu espacio' "$homepage" || true
+          echo "ERROR: el servicio no devuelve la portada de Kreyv en /."
+          grep -oE 'Tarjetas de fidelización|Preparando tu espacio|Accede a tu espacio' "$homepage" || true
           "${COMPOSE[@]}" --env-file .env.production ps
           "${COMPOSE[@]}" --env-file .env.production logs --tail 100 web
           exit 1
