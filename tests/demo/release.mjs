@@ -25,7 +25,7 @@ assert.match(map,/pinIcon\(Boolean\(l\.hasCard\)\)/,"The map uses filled/outline
 assert.match(mapList,/e\.businesses\.stamp_icon\|\|categoryStampKind/);
 assert.match(icons,/STAMP_DRAWINGS/);
 assert.match(wallet,/is-very-dense/);
-assert.match(wallet,/WalletActions cardId=/);
+assert.doesNotMatch(wallet,/WalletActions cardId=/,"Wallet buttons hidden until the integration is launched");
 assert.match(read("components/WalletActions.tsx"),/\/api\/local\/wallet/);
 assert.match(walletServer,/createPrivateKey/);
 assert.match(walletServer,/openssl/);
@@ -49,4 +49,4 @@ const pricing=read("app/admin/page.tsx");
 assert.match(pricing,/whatsapp_price_cents/);
 assert.match(read("db/migrations/140_role_privacy_join.sql"),/Para guardar tarjetas necesitas una cuenta de cliente independiente/);
 assert.match(read("db/migrations/150_marketing_channels.sql"),/whatsapp_opted_in/);
-console.log("OK: role isolation, persistent nav, private preview, shared stamps, campaigns and wallets.");
+console.log("OK: role isolation, persistent nav, private preview, shared stamps, campaigns and dormant Wallet backend.");

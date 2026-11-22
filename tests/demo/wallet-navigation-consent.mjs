@@ -8,7 +8,7 @@ const access=read("app/acceder/page.tsx"),entry=read("app/mi-loyally/page.tsx");
 const auth=read("app/api/local/auth/route.ts"),migration=read("db/migrations/190_signup_marketing_choice.sql");
 const css=read("app/workspace.css");
 assert.match(wallet,/loyalty-wallet-open/);
-assert.match(wallet,/WalletActions cardId=/);
+assert.doesNotMatch(wallet,/WalletActions cardId=|walletNotice|unavailableWallet/,"No Wallet actions or notices in the card UI");
 assert.match(walletActions,/Añadir a Apple Wallet/);
 assert.match(walletActions,/Añadir a Google Wallet/);
 assert.match(walletActions,/lp-wallet-disabled/,"Unconfigured providers must not fake a pass");
@@ -45,4 +45,4 @@ assert.match(migration,/DO NOTHING/,"Existing preferences must never be overwrit
 assert.match(css,/\.workspace-content\{width:100%;max-width:none/);
 assert.match(css,/\.campaign-page-final,\.campaign-editor-full/);
 assert.match(css,/\.directory-results-grid>\.directory-card-premium/);
-console.log("OK: Wallet real, QR PNG, menu sections, full width, employee workflow and voluntary consent.");
+console.log("OK: Wallet UI hidden, QR PNG retained, menu sections, full width, employee workflow and voluntary consent.");

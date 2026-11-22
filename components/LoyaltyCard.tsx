@@ -2,24 +2,19 @@
 import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {QRCodeSVG} from "qrcode.react";
-import {Download, Maximize2, X, Wallet} from "lucide-react";
+import {Download, Maximize2, QrCode, X} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
 import {initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {StampGrid} from "@/components/StampMarks";
-import {WalletActions} from "@/components/WalletActions";
 export function LoyaltyCard({membership,business,program,offersCount=0}:{membership:Membership;business:Business;program?:Program;offersCount?:number}){
- const [open,setOpen]=useState(false),[wallets,setWallets]=useState({apple:false,google:false}),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
- const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null),[walletNotice,setWalletNotice]=useState("");
+ const [open,setOpen]=useState(false),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
+ const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
  const qrCloseRef=useRef<HTMLButtonElement>(null);
  useEffect(()=>{
   // Solo se abre la tarjeta cuya membresía pertenece al usuario y aparece en su listado.
   if(new URLSearchParams(window.location.search).get("card")===membership.id)setOpen(true);
  },[membership.id]);
- useEffect(()=>{let active=true;
-  fetch("/api/local/wallet/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(active&&v)setWallets({apple:v.apple===true,google:v.google===true})}).catch(()=>{});
-  return()=>{active=false};
- },[]);
  useEffect(()=>{if(!open)return;let active=true;
   db().from("reward_vouchers").select("token,reward_label").eq("membership_id",membership.id).eq("status","issued").maybeSingle().then(({data})=>{if(active)setVoucher(data as {token:string;reward_label:string}|null)});
   return()=>{active=false};
@@ -34,16 +29,12 @@ export function LoyaltyCard({membership,business,program,offersCount=0}:{members
   return()=>{document.body.style.overflow=previousOverflow;window.removeEventListener("keydown",onEscape)};
  },[expandedQr]);
  function closeCard(){
-  setExpandedQr(null);setWalletNotice("");setOpen(false);
+  setExpandedQr(null);setOpen(false);
   const url=new URL(window.location.href);
   if(url.pathname==="/app"&&url.searchParams.get("card")===membership.id){
    url.searchParams.delete("card");
    window.history.replaceState(window.history.state,"",url.pathname+url.search+url.hash);
   }
- }
- function unavailableWallet(provider:"apple"|"google"){
-  setWalletNotice((provider==="apple"?"Apple Wallet":"Google Wallet")+" necesita que Kreyv active la emisión de tarjetas. Tener Wallet instalada en el teléfono no es suficiente. Mientras tanto, puedes guardar tu tarjeta con QR como imagen.");
-  setOpen(true);
  }
  async function downloadCard(){
   const qr=document.querySelector('[data-card-qr="'+membership.id+'"] svg');
@@ -89,14 +80,12 @@ export function LoyaltyCard({membership,business,program,offersCount=0}:{members
   {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance} kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
   <div className="lc-bottom"><span>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" · "+program.reward_cost+" para canjear":""}</span><span className="lc-qr-small lc-qr-live"><QRCodeSVG value={qrUrl} size={44} level="M" includeMargin/></span></div>
  </button>
- <button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><Wallet size={17}/> Ver tarjeta y QR</button>
+ <button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><QrCode size={17}/> Ver tarjeta y QR</button>
  {offersCount>0&&<Link className="kreyv-loyalty-offers" href={"/app/novedades?business="+business.id}>Ver ofertas de este negocio ({offersCount})</Link>}
- <WalletActions cardId={membership.id} available={wallets} compact onUnavailable={unavailableWallet}/>
  </div>
  {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={closeCard}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
  <button className="modal-close" aria-label="Cerrar" onClick={closeCard}><X size={20}/></button>
  <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
- {walletNotice&&<div className="wallet-status-notice" role="status">{walletNotice}</div>}
  <div className="loyally-modal-card-preview" style={{backgroundColor:color,color:business.card_text_color||"#ffffff"}}>
   <div className="loyally-modal-card-top"><span>{business.name}</span><span>KREYV</span></div>
   <strong>{program?.reward_label||"Mis recompensas"}</strong>
@@ -109,8 +98,6 @@ export function LoyaltyCard({membership,business,program,offersCount=0}:{members
   <span className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={200} level="M" includeMargin/></span>
   <span className="qr-enlarge-hint"><Maximize2 size={16}/> Toca el QR para ampliarlo</span>
  </button>
- <div className="lp-wallet-intro"><h3>Guarda tu tarjeta</h3></div>
- <WalletActions cardId={membership.id} available={wallets} onUnavailable={unavailableWallet}/>
  <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Guardar imagen con QR</button>
  <p className="tiny-note">{program?.type==="cashback"?"Puedes utilizar tu saldo en el establecimiento.":program?.reward_label||"Tu recompensa te espera."}</p>
  {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("reward")} aria-label="Ampliar QR del premio">
