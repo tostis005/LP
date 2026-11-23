@@ -1,21 +1,12 @@
 "use client";
 import {ArrowDownRight,ArrowUpRight,Gift,TrendingUp,Users} from "lucide-react";
+import {reportDateLabel} from "@/lib/report-date";
 export type MetricRow={metric:string;current_value:number;previous_value:number};
 export type RankingRow={reward_label:string;redemptions:number;retail_cents:number;cost_cents:number;unpriced:number};
 export type GrowthRow={bucket_start:string;new_customers:number;habitual_customers:number;awarded_units:number;average_units:number;verified_visits:number};
 type Props={metrics:MetricRow[];summary:MetricRow[];growth:GrowthRow[];ranking:RankingRow[];days:number;
  onDays:(days:number)=>void;repeatCustomers:number;totalCustomers:number;programType?:string};
 const integer=(n:number)=>n.toLocaleString("es-MX");
-// PostgreSQL puede devolver DATE como "YYYY-MM-DD" o como fecha ISO completa.
-// Nunca concatenar una segunda "T" sobre un timestamp (causaba "Invalid Date").
-export function reportDateLabel(raw:string){
- const value=String(raw||"");
- const day=/^\d{4}-\d{2}-\d{2}/.exec(value)?.[0];
- if(!day)return "—";
- const date=new Date(day+"T12:00:00Z");
- return Number.isNaN(date.getTime())?"—":new Intl.DateTimeFormat("es-ES",
-  {day:"numeric",month:"short",timeZone:"UTC"}).format(date);
-}
 function Change({value,previous}:{value:number;previous:number}){
  if(previous===0)return <small className="owner-kpi-delta neutral">{value===0?"Sin variación":"Sin periodo anterior"}</small>;
  const delta=(value-previous)/Math.abs(previous)*100;
