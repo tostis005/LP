@@ -192,3 +192,6 @@ body:has(.workspace-customer){background:#0c0c0f}
 .workspace-customer .empty-state{background:#1b1b20;color:#fff;border-color:#39343c}
 .workspace-customer .empty-state h3{color:#fff}
 .workspace-customer .empty-state p{color:#c0bac3}
+
+.workspace-customer .customer-logout-button{display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;color:#e7c0cd;border:1px solid #6b4151;border-radius:100px;padding:13px 18px;font-size:13px;font-weight:700}
+.workspace-customer .customer-logout-button:hover{background:#442433}
