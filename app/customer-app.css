@@ -482,3 +482,172 @@ body:has(.workspace-customer){background:var(--color-bg)}
 @media(prefers-reduced-motion:reduce){
  .customer-deck-card,.customer-map-primary-action{transition:none}
 }
+
+
+/* Descubrir · mapa editorial minimalista: una única ficha bajo demanda.
+   Búsqueda, categorías y leyenda están fuera del mapa para despejar calles. */
+.customer-discover-tools{display:grid;gap:12px;margin:0 0 14px}
+.customer-discover-tools .customer-map-search{
+ min-height:52px;border-radius:16px;box-shadow:0 4px 15px #3d0f1b0b;
+ background:#fff;border:1px solid var(--color-bg-2);
+}
+.customer-discover-tools .customer-map-search input{
+ padding:15px 0;font-size:14px;line-height:1.2;min-height:20px
+}
+.customer-discover-tools .customer-map-search>button{
+ width:32px;height:32px;background:transparent;border:0;color:var(--color-text-2)
+}
+.customer-discover-filterbar{display:flex;align-items:center;gap:9px;min-width:0}
+.customer-discover-filterbar .customer-map-categories{
+ flex:1;min-width:0;gap:7px;padding:3px 0 5px
+}
+.customer-discover-filterbar .customer-map-categories .filter-chip{
+ min-height:37px;border-radius:100px;background:#fff;
+ border:1px solid #e5dcd5;color:var(--color-brand-900);
+ box-shadow:none;white-space:nowrap
+}
+.customer-discover-filterbar .customer-map-categories .filter-chip.selected{
+ background:var(--color-brand);color:#fff;border-color:var(--color-brand)
+}
+.customer-filter-toggle{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ border:1px solid var(--color-bg-2);background:#fff;
+ min-height:39px;padding:8px 12px;border-radius:100px;
+ color:var(--color-brand);font-size:12px;font-weight:750;white-space:nowrap;flex:none;cursor:pointer
+}
+.customer-filter-toggle.active{background:var(--color-brand-100);border-color:var(--color-brand-300)}
+.customer-map-filter-panel{
+ background:#fff;border:1px solid var(--color-bg-2);border-radius:15px;
+ padding:12px 14px;display:flex;align-items:center;justify-content:space-between;
+ gap:12px;flex-wrap:wrap
+}
+.customer-map-filter-panel label{
+ display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+ color:var(--color-text);font-size:12px;font-weight:750
+}
+.customer-map-filter-panel select{
+ border:1px solid var(--color-bg-2);padding:9px 12px;border-radius:9px;
+ background:#fff;color:var(--color-text);font-size:13px
+}
+.customer-map-filter-panel>button{
+ background:transparent;border:0;color:var(--color-brand);
+ cursor:pointer;font-size:12px;font-weight:800;text-decoration:underline
+}
+.customer-map-legend-row{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:10px;flex-wrap:wrap;padding:0 3px
+}
+.customer-map-legend-row .directory-map-legend{
+ display:flex;gap:18px;align-items:center;margin:0;
+ padding:0;background:transparent;border:0;box-shadow:none
+}
+.customer-map-legend-row .directory-map-legend>span{
+ display:flex;align-items:center;gap:5px;font-size:12px;
+ font-weight:700;color:var(--color-text-2);white-space:nowrap
+}
+.customer-map-legend-row .map-legend-star{
+ display:grid;place-items:center;width:19px;height:19px;
+ font-size:20px;line-height:1;color:var(--color-brand)
+}
+.customer-map-result-count{
+ color:var(--color-text-2);font-size:12px;white-space:nowrap
+}
+.customer-map-stage{height:610px;min-height:440px;border-radius:22px}
+.customer-map-stage .directory-map,
+.customer-map-stage .directory-map .leaflet-container{border-radius:22px!important}
+.customer-map-stage .directory-map .leaflet-container{background:#ecebea!important}
+.customer-map-stage .leaflet-tile-pane{
+ filter:grayscale(1) saturate(0) contrast(.95) brightness(1.025)!important
+}
+.customer-map-stage .leaflet-control-zoom{margin-top:12px;margin-left:12px}
+.customer-map-stage .leaflet-control-zoom a{
+ background:#fffdfb;color:var(--color-brand);border-color:#e7ded8
+}
+.customer-map-stage .leaflet-control-zoom a:hover{background:var(--color-brand-100)}
+.customer-map-locate{
+ position:absolute;z-index:600;top:13px;right:13px;
+ width:43px;height:43px;display:grid;place-items:center;
+ border:1px solid #dfd7d0;border-radius:14px;
+ background:#fffdfbf2;color:var(--color-brand);
+ box-shadow:0 4px 15px #29171c24;cursor:pointer;backdrop-filter:blur(10px)
+}
+.customer-map-locate:hover{background:var(--color-brand-100)}
+.customer-map-locate:focus-visible,
+.customer-filter-toggle:focus-visible,
+.customer-map-card-close:focus-visible,
+.customer-map-categories .filter-chip:focus-visible{
+ outline:3px solid var(--color-accent-600);outline-offset:2px
+}
+/* Estrella rellena vinotinto = guardada; contorno vino = por descubrir. */
+.customer-map-stage .loyally-map-pin{
+ border-radius:50%;width:44px;height:44px;
+ box-shadow:0 4px 12px #3d0f1b30;transition:box-shadow .16s ease,transform .16s ease
+}
+.customer-map-stage .loyally-map-pin.is-owned{
+ background:var(--color-brand)!important;border-color:var(--color-brand)!important;
+ color:#fff!important
+}
+.customer-map-stage .loyally-map-pin.is-owned:after{
+ background:var(--color-brand);border-color:var(--color-brand)
+}
+.customer-map-stage .loyally-map-pin.is-unowned{
+ background:#fff!important;border-color:#c7b8b4!important;
+ color:var(--color-brand)!important
+}
+.customer-map-stage .loyally-map-pin.is-unowned:after{
+ background:#fff;border-color:#c7b8b4
+}
+.customer-map-stage .loyally-map-pin.is-selected{
+ transform:scale(1.13);
+ box-shadow:0 0 0 4px #d9a23a64,0 7px 18px #3d0f1b3d
+}
+.customer-map-stage .loyally-map-symbol svg{
+ width:25px!important;height:25px!important;stroke-width:1.8!important
+}
+/* Se presenta solo al tocar una estrella, nunca de forma automática. */
+.customer-map-business-card{
+ padding:16px 17px 17px;border-radius:19px;
+ background:#fffdfbf9;border-color:#e3d7cd;
+ box-shadow:0 10px 34px #3d0f1b29
+}
+.customer-map-business-heading{padding-right:27px}
+.customer-map-card-close{
+ position:absolute;right:10px;top:9px;width:30px;height:30px;
+ background:transparent;border:0;border-radius:50%;
+ color:var(--color-text-2);cursor:pointer;display:grid;place-items:center
+}
+.customer-map-card-close:hover{background:var(--color-brand-100);color:var(--color-brand)}
+.customer-map-business-reward{margin:11px 0 13px;font-size:14px;line-height:1.45}
+.customer-map-business-actions a{min-height:44px}
+@media(max-width:700px){
+ .customer-discover-tools{gap:10px;margin-bottom:11px}
+ .customer-discover-tools .customer-map-search{min-height:48px}
+ .customer-discover-filterbar{gap:6px}
+ .customer-filter-toggle{padding:8px 11px;font-size:11px}
+ .customer-map-legend-row .directory-map-legend{gap:12px}
+ .customer-map-legend-row .directory-map-legend>span{font-size:11px}
+ .customer-map-legend-row .map-legend-star{font-size:18px;width:16px;height:16px}
+ .customer-map-result-count{font-size:11px}
+ .customer-map-stage{
+  height:clamp(475px,65dvh,720px);min-height:475px;
+  border-radius:19px
+ }
+ .customer-map-stage .directory-map,
+ .customer-map-stage .directory-map .leaflet-container{border-radius:19px!important}
+ .customer-map-stage .leaflet-control-zoom{display:none}
+ .customer-map-locate{width:41px;height:41px;top:11px;right:11px;border-radius:13px}
+ .customer-map-business-card{left:9px;right:9px;bottom:9px;padding:14px;border-radius:18px}
+ .customer-map-business-heading{padding-right:24px}
+ .customer-map-business-name h2{font-size:17px}
+ .customer-map-business-reward{font-size:13px;margin:10px 0 12px}
+ .customer-map-business-actions a{min-height:43px}
+}
+@media(max-width:390px){
+ .customer-map-legend-row{gap:6px}
+ .customer-map-legend-row .directory-map-legend{gap:9px}
+ .customer-map-legend-row .directory-map-legend>span{font-size:10px}
+ .customer-map-result-count{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .customer-map-stage .loyally-map-pin{transition:none}
+}

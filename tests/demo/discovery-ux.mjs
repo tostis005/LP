@@ -48,7 +48,7 @@ assert.match(presentation.programPromise({type:"cashback",cashback_bps:500}),/5 
 assert.doesNotMatch(presentation.programPromise({type:"stamps",reward_label:"Café gratis"}),/8/);
 const map=readFileSync(new URL("../../components/DirectoryMap.tsx",import.meta.url),"utf8");
 const css=readFileSync(new URL("../../app/workspace.css",import.meta.url),"utf8");
-assert.match(map,/pinIcon\(Boolean\(l\.hasCard\)\)/,"Map icons depend on membership, not business category");
+assert.match(map,/pinIcon\(Boolean\(l\.hasCard\),l\.id===selectedId\)/,"Map icons depend on membership and active selection, not business category");
 assert.match(map,/hasCard\?:boolean/);
 assert.match(map,/hasCard\?'currentColor':'none'/,"Owned stars fill, unknown stars stay outlined");
 assert.doesNotMatch(map,/stampMarkup|categoryStampKind|stampKind/,"Map must never show business-category stamp drawings");

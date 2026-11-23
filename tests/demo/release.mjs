@@ -21,7 +21,7 @@ assert.match(preview,/program.type==="stamps"/,"Stamp preview must not be used f
 assert.match(preview,/business-preview-nonstamp/,"Points and cashback have dedicated designs");
 assert.match(preview,/!business\.public_listing|business\.public_listing&&business\.active/);
 assert.match(join,/isBusinessAccount/);
-assert.match(map,/pinIcon\(Boolean\(l\.hasCard\)\)/,"The map uses filled/outlined stars based on actual customer memberships");
+assert.match(map,/pinIcon\(Boolean\(l\.hasCard\),l\.id===selectedId\)/,"The map uses filled/outlined stars based on actual customer memberships and selection");
 assert.match(mapList,/e\.businesses\.stamp_icon\|\|categoryStampKind/);
 assert.match(icons,/STAMP_DRAWINGS/);
 assert.match(wallet,/is-very-dense/);

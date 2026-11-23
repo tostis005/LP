@@ -24,6 +24,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Verificar iconos, mapa, premios y navegación del negocio
         run: node tests/demo/discovery-ux.mjs
+      - name: Comprobar mapa limpio y selección única de negocio
+        run: node tests/demo/discovery-map-clean.mjs
       - name: Verificar galería rellena Kreyv y estrellas por tarjeta en el mapa
         run: node tests/demo/kreyv-filled-icons-map.mjs
       - name: Revisar home Kreyv, iconos de categorías, contraste y móvil
