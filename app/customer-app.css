@@ -725,3 +725,7 @@ body:has(.workspace-customer){background:var(--color-bg)}
   font-size:17px;width:16px;height:16px;flex-basis:16px
  }
 }
+
+/* El detalle de tarjeta abierto en Descubrir tapa los controles del mapa. */
+.workspace-customer .qr-modal-backdrop{z-index:2200!important}
+.workspace-customer .qr-fullscreen-overlay{z-index:2300!important}
