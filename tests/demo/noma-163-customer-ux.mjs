@@ -29,7 +29,7 @@ assert.match(putAsset,/isOfferImage=match\[2\]\.startsWith\("oferta-"\)/);
 assert.match(join,/const accepted=globalConsent===null\?marketing:globalConsent/,"One-step optional consent");
 assert.match(join,/router\.replace\("\/app"/,"Open the newly added card immediately");
 assert.doesNotMatch(join,/showMarketingPrompt|No, solo mi tarjeta/,"No double confirmation");
-assert.match(notify,/defaultOpen=\{focusBusiness===card\.business_id\}/);
+assert.match(notify,/open=\{focusBusiness===card\.business_id\}/);
 assert.match(loyalty,/ajustes\?business=/);
 assert.doesNotMatch(push,/suscripción se ha perdido o ha caducado/);
 assert.match(push,/Enviar prueba/);
