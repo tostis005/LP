@@ -96,7 +96,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  return <><div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>
  {compact?<button type="button" className="customer-deck-card"
   onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}
-  style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(0deg,rgba(0,0,0,.55),rgba(0,0,0,.16)),url("+business.card_background+")":undefined}}>
+  style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(180deg,rgba(0,0,0,.56),rgba(0,0,0,.54) 55%,rgba(0,0,0,.66)),url("+business.card_background+")":undefined}}>
   <span className="customer-deck-top">
    <span className="customer-deck-brand">{business.logo_url?<img src={business.logo_url} alt="" loading="lazy"/>:<span>{initials(business.name)}</span>}</span>
    <span className="customer-deck-type">{business.category||"Fidelización"}</span>
