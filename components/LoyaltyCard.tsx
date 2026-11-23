@@ -8,6 +8,7 @@ import {dateShort,initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {StampGrid} from "@/components/StampMarks";
 import {readableCardText} from "@/lib/customer-card-contrast";
+import {cardBackgroundUrl} from "@/lib/card-images";
 export function LoyaltyCard({membership,business,program,offersCount=0,compact=false}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean}){
  const [open,setOpen]=useState(false),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
@@ -96,7 +97,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  return <><div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>
  {compact?<button type="button" className="customer-deck-card"
   onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}
-  style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(180deg,rgba(0,0,0,.56),rgba(0,0,0,.54) 55%,rgba(0,0,0,.66)),url("+business.card_background+")":undefined}}>
+  style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(180deg,rgba(0,0,0,.56),rgba(0,0,0,.54) 55%,rgba(0,0,0,.66)),url("+cardBackgroundUrl(business.card_background,720)+")":undefined}}>
   <span className="customer-deck-top">
    <span className="customer-deck-brand">{business.logo_url?<img src={business.logo_url} alt="" loading="lazy"/>:<span>{initials(business.name)}</span>}</span>
    <span className="customer-deck-type">{business.category||"Fidelización"}</span>
@@ -107,7 +108,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   {program?.type==="stamps"&&program.reward_cost>0&&program.reward_cost<=12&&<span className="customer-deck-stamps" aria-hidden="true">{Array.from({length:program.reward_cost},(_,index)=><i key={index} className={index<membership.balance?"earned":""}/>)}</span>}
   {program?.type==="stamps"&&program.reward_cost>0&&<span className="customer-deck-progress"><span style={{width:Math.min(100,Math.max(0,membership.balance/program.reward_cost*100))+"%"}}/></span>}
   <span className="customer-deck-bottom">{program?.type==="stamps"&&program.reward_cost>membership.balance?"Te faltan "+(program.reward_cost-membership.balance)+" sellos":"Ver tarjeta y QR"} <QrCode size={18}/></span>
- </button>:<button className={"loyalty-card"+(program?.type==="stamps"?" stamp-card-real":"")+(program?.type==="stamps"&&program.reward_cost>=21?" is-very-dense":program?.type==="stamps"&&program.reward_cost>12?" is-dense":"")} style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(0deg,rgba(0,0,0,.45),rgba(0,0,0,.10)),url("+business.card_background+")":undefined}} onClick={()=>setOpen(true)}>
+ </button>:<button className={"loyalty-card"+(program?.type==="stamps"?" stamp-card-real":"")+(program?.type==="stamps"&&program.reward_cost>=21?" is-very-dense":program?.type==="stamps"&&program.reward_cost>12?" is-dense":"")} style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(0deg,rgba(0,0,0,.45),rgba(0,0,0,.10)),url("+cardBackgroundUrl(business.card_background,1200)+")":undefined}} onClick={()=>setOpen(true)}>
   <div className="lc-top"><span className="lc-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:initials(business.name)}</span><span className="lc-chip">KREYV</span></div>
   <div className="lc-middle"><small>{business.card_text||"TARJETA DE FIDELIZACIÓN"}</small><strong>{business.name}</strong><span className="lc-reward-label">{program?.reward_label||"Tu próxima recompensa"}</span></div>
   {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance} kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
