@@ -19,6 +19,7 @@ try{
   [ids.business,"flow-"+ids.business.slice(0,8)]);
  await q("INSERT INTO public.loyalty_programs(business_id,type,reward_cost,max_stamps_per_action,min_seconds_between_awards) VALUES($1,'stamps',3,10,0)",[ids.business]);
  await q("INSERT INTO public.business_members(business_id,user_id,role) VALUES($1,$2,'owner')",[ids.business,ids.owner]);
+ await q("SELECT set_config('request.jwt.claim.sub',$1,true)",[ids.owner]);
  await q("INSERT INTO public.marketing_consents(business_id,customer_id,opted_in) VALUES($1,$2,true)",[ids.business,ids.customer]);
  const makeRule=async(kind,fields={})=>{
   const offer=(await q("INSERT INTO public.business_offers(business_id,created_by,title,preview,details) VALUES($1,$2,$3,'Resumen automático','Detalle del flujo') RETURNING id",
@@ -41,8 +42,8 @@ try{
  let jobs=await list();
  assert.deepEqual(new Set(jobs.map(x=>x.rule_id)),new Set([signup,noVisit]),"Only enrollment events fire on signup");
  // First purchase: no visit-threshold yet; inactivity is scheduled.
- await q("INSERT INTO public.loyalty_transactions(business_id,membership_id,kind,amount_delta) VALUES($1,$2,'earn',1)",
-  [ids.business,membership]);
+ await q("INSERT INTO public.loyalty_transactions(business_id,membership_id,kind,amount_delta,employee_id) VALUES($1,$2,'earn',1,$3)",
+  [ids.business,membership,ids.owner]);
  jobs=await list();
  assert.ok(jobs.some(x=>x.rule_id===inactive),"Inactivity counts down from last verified purchase");
  assert.ok(!jobs.some(x=>x.rule_id===visits),"Two-visit rule does not fire on one purchase");
@@ -53,8 +54,8 @@ try{
  assert.equal(jobs.find(x=>x.rule_id===noVisit).status,"skipped","No first-visit reminder for an active customer");
  assert.equal(jobs.find(x=>x.rule_id===signup).status,"delivered");
  // Second purchase triggers repeat-visit rule, and resets inactivity timer.
- await q("INSERT INTO public.loyalty_transactions(business_id,membership_id,kind,amount_delta) VALUES($1,$2,'earn',1)",
-  [ids.business,membership]);
+ await q("INSERT INTO public.loyalty_transactions(business_id,membership_id,kind,amount_delta,employee_id) VALUES($1,$2,'earn',1,$3)",
+  [ids.business,membership,ids.owner]);
  jobs=await list();
  assert.ok(jobs.some(x=>x.rule_id===visits),"Two visits trigger a loyalty milestone");
  assert.equal(jobs.filter(x=>x.rule_id===inactive).length,1,"Inactivity queue remains idempotent");
@@ -74,8 +75,8 @@ try{
  const inbox=(await q("SELECT count(*)::integer n FROM public.offer_receipts WHERE customer_id=$1",[ids.customer])).rows[0].n;
  assert.equal(inbox,4,"Only signup, visits, stamp and redemption notifications are delivered");
  // Returning after a skipped inactivity reminder restarts the clock, not an immediate message.
- await q("INSERT INTO public.loyalty_transactions(business_id,membership_id,kind,amount_delta) VALUES($1,$2,'earn',1)",
-  [ids.business,membership]);
+ await q("INSERT INTO public.loyalty_transactions(business_id,membership_id,kind,amount_delta,employee_id) VALUES($1,$2,'earn',1,$3)",
+  [ids.business,membership,ids.owner]);
  jobs=await list();
  assert.equal(jobs.find(x=>x.rule_id===inactive).status,"pending");
  assert.ok(new Date(jobs.find(x=>x.rule_id===inactive).due_at).getTime()>Date.now());
