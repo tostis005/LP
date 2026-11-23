@@ -111,7 +111,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  </button>:<button className={"loyalty-card loyalty-card-rebalanced"+(program?.type==="stamps"?" stamp-card-real":"")+(program?.type==="stamps"&&program.reward_cost>=21?" is-very-dense":program?.type==="stamps"&&program.reward_cost>12?" is-dense":"")}
   style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20)),url("+cardBackgroundUrl(business.card_background,1200)+")":undefined}}
   type="button" onClick={()=>setOpen(true)} aria-label={"Abrir tarjeta y QR de "+business.name}>
-  <span className="lc-card-content">
+  <div className="lc-card-content">
    <span className="lc-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:initials(business.name)}</span>
    <strong className="lc-card-name">{business.name}</strong>
    {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance}
@@ -119,11 +119,11 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    <span className="lc-card-message">{business.card_text||"TARJETA DE FIDELIZACIÓN"}</span>
    <span className="lc-card-balance">{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</span>
    <span className="lc-card-reward">{program?.reward_label||"Tu próxima recompensa"}</span>
-  </span>
-  <span className="lc-card-aside">
+  </div>
+  <div className="lc-card-aside">
    <span className="lc-chip">KREYV</span>
    <span className="lc-qr-large"><QRCodeSVG value={qrUrl} size={240} level="M" includeMargin={false}/></span>
-  </span>
+  </div>
  </button>}
  {!compact&&<button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><QrCode size={17}/> Ver tarjeta y QR</button>}
  {offersCount>0&&<Link className="kreyv-loyalty-offers" href={"/app/novedades?business="+business.id}>Ver ofertas de este negocio ({offersCount})</Link>}
