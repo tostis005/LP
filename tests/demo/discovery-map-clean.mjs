@@ -16,6 +16,8 @@ assert.match(discover,/selectedId\?filtered\.find\(entry=>entry\.id===selectedId
 assert.match(discover,/\{selected&&<article className="customer-map-business-card"/,"The business card appears only on selection");
 assert.match(discover,/aria-label="Cerrar ficha del negocio"/,"The contextual card is explicitly dismissible");
 assert.match(discover,/onDismiss=\{\(\)=>setSelectedId\(null\)\}/,"Map clicks close contextual card");
+assert.match(discover,/const mapCenter=useMemo/,"Selecting a marker must not automatically recenter the map");
+assert.match(discover,/center=\{mapCenter\}/,"Stable center keeps pan/zoom interactive");
 assert.match(discover,/customer-discover-tools/,"The search and filters sit above the map");
 assert.ok(discover.indexOf('className="customer-discover-tools"')<discover.indexOf('className="customer-map-stage"'),"Controls must be outside the map");
 assert.match(discover,/Ya tengo tarjeta/);
