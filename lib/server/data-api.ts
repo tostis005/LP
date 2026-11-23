@@ -129,6 +129,7 @@ const rpcMap:Record<string,Spec>={
  business_growth_series:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  business_growth_summary:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  staff_card_context:{args:[["p_membership","uuid"]],returns:"table"},
+ staff_claim_automation_bonus:{args:[["p_rule","uuid"],["p_membership","uuid"]],returns:"scalar"},
  business_reward_ranking:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  customer_reward_summary:{args:[],returns:"table"},
  staff_redeem_voucher_choice:{args:[["p_token","uuid"],["p_reward_option","uuid"]],returns:"scalar"},
