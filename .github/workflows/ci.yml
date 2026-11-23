@@ -193,6 +193,8 @@ jobs:
         run: node tests/native/kreyv-icons.mjs
       - name: Validar colas automáticas y permisos PostgreSQL
         run: node tests/native/growth-automation.mjs
+      - name: Probar altas y canjes en flujos automáticos reales
+        run: node tests/native/automation-flow.mjs
       - name: Comprobar permisos, métricas y colas automáticas en PostgreSQL
         run: node tests/native/growth-automation.mjs
       - name: Crear sandbox real de Tijuana y verificar QR, privacidad y tarifas
