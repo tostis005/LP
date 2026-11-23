@@ -1,0 +1,42 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {runInNewContext} from "node:vm";
+import ts from "typescript";
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
+const code=ts.transpileModule(read("lib/customer-card-contrast.ts"),{
+ compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}
+}).outputText;
+const module={exports:{}};
+runInNewContext(code,{module,exports:module.exports});
+const contrast=module.exports.readableCardText;
+const luminosity=hex=>{
+ const nums=hex.slice(1).match(/../g).map(x=>parseInt(x,16)/255).map(x=>x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4);
+ return .2126*nums[0]+.7152*nums[1]+.0722*nums[2];
+};
+const contrastRatio=(a,b)=>{
+ const x=luminosity(a),y=luminosity(b);
+ return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);
+};
+for(const bg of ["#5E1A2B","#D9A23A","#F5EFE6","#16171B","#FF7A31","#92AD95","#E9E2D7"]){
+ const text=contrast(bg,"#FFFFFF");
+ assert.ok(contrastRatio(bg,text)>=4.5, `Text ${text} on ${bg} must reach WCAG AA normal text`);
+}
+assert.equal(contrast("#5E1A2B","#FFFFFF"),"#FFFFFF");
+assert.equal(contrast("#D9A23A","#FFFFFF"),"#22201F");
+assert.equal(contrast("#F5EFE6","#22201F"),"#22201F");
+assert.equal(contrast("#5E1A2B","#333333",true),"#FFFFFF","Photos use a dark scrim and white text");
+const css=read("app/customer-app.css");
+assert.match(css,/equilibrio visual 2026/);
+assert.match(css,/body:has\(\.workspace-customer\)\{background:var\(--color-bg\)\}/);
+assert.match(css,/\.customer-map-stage \.leaflet-tile-pane\{\s*filter:saturate/);
+assert.match(css,/\.loyalty-global-bottom-nav\.loyalty-nav-customer\{\s*border:1px solid #e2d5cb;background:#fffdf9f7/);
+assert.match(css,/\.workspace-customer \.qr-modal\{\s*background:var\(--color-bg\)/);
+assert.match(css,/\.workspace-customer \.customer-profile-only/);
+const home=read("app/app/page.tsx"),map=read("app/app/descubrir/page.tsx");
+assert.match(home,/className="card-grid" role="region"/,"Keep swipeable merchant cards");
+assert.match(map,/className="customer-map-stage"/,"Keep integrated discovery map");
+assert.doesNotMatch(map,/Wallet|wallets/,"Keep wallet issuance hidden");
+const nav=read("components/AppBottomNav.tsx");
+for(const name of ["Tarjetas","Descubrir","Avisos","Ajustes","Mi perfil"])assert.match(nav,new RegExp('label:"'+name+'"'));
+assert.doesNotMatch(nav,/label:"Mi QR"/);
+console.log("OK: branded light surfaces, readable text, map, cards, QR and unchanged navigation.");

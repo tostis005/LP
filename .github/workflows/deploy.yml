@@ -52,6 +52,8 @@ jobs:
         run: node tests/demo/customer-profile-final.mjs
       - name: Verificar Wallet y QR ampliado
         run: node tests/demo/wallet-fullscreen-qr.mjs
+      - name: Verificar paleta clara del cliente, contraste y usabilidad móvil
+        run: node tests/demo/customer-visual-balance.mjs
       - name: TypeScript
         run: npm run typecheck
       - name: Build de Next.js
