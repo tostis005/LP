@@ -177,7 +177,7 @@ GRANT EXECUTE ON FUNCTION public.dispatch_due_automations(integer) TO lp_auth;
 -- una instrucción activa del negocio. Nunca email, apellidos ni contacto.
 CREATE OR REPLACE FUNCTION public.staff_card_context(p_membership uuid)
 RETURNS TABLE(customer_label text,joined_at timestamptz,verified_visits bigint,
- staff_notes jsonb)
+ earned_total integer,staff_notes jsonb)
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $$
 BEGIN
  RETURN QUERY
@@ -191,6 +191,7 @@ BEGIN
   (SELECT count(*) FROM public.loyalty_transactions t
    WHERE t.membership_id=m.id AND t.kind='earn'
    AND NOT EXISTS(SELECT 1 FROM public.loyalty_transactions x WHERE x.reversal_of=t.id)),
+  m.total_earned,
   COALESCE((SELECT jsonb_agg(jsonb_build_object(
     'name',r.name,'target',r.target_stamps,'expires_at',m.created_at+make_interval(days=>r.window_days),
     'instruction',r.staff_instruction
