@@ -1,0 +1,33 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
+const map=read("components/DirectoryMap.tsx");
+const discover=read("app/app/descubrir/page.tsx");
+const css=read("app/customer-app.css");
+
+// No competing popup in Leaflet: exactly one conditional business card is rendered by Discover.
+assert.doesNotMatch(map,/<Popup\b|\bPopup,|\bPopup\}/,"Leaflet must not open duplicate business popups");
+assert.match(map,/eventHandlers=\{\{click:\(\)=>onSelect\?\.\(x\)\}\}/,"Tapping a marker selects its business");
+assert.match(map,/bubblingMouseEvents=\{false\}/,"Marker clicks must not close the selected card");
+assert.match(map,/useMapEvents\(\{click:\(\)=>onDismiss\?\.\(\)\}\)/,"Tapping empty map area clears selection");
+assert.match(map,/l\.id===selectedId/,"Only the selected marker is highlighted");
+
+assert.match(discover,/selectedId\?filtered\.find\(entry=>entry\.id===selectedId\)\|\|null:null/,"No card appears automatically on initial load");
+assert.match(discover,/\{selected&&<article className="customer-map-business-card"/,"The business card appears only on selection");
+assert.match(discover,/aria-label="Cerrar ficha del negocio"/,"The contextual card is explicitly dismissible");
+assert.match(discover,/onDismiss=\{\(\)=>setSelectedId\(null\)\}/,"Map clicks close contextual card");
+assert.match(discover,/customer-discover-tools/,"The search and filters sit above the map");
+assert.ok(discover.indexOf('className="customer-discover-tools"')<discover.indexOf('className="customer-map-stage"'),"Controls must be outside the map");
+assert.match(discover,/Ya tengo tarjeta/);
+assert.match(discover,/Aún no la tengo/);
+assert.match(discover,/customer-filter-toggle/,"Reward filter remains available but compact");
+assert.match(discover,/href=\{selectedCard\?"\/app\?card="/,"Owned markers still open the correct card");
+assert.match(discover,/className="customer-map-locate"/,"Geolocation remains available");
+
+assert.match(css,/mapa editorial minimalista/);
+assert.match(css,/filter:grayscale\(1\) saturate\(0\)/,"Muted cartography keeps the map professionally neutral");
+assert.match(css,/\.customer-map-stage \.loyally-map-pin\.is-owned\{[\s\S]*?background:var\(--color-brand\)!important/,"Owned businesses use Kreyv wine");
+assert.match(css,/\.customer-map-stage \.loyally-map-pin\.is-unowned\{[\s\S]*?background:#fff!important/,"Unowned businesses stay outlined on white");
+assert.match(css,/\.customer-map-locate\{/,"Location button remains available");
+assert.doesNotMatch(discover,/Apple Wallet|Google Wallet|directory-wallet-links/);
+console.log("OK: clean greyscale map, no duplicate popups, one dismissible card and clear owned/unowned markers.");
