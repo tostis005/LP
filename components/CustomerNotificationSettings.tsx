@@ -22,6 +22,7 @@ export function CustomerNotificationSettings({account}:{account:Account}){
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState<string|null>(null);
  const [error,setError]=useState(""),[notice,setNotice]=useState("");
  const [focusBusiness,setFocusBusiness]=useState("");
+ const [expandedBusiness,setExpandedBusiness]=useState<string|null>(null);
  const whatsappReady=/^\+[1-9][0-9]{7,14}$/.test(account.user.user_metadata?.whatsapp||"");
  const load=useCallback(async()=>{
   setLoading(true);setError("");
@@ -49,7 +50,10 @@ export function CustomerNotificationSettings({account}:{account:Account}){
   }catch(e){setError((e as Error).message||"No se pudieron cargar tus preferencias.");}
   finally{setLoading(false);}
  },[account.user.id]);
- useEffect(()=>{setFocusBusiness(new URLSearchParams(window.location.search).get("business")||"");void load()},[load]);
+ useEffect(()=>{
+  const focused=new URLSearchParams(window.location.search).get("business")||"";
+  setFocusBusiness(focused);setExpandedBusiness(focused||null);void load();
+ },[load]);
  useEffect(()=>{if(!loading&&focusBusiness){
   const target=document.getElementById("notification-"+focusBusiness);
   target?.scrollIntoView({block:"center",behavior:"smooth"});
@@ -92,7 +96,8 @@ export function CustomerNotificationSettings({account}:{account:Account}){
   {loading?<p className="muted">Cargando tus tarjetas...</p>:cards.length===0?
    <div className="empty-state compact"><Store size={25}/><h3>Todavía no tienes tarjetas</h3><p>Descubre un negocio y guarda su tarjeta para configurar sus avisos.</p><Link href="/app/descubrir" className="button button-dark">Descubrir negocios</Link></div>:
    <>   <div className="customer-channel-cards">{cards.map(card=>
-    <details className="customer-channel-business" key={card.business_id+":"+focusBusiness} id={"notification-"+card.business_id} open={focusBusiness===card.business_id}>
+    <details className="customer-channel-business" key={card.business_id} id={"notification-"+card.business_id} open={expandedBusiness===card.business_id}
+     onToggle={event=>{const isOpen=event.currentTarget.open;setExpandedBusiness(current=>isOpen?card.business_id:current===card.business_id?null:current)}}>
      <summary>
       <span className="customer-channel-business-mark" style={{background:card.color}}>{card.name.slice(0,1).toUpperCase()}</span>
       <span className="customer-channel-business-title"><strong>{card.name}</strong><small>{[card.email,card.whatsapp,card.push].filter(Boolean).length} de 3 canales activados</small></span>
