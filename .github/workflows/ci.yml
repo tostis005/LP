@@ -88,6 +88,8 @@ jobs:
         run: node tests/demo/owner-final-card-flows.mjs
       - name: Validar informes e imágenes del ejemplo Café Noma
         run: node tests/demo/owner-noma-polish.mjs
+      - name: Verificar Café Noma, notificaciones y mapa sin navegación duplicada
+        run: node tests/demo/noma-163-customer-ux.mjs
       - name: Validar informes y campañas automáticas del dueño
         run: node tests/demo/owner-growth-automation.mjs
       - name: Validar roles, crecimiento y flujos automáticos
@@ -226,6 +228,7 @@ jobs:
           LP_SHOWCASE_CUSTOMER_PASSWORD: "Test-Customer-Loyally-2026-Private-D"
         run: |
           node scripts/provision-showcase-real.mjs
+          node tests/native/noma-owner-163.mjs
           node tests/native/real-production.mjs
           node tests/native/business-asset-uploads.mjs
           node tests/native/campaign-history-permissions.mjs
