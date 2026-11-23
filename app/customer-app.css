@@ -31,6 +31,7 @@ body:has(.workspace-customer){background:#0c0c0f}
 .customer-list-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:17px}
 .customer-list-heading h2{color:#fff;font-size:22px;margin:0;letter-spacing:-.04em}
 .customer-list-heading a{display:flex;align-items:center;gap:5px;color:#d0c2c7;font-size:13px;font-weight:700}
+.customer-swipe-hint{display:block;font-size:11px;color:#aaa5ac;margin-top:5px}
 .workspace-customer .customer-first-layout .card-grid{display:flex;gap:14px;width:100%;max-width:none;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;scroll-padding-inline:2px;scrollbar-width:none;padding:3px 2px 22px;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
 .workspace-customer .customer-first-layout .card-grid::-webkit-scrollbar{display:none}
 .workspace-customer .customer-first-layout .customer-deck-item{flex:0 0 min(84%,420px);scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;gap:0;min-width:0}
