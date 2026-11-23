@@ -18,7 +18,7 @@ async function setRole(role,user){
 try{
  await q("BEGIN");
  for(const key of ["owner","staff","customer"]){
-  await q("INSERT INTO auth.users(id,email,password_hash,raw_user_meta_data,email_confirmed_at) VALUES($1,$2,'test',jsonb_build_object('full_name',$3),now())",
+  await q("INSERT INTO auth.users(id,email,password_hash,raw_user_meta_data,email_confirmed_at) VALUES($1,$2,'test',jsonb_build_object('full_name',$3::text),now())",
    [id[key],key+"-"+id[key]+"@example.test",key==="customer"?"José Antonio Fraga":key]);
  }
  await q("INSERT INTO public.businesses(id,name,slug,active,public_listing) VALUES($1,'Cafetería QA',$2,true,true)",
