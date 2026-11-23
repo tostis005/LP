@@ -75,7 +75,7 @@ export async function POST(request:Request){
    preview.length<3||preview.length>120||details.length<3||details.length>6000||
    !kinds.includes(trigger||"")||!Number.isInteger(days)||days<0||days>90)
    throw new ApiError("Revisa el nombre, el disparador, los días y el mensaje.");
-  if(trigger==="stamps"&&(!Number.isInteger(stamps)||stamps<1||stamps>100||
+  if(trigger==="stamps"&&(!Number.isInteger(stamps)||stamps<1||stamps>1000000||
    !Number.isInteger(window)||window<1||window>365||instruction.length>250))
    throw new ApiError("Indica cuántos sellos y en qué plazo debe conseguirlos el cliente.");
   if(trigger==="visits"&&(!Number.isInteger(visits)||visits<1||visits>500))
@@ -91,7 +91,8 @@ export async function POST(request:Request){
    if(trigger==="stamps"){
     const p=await client.query<{type:string}>(
      "SELECT type FROM public.loyalty_programs WHERE business_id=$1::uuid",[business]);
-    if(p.rows[0]?.type!=="stamps")throw new ApiError("Los hitos de sellos requieren una tarjeta de sellos.");
+    if(!p.rowCount)throw new ApiError("Configura primero el programa de fidelización.");
+    if(p.rows[0].type==="stamps"&&stamps>100)throw new ApiError("El objetivo máximo es 100 sellos.");
    }
    const count=await client.query<{n:number}>(
     "SELECT count(*)::integer n FROM public.automation_rules WHERE business_id=$1::uuid",[business]);
