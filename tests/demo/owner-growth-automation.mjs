@@ -18,7 +18,7 @@ for(const key of ["new_customers","habitual_customers","avg_units_habitual","avg
 assert.match(migration,/NOT EXISTS\s*\(SELECT 1 FROM public\.loyalty_transactions reversal WHERE reversal\.reversal_of=t\.id\)/);
 assert.match(flow,/Campañas|automatización|Automatización/i);
 assert.match(flow,/trigger_kind:trigger/);
-assert.match(flow,/no envía automáticamente SMS, WhatsApp, email ni push/);
+assert.match(flow,/Canal: Avisos de KREYV/,"Automations must clearly identify the delivery channel");
 assert.match(api,/public\.is_business_manager/);
 assert.match(api,/INSERT INTO public\.automation_rules/);
 assert.match(staff,/staff_card_context/);

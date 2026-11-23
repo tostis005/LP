@@ -51,7 +51,7 @@ const COLOR_PRESETS=["#571c32","#351623","#8b3c58","#a7637c","#7760a5","#c9784f"
 const STAMP_COLOR_PRESETS=["#571c32","#8b3c58","#0f172a","#2563eb","#b91c1c","#c2410c","#7c3aed","#0f766e","#a16207","#db2777","#ffffff"];
 export default function BusinessWorkspace({account}:{account:Account}){
  const router=useRouter(),pathname=usePathname();
- const manageable=account.businesses.filter(b=>b.role!=="employee");
+ const manageable=account.businesses.filter(b=>b.active===true&&(b.role==="owner"||b.role==="manager"));
  const [selected,setSelected]=useState(manageable[0]?.business_id||"");
  const section=pathname.split("/")[2];
  // La ruta pública se llama /negocio/tarjeta, pero el identificador interno es card.
@@ -84,21 +84,26 @@ export default function BusinessWorkspace({account}:{account:Account}){
  useEffect(()=>{setSiteOrigin(window.location.origin)},[]);
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
+  // Una pantalla solo consulta lo que necesita; evita saturar las conexiones
+  // cuando se abre Datos y separa los errores de marketing de los informes.
+  const empty=Promise.resolve({data:[],error:null});
+  const forReport=tab==="reports",forTeam=tab==="team",forCard=tab==="card";
+  const forCampaign=tab==="marketing",forCustomers=tab==="customers",forLocations=tab==="locations";
   const [b,p,c,s,i,l,t,d,a,m,r,o,g,gs]=await Promise.all([
    db().from("businesses").select("*").eq("id",selected).maybeSingle(),
    db().from("loyalty_programs").select("*").eq("business_id",selected).maybeSingle(),
-   db().rpc("business_customer_directory",{p_business:selected}),
-   db().rpc("business_staff_directory",{p_business:selected}),
-   db().from("business_invitations").select("id,email,role,created_at").eq("business_id",selected).is("claimed_at",null),
-   db().from("business_locations").select("*").eq("business_id",selected),
-   db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id,employee_id,reversal_of,reversal_reason").eq("business_id",selected).order("created_at",{ascending:false}).limit(250),
-   db().from("marketing_campaigns").select("id,subject,body_text,channel,template_name,template_language,status,recipient_count,sent_count,failed_count,created_at").eq("business_id",selected).order("created_at",{ascending:false}),
-   db().rpc("business_employee_activity",{p_business:selected,p_days:30}),
-    db().rpc("business_dashboard_metrics",{p_business:selected,p_days:periodDays}),
-    db().rpc("business_reward_ranking",{p_business:selected,p_days:periodDays}),
-    db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true}),
-     db().rpc("business_growth_series",{p_business:selected,p_days:periodDays}),
-     db().rpc("business_growth_summary",{p_business:selected,p_days:periodDays})
+   forReport||forCustomers||forCard?db().rpc("business_customer_directory",{p_business:selected}):empty,
+   forReport||forTeam?db().rpc("business_staff_directory",{p_business:selected}):empty,
+   forTeam?db().from("business_invitations").select("id,email,role,created_at").eq("business_id",selected).is("claimed_at",null):empty,
+   forLocations?db().from("business_locations").select("*").eq("business_id",selected):empty,
+   forReport?db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id,employee_id,reversal_of,reversal_reason").eq("business_id",selected).order("created_at",{ascending:false}).limit(250):empty,
+   forCampaign?db().from("marketing_campaigns").select("id,subject,body_text,channel,template_name,template_language,status,recipient_count,sent_count,failed_count,created_at").eq("business_id",selected).order("created_at",{ascending:false}):empty,
+   forReport?db().rpc("business_employee_activity",{p_business:selected,p_days:30}):empty,
+    forReport?db().rpc("business_dashboard_metrics",{p_business:selected,p_days:periodDays}):empty,
+    forReport?db().rpc("business_reward_ranking",{p_business:selected,p_days:periodDays}):empty,
+    forCard?db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true}):empty,
+     forReport?db().rpc("business_growth_series",{p_business:selected,p_days:periodDays}):empty,
+     forReport?db().rpc("business_growth_summary",{p_business:selected,p_days:periodDays}):empty
   ]);
   setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
   setStaff((s.data||[]) as Employee[]);setInvites(i.data||[]);setLocations((l.data||[]) as Location[]);
@@ -109,6 +114,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    setMetrics((m.data||[]) as MetricRow[]);setGrowth((g.data||[]) as GrowthRow[]);setGrowthSummary((gs.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
   const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error;
   if(failure)setError(failure.message);
+  if(forCampaign){
   const [pricing,used,pushItems]=await Promise.all([
    db().rpc(marketingChannel==="email"?"business_mail_quote":marketingChannel==="whatsapp"?"business_whatsapp_quote":"business_push_pricing",{p_business:selected}),
    db().rpc("business_marketing_usage",{p_business:selected}),
@@ -121,8 +127,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setDrafts([...(d.data||[]) as Draft[],...(pushItems.data||[]) as Draft[]]
    .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)));
   if(pushItems.error)setError(pushItems.error.message);
+  }
   setLoading(false);
- },[selected,periodDays,marketingChannel]);
+ },[selected,periodDays,marketingChannel,tab]);
  useEffect(()=>{reload()},[reload]);
  function success(s:string){setNotice(s);setError("");showActionToast(s)}
  async function saveBusiness(fields:Partial<Business>){
@@ -191,10 +198,10 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setBusy(true);setError("");setNotice("");
   try{
    const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]/g,"-");
-   const key=selected+"/"+Date.now()+"-"+safe;
-   const {error}=await db().storage.from("business-assets").upload(key,file,{contentType:file.type,upsert:false});
+   const key=selected+"/"+(field==="card_background"?"cardbg-":"")+Date.now()+"-"+safe;
+   const {data:uploaded,error}=await db().storage.from("business-assets").upload(key,file,{contentType:file.type,upsert:false});
    if(error){setError(error.message);return}
-   const {data}=db().storage.from("business-assets").getPublicUrl(key);
+   const {data}=db().storage.from("business-assets").getPublicUrl(uploaded?.path||key);
    await persistAsset(field,data.publicUrl);
   }finally{setBusy(false)}
  }
@@ -309,7 +316,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
     <div className="workspace-section-body">
    {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success"><Check size={17}/>{notice}</div>}
    {loading&&!biz?<div className="soft-panel">Cargando negocio...</div>:biz&&prog&&<>
-   {tab==="card"&&<div className="owner-card-intro"><div><h3>Tu programa de fidelización</h3><p>Personaliza el aspecto de tu tarjeta, define cómo se consiguen las recompensas y configura tus premios desde este mismo lugar.</p></div><span className="owner-card-mode">{prog.type==="stamps"?"Tarjeta de sellos":prog.type==="points"?"Tarjeta de puntos":"Tarjeta de cashback"}</span></div>}
+   {tab==="card"&&<div className="owner-card-intro"><div><h3>Configuración de la tarjeta</h3><p>Diseño, funcionamiento y recompensas.</p></div><span className="owner-card-mode">{prog.type==="stamps"?"Tarjeta de sellos":prog.type==="points"?"Tarjeta de puntos":"Tarjeta de cashback"}</span></div>}
     {tab==="card"&&<nav className="business-card-tabs" aria-label="Configurar mi tarjeta">
     <button type="button" className={cardArea==="design"?"active":""} aria-pressed={cardArea==="design"} onClick={()=>setCardArea("design")}><Brush size={16}/> 1. Diseño</button>
     <button type="button" className={cardArea==="rules"?"active":""} aria-pressed={cardArea==="rules"} onClick={()=>setCardArea("rules")}><Ticket size={16}/> 2. Funcionamiento y límites</button>
@@ -318,7 +325,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
 
    {tab==="overview"&&<div className="owner-start">
      <div className="owner-start-hero"><span className="page-eyebrow">TU ESPACIO</span>
-      <h3>Todo tu negocio, más sencillo.</h3><p>Configura tu tarjeta, coordina al equipo, analiza el crecimiento y comunícate con tus clientes desde cada sección.</p></div>
+      <h3>Panel de tu negocio</h3></div>
      <div className="owner-start-actions">
       <button type="button" onClick={()=>openSection("card")}><KreyvIcon name="mi-tarjeta" size={25}/><strong>Tarjeta</strong><span>Diseño, sellos, límites y premios</span><ArrowUpRight size={18}/></button>
       <button type="button" onClick={()=>openSection("team")}><KreyvIcon name="perfil" size={25}/><strong>Empleados</strong><span>Accesos e invitaciones</span><ArrowUpRight size={18}/></button>
@@ -332,7 +339,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido para tus tarjetas y sellos. Puedes cambiarlo desde «Mi tarjeta». Los marcadores del mapa indican si el cliente ya tiene tu tarjeta.</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form></div>}
 
    {tab==="card"&&cardArea==="design"&&<div className="designer-grid lp-new-designer">
-    <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseño de la tarjeta</h2><p className="muted">Colores, imagen, mensaje, logotipo y estilo de los sellos. La vista previa se actualiza mientras editas.</p>
+    <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseño de la tarjeta</h2>
      <div className="form-stack">
       <div className="owner-card-brand-upload"><div className="owner-card-brand-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logotipo actual del negocio"/>:<span style={{background:biz.accent_color}}>{initials(biz.name)}</span>}</div>
        <div><strong>Logotipo de la tarjeta</strong><small>También se utiliza en la ficha del negocio.</small>
@@ -375,7 +382,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
      <a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Previsualizar mi tarjeta <ArrowUpRight size={17}/></a>
     </section>
    </div>}
-   {tab==="card"&&cardArea==="rules"&&<form className="panel-card program-form" onSubmit={saveProgram}><div className="panel-icon"><Gift size={22}/></div><h2>Funcionamiento y límites</h2><p className="muted">Elige sellos, puntos o cashback; establece el objetivo, los máximos por compra y las medidas de seguridad. La modalidad se bloquea cuando ya existen clientes inscritos.</p><div className="program-type-grid">{([{id:"stamps",label:"Sellos",desc:"Cada compra suma sellos",icon:<Ticket/>},{id:"points",label:"Puntos",desc:"Puntos por importe gastado",icon:<StarIcon/>},{id:"cashback",label:"Saldo a favor",desc:"Recupera parte de tus compras",icon:<Wallet/>}] as const).map(x=><button type="button" key={x.id} className={"program-type"+(prog.type===x.id?" selected":"")} disabled={customers.length>0&&prog.type!==x.id} onClick={()=>setProg({...prog,type:x.id})}><span>{x.icon}</span><strong>{x.label}</strong><small>{x.desc}</small></button>)}</div><div className="form-stack">
+   {tab==="card"&&cardArea==="rules"&&<form className="panel-card program-form" onSubmit={saveProgram}><div className="panel-icon"><Gift size={22}/></div><h2>Funcionamiento y límites</h2><p className="muted">La modalidad no se puede cambiar si ya hay tarjetas inscritas.</p><div className="program-type-grid">{([{id:"stamps",label:"Sellos",desc:"Cada compra suma sellos",icon:<Ticket/>},{id:"points",label:"Puntos",desc:"Puntos por importe gastado",icon:<StarIcon/>},{id:"cashback",label:"Saldo a favor",desc:"Recupera parte de tus compras",icon:<Wallet/>}] as const).map(x=><button type="button" key={x.id} className={"program-type"+(prog.type===x.id?" selected":"")} disabled={customers.length>0&&prog.type!==x.id} onClick={()=>setProg({...prog,type:x.id})}><span>{x.icon}</span><strong>{x.label}</strong><small>{x.desc}</small></button>)}</div><div className="form-stack">
    <label>Nombre de la recompensa<input value={prog.reward_label} required onChange={e=>setProg({...prog,reward_label:e.target.value})} placeholder="Café gratis"/></label>
    {prog.type==="stamps"&&<div className="form-two"><label>Sellos necesarios para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label><label>Máx. sellos por operación<input type="number" min={1} max={100} value={prog.max_stamps_per_action} onChange={e=>setProg({...prog,max_stamps_per_action:Number(e.target.value)})}/></label></div>}
    {prog.type==="points"&&<div className="form-two"><label>Puntos por cada unidad monetaria ({currency})<input type="number" min={0.01} max={100} step=".01" value={prog.points_per_euro} onChange={e=>setProg({...prog,points_per_euro:Number(e.target.value)})}/></label><label>Puntos para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label></div>}
@@ -435,7 +442,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
      </div>
     </form>}
    </div>}
-    {tab==="reports"&&<>
+    {tab==="reports"&&<div className="owner-reports-stack">
    <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType}/>
    <div className="panel-card"><h2>Actividad por empleado · últimos 30 días</h2>
     <p className="muted">Total de operaciones de compra verificadas manualmente. Los reembolsos se detallan en el historial.</p>
@@ -461,13 +468,13 @@ export default function BusinessWorkspace({account}:{account:Account}){
          <span title={t.reversal_reason||"Movimiento ya corregido"} className="table-pill inactive">{t.kind==="reversal"?"Registrado":"Corregido"}</span>}</td>
       </tr>})}</tbody></table></div>
    </div>
- </>}
+ </div>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">
     <div className="owner-campaign-switch" role="group" aria-label="Tipo de campaña">
      <button type="button" className={campaignMode==="once"?"active":""} onClick={()=>setCampaignMode("once")}>Campañas puntuales</button>
      <button type="button" className={campaignMode==="automatic"?"active":""} onClick={()=>setCampaignMode("automatic")}>Campañas automáticas</button>
     </div>
-    {campaignMode==="automatic"?<BusinessAutomationPanel businessId={selected} programType={prog.type}/>:campaignView==="list"?<>
+    {campaignMode==="automatic"?<BusinessAutomationPanel businessId={selected} programType={prog.type} currency={currency}/>:campaignView==="list"?<>
       {!!selected&&<BusinessOffersPanel businessId={selected} onCreated={()=>void reload()} onCampaignsLoaded={onGroupedCampaigns}/>}
 
 

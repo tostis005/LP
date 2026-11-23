@@ -429,3 +429,125 @@
  .owner-card-brand-upload{flex-direction:column;align-items:flex-start}
  .owner-card-brand-preview{width:65px;height:65px}
 }
+
+
+/* Tarjetas: proporción ID-1 (85,6 x 54 mm), sin aumentar la altura
+   cuando hay más sellos, textos o vistas pequeñas. */
+.stamp-visual-card,
+.business-preview-nonstamp,
+.loyalty-card,
+.loyalty-card.stamp-card-real,
+.customer-deck-card,
+.loyally-modal-card-preview{
+ aspect-ratio:1.586;
+ min-height:0;
+ height:auto;
+ max-height:none;
+ overflow:hidden;
+ box-sizing:border-box
+}
+.stamp-visual-card{
+ padding:clamp(12px,2vw,20px);
+ gap:clamp(3px,.7vw,7px);
+ background-size:cover
+}
+.stamp-visual-card .stamp-business-logo{
+ width:clamp(30px,4.8vw,40px);height:clamp(30px,4.8vw,40px);
+ border-radius:11px;font-size:17px;flex:none
+}
+.stamp-visual-card .stamp-visual-title{gap:2px;min-width:0}
+.stamp-visual-card .stamp-visual-title>span{
+ font-size:clamp(7px,.75vw,9px);white-space:nowrap;text-overflow:ellipsis;overflow:hidden
+}
+.stamp-visual-card .stamp-visual-title>strong{
+ font-size:clamp(17px,2.5vw,25px);line-height:1.04;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.stamp-visual-card .stamp-grid{
+ display:grid;grid-template-columns:repeat(var(--stamp-columns),minmax(0,1fr));
+ width:min(100%,300px);margin:0;gap:clamp(2px,.45vw,5px);
+ flex:0 1 auto;min-height:0
+}
+.stamp-visual-card .stamp-slot{
+ max-width:clamp(16px,2.2vw,25px);
+ border-width:1px
+}
+.stamp-visual-card .stamp-slot svg,
+.stamp-visual-card .stamp-slot img{max-width:85%;max-height:85%;height:auto}
+.stamp-visual-card.is-dense .stamp-slot{max-width:18px}
+.stamp-visual-card.is-very-dense .stamp-slot{max-width:14px}
+.stamp-visual-card.is-very-dense{gap:3px}
+.stamp-visual-card.is-very-dense .stamp-visual-title>span{display:none}
+.stamp-visual-card .stamp-visual-footer{min-height:0;gap:8px}
+.stamp-visual-card .stamp-visual-footer>div:first-child{min-width:0;display:grid;gap:2px}
+.stamp-visual-card .stamp-visual-footer strong{font-size:clamp(10px,1.2vw,13px);line-height:1.2}
+.stamp-visual-card .stamp-reward-name{
+ font-size:clamp(9px,1.1vw,12px);white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis
+}
+.stamp-visual-card .stamp-qr-white{padding:2px;border-radius:7px}
+.stamp-visual-card .stamp-qr-white svg{width:clamp(38px,5vw,62px);height:auto}
+
+/* En Mis tarjetas la tarjeta no cambia de formato al cambiar de pantalla. */
+.customer-deck-card{
+ width:100%;
+ padding:clamp(12px,3.8vw,19px);
+ gap:clamp(4px,.8vw,8px);
+ border-radius:clamp(16px,3vw,23px);
+ justify-content:space-between
+}
+.customer-deck-card .customer-deck-top{gap:8px;min-height:0}
+.customer-deck-card .customer-deck-brand{
+ width:clamp(28px,7.5vw,36px);height:clamp(28px,7.5vw,36px);
+ border-radius:9px
+}
+.customer-deck-card .customer-deck-type{font-size:clamp(10px,2.4vw,12px)}
+.customer-deck-card .customer-deck-counter{font-size:clamp(14px,3.4vw,18px)}
+.customer-deck-card .customer-deck-name{font-size:clamp(18px,4.8vw,25px);line-height:1.05}
+.customer-deck-card .customer-deck-reward{
+ font-size:clamp(10px,2.7vw,13px);min-height:0;line-height:1.25;
+ -webkit-line-clamp:1
+}
+.customer-deck-card .customer-deck-stamps{gap:4px;margin-top:auto}
+.customer-deck-card .customer-deck-stamps i{width:clamp(10px,2.8vw,17px);max-width:17px}
+.customer-deck-card .customer-deck-bottom{font-size:clamp(9px,2.55vw,12px)}
+.loyalty-card,.loyalty-card.stamp-card-real{
+ padding:clamp(13px,3.5vw,22px);gap:6px;justify-content:space-between
+}
+.loyalty-card .lc-top .lc-logo{width:36px;height:36px;border-radius:10px}
+.loyalty-card .lc-middle{gap:2px;min-height:0}
+.loyalty-card .lc-middle strong{font-size:clamp(18px,4vw,25px);line-height:1.08}
+.loyalty-card .lc-middle .lc-reward-label{font-size:11px}
+.loyalty-card .lc-stamp-grid{gap:3px;margin:1px 0}
+.loyalty-card .lc-stamp-grid .stamp-slot{max-width:19px}
+.loyalty-card.is-very-dense .lc-stamp-grid .stamp-slot{max-width:13px}
+.loyalty-card .lc-bottom{font-size:11px}
+.loyalty-card .lc-qr-small svg{width:36px;height:36px}
+.loyally-modal-card-preview{
+ padding:clamp(11px,3vw,18px);gap:5px;
+ justify-content:space-between;align-content:space-between
+}
+.loyally-modal-card-preview .lc-stamp-grid{margin:0;gap:3px;min-height:0}
+.loyally-modal-card-preview .lc-stamp-grid .stamp-slot{max-width:21px}
+.loyally-modal-card-preview>strong{font-size:clamp(13px,3vw,18px);line-height:1.2}
+.loyally-modal-card-preview>small{font-size:clamp(10px,2vw,12px)}
+.business-preview-nonstamp{background-size:cover;background-position:center}
+
+/* Informes: espacio constante entre gráficos, canjes y actividad de caja. */
+.owner-reports-stack{display:grid;gap:20px}
+.owner-reports-stack>.panel-card{
+ margin-top:0!important;
+ min-width:0
+}
+.owner-reports-stack .owner-data-dashboard{gap:20px}
+.owner-reports-stack .owner-ranking{margin-bottom:0}
+@media(max-width:420px){
+ .stamp-visual-card{padding:11px;gap:3px}
+ .stamp-visual-card .stamp-slot{max-width:17px}
+ .stamp-visual-card.is-very-dense .stamp-slot{max-width:12px}
+ .stamp-visual-card .stamp-visual-title>strong{font-size:18px}
+ .stamp-visual-card .stamp-visual-footer strong{font-size:10px}
+ .customer-deck-card{padding:12px;gap:4px}
+ .customer-deck-card .customer-deck-name{font-size:18px}
+ .loyalty-card .lc-top .lc-logo{width:30px;height:30px}
+}

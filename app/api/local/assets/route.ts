@@ -1,5 +1,6 @@
 import { mkdir,writeFile } from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 import {actorFromRequest,asActor,ApiError,checkOrigin,responseError} from "@/lib/server/db";
 export const runtime="nodejs";
 const allowed=new Map([["image/png","png"],["image/jpeg","jpeg"],["image/webp","webp"]]);
@@ -25,16 +26,28 @@ export async function POST(request:Request) {
   if(!expected[file.type]?.includes(ext))throw new ApiError("La extensión no coincide con el tipo de imagen.");
   const image=Buffer.from(await file.arrayBuffer());
   if(!genuine(image,file.type))throw new ApiError("El contenido no corresponde al tipo de imagen indicado.");
+  // Los fondos de tarjeta se guardan ya en formato WEBP y con proporción
+  // de tarjeta bancaria (1.586). Campañas y logos conservan sus archivos.
+  const isCardBackground=match[2].startsWith("cardbg-");
+  const outputName=isCardBackground?match[2].replace(/\.(png|jpe?g|webp)$/i,".webp"):match[2];
+  let output:Buffer<ArrayBufferLike>=image;
+  if(isCardBackground){
+   try{
+    output=await sharp(image,{limitInputPixels:36_000_000,failOn:"error"})
+     .rotate().resize(1200,756,{fit:"cover",position:"attention",withoutEnlargement:true})
+     .webp({quality:76,effort:4}).toBuffer();
+   }catch{throw new ApiError("No se ha podido procesar la imagen. Prueba con otra foto.");}
+  }
   const dir=path.join(process.cwd(),"uploads","business-assets",match[1]);
-  const full=path.join(dir,match[2]);
+  const full=path.join(dir,outputName);
   await asActor(actor,async client=>{
    // La autorización de imágenes usa el mismo permiso que crear campañas.
    // No depende de los privilegios de escritura directos sobre storage.objects.
-   await client.query("SELECT public.register_business_asset($1::uuid,$2::text)",[match[1],match[2]]);
+   await client.query("SELECT public.register_business_asset($1::uuid,$2::text)",[match[1],outputName]);
    await mkdir(dir,{recursive:true});
-   try{await writeFile(full,image,{flag:"wx",mode:0o640})}
+   try{await writeFile(full,output,{flag:"wx",mode:0o640})}
    catch(e){throw e}
   });
-  return Response.json({path:key});
+  return Response.json({path:match[1]+"/"+outputName});
  }catch(e){return responseError(e)}
 }

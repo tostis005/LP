@@ -86,6 +86,8 @@ jobs:
         run: node tests/demo/customer-visual-balance.mjs
       - name: Verificar Tarjeta del dueño y flujos automáticos sin ejemplos
         run: node tests/demo/owner-final-card-flows.mjs
+      - name: Validar informes e imágenes del ejemplo Café Noma
+        run: node tests/demo/owner-noma-polish.mjs
       - name: Validar informes y campañas automáticas del dueño
         run: node tests/demo/owner-growth-automation.mjs
       - name: Validar roles, crecimiento y flujos automáticos
@@ -199,6 +201,8 @@ jobs:
         run: node tests/native/automation-flow.mjs
       - name: Probar catálogo completo de disparadores en PostgreSQL
         run: node tests/native/automation-trigger-catalog.mjs
+      - name: Validar muestra de Café Noma en PostgreSQL
+        run: node tests/native/cafe-noma-example.mjs
       - name: Comprobar permisos, métricas y colas automáticas en PostgreSQL
         run: node tests/native/growth-automation.mjs
       - name: Crear sandbox real de Tijuana y verificar QR, privacidad y tarifas

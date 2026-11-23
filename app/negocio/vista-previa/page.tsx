@@ -9,6 +9,7 @@ import {db} from "@/lib/supabase";
 import {categoryStampKind} from "@/lib/business-categories";
 import {programPromise} from "@/lib/program-presentation";
 import {money} from "@/lib/format";
+import {cardBackgroundUrl} from "@/lib/card-images";
 
 function Preview({account}:{account:Account}){
  const [business,setBusiness]=useState<Business|null>(null),[program,setProgram]=useState<Program|null>(null);
@@ -52,7 +53,7 @@ function Preview({account}:{account:Account}){
       logoUrl={business.logo_url} backgroundUrl={business.card_background} textColor={business.card_text_color}
       stampColor={business.stamp_color} message={business.card_text||"GRACIAS POR VOLVER"}/>:
      <div className="business-preview-nonstamp" style={{backgroundColor:business.accent_color,color:business.card_text_color||"#fff",
-      backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.35),rgba(0,0,0,.16)),url("+business.card_background+")":undefined}}>
+      backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.35),rgba(0,0,0,.16)),url("+cardBackgroundUrl(business.card_background,1200)+")":undefined}}>
       <div className="stamp-visual-head"><span className="stamp-business-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:business.name.slice(0,1)}</span><span className="stamp-visual-pill">KREYV CLUB</span></div>
       <div className="business-preview-nonstamp-body"><small>{business.card_text||"GRACIAS POR VOLVER"}</small>
        <h3>{business.name}</h3><p>{program.reward_label}</p></div>

@@ -44,7 +44,9 @@ try{
    [b.rows[0].id,type,reward,cost]);
   await client.query("INSERT INTO public.business_locations(business_id,name,address,city,country,lat,lng,visible) VALUES($1,$2,$3,'Tijuana','México',$4,$5,true)",
    [b.rows[0].id,name+" · "+zone,zone+" (ubicación de demostración)",lat,lng]);
-  await client.query("INSERT INTO public.business_members(business_id,user_id,role,active) VALUES($1,$2,'owner',true)",[b.rows[0].id,ids.admin]);
+  // El administrador es administrador global, no dueño de los diez negocios.
+  // En el perfil de negocio solo se le asigna Café Noma como muestra.
+  if(slug==="cafe-noma")await client.query("INSERT INTO public.business_members(business_id,user_id,role,active) VALUES($1,$2,'owner',true)",[b.rows[0].id,ids.admin]);
  }
  await client.query("INSERT INTO public.business_members(business_id,user_id,role) VALUES($1,$2,'owner')",[businessIds["cafe-noma"],ids.gestor]);
  await client.query("INSERT INTO public.business_members(business_id,user_id,role) VALUES($1,$2,'employee')",[businessIds["cafe-noma"],ids.empleado]);

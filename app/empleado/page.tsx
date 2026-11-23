@@ -104,7 +104,7 @@ function StaffMain({account}:{account:Account}){
      const willReach=!reached&&card.program_type==="stamps"&&(card.earned_total||0)+stamps>=note.target;
      return <div key={note.name+"-"+note.target} className={"staff-campaign-note"+(willReach?" due":"")}>
       <b>{note.name}</b><p>{note.instruction}</p>
-      <small>{note.redeemed?"Regalo ya entregado":reached?"Objetivo alcanzado; pendiente de validar entrega":willReach?"Se alcanza con esta compra":"Objetivo: "+note.target+" sellos"} · Límite {dateShort(note.expires_at)}</small>
+      <small>{note.redeemed?"Regalo ya entregado":reached?"Objetivo alcanzado; pendiente de validar entrega":willReach?"Se alcanza con esta compra":"Objetivo: "+units(note.target,card.program_type,currency)} · Límite {dateShort(note.expires_at)}</small>
       {(reached||note.redeemed)&&<button type="button" className="staff-bonus-claim" disabled={busy||note.redeemed}
        onClick={()=>void claimBonus(note)}><Check size={16}/>{note.redeemed?"Regalo entregado":"Confirmar entrega del regalo"}</button>}
      </div>;
