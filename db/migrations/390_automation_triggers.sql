@@ -69,7 +69,8 @@ BEGIN
   FROM public.automation_rules r
   WHERE r.business_id=NEW.business_id AND r.active AND r.trigger_kind='inactivity'
   ON CONFLICT(rule_id,membership_id) DO UPDATE
-  SET due_at=EXCLUDED.due_at,status='pending',processed_at=NULL;
+  SET due_at=EXCLUDED.due_at,status='pending',processed_at=NULL
+  WHERE public.automation_queue.status <> 'delivered';
  ELSIF NEW.kind='redeem' AND NEW.reversal_of IS NULL THEN
   SELECT count(*)::integer INTO v_count FROM public.loyalty_transactions t
   WHERE t.membership_id=NEW.membership_id AND t.kind='redeem'
