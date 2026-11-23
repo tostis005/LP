@@ -13,7 +13,7 @@ try{
  assert.ok(sites.every(s=>s.public_listing===true),"QA fixture stores must appear in customer discovery during validation");
  const cafe=sites.find(s=>s.slug==="interno-cafe-noma");assert.ok(cafe);
  const owned=await db.query("SELECT count(*)::int n FROM public.business_members WHERE user_id=$1 AND role='owner' AND active",[users.gestor]);
- assert.equal(owned.rows[0].n,10,"Business owner sees all ten locations");
+ assert.equal(owned.rows[0].n,1,"Business owner manages only Café Noma; superadmin sees all shops separately");
  const cards=await db.query("SELECT m.id,m.card_token,m.balance FROM public.loyalty_memberships m WHERE m.customer_id=$1",[users.cliente]);
  assert.equal(cards.rowCount,4,"Customer needs four actual cards");
  assert.ok(cards.rows.every(c=>/^[0-9a-f-]{36}$/i.test(c.card_token)),"Every card has a valid QR token");
