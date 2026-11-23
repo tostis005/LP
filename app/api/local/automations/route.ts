@@ -51,13 +51,13 @@ export async function POST(request:Request){
   }
   const name=trim(input.name),title=trim(input.title),preview=trim(input.preview),
    details=trim(input.details),instruction=trim(input.staff_instruction);
-  const trigger=input.trigger_kind,days=input.delay_days,stamps=input.target_stamps,window=input.window_days;
+  const trigger=input.trigger_kind,days=Number(input.delay_days),stamps=Number(input.target_stamps),window=Number(input.window_days);
   if(name.length<3||name.length>70||title.length<3||title.length>50||
    preview.length<3||preview.length>120||details.length<3||details.length>6000||
-   !Number.isInteger(days)||days!<0||days!>90||!["signup","stamps"].includes(trigger||""))
+   !Number.isInteger(days)||days<0||days>90||!["signup","stamps"].includes(trigger||""))
    throw new ApiError("Revisa el nombre, mensaje y días de espera.");
-  if(trigger==="stamps"&&(!Number.isInteger(stamps)||stamps!<1||stamps!>100||
-   !Number.isInteger(window)||window!<1||window!>365||instruction.length>250))
+  if(trigger==="stamps"&&(!Number.isInteger(stamps)||stamps<1||stamps>100||
+   !Number.isInteger(window)||window<1||window>365||instruction.length>250))
    throw new ApiError("Indica un umbral de sellos y una vigencia válida.");
   if(trigger==="signup"&&instruction)throw new ApiError("La instrucción de caja solo se utiliza con sellos.");
   const id=await asActor(actor,async client=>{
