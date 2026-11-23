@@ -86,6 +86,8 @@ jobs:
         run: node tests/demo/customer-visual-balance.mjs
       - name: Verificar Tarjeta del dueño y flujos automáticos sin ejemplos
         run: node tests/demo/owner-final-card-flows.mjs
+      - name: Comprobar tarjeta visual, QR y datos interactivos del negocio
+        run: node tests/demo/owner-card-chart-priority.mjs
       - name: Validar informes e imágenes del ejemplo Café Noma
         run: node tests/demo/owner-noma-polish.mjs
       - name: Verificar Café Noma, notificaciones y mapa sin navegación duplicada

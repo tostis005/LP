@@ -551,3 +551,231 @@
  .customer-deck-card .customer-deck-name{font-size:18px}
  .loyalty-card .lc-top .lc-logo{width:30px;height:30px}
 }
+
+
+/* Inicio: navegación principal en el menú; aquí la tarjeta real del negocio. */
+.owner-start{display:grid;gap:18px}
+.owner-start-hero{padding:clamp(19px,3vw,30px)}
+.owner-start-hero h3{margin:6px 0 5px}
+.owner-start-card{
+ display:grid;gap:15px;padding:clamp(16px,3vw,23px);
+ border:1px solid #e7d9d3;border-radius:21px;
+ background:#fffdf9;
+}
+.owner-start-card-heading{
+ display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:12px
+}
+.owner-start-card-heading h3{font-size:19px;letter-spacing:-.03em;color:var(--color-text);margin:0}
+.owner-start-card-preview{width:100%;max-width:560px;min-width:0;margin:auto}
+.owner-start-card-preview .stamp-visual-card{box-shadow:0 11px 31px #3d0f1b1e}
+.owner-start-card-preview .lp-other-program-preview{aspect-ratio:1.586;min-height:0}
+.owner-start-links{margin-top:0}
+
+/* ID-1: logo y nombre arriba a la izquierda, sellos grandes, mensaje debajo
+   y un QR nítido que ocupa cerca de un tercio del ancho de la tarjeta. */
+.stamp-visual-card.stamp-visual-rebalanced,
+.loyalty-card.loyalty-card-rebalanced{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,39%);
+ align-items:stretch;justify-content:stretch;
+ width:100%;aspect-ratio:1.586;height:auto;
+ min-height:0!important;max-height:none;
+ box-sizing:border-box;
+ padding:clamp(11px,3.7cqw,20px)!important;
+ gap:clamp(7px,2cqw,15px);
+ container-type:inline-size;
+ overflow:hidden;
+}
+.stamp-visual-card.stamp-visual-rebalanced.is-dense,
+.stamp-visual-card.stamp-visual-rebalanced.is-very-dense,
+.loyalty-card.loyalty-card-rebalanced.is-dense,
+.loyalty-card.loyalty-card-rebalanced.is-very-dense{
+ min-height:0!important;gap:clamp(5px,1.5cqw,10px)
+}
+.stamp-visual-rebalanced .stamp-visual-main,
+.loyalty-card-rebalanced .lc-card-content{
+ display:flex;flex-direction:column;align-items:flex-start;
+ justify-content:space-between;gap:clamp(2px,.65cqw,5px);
+ min-width:0;min-height:0;overflow:hidden;
+ text-align:left;
+}
+.stamp-visual-rebalanced .stamp-business-logo,
+.loyalty-card-rebalanced .lc-logo{
+ display:grid;place-items:center;
+ width:clamp(40px,14.5cqw,74px);
+ height:clamp(40px,14.5cqw,74px);
+ flex:none;border-radius:clamp(9px,2cqw,15px);
+ border:1px solid #ffffff8a;background:#fffdf1e0;
+ color:#541e32;font-size:clamp(19px,6cqw,33px);
+ overflow:hidden;
+}
+.stamp-visual-rebalanced .stamp-business-logo img,
+.loyalty-card-rebalanced .lc-logo img{
+ display:block;width:100%;height:100%;object-fit:contain
+}
+.stamp-visual-rebalanced .stamp-visual-name,
+.loyalty-card-rebalanced .lc-card-name{
+ display:block;width:100%;flex:none;
+ font-size:clamp(17px,5cqw,29px);
+ font-weight:850;line-height:1.1;
+ letter-spacing:-.045em;white-space:nowrap;
+ text-overflow:ellipsis;overflow:hidden;
+ color:inherit;
+}
+.stamp-visual-rebalanced .stamp-grid,
+.loyalty-card-rebalanced .lc-stamp-grid{
+ display:grid;grid-template-columns:repeat(var(--stamp-columns),minmax(0,clamp(22px,10cqw,43px)));
+ justify-content:start;align-content:start;
+ gap:clamp(2px,.75cqw,5px);
+ width:100%;max-width:100%;
+ min-height:0;flex:none;
+ padding:0;margin:0;
+}
+.stamp-visual-rebalanced .stamp-slot,
+.loyalty-card-rebalanced .lc-stamp-grid .stamp-slot{
+ width:100%;max-width:none;
+ aspect-ratio:1;border-width:1.5px
+}
+.stamp-visual-rebalanced .stamp-slot svg,
+.stamp-visual-rebalanced .stamp-slot img,
+.loyalty-card-rebalanced .lc-stamp-grid .stamp-slot svg,
+.loyalty-card-rebalanced .lc-stamp-grid .stamp-slot img{
+ width:78%;height:78%;max-width:none;max-height:none;
+ object-fit:contain
+}
+.stamp-visual-rebalanced .stamp-visual-message,
+.loyalty-card-rebalanced .lc-card-message{
+ display:-webkit-box;-webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ max-width:100%;min-height:0;overflow:hidden;
+ color:inherit;font-size:clamp(9px,2.25cqw,12px);
+ font-weight:750;letter-spacing:.015em;line-height:1.2;
+ opacity:.95;overflow-wrap:anywhere;
+}
+.stamp-visual-rebalanced .stamp-visual-footer{
+ display:grid;justify-items:start;align-items:start;
+ gap:1px;min-width:0;margin:0;flex:none;
+}
+.stamp-visual-rebalanced .stamp-visual-footer strong,
+.loyalty-card-rebalanced .lc-card-balance{
+ display:block;font-size:clamp(10px,2.5cqw,14px);
+ font-weight:850;line-height:1.1;color:inherit;
+}
+.stamp-visual-rebalanced .stamp-visual-footer .stamp-reward-name,
+.loyalty-card-rebalanced .lc-card-reward{
+ display:block;max-width:100%;
+ font-size:clamp(9px,2cqw,12px);
+ line-height:1.18;font-weight:650;color:inherit;
+ opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.stamp-visual-rebalanced .stamp-visual-side,
+.loyalty-card-rebalanced .lc-card-aside{
+ display:flex;flex-direction:column;align-items:center;
+ justify-content:space-between;gap:8px;min-width:0;min-height:0;
+}
+.stamp-visual-rebalanced .stamp-visual-pill,
+.loyalty-card-rebalanced .lc-chip{
+ display:block;max-width:100%;
+ padding:5px 7px;border-radius:100px;
+ border:1px solid currentColor;
+ font-size:clamp(7px,1.5cqw,9px);
+ letter-spacing:.035em;font-weight:850;
+ line-height:1.2;text-align:center;white-space:normal;
+ color:inherit
+}
+.stamp-visual-rebalanced .stamp-qr-white,
+.loyalty-card-rebalanced .lc-qr-large{
+ box-sizing:border-box;display:grid;place-items:center;
+ width:100%;max-width:195px;aspect-ratio:1;
+ padding:clamp(4px,1cqw,8px);
+ background:#fff;border-radius:clamp(9px,2cqw,15px);
+ box-shadow:0 3px 14px #0002;
+ min-width:0;flex:none;
+}
+.stamp-visual-rebalanced .stamp-qr-white svg,
+.loyalty-card-rebalanced .lc-qr-large svg{
+ display:block;width:100%;height:auto;max-height:100%;
+ aspect-ratio:1
+}
+.stamp-visual-rebalanced.is-dense .stamp-business-logo,
+.loyalty-card-rebalanced.is-dense .lc-logo{
+ width:clamp(34px,11cqw,53px);height:clamp(34px,11cqw,53px)
+}
+.stamp-visual-rebalanced.is-dense .stamp-grid,
+.loyalty-card-rebalanced.is-dense .lc-stamp-grid{
+ grid-template-columns:repeat(var(--stamp-columns),minmax(0,clamp(18px,7cqw,30px)));
+ gap:2px
+}
+.stamp-visual-rebalanced.is-very-dense .stamp-business-logo,
+.loyalty-card-rebalanced.is-very-dense .lc-logo{
+ width:clamp(27px,8.3cqw,40px);height:clamp(27px,8.3cqw,40px)
+}
+.stamp-visual-rebalanced.is-very-dense .stamp-grid,
+.loyalty-card-rebalanced.is-very-dense .lc-stamp-grid{
+ grid-template-columns:repeat(var(--stamp-columns),minmax(0,clamp(13px,5.2cqw,24px)));
+ gap:1px
+}
+.stamp-visual-rebalanced.is-very-dense .stamp-visual-message,
+.loyalty-card-rebalanced.is-very-dense .lc-card-message{
+ -webkit-line-clamp:1;font-size:9px
+}
+.stamp-visual-rebalanced.is-very-dense .stamp-visual-name,
+.loyalty-card-rebalanced.is-very-dense .lc-card-name{
+ font-size:clamp(15px,4.2cqw,21px)
+}
+.loyalty-card.loyalty-card-rebalanced{
+ text-align:left;background-size:cover;background-position:center;
+ border:1px solid #ffffff33
+}
+
+/* Valores accesibles en barras: táctil, ratón y teclado. */
+.owner-growth-chart .owner-growth-bar-track{
+ appearance:none;border:0;position:relative;cursor:pointer;
+ padding:0;text-align:inherit;color:inherit;overflow:visible;
+ -webkit-tap-highlight-color:transparent
+}
+.owner-growth-chart .owner-growth-bar-track:focus-visible{
+ outline:3px solid var(--color-brand);
+ outline-offset:3px;z-index:4
+}
+.owner-growth-chart .owner-growth-bar-track.is-selected{
+ box-shadow:inset 0 0 0 2px var(--color-brand-300);
+ z-index:3
+}
+.owner-growth-chart .owner-growth-bar-track>span.signup,
+.owner-growth-chart .owner-growth-bar-track>span.habitual{
+ flex:none;border-radius:8px 8px 0 0
+}
+.owner-growth-bar-tooltip{
+ position:absolute;left:50%;top:7px;transform:translateX(-50%);
+ display:grid!important;place-items:center;
+ min-width:32px;max-width:90px;width:auto!important;height:auto!important;
+ padding:5px 7px;border-radius:7px!important;
+ background:#5e1a2b!important;color:white!important;
+ font-size:12px;font-weight:900;line-height:1.2;
+ white-space:nowrap;box-shadow:0 5px 12px #0002;
+ pointer-events:none;z-index:5
+}
+.owner-growth-picked{
+ margin:8px 0 0;display:flex;align-items:baseline;flex-wrap:wrap;
+ gap:6px 9px;color:var(--color-brand);
+ font-size:12px;font-weight:700
+}
+.owner-growth-picked strong{font-size:13px;color:var(--color-brand)}
+@media(max-width:420px){
+ .owner-start-card{padding:13px}
+ .stamp-visual-card.stamp-visual-rebalanced,
+ .loyalty-card.loyalty-card-rebalanced{
+  padding:clamp(10px,3.5cqw,14px)!important;
+  gap:clamp(6px,1.75cqw,9px)
+ }
+ .stamp-visual-rebalanced .stamp-business-logo,
+ .loyalty-card-rebalanced .lc-logo{
+  width:clamp(38px,14cqw,52px);height:clamp(38px,14cqw,52px)
+ }
+ .stamp-visual-rebalanced .stamp-visual-name,
+ .loyalty-card-rebalanced .lc-card-name{font-size:clamp(16px,5cqw,20px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .owner-growth-chart .owner-growth-bar-track{transition:none}
+}

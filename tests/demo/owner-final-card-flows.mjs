@@ -16,7 +16,9 @@ assert.match(owner,/max_daily_awards_per_employee/);
 assert.match(owner,/card_background/);
 assert.match(owner,/saveDesigner/);
 assert.doesNotMatch(app,/business-mobile-all-sections/,"No secondary copy of the owner main navigation");
-for(const ico of ["mi-tarjeta","perfil","recompensa","campanas"])assert.match(owner,new RegExp('KreyvIcon name="'+ico+'"'),"Owner shortcut icons must match sidebar");
+assert.doesNotMatch(owner,/className="owner-start-actions"/,"Inicio must not duplicate the bottom navigation with four shortcuts");
+assert.match(owner,/className="owner-start-card-preview"/,"Inicio has a useful card preview instead of duplicate menu items");
+assert.match(owner,/owner-start-links/,"Customer list and business details remain accessible from Inicio");
 assert.doesNotMatch(ui,/automation-presets|function preset\(|Bienvenida después del alta|Regalo por cinco sellos|Un premio al alcanzar/,"No example or prefilled campaigns");
 assert.match(ui,/Sin campañas automáticas|Aún no tienes campañas automáticas/);
 for(const kind of ["signup","no_visit","visits","stamps","inactivity","first_redeem"]){
