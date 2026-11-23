@@ -49,6 +49,8 @@ function Discover({account}:{account:Account}){
    .join(" ").toLocaleLowerCase().includes(filter.toLocaleLowerCase())
  ).sort((a,b)=>hasLocation?distance(a)-distance(b):a.businesses.name.localeCompare(b.businesses.name,"es")),[entries,category,rewardType,filter,center,hasLocation,programByBusiness]);
  const pins:DirectoryPin[]=filtered.map(e=>({...e,hasCard:Boolean(myCards[e.business_id]),cardId:myCards[e.business_id],offerText:programPromise(programByBusiness.get(e.business_id))}));
+ // Una pulsación en un marcador no debe recentrar el mapa y perder la posición del usuario.
+ const mapCenter=useMemo<[number,number]>(()=>hasLocation?center:filtered.length?[filtered[0].lat,filtered[0].lng]:TIJUANA,[hasLocation,center,filtered[0]?.lat,filtered[0]?.lng]);
  const selected=selectedId?filtered.find(entry=>entry.id===selectedId)||null:null;
  const selectedCard=selected?myCards[selected.business_id]:null;
  const selectedProgram=selected?programByBusiness.get(selected.business_id):undefined;
@@ -76,7 +78,7 @@ function Discover({account}:{account:Account}){
    </div>
   </div>
   <section className="customer-map-stage" aria-label="Explorar negocios en el mapa">
-   <div className="directory-map directory-map-primary"><DirectoryMapView locations={pins} onSelect={pin=>setSelectedId(pin.id)} selectedId={selectedId} onDismiss={()=>setSelectedId(null)} center={hasLocation?center:(filtered.length?[filtered[0].lat,filtered[0].lng]:TIJUANA)}/></div>
+   <div className="directory-map directory-map-primary"><DirectoryMapView locations={pins} onSelect={pin=>setSelectedId(pin.id)} selectedId={selectedId} onDismiss={()=>setSelectedId(null)} center={mapCenter}/></div>
    <button type="button" className="customer-map-locate" onClick={locate} aria-label={hasLocation?"Actualizar mi ubicación":"Encontrar negocios cerca de mí"} title="Mi ubicación"><Navigation size={20}/></button>
    {selected&&<article className="customer-map-business-card" aria-label={"Negocio seleccionado: "+selected.businesses.name}>
     <button type="button" className="customer-map-card-close" onClick={()=>setSelectedId(null)} aria-label="Cerrar ficha del negocio"><X size={18}/></button>
