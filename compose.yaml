@@ -38,6 +38,26 @@ services:
         condition: service_healthy
     networks: [lp_private]
 
+
+  automation-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    command: ["node", "scripts/automation-worker.mjs"]
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB:?Falta POSTGRES_DB}
+      PGUSER: lp_auth
+      PGPASSWORD: ${AUTH_DB_PASSWORD:?Falta AUTH_DB_PASSWORD}
+    networks: [lp_private]
+
+
   web:
     build:
       context: .
