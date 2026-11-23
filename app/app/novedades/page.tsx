@@ -3,6 +3,7 @@ import {useCallback,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {ArrowUpRight,BellRing,Clock3,Gift} from "lucide-react";
 import {AppFrame} from "@/components/AppFrame";
+import {offerImageUrl} from "@/lib/offer-images";
 type Offer={id:string;business_id:string;business_name:string;title:string;preview:string;image_url:string|null;kind:"offer"|"news"|"notice";valid_from:string|null;
  valid_until:string|null;received_at:string;seen_at:string|null};
 export default function NewsPage(){
@@ -34,7 +35,7 @@ export default function NewsPage(){
    current.length?<div className="kreyv-news-grid">{current.map(o=>{
     const expired=o.kind==="offer"&&!!o.valid_until&&o.valid_until<now;
     return <Link key={o.id} href={"/app/novedades/"+o.id} className="kreyv-news-item">
-     {o.image_url&&<img src={o.image_url} alt="" loading="lazy"/>}
+     {o.image_url&&<img src={offerImageUrl(o.image_url,480)} alt="" loading="lazy" decoding="async"/>}
      <div className="kreyv-news-item-content">
       <div className="kreyv-news-meta"><span>{o.business_name}</span>
        {!o.seen_at&&<span className="kreyv-new-dot">Nueva</span>}</div>
