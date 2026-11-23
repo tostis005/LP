@@ -1,4 +1,5 @@
 "use client";
+import {useState} from "react";
 import {ArrowDownRight,ArrowUpRight,Gift,TrendingUp,Users} from "lucide-react";
 import {reportDateLabel} from "@/lib/report-date";
 export type MetricRow={metric:string;current_value:number;previous_value:number};
@@ -16,16 +17,33 @@ function Change({value,previous}:{value:number;previous:number}){
  </small>;
 }
 function MiniChart({title,description,rows,field}:{title:string;description:string;rows:GrowthRow[];field:"new_customers"|"habitual_customers"}){
+ const [selectedIndex,setSelectedIndex]=useState<number|null>(null);
  const numbers=rows.map(r=>Number(r[field]||0));
  const max=Math.max(1,...numbers);
  const sum=numbers.reduce((a,b)=>a+b,0);
+ const chosen=selectedIndex===null?null:rows[selectedIndex]||null;
+ const chosenValue=chosen?Number(chosen[field]||0):0;
  return <section className="panel-card owner-growth-chart" aria-label={title}>
-  <div className="owner-growth-chart-head"><div><h3>{title}</h3><p>{description}</p></div>{field==="new_customers"&&<strong>{integer(sum)}</strong>}</div>
-  <div className="owner-growth-bars" role="img" aria-label={rows.map(r=>reportDateLabel(r.bucket_start)+": "+integer(Number(r[field]||0))).join("; ")}>
+  <div className="owner-growth-chart-head">
+   <div><h3>{title}</h3><p>{description}</p>
+    {chosen&&<div className="owner-growth-picked" role="status" aria-live="polite">
+     <span>{reportDateLabel(chosen.bucket_start)}</span>
+     <strong>{integer(chosenValue)} {field==="new_customers"?"altas":"clientes"}</strong>
+    </div>}
+   </div>
+   {field==="new_customers"&&<strong>{integer(sum)}</strong>}
+  </div>
+  <div className="owner-growth-bars" aria-label={"Selecciona una barra para ver el valor de "+title.toLowerCase()}>
    {rows.map((r,i)=><div key={r.bucket_start} className="owner-growth-bar-col">
-    <div className="owner-growth-bar-track" title={reportDateLabel(r.bucket_start)+": "+integer(Number(r[field]||0))}>
+    <button type="button" className={"owner-growth-bar-track"+(selectedIndex===i?" is-selected":"")}
+     aria-label={reportDateLabel(r.bucket_start)+": "+integer(numbers[i])+" "+(field==="new_customers"?"altas":"clientes")}
+     aria-pressed={selectedIndex===i}
+     onClick={()=>setSelectedIndex(i)}
+     onPointerEnter={()=>setSelectedIndex(i)}
+     onFocus={()=>setSelectedIndex(i)}>
      <span className={field==="new_customers"?"signup":"habitual"} style={{height:Math.max(numbers[i]?6:0,numbers[i]/max*100)+"%"}}/>
-    </div>
+     {selectedIndex===i&&<span className="owner-growth-bar-tooltip" aria-hidden="true">{integer(numbers[i])}</span>}
+    </button>
     <small>{reportDateLabel(r.bucket_start)}</small>
    </div>)}
   </div>
