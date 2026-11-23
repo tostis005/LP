@@ -35,6 +35,6 @@ assert.doesNotMatch(push,/suscripción se ha perdido o ha caducado/);
 assert.match(push,/Enviar prueba/);
 assert.match(discover,/modalOnly onClose=\{\(\)=>setOpenCardId\(null\)\}/);
 assert.doesNotMatch(discover,/selectedCard\?"\/app\?card="/,"Never navigate out of Discover to view an existing card");
-assert.match(css,/grid-template-columns:minmax\(0,1fr\) max-content/);
+assert.match(css,/\.workspace-customer \.customer-discover-filterbar \.customer-map-categories\{[^}]*flex-wrap:wrap/,"Categories wrap into separate rows, never hide under Filtros");
 assert.match(css,/directory-map-legend>span/);
 console.log("OK: Café Noma 163, owner/admin isolation, responsive inbox, one-step join and map/settings navigation.");

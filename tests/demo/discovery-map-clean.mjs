@@ -19,6 +19,13 @@ assert.match(discover,/onDismiss=\{\(\)=>setSelectedId\(null\)\}/,"Map clicks cl
 assert.match(discover,/const mapCenter=useMemo/,"Selecting a marker must not automatically recenter the map");
 assert.match(discover,/center=\{mapCenter\}/,"Stable center keeps pan/zoom interactive");
 assert.match(discover,/customer-discover-tools/,"The search and filters sit above the map");
+assert.match(discover,/className="customer-discover-filter-header"/,"Reward filters get a dedicated toolbar");
+assert.match(discover,/className="customer-discover-filter-label">Categorías/,"Category chips have their own clearly labeled row");
+assert.ok(discover.indexOf('className="customer-discover-filter-header"')<discover.indexOf('className="customer-map-categories"'),"Reward filters must not float over horizontally scrolled categories");
+assert.match(css,/\.workspace-customer \.customer-discover-filterbar \.customer-map-categories\{[^}]*flex-wrap:wrap/,"Business categories must wrap instead of scrolling underneath Filtros");
+assert.match(css,/\.workspace-customer \.customer-discover-filterbar \.customer-map-categories\{[^}]*overflow:visible/,"No clipped horizontal chip carousel");
+assert.match(css,/\.workspace-customer \.customer-discover-filter-header \.customer-filter-toggle\{[^}]*position:static/,"Filters must not overlay the category row");
+
 assert.ok(discover.indexOf('className="customer-discover-tools"')<discover.indexOf('className="customer-map-stage"'),"Controls must be outside the map");
 assert.match(discover,/Ya tengo tarjeta/);
 assert.match(discover,/Aún no la tengo/);

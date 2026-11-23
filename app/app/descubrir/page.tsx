@@ -70,10 +70,13 @@ function Discover({account}:{account:Account}){
     {filter&&<button type="button" onClick={()=>setFilter("")} aria-label="Borrar búsqueda"><X size={18}/></button>}
    </div>
    <div className="customer-discover-filterbar">
-    <div className="customer-map-categories" aria-label="Categorías">{categories.map(c=><button key={c} type="button" className={"filter-chip"+(category===c?" selected":"")} aria-pressed={category===c} onClick={()=>setCategory(c)}>{c!=="Todos"&&<StampMark kind={categoryStampKind(c)} size={16}/>} {c}</button>)}</div>
-    <button type="button" className={"customer-filter-toggle"+(filtersOpen||rewardType!=="Todos"?" active":"")} aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(open=>!open)}><SlidersHorizontal size={17}/> Filtros{rewardType!=="Todos"?" · 1":""}</button>
+    <div className="customer-discover-filter-header">
+     <span className="customer-discover-filter-label">Categorías</span>
+     <button type="button" className={"customer-filter-toggle"+(filtersOpen||rewardType!=="Todos"?" active":"")} aria-expanded={filtersOpen} aria-controls="discover-reward-filters" onClick={()=>setFiltersOpen(open=>!open)}><SlidersHorizontal size={17}/> Filtros{rewardType!=="Todos"?" · 1":""}</button>
+    </div>
+    <div className="customer-map-categories" role="group" aria-label="Categorías de negocios">{categories.map(c=><button key={c} type="button" className={"filter-chip"+(category===c?" selected":"")} aria-pressed={category===c} onClick={()=>setCategory(c)}>{c!=="Todos"&&<StampMark kind={categoryStampKind(c)} size={16}/>} {c}</button>)}</div>
    </div>
-   {filtersOpen&&<div className="customer-map-filter-panel">
+   {filtersOpen&&<div id="discover-reward-filters" className="customer-map-filter-panel">
     <label>Tipo de recompensa <select aria-label="Tipo de recompensa" value={rewardType} onChange={e=>setRewardType(e.target.value)}>{["Todos",...PROGRAM_TYPES.map(x=>x.id)].map(t=><option key={t} value={t}>{t==="Todos"?"Todas":PROGRAM_TYPES.find(x=>x.id===t)?.label}</option>)}</select></label>
     {rewardType!=="Todos"&&<button type="button" onClick={()=>setRewardType("Todos")}>Limpiar</button>}
    </div>}
