@@ -19,7 +19,7 @@ function MiniChart({title,description,rows,field}:{title:string;description:stri
  const max=Math.max(1,...numbers);
  const sum=numbers.reduce((a,b)=>a+b,0);
  return <section className="panel-card owner-growth-chart" aria-label={title}>
-  <div className="owner-growth-chart-head"><div><h3>{title}</h3><p>{description}</p></div><strong>{integer(sum)}</strong></div>
+  <div className="owner-growth-chart-head"><div><h3>{title}</h3><p>{description}</p></div>{field==="new_customers"&&<strong>{integer(sum)}</strong>}</div>
   <div className="owner-growth-bars" role="img" aria-label={rows.map(r=>new Date(r.bucket_start+"T12:00:00").toLocaleDateString("es",{day:"numeric",month:"short"})+": "+integer(Number(r[field]||0))).join("; ")}>
    {rows.map((r,i)=><div key={r.bucket_start} className="owner-growth-bar-col">
     <div className="owner-growth-bar-track" title={new Date(r.bucket_start+"T12:00:00").toLocaleDateString("es",{day:"numeric",month:"short"})+": "+integer(Number(r[field]||0))}>
