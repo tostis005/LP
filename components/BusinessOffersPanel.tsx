@@ -1,5 +1,6 @@
 "use client";
 import {useCallback,useEffect,useMemo,useRef,useState} from "react";
+import {offerImageUrl} from "@/lib/offer-images";
 import {ArrowUpRight,BellRing,Check,ImagePlus,Mail,Plus,RefreshCcw,Users} from "lucide-react";
 import {db} from "@/lib/supabase";
 type Channel="email"|"whatsapp"|"push";
@@ -145,7 +146,7 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
     const key=businessId+"/oferta-"+crypto.randomUUID()+"."+ext;
     const uploaded=await db().storage.from("business-assets").upload(key,photo,{contentType:photo.type});
     if(uploaded.error)throw uploaded.error;
-    image=new URL(db().storage.from("business-assets").getPublicUrl(key).data.publicUrl).pathname;
+    image=new URL(db().storage.from("business-assets").getPublicUrl(uploaded.data?.path||key).data.publicUrl).pathname;
    }
    // Alta y confirmación del precio en una transacción: no requiere pulsar enviar otra vez.
    const created=await post("/api/local/offers",{
@@ -241,7 +242,7 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
     const chs=(offer.campaigns||[]).map(c=>c.channel);
     const currentPrice=chs.reduce((sum,ch)=>sum+Number(pricing?.channels[ch]?.total_cents||0),0);
     return <article className="kreyv-offer-campaign" key={offer.id}>
-     <div className="kreyv-offer-heading">{offer.image_url&&<img src={offer.image_url} alt="" loading="lazy"/>}
+     <div className="kreyv-offer-heading">{offer.image_url&&<img src={offerImageUrl(offer.image_url,480)} alt="" loading="lazy" decoding="async"/>}
       <div><strong>{offer.title}</strong><p>{offer.preview}</p>
        <small>{kindLabels[offer.kind||"offer"]}{offer.valid_from?" · Desde "+offer.valid_from:""}{offer.valid_until?" · Hasta "+offer.valid_until:""}</small></div></div>
      <div className="kreyv-offer-campaign-channels">{(offer.campaigns||[]).map(c=>

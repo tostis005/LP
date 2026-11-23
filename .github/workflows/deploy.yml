@@ -60,6 +60,8 @@ jobs:
         run: node tests/demo/owner-final-card-flows.mjs
       - name: Verificar informes, fechas e imágenes de tarjeta
         run: node tests/demo/owner-noma-polish.mjs
+      - name: Verificar navegacion y notificaciones
+        run: node tests/demo/noma-163-customer-ux.mjs
       - name: Verificar tarjetas optimizadas e informes de Café Noma
         run: node tests/demo/owner-noma-polish.mjs
       - name: TypeScript

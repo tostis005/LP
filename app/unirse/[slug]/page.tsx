@@ -20,7 +20,7 @@ export default function JoinPage(){
  const [offer,setOffer]=useState<Offer|null>(null),[business,setBusiness]=useState<Business|null>(null);
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
- const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[showMarketingPrompt,setShowMarketingPrompt]=useState(false),[marketingAccepted,setMarketingAccepted]=useState(false),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
+ const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con Kreyv.");setLoading(false);return}
   const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
@@ -49,29 +49,31 @@ export default function JoinPage(){
   }
   if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);
- async function join(confirmed=false,accepted=marketing){
-  if(!offer)return;
-  if(isBusinessAccount){setError("Para tener tarjetas y premios necesitas una cuenta de cliente independiente.");return;}
+ async function join(){
+  if(!offer||busy)return;
+  if(isBusinessAccount){setError("Para guardar tarjetas necesitas una cuenta de cliente.");return;}
   if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder");return;}
-  if(globalConsent===null&&!confirmed&&!accepted){setShowMarketingPrompt(true);return;}
-  if(globalConsent===null&&accepted&&!/^\+[1-9][0-9]{7,14}$/.test(phone.trim())){
-   setMarketing(true);
-   setError("Para activar también WhatsApp, indica tu teléfono con prefijo internacional, por ejemplo +526641234567.");
+  // Una sola acción inscribe la tarjeta; el consentimiento comercial es voluntario
+  // y está desmarcado de origen. El permiso del sistema push es siempre explícito.
+  const accepted=globalConsent===null?marketing:globalConsent;
+  if(accepted&&globalConsent===null&&!/^\+[1-9][0-9]{7,14}$/.test((phone||savedPhone).trim())){
+   setError("Para recibir avisos por WhatsApp, añade tu número con prefijo internacional.");
    return;
   }
-  setShowMarketingPrompt(false);setBusy(true);setError("");
+  setBusy(true);setError("");
   try{
-   if(globalConsent===null&&accepted&&phone.trim()!==savedPhone){
+   if(globalConsent===null&&accepted&&phone.trim()&&phone.trim()!==savedPhone){
     const update=await db().auth.updateUser({whatsapp:phone.trim()});
     if(update.error)throw update.error;
     setSavedPhone(phone.trim());
    }
-   // Alta y consentimientos separados por canal, guardados en una sola transacción.
    const result=await db().rpc("join_program_with_notifications",{
     p_business:offer.business_id,p_opted_in:accepted
    });
    if(result.error)throw result.error;
-   setMarketingAccepted(globalConsent??accepted);setGlobalConsent(globalConsent??accepted);setJoined(true);setSuccess(true);
+   setJoined(true);setSuccess(true);
+   const id=String(result.data||"");
+   router.replace("/app"+(/^[a-f0-9-]{36}$/i.test(id)?"?card="+encodeURIComponent(id):""));
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
  }
@@ -99,13 +101,13 @@ export default function JoinPage(){
        <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
       </div>}
       {isBusinessAccount?<div className="info-callout"><Heart size={19}/><div><strong>Esta ficha es para tus clientes</strong><p>Estás dentro con una cuenta de negocio. Para guardar tarjetas y premios, utiliza una cuenta de cliente independiente.</p><Link href="/negocio">Volver a mi negocio <ArrowUpRight size={16}/></Link></div></div>:
-      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p>{marketingAccepted&&<small>Promociones por correo, WhatsApp y push autorizadas para este negocio. Para recibir push también debes permitir las notificaciones del móvil.</small>}</div><div className="join-subscribed-links"><Link href="/app" className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link>{marketingAccepted&&<Link href="/app/ajustes" className="button button-outline">Activar push y gestionar avisos <BellRing size={16}/></Link>}</div></div>:
+      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><div className="join-subscribed-links"><Link href="/app" className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link></div></div>:
       <div className="join-subscribe">
        <h3>¿Te apuntas?</h3>
        <p>Unirte es gratis. Podrás consultar tus sellos y recompensas siempre que quieras.</p>
        {signed&&globalConsent===null&&<>
         <label className="join-marketing-choice join-unified-promo">
-         <input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);setError("");if(e.target.checked)setShowMarketingPrompt(false)}}/>
+         <input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);setError("")}}/>
          <span><strong><BellRing size={17}/> Sí, quiero recibir promociones, regalos y novedades de {offer.business_name}</strong>
           <small>Por <b>correo electrónico, WhatsApp y notificaciones push</b> de tus tarjetas actuales y futuras. Podrás cambiarlo en Ajustes.</small>
          </span>
@@ -115,16 +117,7 @@ export default function JoinPage(){
           <input type="tel" inputMode="tel" required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/>
           <small>Necesario para habilitar también WhatsApp. Puedes cambiarlo en Mi perfil.</small>
          </label>}
-        <p className="muted">Puedes tener tu tarjeta aunque no recibas promociones.</p>
        </>}
-       {signed&&globalConsent===null&&showMarketingPrompt&&!marketing&&<div className="lp-consent-nudge" role="group" aria-label="Decide si deseas recibir promociones">
-        <div className="lp-consent-nudge-title"><Gift size={24}/><div><strong>¿Seguro que prefieres no recibir avisos?</strong><p>No recibirás promociones, avisos de nuevos regalos ni novedades de este negocio por email, WhatsApp o push. Tus sellos, puntos y premios seguirán funcionando.</p></div></div>
-        <div className="lp-consent-nudge-actions">
-         <button type="button" className="button button-dark" disabled={busy} onClick={()=>{setMarketing(true);void join(true,true)}}>Sí, recibir ofertas</button>
-         <button type="button" className="button button-outline" disabled={busy} onClick={()=>void join(true,false)}>No, solo mi tarjeta</button>
-        </div>
-       </div>}
-       {signed&&globalConsent!==null&&<p className="muted">{globalConsent?"Avisos activados. Puedes personalizarlos en Ajustes.":"Puedes activar los avisos de tus tarjetas desde Ajustes."}</p>}
        {error&&<div className="alert error" role="alert">{error}</div>}
        <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Conseguir mi tarjeta gratis":"Entrar y conseguir mi tarjeta"} <ArrowUpRight size={17}/></button>
       </div>}

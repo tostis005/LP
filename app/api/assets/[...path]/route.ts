@@ -19,10 +19,10 @@ export async function GET(request:Request,{params}:{params:Promise<{path:string[
   // Las fotos existentes se sirven en tamaño de tarjeta bajo demanda.
   // Solo se aceptan dos tamaños: el límite evita transformaciones arbitrarias.
   let contentType=mime[ext];
-  if(width===720||width===1200){
+  if(width===720||width===1200||width===480||width===960){
    try{
     data=await sharp(data,{limitInputPixels:36_000_000})
-     .rotate().resize(width,Math.round(width/1.586),{fit:"cover",position:"attention",withoutEnlargement:true})
+     .rotate().resize(width,width===480||width===960?Math.round(width*.75):Math.round(width/1.586),{fit:width===480||width===960?"inside":"cover",position:"attention",withoutEnlargement:true})
      .webp({quality:76,effort:3}).toBuffer();
     contentType="image/webp";
    }catch{throw new ApiError("Imagen no disponible.",404)}

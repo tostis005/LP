@@ -110,7 +110,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
     sub=await ensureSubscription(reg,config.publicKey,true);
     await sendTest(sub);
    }
-   setNotice("Prueba enviada. Si el aviso no aparece, revisa los permisos y el ahorro de batería del teléfono.");
+   setNotice("Notificación de prueba enviada.");
    showActionToast("Prueba de notificaciones enviada.");
   }catch(e){
    if(typeof Notification!=="undefined"&&Notification.permission!=="granted")setDeviceActive(false);
@@ -130,14 +130,14 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
  }
  return <section className="panel-card" style={{marginTop:22}}>
   <div className="panel-icon"><Bell size={22}/></div>
-  <h2>Notificaciones del teléfono</h2>
-  <p className="muted">Prueba que los avisos llegan a este móvil. Si la suscripción se ha perdido o ha caducado, Kreyv intentará recuperarla automáticamente.</p>
+  <h2>Probar notificaciones</h2>
+
   {loading?<p className="muted">Comprobando notificaciones...</p>:<>
    {!config.enabled&&<div className="info-callout"><ShieldCheck size={18}/>Las notificaciones no están disponibles en este momento.</div>}
    {config.enabled&&!supported&&<div className="info-callout"><BellOff size={18}/>Necesitas un navegador compatible. En iPhone, instala Kreyv en la pantalla de inicio y ábrela desde su icono (iOS 16.4 o posterior).</div>}
    {config.enabled&&supported&&<div className="campaign-compose-actions" style={{marginBottom:14}}>
     <button className="button button-dark button-sm" type="button" disabled={busy}
-     onClick={testNotification}><Bell size={16}/>{busy?"Comprobando...":"Probar notificaciones"}</button>
+     onClick={testNotification}><Bell size={16}/>{busy?"Enviando...":"Enviar prueba"}</button>
     {deviceActive&&<span className="muted" role="status">Avisos permitidos en este móvil</span>}
    </div>}
    {showBusinesses&&items.length>0&&<div className="form-stack">

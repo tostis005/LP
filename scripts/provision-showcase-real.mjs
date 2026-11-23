@@ -61,7 +61,8 @@ try{
    await db.query("INSERT INTO public.business_locations(business_id,name,address,city,country,lat,lng,visible) VALUES($1,$2,$3,'Tijuana','México',$4,$5,true)",
     [id,name,"Dirección por configurar",lat,lng]);
   }
-  await db.query("INSERT INTO public.business_members(business_id,user_id,role,active) VALUES($1,$2,'owner',true) ON CONFLICT (business_id,user_id) DO NOTHING",[id,ids.BUSINESS]);
+  if(slug==="cafe-noma")
+   await db.query("INSERT INTO public.business_members(business_id,user_id,role,active) VALUES($1,$2,'owner',true) ON CONFLICT (business_id,user_id) DO NOTHING",[id,ids.BUSINESS]);
  }
  await db.query("INSERT INTO public.business_members(business_id,user_id,role,active) VALUES($1,$2,'employee',true) ON CONFLICT (business_id,user_id) DO NOTHING",[existing["cafe-noma"],ids.STAFF]);
  for(const slug of ["cafe-noma","brunch-club","punto-fit","lavanda-spa"]){

@@ -7,7 +7,9 @@ import {Compass,MapPin,Navigation,Search,ArrowUpRight,Check,Gift,SlidersHorizont
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {StampMark} from "@/components/StampMarks";
 import {db} from "@/lib/supabase";
-import type {Location,Business,Program} from "@/lib/types";
+import type {Location,Business,Program,Membership} from "@/lib/types";
+import {LoyaltyCard} from "@/components/LoyaltyCard";
+import {cardBackgroundUrl} from "@/lib/card-images";
 import {BUSINESS_CATEGORIES,PROGRAM_TYPES,categoryStampKind} from "@/lib/business-categories";
 import {programPromise} from "@/lib/program-presentation";
 import type {DirectoryPin} from "@/components/DirectoryMap";
@@ -19,18 +21,22 @@ function Discover({account}:{account:Account}){
  const [entries,setEntries]=useState<Entry[]>([]);
  const [programs,setPrograms]=useState<Program[]>([]);
  const [myCards,setMyCards]=useState<Record<string,string>>({});
+ const [membersById,setMembersById]=useState<Record<string,Membership>>({});
+ const [openCardId,setOpenCardId]=useState<string|null>(null);
  const [filter,setFilter]=useState(""),[category,setCategory]=useState("Todos"),[rewardType,setRewardType]=useState("Todos"),[selectedId,setSelectedId]=useState<string|null>(null),[filtersOpen,setFiltersOpen]=useState(false);
  const [center,setCenter]=useState<[number,number]>(TIJUANA),[hasLocation,setHasLocation]=useState(false);
  const [error,setError]=useState("");
  useEffect(()=>{async function load(){
   const [loc,members,p]=await Promise.all([
    db().from("business_locations").select("*,businesses(*)").eq("visible",true),
-   db().from("loyalty_memberships").select("id,business_id").eq("customer_id",account.user.id),
+   db().from("loyalty_memberships").select("id,business_id,customer_id,balance,total_earned,created_at,card_token").eq("customer_id",account.user.id),
    db().from("loyalty_programs").select("*")
   ]);
   if(loc.error)setError(loc.error.message);else setEntries((loc.data||[]) as Entry[]);
   if(p.error)setError(p.error.message);else setPrograms((p.data||[]) as Program[]);
-  setMyCards(Object.fromEntries(((members.data||[]) as {id:string;business_id:string}[]).map(x=>[x.business_id,x.id])));
+  const owned=(members.data||[]) as Membership[];
+  setMyCards(Object.fromEntries(owned.map(x=>[x.business_id,x.id])));
+  setMembersById(Object.fromEntries(owned.map(x=>[x.id,x])));
  }load()},[account.user.id]);
  function locate(){
   if(!navigator.geolocation){setError("Tu navegador no puede consultar la ubicación.");return}
@@ -54,6 +60,8 @@ function Discover({account}:{account:Account}){
  const selected=selectedId?filtered.find(entry=>entry.id===selectedId)||null:null;
  const selectedCard=selected?myCards[selected.business_id]:null;
  const selectedProgram=selected?programByBusiness.get(selected.business_id):undefined;
+ const viewingMembership=openCardId?membersById[openCardId]:undefined;
+ const viewingBusiness=viewingMembership?entries.find(e=>e.business_id===viewingMembership.business_id)?.businesses:undefined;
  return <>
   {error&&<div className="alert error" role="alert">{error}</div>}
   <div className="customer-discover-tools">
@@ -91,7 +99,9 @@ function Discover({account}:{account:Account}){
     </div>
     <p className="customer-map-business-reward">{programPromise(selectedProgram)}</p>
     <div className="customer-map-business-actions">
-     <Link href={selectedCard?"/app?card="+encodeURIComponent(selectedCard):"/unirse/"+encodeURIComponent(selected.businesses.slug)} className="customer-map-primary-action">{selectedCard?"Ver tarjeta":"Añadir tarjeta"}</Link>
+     {selectedCard?
+      <button type="button" className="customer-map-primary-action" onClick={()=>setOpenCardId(selectedCard)}>Ver tarjeta</button>:
+      <Link href={"/unirse/"+encodeURIComponent(selected.businesses.slug)} className="customer-map-primary-action">Añadir tarjeta</Link>}
      <a className="customer-map-secondary-action" href={"https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(selected.lat+","+selected.lng)} target="_blank" rel="noopener noreferrer"><Navigation size={16}/> Cómo llegar</a>
     </div>
    </article>}
@@ -101,7 +111,7 @@ function Discover({account}:{account:Account}){
    {filtered.length===0?<div className="empty-state compact"><Compass size={29}/><h3>Sin resultados</h3><p>Prueba con otro tipo de negocio o elimina algún filtro.</p></div>:
    filtered.map(e=>{const program=programByBusiness.get(e.business_id),cardId=myCards[e.business_id],already=!!cardId;return <article key={e.id} className="directory-card directory-card-rich directory-card-premium">
     <div className={"directory-card-cover"+(e.businesses.card_background?" has-cover-photo":"")} style={{backgroundColor:e.businesses.accent_color||"#5E1A2B"}}>
-     {e.businesses.card_background&&<img className="directory-cover-photo" src={e.businesses.card_background} alt="" loading="lazy"/>}
+     {e.businesses.card_background&&<img className="directory-cover-photo" src={cardBackgroundUrl(e.businesses.card_background,720)} alt="" loading="lazy"/>}
      <div className="directory-cover-top"><span className="directory-cover-category">{e.businesses.category||"Negocio local"}</span>{already&&<span className="joined-badge directory-joined"><Check size={13}/> Ya tienes tarjeta</span>}</div>
      <div className="directory-cover-brand"><span className="directory-cover-icon">{e.businesses.logo_url?<img src={e.businesses.logo_url} alt={"Logotipo de "+e.businesses.name} loading="lazy"/>:<StampMark kind={e.businesses.stamp_icon||categoryStampKind(e.businesses.category)} size={43} color={e.businesses.stamp_color||"#571c32"}/>}</span></div>
     </div>
@@ -112,11 +122,13 @@ function Discover({account}:{account:Account}){
      <p className="directory-location"><MapPin size={15}/><span>{e.address} · {e.city}, {e.country}</span></p>
      <div className="directory-card-footer">
       {hasLocation&&<span className="distance-tag">{distance(e)} km aprox.</span>}
-      <Link href={already?"/app?card="+encodeURIComponent(cardId):"/unirse/"+encodeURIComponent(e.businesses.slug)} className="button button-dark button-sm">{already?"Ver tarjeta":"Conseguir tarjeta"} <ArrowUpRight size={16}/></Link>
+      {already?<button type="button" onClick={()=>setOpenCardId(cardId)} className="button button-dark button-sm">Ver tarjeta <ArrowUpRight size={16}/></button>:
+        <Link href={"/unirse/"+encodeURIComponent(e.businesses.slug)} className="button button-dark button-sm">Conseguir tarjeta <ArrowUpRight size={16}/></Link>}
      </div>
     </div>
    </article>})}
   </div>
+  {viewingMembership&&viewingBusiness&&<LoyaltyCard key={viewingMembership.id} membership={viewingMembership} business={viewingBusiness} program={programByBusiness.get(viewingMembership.business_id)} autoOpen modalOnly onClose={()=>setOpenCardId(null)}/>}
  </>;
 }
 export default function DiscoverPage(){return <AppFrame area="customer" title="Descubrir negocios" subtitle="">{a=><Discover account={a}/>}</AppFrame>}

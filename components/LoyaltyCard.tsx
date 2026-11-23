@@ -9,8 +9,8 @@ import {db} from "@/lib/supabase";
 import {StampGrid} from "@/components/StampMarks";
 import {readableCardText} from "@/lib/customer-card-contrast";
 import {cardBackgroundUrl} from "@/lib/card-images";
-export function LoyaltyCard({membership,business,program,offersCount=0,compact=false}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean}){
- const [open,setOpen]=useState(false),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
+export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void}){
+ const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
  const [visits,setVisits]=useState<{id:string;kind:string;amount_delta:number;created_at:string}[]>([]);
  const qrCloseRef=useRef<HTMLButtonElement>(null);
@@ -47,7 +47,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   return()=>{document.body.style.overflow=previousOverflow;window.removeEventListener("keydown",onEscape)};
  },[expandedQr]);
  function closeCard(){
-  setExpandedQr(null);setOpen(false);
+  setExpandedQr(null);setOpen(false);onClose?.();
   const url=new URL(window.location.href);
   if(url.pathname==="/app"&&url.searchParams.get("card")===membership.id){
    url.searchParams.delete("card");
@@ -94,7 +94,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  const origin=typeof window!=="undefined"?window.location.origin:process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000";
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
- return <><div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>
+ return <>{!modalOnly&&<div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>
  {compact?<button type="button" className="customer-deck-card"
   onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}
   style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(180deg,rgba(0,0,0,.56),rgba(0,0,0,.54) 55%,rgba(0,0,0,.66)),url("+cardBackgroundUrl(business.card_background,720)+")":undefined}}>
@@ -116,7 +116,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  </button>}
  {!compact&&<button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><QrCode size={17}/> Ver tarjeta y QR</button>}
  {offersCount>0&&<Link className="kreyv-loyalty-offers" href={"/app/novedades?business="+business.id}>Ver ofertas de este negocio ({offersCount})</Link>}
- </div>
+ </div>}
  {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={closeCard}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
  <button className="modal-close" aria-label="Cerrar" onClick={closeCard}><X size={20}/></button>
  <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
@@ -152,7 +152,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    <span>{dateShort(visit.created_at)}</span>
   </div>)}</div>
  </section>}
- <Link className="button button-outline button-full" href="/app/ajustes" onClick={closeCard}>Ajustes de notificaciones</Link>
+ <Link className="button button-outline button-full" href={"/app/ajustes?business="+encodeURIComponent(business.id)} onClick={closeCard}>Gestionar notificaciones de esta tarjeta</Link>
  {consentError&&<div className="alert error">{consentError}</div>}
  </div></div>}
  {open&&expandedQr&&<div className="qr-fullscreen-overlay" onMouseDown={()=>setExpandedQr(null)}>

@@ -8,7 +8,7 @@ const profile=read("app/app/perfil/page.tsx");
 const frame=read("components/AppFrame.tsx");
 const nav=read("components/AppBottomNav.tsx");
 const widget=read("components/PushPreferences.tsx");
-assert.match(home,/href="\/app\/ajustes"/,"Las tarjetas deben mostrar un acceso visible a avisos");
+assert.match(read("components/LoyaltyCard.tsx"),/ajustes\?business=/,"Cada tarjeta abre directamente sus preferencias de notificaciones");
 assert.doesNotMatch(profile,/href="\/app\/ajustes"/,"Mi perfil no debe mezclar ajustes ni notificaciones");
 assert.match(nav,/href:"\/app\/ajustes",label:"Ajustes"/,"El menú inferior móvil debe incluir Avisos");
 assert.match(frame,/href:"\/app\/ajustes",label:"Ajustes"/,"El menú de escritorio debe incluir Notificaciones");
