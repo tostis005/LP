@@ -15,6 +15,7 @@ import {StampCard} from "@/components/StampCard";
 import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow,type GrowthRow} from "@/components/BusinessAnalytics";
 import {BusinessAutomationPanel} from "@/components/BusinessAutomationPanel";
+import {KreyvIcon} from "@/components/KreyvIcon";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
 import {BusinessOffersPanel} from "@/components/BusinessOffersPanel";
@@ -53,7 +54,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const manageable=account.businesses.filter(b=>b.role!=="employee");
  const [selected,setSelected]=useState(manageable[0]?.business_id||"");
  const section=pathname.split("/")[2];
- const tab:Tab=section==="designer"||section==="program"?"card":tabs.find(t=>t.id===section)?.id||"overview";
+ // La ruta pública se llama /negocio/tarjeta, pero el identificador interno es card.
+ // Antes caía en Inicio y mostraba sus accesos directos en lugar del editor de tarjeta.
+ const tab:Tab=section==="tarjeta"||section==="designer"||section==="program"?"card":tabs.find(t=>t.id===section)?.id||"overview";
  const [cardArea,setCardArea]=useState<CardArea>(section==="program"?"rules":"design");
  function openSection(next:Tab){
   if(next==="designer"||next==="program"||next==="card"){
@@ -306,30 +309,37 @@ export default function BusinessWorkspace({account}:{account:Account}){
     <div className="workspace-section-body">
    {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success"><Check size={17}/>{notice}</div>}
    {loading&&!biz?<div className="soft-panel">Cargando negocio...</div>:biz&&prog&&<>
-   {tab==="card"&&<nav className="business-card-tabs" aria-label="Configurar mi tarjeta">
-    <button type="button" className={cardArea==="design"?"active":""} aria-pressed={cardArea==="design"} onClick={()=>setCardArea("design")}><Brush size={16}/> Diseño</button>
-    <button type="button" className={cardArea==="rules"?"active":""} aria-pressed={cardArea==="rules"} onClick={()=>setCardArea("rules")}><Ticket size={16}/> Sellos, puntos y reglas</button>
-    <button type="button" className={cardArea==="rewards"?"active":""} aria-pressed={cardArea==="rewards"} onClick={()=>setCardArea("rewards")}><Gift size={16}/> Premios</button>
+   {tab==="card"&&<div className="owner-card-intro"><div><h3>Tu programa de fidelización</h3><p>Personaliza el aspecto de tu tarjeta, define cómo se consiguen las recompensas y configura tus premios desde este mismo lugar.</p></div><span className="owner-card-mode">{prog.type==="stamps"?"Tarjeta de sellos":prog.type==="points"?"Tarjeta de puntos":"Tarjeta de cashback"}</span></div>}
+    {tab==="card"&&<nav className="business-card-tabs" aria-label="Configurar mi tarjeta">
+    <button type="button" className={cardArea==="design"?"active":""} aria-pressed={cardArea==="design"} onClick={()=>setCardArea("design")}><Brush size={16}/> 1. Diseño</button>
+    <button type="button" className={cardArea==="rules"?"active":""} aria-pressed={cardArea==="rules"} onClick={()=>setCardArea("rules")}><Ticket size={16}/> 2. Funcionamiento y límites</button>
+    <button type="button" className={cardArea==="rewards"?"active":""} aria-pressed={cardArea==="rewards"} onClick={()=>setCardArea("rewards")}><Gift size={16}/> 3. Recompensas</button>
    </nav>}
 
    {tab==="overview"&&<div className="owner-start">
      <div className="owner-start-hero"><span className="page-eyebrow">TU ESPACIO</span>
       <h3>Todo tu negocio, más sencillo.</h3><p>Configura tu tarjeta, coordina al equipo, analiza el crecimiento y comunícate con tus clientes desde cada sección.</p></div>
      <div className="owner-start-actions">
-      <button type="button" onClick={()=>openSection("card")}><CreditCard size={25}/><strong>Tarjeta</strong><span>Diseño, sellos, límites y premios</span><ArrowUpRight size={18}/></button>
-      <button type="button" onClick={()=>openSection("team")}><Users size={25}/><strong>Empleados</strong><span>Accesos e invitaciones</span><ArrowUpRight size={18}/></button>
-      <button type="button" onClick={()=>openSection("reports")}><BarChart3 size={25}/><strong>Datos</strong><span>Altas, habituales y evolución</span><ArrowUpRight size={18}/></button>
-      <button type="button" onClick={()=>openSection("marketing")}><Mail size={25}/><strong>Campañas</strong><span>Envíos puntuales y automatizaciones</span><ArrowUpRight size={18}/></button>
+      <button type="button" onClick={()=>openSection("card")}><KreyvIcon name="mi-tarjeta" size={25}/><strong>Tarjeta</strong><span>Diseño, sellos, límites y premios</span><ArrowUpRight size={18}/></button>
+      <button type="button" onClick={()=>openSection("team")}><KreyvIcon name="perfil" size={25}/><strong>Empleados</strong><span>Accesos e invitaciones</span><ArrowUpRight size={18}/></button>
+      <button type="button" onClick={()=>openSection("reports")}><KreyvIcon name="recompensa" size={25}/><strong>Datos</strong><span>Altas, habituales y evolución</span><ArrowUpRight size={18}/></button>
+      <button type="button" onClick={()=>openSection("marketing")}><KreyvIcon name="campanas" size={25}/><strong>Campañas</strong><span>Envíos puntuales y automatizaciones</span><ArrowUpRight size={18}/></button>
      </div>
      <div className="owner-start-links"><Link href="/negocio/customers"><Users size={16}/> Clientes del negocio</Link>
       <Link href="/negocio/settings"><Settings2 size={16}/> Información del negocio</Link>
       <Link href="/negocio/locations"><MapPin size={16}/> Dirección y ubicación</Link></div>
     </div>}
-   {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido para tus tarjetas y sellos. Puedes cambiarlo desde «Mi tarjeta». Los marcadores del mapa indican si el cliente ya tiene tu tarjeta.</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form><section className="panel-card"><h2>Tu identidad de marca</h2><p className="muted">Sube un logo para personalizar la tarjeta y la ficha de tu negocio.</p><div className="upload-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logo del negocio"/>:<div className="upload-logo" style={{background:biz.accent_color}}>{initials(biz.name)}</div>}</div><label className="file-input"><ImagePlus size={18}/> Subir logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label><div className="info-callout"><ShieldCheck size={18}/> Puedes usar una imagen de hasta 5 MB. Tu logotipo se mostrará a quienes descubran el negocio y guarden su tarjeta.</div></section></div>}
+   {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido para tus tarjetas y sellos. Puedes cambiarlo desde «Mi tarjeta». Los marcadores del mapa indican si el cliente ya tiene tu tarjeta.</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form></div>}
 
    {tab==="card"&&cardArea==="design"&&<div className="designer-grid lp-new-designer">
-    <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseña tu tarjeta</h2><p className="muted">Personaliza los sellos y sus colores. Tus clientes verán los cambios en sus tarjetas.</p>
+    <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseño de la tarjeta</h2><p className="muted">Colores, imagen, mensaje, logotipo y estilo de los sellos. La vista previa se actualiza mientras editas.</p>
      <div className="form-stack">
+      <div className="owner-card-brand-upload"><div className="owner-card-brand-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logotipo actual del negocio"/>:<span style={{background:biz.accent_color}}>{initials(biz.name)}</span>}</div>
+       <div><strong>Logotipo de la tarjeta</strong><small>También se utiliza en la ficha del negocio.</small>
+        <label className="file-input"><ImagePlus size={18}/> Subir o cambiar logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label>
+        <small>JPG, PNG o WEBP hasta 5 MB. Se guarda al subirlo.</small>
+       </div>
+      </div>
       <label>Mensaje en la tarjeta<input value={biz.card_text||""} maxLength={60} placeholder="GRACIAS POR VOLVER" onChange={e=>setBiz({...biz,card_text:e.target.value})}/></label>
 
       <label className="color-input-label">Fondo de la tarjeta <span><input aria-label="Elegir color de fondo" type="color" value={biz.accent_color} onChange={e=>setBiz({...biz,accent_color:e.target.value})}/><code>{biz.accent_color}</code></span></label>
@@ -365,7 +375,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
      <a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Previsualizar mi tarjeta <ArrowUpRight size={17}/></a>
     </section>
    </div>}
-   {tab==="card"&&cardArea==="rules"&&<form className="panel-card program-form" onSubmit={saveProgram}><div className="panel-icon"><Gift size={22}/></div><h2>Tu programa de fidelización</h2><p className="muted">Elige cómo recompensar. Para evitar confusiones, configura la modalidad antes de que haya clientes inscritos.</p><div className="program-type-grid">{([{id:"stamps",label:"Sellos",desc:"Cada compra suma sellos",icon:<Ticket/>},{id:"points",label:"Puntos",desc:"Puntos por importe gastado",icon:<StarIcon/>},{id:"cashback",label:"Saldo a favor",desc:"Recupera parte de tus compras",icon:<Wallet/>}] as const).map(x=><button type="button" key={x.id} className={"program-type"+(prog.type===x.id?" selected":"")} disabled={customers.length>0&&prog.type!==x.id} onClick={()=>setProg({...prog,type:x.id})}><span>{x.icon}</span><strong>{x.label}</strong><small>{x.desc}</small></button>)}</div><div className="form-stack">
+   {tab==="card"&&cardArea==="rules"&&<form className="panel-card program-form" onSubmit={saveProgram}><div className="panel-icon"><Gift size={22}/></div><h2>Funcionamiento y límites</h2><p className="muted">Elige sellos, puntos o cashback; establece el objetivo, los máximos por compra y las medidas de seguridad. La modalidad se bloquea cuando ya existen clientes inscritos.</p><div className="program-type-grid">{([{id:"stamps",label:"Sellos",desc:"Cada compra suma sellos",icon:<Ticket/>},{id:"points",label:"Puntos",desc:"Puntos por importe gastado",icon:<StarIcon/>},{id:"cashback",label:"Saldo a favor",desc:"Recupera parte de tus compras",icon:<Wallet/>}] as const).map(x=><button type="button" key={x.id} className={"program-type"+(prog.type===x.id?" selected":"")} disabled={customers.length>0&&prog.type!==x.id} onClick={()=>setProg({...prog,type:x.id})}><span>{x.icon}</span><strong>{x.label}</strong><small>{x.desc}</small></button>)}</div><div className="form-stack">
    <label>Nombre de la recompensa<input value={prog.reward_label} required onChange={e=>setProg({...prog,reward_label:e.target.value})} placeholder="Café gratis"/></label>
    {prog.type==="stamps"&&<div className="form-two"><label>Sellos necesarios para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label><label>Máx. sellos por operación<input type="number" min={1} max={100} value={prog.max_stamps_per_action} onChange={e=>setProg({...prog,max_stamps_per_action:Number(e.target.value)})}/></label></div>}
    {prog.type==="points"&&<div className="form-two"><label>Puntos por cada unidad monetaria ({currency})<input type="number" min={0.01} max={100} step=".01" value={prog.points_per_euro} onChange={e=>setProg({...prog,points_per_euro:Number(e.target.value)})}/></label><label>Puntos para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label></div>}

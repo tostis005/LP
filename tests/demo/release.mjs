@@ -14,7 +14,7 @@ assert.doesNotMatch(shell.match(/staff:\[[\s\S]*?\],\s*admin:/)?.[0]||"",/Mis ta
 assert.match(shell,/const allowed=area==="customer"\?!admin&&roles.length===0/);
 assert.match(nav,/function roleFromRoute/);
 assert.match(read("app/layout.tsx"),/<AppBottomNav\/>/);
-assert.match(business,/const tab:Tab=section==="designer"\|\|section==="program"\?"card":tabs\.find/,"Older card links must resolve into one card area");
+assert.match(business,/const tab:Tab=section==="tarjeta"\|\|section==="designer"\|\|section==="program"\?"card":tabs\.find/,"Public Tarjeta and older card links must resolve into the real card editor");
 assert.doesNotMatch(business,/workspace-section-menu/);
 assert.match(preview,/managerIds.includes\(id\)/);
 assert.match(preview,/program.type==="stamps"/,"Stamp preview must not be used for cashback or points");

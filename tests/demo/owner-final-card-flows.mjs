@@ -1,0 +1,33 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
+const owner=read("components/BusinessWorkspace.tsx");
+const app=read("components/AppFrame.tsx");
+const ui=read("components/BusinessAutomationPanel.tsx");
+const route=read("app/api/local/automations/route.ts");
+const migration=read("db/migrations/390_automation_triggers.sql");
+const css=read("app/role-app.css");
+assert.match(owner,/section==="tarjeta"\|\|section==="designer"\|\|section==="program"\?"card"/,"The public Tarjeta route must not render Inicio");
+assert.match(owner,/\{tab==="card"&&<nav className="business-card-tabs"/,"Card design, rules and rewards must be accessible");
+for(const name of ['cardArea==="design"','cardArea==="rules"','cardArea==="rewards"'])assert.ok(owner.includes(name),name);
+assert.match(owner,/upload\(e\.target\.files\?\.\[0\]\|\|null,"logo_url"\)/,"Logo should be in the same Card section");
+assert.match(owner,/max_stamps_per_action/);
+assert.match(owner,/max_daily_awards_per_employee/);
+assert.match(owner,/card_background/);
+assert.match(owner,/saveDesigner/);
+assert.doesNotMatch(app,/business-mobile-all-sections/,"No secondary copy of the owner main navigation");
+for(const ico of ["mi-tarjeta","perfil","recompensa","campanas"])assert.match(owner,new RegExp('KreyvIcon name="'+ico+'"'),"Owner shortcut icons must match sidebar");
+assert.doesNotMatch(ui,/automation-presets|function preset\(|Bienvenida después del alta|Regalo por cinco sellos|Un premio al alcanzar/,"No example or prefilled campaigns");
+assert.match(ui,/Sin campañas automáticas|Aún no tienes campañas automáticas/);
+for(const kind of ["signup","no_visit","visits","stamps","inactivity","first_redeem"]){
+ assert.match(ui,new RegExp('value:"'+kind+'"'),"Real trigger "+kind+" must be available in editor");
+ assert.match(migration,new RegExp("'"+kind+"'"),"Trigger "+kind+" must exist in SQL");
+}
+assert.match(ui,/mode==="edit"/,"Campaign messages should be editable");
+assert.match(route,/action==="edit"/,"Editing must reach authenticated backend");
+assert.match(migration,/NOT EXISTS\(SELECT 1 FROM public\.loyalty_transactions t/,"No-show trigger must check purchase activity before sending");
+assert.match(migration,/FOR UPDATE OF q SKIP LOCKED/,"Worker should lock jobs");
+assert.match(migration,/public\.automation_queue\.status <> 'delivered'/,"Inactivity should be sent once per customer");
+assert.match(css,/owner-card-brand-upload/);
+assert.match(css,/automation-builder-step/);
+console.log("OK: Tarjeta routing, unified icons, all card settings and blank actionable campaign flow builder.");

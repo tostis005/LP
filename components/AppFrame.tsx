@@ -69,9 +69,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
      <Link href="/negocio">Mi negocio</Link><ChevronRight size={14}/>
      <span aria-current="page">{menus.business.find(i=>i.href===pathname)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
     </nav>}
-    {area==="business"&&<nav className="business-mobile-all-sections" aria-label="Secciones del negocio">
-     {menus.business.map(i=><Link href={i.href} key={i.href} aria-current={pathname===i.href?"page":undefined} className={pathname===i.href?"active":""}>{i.icon}<span>{i.label}</span></Link>)}
-    </nav>}<div className="workspace-title"><div><h1>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div></div>{children(account)}</div>
+<div className="workspace-title"><div><h1>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div></div>{children(account)}</div>
 
   </div>
  </div>;
