@@ -272,3 +272,12 @@
  .loyalty-global-bottom-nav.loyalty-nav-business .mobile-bottom-link span{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.owner-start-actions button{transition:none}}
+
+.staff-bonus-claim{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ min-height:42px;border:1px solid #b97f32;background:var(--color-accent-100);
+ color:#5e3517;border-radius:11px;padding:9px 13px;font-size:12px;font-weight:850;
+ cursor:pointer;margin-top:3px
+}
+.staff-bonus-claim:hover:not(:disabled){background:var(--color-accent-300)}
+.staff-bonus-claim:disabled{background:#edf3e8;color:#427149;border-color:#bfceba;cursor:default}
