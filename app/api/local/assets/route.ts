@@ -38,7 +38,7 @@ export async function POST(request:Request) {
      .rotate()
      .resize(isCardBackground?1200:1280,isCardBackground?756:900,
       {fit:isCardBackground?"cover":"inside",position:"attention",withoutEnlargement:true})
-     .webp({quality:75,effort:4}).toBuffer();
+     .webp({quality:76,effort:4}).toBuffer();
    }catch{throw new ApiError("No se ha podido procesar la imagen. Prueba con otra foto.");}
   }
   const dir=path.join(process.cwd(),"uploads","business-assets",match[1]);
