@@ -10,7 +10,8 @@ const bonus=read("db/migrations/380_automation_bonus_claims.sql");
 assert.match(home,/c\.balance>0&&/,"No reward banner for zero-progress customers");
 assert.match(home,/Math\.ceil\(p\.reward_cost\*\.7\)/,"Highlight must mean near reward");
 assert.doesNotMatch(owner.match(/\{tab==="overview"&&[\s\S]*?\{tab==="settings"&&/)?.[0]||"",/kpi-grid|<KPI/,"No duplicate KPIs in owner home");
-for(const route of ["card","team","reports","marketing"])assert.match(owner,new RegExp('openSection\\("'+route+'"\\)'));
+for(const route of ["card","team","reports","marketing"])
+ assert.match(owner,new RegExp('\\{id:"'+route+'"'),"Business navigation must keep "+route);
 for(const s of ['cardArea==="design"','cardArea==="rules"','cardArea==="rewards"',"max_stamps_per_action","max_daily_awards_per_employee","require_ticket_reference"])assert.ok(owner.includes(s),s);
 assert.match(owner,/count!==1/,"Saves must verify affected record counts");
 assert.match(owner,/persistAsset/,"Image uploads must not discard unsaved changes");
