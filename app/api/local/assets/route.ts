@@ -30,7 +30,7 @@ export async function POST(request:Request) {
   // de tarjeta bancaria (1.586). Campañas y logos conservan sus archivos.
   const isCardBackground=match[2].startsWith("cardbg-");
   const outputName=isCardBackground?match[2].replace(/\.(png|jpe?g|webp)$/i,".webp"):match[2];
-  let output=image;
+  let output:Buffer<ArrayBufferLike>=image;
   if(isCardBackground){
    try{
     output=await sharp(image,{limitInputPixels:36_000_000,failOn:"error"})
