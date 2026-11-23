@@ -23,7 +23,7 @@ assert.ok(discover.indexOf('className="customer-discover-tools"')<discover.index
 assert.match(discover,/Ya tengo tarjeta/);
 assert.match(discover,/Aún no la tengo/);
 assert.match(discover,/customer-filter-toggle/,"Reward filter remains available but compact");
-assert.match(discover,/href=\{selectedCard\?"\/app\?card="/,"Owned markers still open the correct card");
+assert.match(discover,/onClick=\{\(\)=>setOpenCardId\(selectedCard\)\}/,"Owned markers open an in-place card modal");
 assert.match(discover,/className="customer-map-locate"/,"Geolocation remains available");
 
 assert.match(css,/mapa editorial minimalista/);
