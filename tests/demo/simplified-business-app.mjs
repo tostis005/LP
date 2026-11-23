@@ -31,7 +31,7 @@ assert.match(workspace,/RewardCatalog businessId=\{selected\}/);
 assert.match(join,/checked=\{marketing\}/,"One shared opt-in is presented at registration");
 assert.match(join,/join_program_with_notifications/,"One transaction saves the three channels");
 assert.doesNotMatch(join,/checked=\{pushMarketing\}|checked=\{whatsappMarketing\}/);
-assert.match(join,/No, solo mi tarjeta/);
+assert.doesNotMatch(join,/No, solo mi tarjeta|showMarketingPrompt/,"No second consent confirmation after joining");
 assert.match(loginFinish,/router\.replace\("\/unirse\/"/);
 assert.doesNotMatch(loginFinish,/db\(\)\.rpc\("join_program"/,"The join process cannot skip channel choice after login");
 assert.match(client,/mutatingRpcs/);
