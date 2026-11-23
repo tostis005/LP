@@ -13,8 +13,8 @@ BEGIN
  v_step:=CASE p_days WHEN 7 THEN 1 WHEN 30 THEN 5 ELSE 15 END;
  RETURN QUERY
  WITH periods AS (
-  SELECT (CURRENT_DATE-p_days+g*v_step)::date AS start_at,
-    LEAST((CURRENT_DATE-p_days+(g+1)*v_step)::timestamptz,now()) AS end_at
+  SELECT (CURRENT_DATE-(p_days-1)+g*v_step)::date AS start_at,
+    LEAST((CURRENT_DATE-(p_days-1)+(g+1)*v_step)::timestamptz,now()) AS end_at
   FROM generate_series(0,p_days/v_step-1) g
  ), per_customer AS (
   SELECT d.start_at,d.end_at,t.membership_id,
