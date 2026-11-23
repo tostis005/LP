@@ -60,6 +60,8 @@ export async function POST(request:Request){
      "SELECT offer_id FROM public.automation_rules WHERE id=$1::uuid AND business_id=$2::uuid FOR UPDATE",
      [input.rule_id,business]);
     if(!existing.rowCount)throw new ApiError("Esta automatización no pertenece a tu negocio.",403);
+    const alreadyDelivered=await client.query("SELECT 1 FROM public.offer_receipts WHERE offer_id=$1::uuid LIMIT 1",[existing.rows[0].offer_id]);
+    if(alreadyDelivered.rowCount)throw new ApiError("Este mensaje ya fue recibido por clientes. Pausa la campaña y crea otra con el nuevo contenido.");
     await client.query("UPDATE public.automation_rules SET name=$1,updated_at=now() WHERE id=$2::uuid",
      [name,input.rule_id]);
     await client.query("UPDATE public.business_offers SET title=$1,preview=$2,details=$3 WHERE id=$4::uuid AND business_id=$5::uuid",
