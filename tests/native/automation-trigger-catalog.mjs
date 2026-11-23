@@ -74,6 +74,12 @@ try{
  assert.equal(jobs.find(x=>x.rule_id===inactive).status,"skipped","Do not reactivate a customer who already returned");
  const inbox=(await q("SELECT count(*)::integer n FROM public.offer_receipts WHERE customer_id=$1",[ids.customer])).rows[0].n;
  assert.equal(inbox,4,"Only signup, visits, stamp and redemption notifications are delivered");
+ await q("SAVEPOINT delivered_message");
+ try{
+  await q("UPDATE public.business_offers SET title='Contenido alterado' WHERE id=(SELECT offer_id FROM public.automation_rules WHERE id=$1)",[signup]);
+  assert.fail("Delivered automated message must not be rewritten");
+ }catch(e){assert.equal(e.code,"P0001","Delivered messages are immutable")}
+ await q("ROLLBACK TO SAVEPOINT delivered_message");
  // Returning after a skipped inactivity reminder restarts the clock, not an immediate message.
  await q("INSERT INTO public.loyalty_transactions(business_id,membership_id,kind,amount_delta,employee_id) VALUES($1,$2,'earn',1,$3)",
   [ids.business,membership,ids.owner]);
