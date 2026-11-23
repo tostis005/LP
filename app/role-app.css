@@ -576,7 +576,7 @@
    y un QR nítido que ocupa cerca de un tercio del ancho de la tarjeta. */
 .stamp-visual-card.stamp-visual-rebalanced,
 .loyalty-card.loyalty-card-rebalanced{
- display:grid;grid-template-columns:minmax(0,1fr) minmax(0,35%);
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,39%);
  align-items:stretch;justify-content:stretch;
  width:100%;aspect-ratio:1.586;height:auto;
  min-height:0!important;max-height:none;
@@ -686,7 +686,7 @@
 .stamp-visual-rebalanced .stamp-qr-white,
 .loyalty-card-rebalanced .lc-qr-large{
  box-sizing:border-box;display:grid;place-items:center;
- width:100%;max-width:170px;aspect-ratio:1;
+ width:100%;max-width:195px;aspect-ratio:1;
  padding:clamp(4px,1cqw,8px);
  background:#fff;border-radius:clamp(9px,2cqw,15px);
  box-shadow:0 3px 14px #0002;
