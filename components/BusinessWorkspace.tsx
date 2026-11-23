@@ -198,10 +198,10 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setBusy(true);setError("");setNotice("");
   try{
    const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]/g,"-");
-   const key=selected+"/"+Date.now()+"-"+safe;
-   const {error}=await db().storage.from("business-assets").upload(key,file,{contentType:file.type,upsert:false});
+   const key=selected+"/"+(field==="card_background"?"cardbg-":"")+Date.now()+"-"+safe;
+   const {data:uploaded,error}=await db().storage.from("business-assets").upload(key,file,{contentType:file.type,upsert:false});
    if(error){setError(error.message);return}
-   const {data}=db().storage.from("business-assets").getPublicUrl(key);
+   const {data}=db().storage.from("business-assets").getPublicUrl(uploaded?.path||key);
    await persistAsset(field,data.publicUrl);
   }finally{setBusy(false)}
  }
