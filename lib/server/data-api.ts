@@ -110,8 +110,8 @@ export async function queryData(client:PoolClient,input:QueryInput) {
   if(!condition)throw new ApiError("Actualización sin filtro no permitida.");
   const {keys,values}=validateData(input.data);
   const assigns=keys.map((key,i)=>ident(key)+"=$"+(params.length+i+1)).join(",");
-  await client.query("UPDATE "+table+" t SET "+assigns+where,[...params,...values]);
-  return {data:null,error:null};
+  const updated=await client.query("UPDATE "+table+" t SET "+assigns+where,[...params,...values]);
+  return {data:null,error:null,count:updated.rowCount||0};
  }
  if(op==="delete"){
   if(!condition)throw new ApiError("Eliminación sin filtro no permitida.");
@@ -126,6 +126,10 @@ type Spec={args:Arg[];returns:"scalar"|"table"};
 const rpcMap:Record<string,Spec>={
  available_rewards:{args:[["p_business","uuid"]],returns:"table"},
  business_dashboard_metrics:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
+ business_growth_series:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
+ business_growth_summary:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
+ staff_card_context:{args:[["p_membership","uuid"]],returns:"table"},
+ staff_claim_automation_bonus:{args:[["p_rule","uuid"],["p_membership","uuid"]],returns:"scalar"},
  business_reward_ranking:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  customer_reward_summary:{args:[],returns:"table"},
  staff_redeem_voucher_choice:{args:[["p_token","uuid"],["p_reward_option","uuid"]],returns:"scalar"},

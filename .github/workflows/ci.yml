@@ -84,6 +84,10 @@ jobs:
         run: node tests/demo/wallet-fullscreen-qr.mjs
       - name: Verificar paleta clara del cliente, contraste y usabilidad móvil
         run: node tests/demo/customer-visual-balance.mjs
+      - name: Validar informes y campañas automáticas del dueño
+        run: node tests/demo/owner-growth-automation.mjs
+      - name: Validar roles, crecimiento y flujos automáticos
+        run: node tests/demo/owner-growth-automation.mjs
       - name: Comprobar TypeScript
         run: npm run typecheck
       - name: Construir Next.js
@@ -187,6 +191,12 @@ jobs:
         run: node tests/native/smoke.mjs
       - name: Validar iconos rellenos Kreyv en PostgreSQL
         run: node tests/native/kreyv-icons.mjs
+      - name: Validar colas automáticas y permisos PostgreSQL
+        run: node tests/native/growth-automation.mjs
+      - name: Probar altas y canjes en flujos automáticos reales
+        run: node tests/native/automation-flow.mjs
+      - name: Comprobar permisos, métricas y colas automáticas en PostgreSQL
+        run: node tests/native/growth-automation.mjs
       - name: Crear sandbox real de Tijuana y verificar QR, privacidad y tarifas
         env:
           LP_SANDBOX_MODE: "true"

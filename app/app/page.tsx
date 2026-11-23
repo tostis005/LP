@@ -71,7 +71,8 @@ function CustomerHome({account}:{account:Account}){
  const prog=(id:string)=>programs.find(x=>x.business_id===id);
  const readyRewards=cards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length;
  const firstName=String(account.user.user_metadata?.full_name||"").trim().split(/\s+/)[0];
- const rewardCards=cards.filter(c=>{const p=prog(c.business_id);return p?.type==="stamps"&&p.reward_cost>0;});
+ // La recompensa destacada sólo aparece cuando existe progreso real y relevante.
+ const rewardCards=cards.filter(c=>{const p=prog(c.business_id);return p?.type==="stamps"&&p.reward_cost>0&&c.balance>0&&(c.balance>=Math.ceil(p.reward_cost*.7)||Number(c.total_earned||0)>=p.reward_cost);});
  const closest=rewardCards.sort((a,b)=>{
   const pa=prog(a.business_id)!,pb=prog(b.business_id)!;
   return Math.max(0,pa.reward_cost-a.balance)-Math.max(0,pb.reward_cost-b.balance);

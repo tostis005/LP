@@ -14,7 +14,7 @@ const items=frame.match(/business:\[([\s\S]*?)\],\s*staff:/)?.[1]||"";
 const menu=items.match(/href:"\/negocio[^"]*"/g)||[];
 assert.deepEqual(menu,[
  'href:"/negocio"','href:"/negocio/tarjeta"','href:"/negocio/team"',
- 'href:"/negocio/marketing"','href:"/negocio/reports"'
+ 'href:"/negocio/reports"','href:"/negocio/marketing"'
 ],"Only five primary navigation areas");
 assert.match(frame,/business-account-dropdown/);
 assert.match(frame,/href="\/negocio\/facturacion"/,"Billing belongs to the account menu");

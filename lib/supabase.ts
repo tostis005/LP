@@ -22,8 +22,9 @@ async function post<T=any>(endpoint:string,payload:object):Promise<Result<T>>{
   const mutation=endpoint==="/api/local/query"&&["insert","update","delete"].includes(input.operation||"")
    ||endpoint==="/api/local/rpc"&&mutatingRpcs.has(input.name||"")
    ||endpoint==="/api/local/auth"&&input.action==="updateUser";
-  if(!response.ok||body.error){
-   const message=body.error||"No se pudo guardar el cambio.";
+  const emptyUpdate=endpoint==="/api/local/query"&&input.operation==="update"&&body.count===0;
+  if(!response.ok||body.error||emptyUpdate){
+   const message=body.error||(emptyUpdate?"No se ha actualizado el registro. Comprueba tus permisos e inténtalo de nuevo.":"No se pudo guardar el cambio.");
    if(mutation)showActionToast(message,"error");
    return {data:(null as T),error:err(message),count:body.count};
   }
