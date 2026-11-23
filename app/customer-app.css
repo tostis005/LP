@@ -195,3 +195,290 @@ body:has(.workspace-customer){background:#0c0c0f}
 
 .workspace-customer .customer-logout-button{display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;color:#e7c0cd;border:1px solid #6b4151;border-radius:100px;padding:13px 18px;font-size:13px;font-weight:700}
 .workspace-customer .customer-logout-button:hover{background:#442433}
+
+
+/* KREYV · equilibrio visual 2026: el lenguaje de marca claro con la
+   navegación, tarjetas desplazables y mapa integrado de la experiencia móvil.
+   Solo afecta a la zona de cliente, nunca a negocio, personal o administración. */
+body:has(.workspace-customer){background:var(--color-bg)}
+.workspace-customer{
+ --customer-bg:var(--color-bg);
+ --customer-panel:var(--color-surface);
+ --customer-border:var(--color-bg-2);
+ --customer-muted:var(--color-text-2);
+ --customer-accent:var(--color-brand);
+ color:var(--color-text);
+ background:radial-gradient(ellipse 90% 420px at 100% 0%,color-mix(in srgb,var(--color-brand-100) 60%,transparent),transparent),var(--color-bg);
+}
+.workspace-customer .workspace-main{background:transparent}
+.workspace-customer .workspace-content{color:var(--color-text)}
+.workspace-customer .workspace-title h1,
+.customer-home-greeting h2,.customer-list-heading h2,
+.workspace-customer .customer-activity-section h2,
+.customer-discover-results-heading h2{color:var(--color-text)}
+.workspace-customer .workspace-title p,
+.customer-home-greeting p{color:var(--color-text-2)}
+.customer-overline{color:var(--color-brand-500);font-size:11px}
+.customer-greeting-dot{color:var(--color-accent-600)}
+.customer-native-header .brand{color:var(--color-brand-900)}
+.customer-native-header .kreyv-header-bell{
+ background:var(--color-surface);color:var(--color-brand);
+ border-color:var(--color-bg-2);box-shadow:0 4px 14px #3d0f1b0b
+}
+.customer-native-header .kreyv-header-bell:hover{background:var(--color-brand-100)}
+.customer-list-heading a,.customer-home-preferences a,
+.workspace-customer .customer-deck-item>.kreyv-loyalty-offers{
+ color:var(--color-brand);font-weight:750
+}
+.customer-swipe-hint{color:var(--color-text-2);font-size:12px}
+/* Un solo gran elemento vinotinto; el resto descansa sobre marfil y blanco. */
+.customer-spotlight{
+ background:radial-gradient(circle at 96% 0%,#af6571 0,transparent 46%),
+  linear-gradient(120deg,var(--color-brand),var(--color-brand-900));
+ box-shadow:0 13px 32px #5e1a2b25;border:1px solid #ffffff26
+}
+.customer-spotlight-head span,.customer-spotlight p,.customer-spotlight-foot{color:#f9e9ec}
+.customer-spotlight-head svg{color:var(--color-accent-300)}
+.customer-spotlight-foot a{background:var(--color-accent-100);color:var(--color-brand-900)}
+.customer-spotlight-foot a:hover{background:var(--color-accent-300)}
+.customer-deck-card{
+ border-color:#00000012;
+ box-shadow:0 12px 29px #3d0f1b1d;
+ text-shadow:none
+}
+.customer-deck-card:focus-visible,.customer-list-heading a:focus-visible{
+ outline:3px solid var(--color-accent-600);outline-offset:3px
+}
+/* Las tarjetas conservan los colores y fotos configurados por los negocios.
+   El cálculo en CustomerCardContrast corrige el texto sin colorear el fondo. */
+.workspace-customer .customer-activity-section{border-color:var(--color-bg-2)}
+.workspace-customer .customer-activity-list{
+ background:var(--color-surface);border-color:var(--color-bg-2);
+ box-shadow:0 6px 24px #3d0f1b0c
+}
+.workspace-customer .activity-row{border-color:var(--color-bg-2);color:var(--color-text)}
+.workspace-customer .activity-row strong{color:var(--color-text)}
+.workspace-customer .activity-row span{color:var(--color-text-2)}
+.workspace-customer .activity-row .activity-icon{background:var(--color-brand-100);color:var(--color-brand)}
+.workspace-customer .activity-row>b{color:var(--color-brand)}
+.workspace-customer .customer-home-preferences a{text-underline-offset:4px}
+
+/* Detalle: hoja clara, jerarquía cálida, QR negro sobre blanco sin filtros. */
+.workspace-customer .qr-modal-backdrop{background:#2b152191}
+.workspace-customer .qr-modal{
+ background:var(--color-bg);border-color:var(--color-bg-2);
+ color:var(--color-text);box-shadow:0 28px 80px #3d0f1b32
+}
+.workspace-customer .qr-modal .eyebrow{color:var(--color-brand-500)}
+.workspace-customer .qr-modal h2{color:var(--color-text)}
+.workspace-customer .qr-modal .modal-close{
+ background:var(--color-surface);border-color:var(--color-bg-2);color:var(--color-brand)
+}
+.workspace-customer .qr-modal>p{color:var(--color-text-2)}
+.workspace-customer .loyally-modal-card-preview{box-shadow:0 9px 26px #3d0f1b23}
+.customer-card-detail-stats>div{
+ background:var(--color-surface);border-color:var(--color-bg-2);
+ box-shadow:0 4px 14px #3d0f1b0b
+}
+.customer-card-detail-stats small{font-size:12px;color:var(--color-text-2)}
+.customer-card-detail-stats strong{font-size:14px;color:var(--color-text);line-height:1.35}
+.customer-show-qr{background:var(--color-brand);color:#fff;box-shadow:0 9px 22px #5e1a2b20}
+.customer-show-qr:hover{background:var(--color-brand-500)}
+.customer-detail-secondary p{color:var(--color-text-2)}
+.workspace-customer .qr-modal .qr-enlarge-button{color:var(--color-brand)}
+.workspace-customer .qr-modal .qr-enlarge-hint{color:var(--color-text-2)}
+.workspace-customer .qr-modal .qr-box{
+ border:1px solid var(--color-bg-2);box-shadow:0 5px 20px #3d0f1b0e;background:#fff
+}
+.workspace-customer .qr-modal .download-card-action,
+.workspace-customer .qr-modal>.button-outline{
+ background:var(--color-surface);color:var(--color-brand);
+ border:1px solid #d4c2c4
+}
+.workspace-customer .qr-modal .download-card-action:hover,
+.workspace-customer .qr-modal>.button-outline:hover{background:var(--color-brand-100)}
+.customer-card-visits h3{color:var(--color-text)}
+.customer-card-visits>div{background:var(--color-surface);border-color:var(--color-bg-2)}
+.customer-card-visit{border-color:var(--color-bg-2);color:var(--color-text)}
+.customer-card-visit span:last-child{color:var(--color-text-2)}
+.workspace-customer .reward-claim-panel{
+ background:var(--color-brand-100);border-color:var(--color-brand-300);color:var(--color-brand-900)
+}
+.workspace-customer .tiny-note{color:var(--color-text-2)}
+/* El QR ampliado siempre mantiene su contraste de lectura. */
+.workspace-customer .qr-fullscreen-overlay{background:#fff;color:#22201f}
+.workspace-customer .qr-fullscreen-image{background:#fff}
+
+/* Mapa: calles visibles, filtros de app flotantes y ficha de local clara. */
+.customer-map-stage{
+ background:#e8e3d8;border-color:var(--color-bg-2);
+ box-shadow:0 12px 32px #3d0f1b18
+}
+.customer-map-stage .directory-map .leaflet-container{background:#eeeae1!important}
+.customer-map-stage .leaflet-tile-pane{
+ filter:saturate(.72) sepia(.07) contrast(.98) brightness(1.015)!important
+}
+.customer-map-stage .leaflet-control-attribution{
+ background:#fffffff0!important;color:#5e5550!important
+}
+.customer-map-stage .leaflet-control-attribution a{color:var(--color-brand)!important}
+.customer-map-stage .leaflet-control-zoom a{
+ background:#fff;color:var(--color-brand);border-color:var(--color-bg-2)
+}
+.customer-map-controls{
+ background:linear-gradient(180deg,#f5efe6f5 0%,#f5efe6d9 65%,#f5efe600 100%)
+}
+.customer-map-search{
+ background:var(--color-surface);border-color:#d8c9c5;color:var(--color-brand);
+ box-shadow:0 7px 21px #3d0f1b20
+}
+.customer-map-search input{color:var(--color-text);font-size:14px}
+.customer-map-search input::placeholder{color:#766b65;opacity:1}
+.customer-map-search input:focus-visible{outline:0}
+.customer-map-search:focus-within{outline:2px solid var(--color-brand-300);outline-offset:2px}
+.customer-map-search>button{
+ background:var(--color-brand-100);border-color:var(--color-bg-2);color:var(--color-brand)
+}
+.customer-map-search>button:hover{background:var(--color-accent-100)}
+.customer-map-categories .filter-chip{
+ background:var(--color-surface);color:var(--color-brand-900);
+ border-color:#ded1ca;box-shadow:0 2px 8px #3d0f1b10
+}
+.customer-map-categories .filter-chip.selected{
+ background:var(--color-brand);border-color:var(--color-brand);color:#fff
+}
+.customer-map-secondary label{color:var(--color-text);font-size:12px;font-weight:750}
+.customer-map-secondary select{
+ background:var(--color-surface);border-color:#d8cbc4;
+ color:var(--color-brand-900);font-size:12px
+}
+.customer-map-secondary .directory-map-legend{
+ background:#fffcf7ef;border-color:#ddd0c9;box-shadow:0 3px 11px #3d0f1b12
+}
+.customer-map-secondary .directory-map-legend span{color:var(--color-text);font-size:12px}
+.customer-map-secondary .map-legend-star{color:var(--color-brand-900)}
+.customer-map-secondary .map-legend-star.filled{color:var(--color-brand)}
+.customer-map-business-card{
+ background:#fffdf9f8;color:var(--color-text);border-color:#e0d4cb;
+ box-shadow:0 13px 38px #3d0f1b29
+}
+.customer-map-business-name h2{color:var(--color-text);font-size:19px}
+.customer-map-business-name span{color:var(--color-text-2);font-size:13px}
+.customer-map-ownership{
+ background:var(--color-accent-100);color:var(--color-brand-900)
+}
+.customer-map-ownership.owned{
+ background:var(--color-brand-100);color:var(--color-brand)
+}
+.customer-map-business-reward{color:var(--color-text);font-size:15px;font-weight:700}
+.customer-map-primary-action{background:var(--color-brand);color:#fff}
+.customer-map-primary-action:hover{background:var(--color-brand-900)}
+.customer-map-secondary-action{
+ background:var(--color-surface);border-color:#c9b6b4;color:var(--color-brand)
+}
+.customer-map-secondary-action:hover{background:var(--color-brand-100)}
+.customer-discover-results-heading span{color:var(--color-text-2);font-size:13px}
+.workspace-customer .directory-card-premium{
+ background:var(--color-surface);color:var(--color-text);
+ border-color:var(--color-bg-2);box-shadow:0 7px 23px #3d0f1b0e
+}
+.workspace-customer .directory-card-premium .directory-card-body{
+ background:var(--color-surface);color:var(--color-text)
+}
+.workspace-customer .directory-card-premium .directory-card-heading strong{color:var(--color-text)}
+.workspace-customer .directory-card-premium .directory-business-description,
+.workspace-customer .directory-card-premium .directory-location{color:var(--color-text-2)}
+.workspace-customer .directory-card-premium .directory-reward-highlight{
+ background:var(--color-accent-100);border-color:#ead7ae;color:var(--color-brand-900)
+}
+.workspace-customer .directory-card-premium .directory-reward-highlight strong{color:var(--color-brand-900)}
+.workspace-customer .directory-card-premium .button-dark{background:var(--color-brand);color:#fff}
+.workspace-customer .directory-card-premium .distance-tag{color:var(--color-text-2)}
+/* Estrellas originales de pertenencia, destacadas sin ennegrecer el mapa. */
+.customer-map-stage .loyally-map-pin.is-owned{color:var(--color-brand)}
+.customer-map-stage .loyally-map-pin.is-unowned{color:var(--color-text)}
+.customer-map-stage .leaflet-popup-content-wrapper{
+ background:#fffdf9;color:var(--color-text);
+ border:1px solid var(--color-bg-2);border-radius:16px
+}
+.customer-map-stage .leaflet-popup-tip{background:#fffdf9}
+
+/* Menú flotante de la aplicación: superficie blanca y estado activo vinotinto. */
+.loyalty-global-bottom-nav.loyalty-nav-customer{
+ border:1px solid #e2d5cb;background:#fffdf9f7;
+ box-shadow:0 13px 42px #3d0f1b1f
+}
+.loyalty-global-bottom-nav.loyalty-nav-customer .mobile-bottom-link{
+ color:#5f5355;font-size:11px
+}
+.loyalty-global-bottom-nav.loyalty-nav-customer .mobile-bottom-link.active{
+ background:var(--color-brand-100);color:var(--color-brand)
+}
+.loyalty-global-bottom-nav.loyalty-nav-customer .mobile-bottom-link:hover{
+ background:var(--color-accent-100);color:var(--color-brand)
+}
+.loyalty-global-bottom-nav.loyalty-nav-customer .mobile-bottom-link span{font-size:11px;font-weight:750}
+.loyalty-global-bottom-nav.loyalty-nav-customer .mobile-bottom-link:focus-visible{
+ outline:2px solid var(--color-brand);outline-offset:-2px
+}
+
+/* Perfil, notificaciones y avisos vuelven a fondos claros. */
+.workspace-customer .customer-profile-only,
+.workspace-customer .panel-card,.workspace-customer .soft-panel{
+ background:var(--color-surface);color:var(--color-text);
+ border-color:var(--color-bg-2);box-shadow:0 6px 25px #3d0f1b0d
+}
+.workspace-customer .customer-notification-settings{
+ background:transparent;color:var(--color-text);border:0;box-shadow:none
+}
+.workspace-customer .panel-card h2,
+.workspace-customer .customer-settings-header h2{color:var(--color-text)}
+.workspace-customer .panel-card p,
+.workspace-customer .customer-settings-header p{color:var(--color-text-2)}
+.workspace-customer .customer-settings-header{color:var(--color-brand)}
+.workspace-customer .form-stack label{color:var(--color-text)}
+.workspace-customer .form-stack input,
+.workspace-customer .form-stack textarea,
+.workspace-customer .form-stack select{
+ background:#fff;border:1px solid #d9cbc2;color:var(--color-text)
+}
+.workspace-customer .form-stack input::placeholder{color:#766b65}
+.workspace-customer .form-stack input:focus-visible,
+.workspace-customer .form-stack textarea:focus-visible,
+.workspace-customer .form-stack select:focus-visible{
+ outline:2px solid var(--color-brand-300);outline-offset:2px
+}
+.workspace-customer .button-dark{background:var(--color-brand);color:#fff}
+.workspace-customer .button-outline{background:#fff;color:var(--color-brand);border-color:#d9c5c8}
+.workspace-customer .empty-state{
+ background:var(--color-surface);color:var(--color-text);border-color:var(--color-bg-2)
+}
+.workspace-customer .empty-state h3{color:var(--color-text)}
+.workspace-customer .empty-state p{color:var(--color-text-2)}
+.workspace-customer .customer-logout-button{color:var(--color-brand);border-color:#d3b7bd}
+.workspace-customer .customer-logout-button:hover{background:var(--color-brand-100)}
+.workspace-customer .kreyv-news .content-heading h2{color:var(--color-text)}
+.workspace-customer .kreyv-news .content-heading p{color:var(--color-text-2)}
+.workspace-customer .kreyv-news-item{
+ background:var(--color-surface);color:var(--color-text);
+ border-color:var(--color-bg-2)
+}
+.workspace-customer .kreyv-news-item-content>p,
+.workspace-customer .kreyv-news-meta,
+.workspace-customer .kreyv-news-item-content>small{color:var(--color-text-2)}
+.workspace-customer .kreyv-expired-toggle{color:var(--color-text)}
+.workspace-customer .kreyv-expired-toggle input{accent-color:var(--color-brand)}
+.workspace-customer .customer-channel-business{color:var(--color-text)}
+
+/* Mantener los botones y la barra cómodos para el pulgar, incluso en 360px. */
+@media(max-width:700px){
+ .workspace-customer .qr-modal{
+  background:var(--color-bg);border:0;box-shadow:none
+ }
+ .customer-map-controls{background:linear-gradient(180deg,#f5efe6f5 0%,#f5efe6df 60%,transparent)}
+ .customer-map-secondary .directory-map-legend span{font-size:11px}
+ .loyalty-global-bottom-nav.loyalty-nav-customer .mobile-bottom-link span{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .customer-deck-card,.customer-map-primary-action{transition:none}
+}
