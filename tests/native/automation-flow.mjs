@@ -62,8 +62,10 @@ try{
  assert.equal(after.earned_total,5,"Five stamps earned");
  assert.equal(after.verified_visits,"1","One verified purchase, not five visits");
  assert.equal(after.staff_notes[0].redeemed,false);
+ await setRole("postgres",id.owner);
  jobs=await q("SELECT rule_id,status FROM public.automation_queue WHERE membership_id=$1",[membership.id]);
  assert.equal(jobs.rowCount,2,"Threshold queues once");
+ await setRole("authenticated",id.staff);
  await q("SELECT public.staff_claim_automation_bonus($1::uuid,$2::uuid)",[targetId,membership.id]);
  await q("SAVEPOINT duplicate_claim");
  try{await q("SELECT public.staff_claim_automation_bonus($1::uuid,$2::uuid)",[targetId,membership.id]);assert.fail("Duplicate gift was accepted");}
