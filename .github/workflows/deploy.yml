@@ -58,6 +58,8 @@ jobs:
         run: node tests/demo/customer-visual-balance.mjs
       - name: Verificar Tarjeta del dueño y flujos automáticos sin ejemplos
         run: node tests/demo/owner-final-card-flows.mjs
+      - name: Comprobar tarjeta visual, QR y datos interactivos del negocio
+        run: node tests/demo/owner-card-chart-priority.mjs
       - name: Verificar informes, fechas e imágenes de tarjeta
         run: node tests/demo/owner-noma-polish.mjs
       - name: Verificar navegacion y notificaciones
