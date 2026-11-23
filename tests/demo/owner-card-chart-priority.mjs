@@ -24,7 +24,7 @@ assert.match(preview,/size=\{240\} includeMargin/,"Card QR has adequate resoluti
 assert.match(css,/\.stamp-visual-card\.stamp-visual-rebalanced[\s\S]*?aspect-ratio:1\.586/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-business-logo[\s\S]*?14\.5cqw/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-grid[\s\S]*?10cqw/);
-assert.match(css,/\.stamp-visual-rebalanced \.stamp-qr-white[\s\S]*?max-width:170px/);
+assert.match(css,/\.stamp-visual-rebalanced \.stamp-qr-white[\s\S]*?max-width:195px/);
 assert.match(customer,/className=\{"loyalty-card loyalty-card-rebalanced"/);
 assert.match(customer,/className="lc-card-name"/);
 assert.match(customer,/className="lc-card-message"/);
