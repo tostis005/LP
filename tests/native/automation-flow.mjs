@@ -76,6 +76,10 @@ try{
  await setRole("lp_auth",id.owner);
  const second=await q("SELECT * FROM public.dispatch_due_automations(10)");
  assert.deepEqual(second.rows,[{delivered:1,skipped:0}],"Stamp notification delivered exactly once");
+ // now() is fixed to the transaction start, so date fixture rows a minute earlier.
+ await setRole("postgres",id.owner);
+ await q("UPDATE public.loyalty_memberships SET created_at=now()-interval '1 minute' WHERE id=$1",[membership.id]);
+ await q("UPDATE public.loyalty_transactions SET created_at=now()-interval '1 minute' WHERE membership_id=$1",[membership.id]);
  await setRole("authenticated",id.owner);
  const growth=(await q("SELECT * FROM public.business_growth_summary($1::uuid,30)",[id.business])).rows;
  assert.equal(Number(growth.find(x=>x.metric==="new_customers").current_value),1);
