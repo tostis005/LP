@@ -26,6 +26,11 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   // Solo se abre la tarjeta cuya membresía pertenece al usuario y aparece en su listado.
   if(new URLSearchParams(window.location.search).get("card")===membership.id)setOpen(true);
  },[membership.id]);
+ useEffect(()=>{
+  const onOpen=(event:Event)=>{if((event as CustomEvent<string>).detail===membership.id)setOpen(true)};
+  window.addEventListener("kreyv:open-card",onOpen);
+  return()=>window.removeEventListener("kreyv:open-card",onOpen);
+ },[membership.id]);
  useEffect(()=>{if(!open)return;let active=true;
   db().from("reward_vouchers").select("token,reward_label").eq("membership_id",membership.id).eq("status","issued").maybeSingle().then(({data})=>{if(active)setVoucher(data as {token:string;reward_label:string}|null)});
   return()=>{active=false};
