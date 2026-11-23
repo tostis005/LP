@@ -122,7 +122,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   </div>
   <div className="lc-card-aside">
    <span className="lc-chip">KREYV</span>
-   <span className="lc-qr-large"><QRCodeSVG value={qrUrl} size={240} level="M" includeMargin={false}/></span>
+   <span className="lc-qr-large"><QRCodeSVG value={qrUrl} size={240} level="M" includeMargin/></span>
   </div>
  </button>}
  {!compact&&<button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><QrCode size={17}/> Ver tarjeta y QR</button>}
