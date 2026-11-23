@@ -281,3 +281,151 @@
 }
 .staff-bonus-claim:hover:not(:disabled){background:var(--color-accent-300)}
 .staff-bonus-claim:disabled{background:#edf3e8;color:#427149;border-color:#bfceba;cursor:default}
+
+
+/* Owner v2: un único editor de Tarjeta y un creador de reglas vacío por defecto. */
+.workspace-business .owner-card-intro{
+ display:flex;justify-content:space-between;align-items:center;gap:16px;
+ flex-wrap:wrap;padding:21px 24px;margin:0 0 16px;
+ border:1px solid #e5d8d0;border-radius:20px;background:#fffdf9
+}
+.workspace-business .owner-card-intro h3{
+ margin:0 0 6px;font-size:20px;line-height:1.25;
+ color:var(--color-text);letter-spacing:-.035em
+}
+.workspace-business .owner-card-intro p{
+ margin:0;max-width:670px;color:var(--color-text-2);
+ line-height:1.55;font-size:13px
+}
+.owner-card-mode{
+ white-space:nowrap;border-radius:100px;background:var(--color-brand-100);
+ color:var(--color-brand);font-size:12px;font-weight:800;
+ padding:10px 14px
+}
+.workspace-business .business-card-tabs{
+ width:100%;margin:0 0 22px;border:1px solid #e7d7d3;
+ padding:6px;background:#f6eeeb
+}
+.workspace-business .business-card-tabs button{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ font-size:13px;letter-spacing:-.015em
+}
+.workspace-business .business-card-tabs button[aria-pressed=true]{
+ color:var(--color-brand);background:#fff
+}
+.owner-card-brand-upload{
+ display:flex;align-items:center;gap:16px;padding:16px;
+ border:1px solid #e9dcd4;background:#faf5f0;border-radius:17px
+}
+.owner-card-brand-preview{
+ width:80px;height:80px;flex:none;border-radius:18px;overflow:hidden;
+ display:grid;place-items:center;background:#fff;border:1px solid #e7d5d3
+}
+.owner-card-brand-preview img{width:100%;height:100%;object-fit:cover}
+.owner-card-brand-preview>span{
+ display:grid;place-items:center;width:100%;height:100%;
+ color:#fff;font-size:27px;font-weight:850
+}
+.owner-card-brand-upload>div:last-child{
+ display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0
+}
+.owner-card-brand-upload strong{color:var(--color-text);font-size:14px}
+.owner-card-brand-upload small{font-size:12px;color:var(--color-text-2);line-height:1.4}
+.owner-card-brand-upload .file-input{margin:4px 0 0}
+
+/* Formulario de automatizaciones sin plantillas precargadas. */
+.automation-page .automation-intro h2{
+ font-size:clamp(23px,3vw,30px);letter-spacing:-.045em
+}
+.automation-builder{display:grid;gap:16px}
+.automation-builder-step{
+ display:grid;gap:17px;padding:22px;
+ background:#fffdf9;border:1px solid #e8dcd4;border-radius:19px
+}
+.automation-step-heading{display:flex;align-items:center;gap:12px}
+.automation-step-heading>div{flex:1;min-width:0}
+.automation-step-heading>svg{color:var(--color-brand)}
+.automation-step-index{
+ display:grid;place-items:center;flex:none;width:34px;height:34px;
+ border-radius:11px;background:var(--color-brand);color:#fff;
+ font-size:15px;font-weight:850
+}
+.automation-step-heading h4{font-size:17px;line-height:1.2;color:var(--color-text);margin:0}
+.automation-step-heading p{font-size:12px;color:var(--color-text-2);line-height:1.5;margin:5px 0 0}
+.automation-builder-step .form-stack{display:grid;gap:15px}
+.automation-builder-step label{display:grid;gap:7px;color:var(--color-text);font-weight:750;font-size:12px}
+.automation-builder-step input,.automation-builder-step select,.automation-builder-step textarea{
+ width:100%;max-width:100%;min-width:0;
+ border:1px solid #d9c9c1;border-radius:11px;
+ background:#fff;padding:12px 13px;color:var(--color-text);font-size:14px
+}
+.automation-builder-step select{min-height:46px}
+.automation-builder-step select optgroup{font-weight:750}
+.automation-builder-step select option{font-weight:500}
+.automation-builder-step input:focus-visible,.automation-builder-step select:focus-visible,
+.automation-builder-step textarea:focus-visible{
+ outline:2px solid var(--color-brand-300);outline-offset:2px
+}
+.automation-builder-step label small,.automation-builder-step>small{
+ color:var(--color-text-2);font-size:12px;font-weight:450;line-height:1.55
+}
+.automation-condition-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.automation-condition-grid>small{grid-column:1/-1}
+.automation-trigger-description{
+ background:var(--color-accent-100);border:1px solid #ecd9b8;
+ color:#58432e;border-radius:11px;margin:0;
+ padding:11px 13px;font-size:12px;line-height:1.55
+}
+.automation-fixed-rule{
+ border-radius:13px;border:1px solid #e9d9cf;
+ background:#f8f1e9;padding:14px 16px
+}
+.automation-fixed-rule strong{font-size:14px;color:var(--color-brand)}
+.automation-fixed-rule p{font-size:12px;color:var(--color-text-2);margin:7px 0 0}
+.automation-builder-bottom{
+ display:flex;align-items:center;justify-content:space-between;gap:15px;
+ flex-wrap:wrap;border-top:1px solid #eadfd7;padding-top:20px
+}
+.automation-builder-bottom p{
+ display:inline-flex;align-items:flex-start;gap:8px;max-width:560px;
+ margin:0;font-size:12px;color:var(--color-text-2);line-height:1.55
+}
+.automation-builder-bottom p>svg{color:var(--color-brand);flex:none}
+.automation-blank-state{
+ display:flex;align-items:center;flex-direction:column;gap:13px;
+ border:1px dashed #cfbfc2;border-radius:20px;background:#fffcf8;
+ padding:clamp(30px,5vw,53px) 23px;text-align:center
+}
+.automation-blank-state>svg{
+ color:var(--color-brand);width:57px;height:57px;padding:13px;
+ border-radius:18px;background:var(--color-brand-100)
+}
+.automation-blank-state h3{font-size:19px;color:var(--color-text);letter-spacing:-.025em;margin:0}
+.automation-blank-state p{font-size:13px;color:var(--color-text-2);max-width:390px;line-height:1.6;margin:0}
+.automation-total{font-size:12px;color:var(--color-text-2);font-weight:700;white-space:nowrap}
+.automation-rule-actions{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex:none}
+.automation-rule-actions>button{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ min-height:36px;border-radius:100px;padding:8px 12px;
+ font-weight:800;font-size:11px;cursor:pointer
+}
+.automation-edit-action{
+ border:1px solid #decbd0;background:#fff;color:var(--color-brand)
+}
+.automation-edit-action:hover{background:var(--color-brand-100)}
+.automation-rule-actions>button:disabled{opacity:.5;cursor:default}
+.automation-rule-info p{font-size:13px;line-height:1.55}
+@media(max-width:750px){
+ .workspace-business .owner-card-intro{padding:17px;gap:11px}
+ .workspace-business .business-card-tabs button{font-size:11px;padding:12px 8px;gap:5px}
+ .workspace-business .business-card-tabs button svg{width:15px;height:15px}
+ .automation-builder-step{padding:16px;border-radius:15px}
+ .automation-condition-grid{grid-template-columns:1fr}
+ .automation-builder-bottom{flex-direction:column;align-items:stretch}
+ .automation-builder-bottom .button{width:100%;justify-content:center}
+ .automation-rule-actions{width:100%;flex-direction:row;justify-content:flex-end}
+}
+@media(max-width:390px){
+ .owner-card-brand-upload{flex-direction:column;align-items:flex-start}
+ .owner-card-brand-preview{width:65px;height:65px}
+}
