@@ -127,6 +127,7 @@ const rpcMap:Record<string,Spec>={
  available_rewards:{args:[["p_business","uuid"]],returns:"table"},
  business_dashboard_metrics:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  business_growth_series:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
+ business_growth_summary:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  staff_card_context:{args:[["p_membership","uuid"]],returns:"table"},
  business_reward_ranking:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  customer_reward_summary:{args:[],returns:"table"},
