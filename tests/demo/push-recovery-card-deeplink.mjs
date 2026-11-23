@@ -23,7 +23,8 @@ assert.match(testRoute,/customer_push_subscription/,"La prueba sigue validando l
 assert.match(testRoute,/rateLimit\("push-self-test:/,"Se mantiene el límite de pruebas");
 assert.match(discover,/href=\{already\?"\/app\?card="\+encodeURIComponent\(cardId\)/,"Descubrir enlaza directamente a la membresía del cliente");
 assert.match(discover,/cardId:myCards\[e.business_id\]/,"El mapa recibe el ID de la tarjeta del usuario");
-assert.match(map,/href=\{x.cardId\?"\/app\?card="\+encodeURIComponent\(x.cardId\)/,"El marcador del mapa abre la misma tarjeta");
+assert.match(map,/onSelect\?\.\(x\)/,"El marcador del mapa selecciona el negocio sin duplicar el popup");
+assert.match(discover,/href=\{selectedCard\?"\/app\?card="\+encodeURIComponent\(selectedCard\)/,"La ficha seleccionada abre exactamente la tarjeta del negocio");
 assert.match(cards,/new URLSearchParams\(window.location.search\).get\("card"\)===membership.id/,"Solo la tarjeta seleccionada se abre");
 assert.match(cards,/window.history.replaceState\(window.history.state/,"Cerrar la tarjeta elimina el enlace temporal");
 assert.match(home,/\.eq\("customer_id",account.user.id\)/,"La tarjeta procede del listado autorizado del cliente");
