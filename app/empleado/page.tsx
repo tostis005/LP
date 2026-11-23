@@ -9,7 +9,7 @@ import {db} from "@/lib/supabase";
 import {dateShort,normalizeToken,units} from "@/lib/format";
 import {displayCurrency} from "@/lib/currency";
 type RewardChoice={id:string;label:string;retail_cents:number|null};
-type StaffNote={name:string;target:number;expires_at:string;instruction:string};
+type StaffNote={rule_id:string;name:string;target:number;expires_at:string;instruction:string;redeemed:boolean};
 type Found={membership_id:string;business_id:string;business_name:string;customer_name:string;program_type:"stamps"|"points"|"cashback";balance:number;reward_label:string;reward_cost:number;voucher_id?:string;max_stamps_per_action?:number;joined_at?:string;visits?:number;earned_total?:number;staff_notes?:StaffNote[]};
 function StaffMain({account}:{account:Account}){
  const params=useSearchParams(),[input,setInput]=useState(""),[card,setCard]=useState<Found|null>(null),[receipt,setReceipt]=useState(""),[stamps,setStamps]=useState(1),[amount,setAmount]=useState(""),[cash,setCash]=useState(""),[busy,setBusy]=useState(false),[scanner,setScanner]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
@@ -61,6 +61,17 @@ function StaffMain({account}:{account:Account}){
   setSuccess(kind==="earn"?"Compra registrada. Nuevo saldo: "+units(result.data,card.program_type,currency):"Recompensa canjeada. Saldo restante: "+units(result.data,card.program_type,currency));
   setCard(kind==="redeem"?null:{...card,balance:result.data,earned_total:(card.earned_total||0)+(kind==="earn"&&card.program_type==="stamps"?stamps:0),visits:(card.visits||0)+(kind==="earn"?1:0)});setReceipt("");setAmount("");setCash("");setChosen("")
  }
+ async function claimBonus(note:StaffNote){
+  if(!card||note.redeemed||(card.earned_total||0)<note.target)return;
+  if(!window.confirm("¿Confirmas que has entregado este regalo especial al cliente? Esta acción solo puede hacerse una vez."))return;
+  setBusy(true);setError("");setSuccess("");
+  try{
+   const result=await db().rpc("staff_claim_automation_bonus",{p_rule:note.rule_id,p_membership:card.membership_id});
+   if(result.error){setError(result.error.message);return}
+   setCard(current=>current?{...current,staff_notes:(current.staff_notes||[]).map(n=>n.rule_id===note.rule_id?{...n,redeemed:true}:n)}:current);
+   setSuccess("Regalo especial registrado. No se podrá entregar dos veces.");
+  }finally{setBusy(false)}
+ }
  return <div className="staff-app">
   <div className="staff-app-intro"><span className="page-eyebrow">CAJA Y FIDELIZACIÓN</span><h2>Escanea, registra y listo.</h2><p>El QR identifica al cliente. Comprueba la operación antes de sumar sellos o canjear un premio.</p></div>
   <div className="scanner-grid"><section className="panel-card staff-scan-panel"><div className="panel-icon"><ScanLine size={23}/></div><h2>Escanear tarjeta</h2>
@@ -93,7 +104,9 @@ function StaffMain({account}:{account:Account}){
      const willReach=!reached&&card.program_type==="stamps"&&(card.earned_total||0)+stamps>=note.target;
      return <div key={note.name+"-"+note.target} className={"staff-campaign-note"+(willReach?" due":"")}>
       <b>{note.name}</b><p>{note.instruction}</p>
-      <small>{reached?"Objetivo alcanzado anteriormente":willReach?"Se alcanza con esta compra":"Objetivo: "+note.target+" sellos"} · Límite {dateShort(note.expires_at)}</small>
+      <small>{note.redeemed?"Regalo ya entregado":reached?"Objetivo alcanzado; pendiente de validar entrega":willReach?"Se alcanza con esta compra":"Objetivo: "+note.target+" sellos"} · Límite {dateShort(note.expires_at)}</small>
+      {(reached||note.redeemed)&&<button type="button" className="staff-bonus-claim" disabled={busy||note.redeemed}
+       onClick={()=>void claimBonus(note)}><Check size={16}/>{note.redeemed?"Regalo entregado":"Confirmar entrega del regalo"}</button>}
      </div>;
     })}
    </div>}
