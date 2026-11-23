@@ -59,7 +59,7 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
   <div className="owner-data-secondary">
    <div className="owner-data-stat"><TrendingUp size={20}/><div><strong>{integer(legacy("visits"))}</strong><span>Compras verificadas en el periodo</span></div></div>
    <div className="owner-data-stat"><Gift size={20}/><div><strong>{integer(legacy("redemptions"))}</strong><span>Recompensas canjeadas</span></div></div>
-   <div className="owner-data-stat"><Users size={20}/><div><strong>{integer(repeatCustomers)}</strong><span>Con 2 o más visitas desde que se inscribieron ({totalCustomers} tarjetas)</span></div></div>
+   <div className="owner-data-stat"><Users size={20}/><div><strong>{integer(repeatCustomers)}</strong><span>Clientes recurrentes históricos: 2 o más visitas desde que se inscribieron ({totalCustomers} tarjetas)</span></div></div>
   </div>
   <div className="owner-data-method">
    <strong>Cómo contamos a los habituales</strong>
