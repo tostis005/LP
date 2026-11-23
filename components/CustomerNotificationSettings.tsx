@@ -50,6 +50,10 @@ export function CustomerNotificationSettings({account}:{account:Account}){
   finally{setLoading(false);}
  },[account.user.id]);
  useEffect(()=>{setFocusBusiness(new URLSearchParams(window.location.search).get("business")||"");void load()},[load]);
+ useEffect(()=>{if(!loading&&focusBusiness){
+  const target=document.getElementById("notification-"+focusBusiness);
+  target?.scrollIntoView({block:"center",behavior:"smooth"});
+ }},[loading,focusBusiness]);
  async function change(card:CardChoice,channel:Channel,checked:boolean){
   if(busy)return;
   if(channel==="whatsapp"&&checked&&!whatsappReady){
