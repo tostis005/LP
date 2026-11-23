@@ -122,30 +122,45 @@ export default function BusinessWorkspace({account}:{account:Account}){
  },[selected,periodDays,marketingChannel]);
  useEffect(()=>{reload()},[reload]);
  function success(s:string){setNotice(s);setError("");showActionToast(s)}
- async function saveBusiness(fields:Partial<Business>){if(!selected)return;setBusy(true);setError("");setNotice("");
- const {error}=await db().from("businesses").update(fields).eq("id",selected);
- setBusy(false);if(error){setError(error.message);return}success("Cambios guardados correctamente.");await reload();
+ async function saveBusiness(fields:Partial<Business>){
+  if(!selected)return;
+  setBusy(true);setError("");setNotice("");
+  try{
+   const {error,count}=await db().from("businesses").update(fields).eq("id",selected);
+   if(error||count!==1){setError(error?.message||"No se ha guardado: comprueba tus permisos o inténtalo de nuevo.");return}
+   success("Cambios guardados correctamente.");await reload();
+  }finally{setBusy(false)}
  }
- async function saveProgram(e:React.FormEvent){e.preventDefault();if(!prog)return;setBusy(true);setError("");setNotice("");
- const {error}=await db().from("loyalty_programs").update({
-  type:prog.type,reward_label:prog.reward_label,reward_cost:Number(prog.reward_cost),cashback_bps:Number(prog.cashback_bps),
-  points_per_euro:Number(prog.points_per_euro),max_stamps_per_action:Number(prog.max_stamps_per_action),
-  max_ticket_cents:Number(prog.max_ticket_cents),min_seconds_between_awards:Number(prog.min_seconds_between_awards),
-  max_daily_awards_per_employee:Number(prog.max_daily_awards_per_employee),require_ticket_reference:prog.require_ticket_reference,updated_at:new Date().toISOString()
- }).eq("id",prog.id);
- setBusy(false);if(error){setError(error.message);return}success("Programa actualizado. Los saldos existentes se mantienen; evita cambiar de modalidad después de admitir clientes.");await reload()
+ async function saveProgram(e:React.FormEvent){
+  e.preventDefault();if(!prog)return;
+  if(prog.reward_cost<1||prog.max_stamps_per_action<1||prog.max_stamps_per_action>100||
+   prog.max_ticket_cents<100||prog.min_seconds_between_awards<0){
+   setError("Revisa el coste del premio y los límites de la tarjeta.");return;
+  }
+  setBusy(true);setError("");setNotice("");
+  try{
+   const {error,count}=await db().from("loyalty_programs").update({
+    type:prog.type,reward_label:prog.reward_label,reward_cost:Number(prog.reward_cost),cashback_bps:Number(prog.cashback_bps),
+    points_per_euro:Number(prog.points_per_euro),max_stamps_per_action:Number(prog.max_stamps_per_action),
+    max_ticket_cents:Number(prog.max_ticket_cents),min_seconds_between_awards:Number(prog.min_seconds_between_awards),
+    max_daily_awards_per_employee:Number(prog.max_daily_awards_per_employee),require_ticket_reference:prog.require_ticket_reference,updated_at:new Date().toISOString()
+   }).eq("id",prog.id);
+   if(error||count!==1){setError(error?.message||"No se ha guardado el programa. Revisa tus permisos.");return}
+   success("Reglas guardadas. Los saldos y sellos existentes se mantienen.");await reload();
+  }finally{setBusy(false)}
  }
-
  async function saveDesigner(){
   if(!biz||!prog)return;
   setBusy(true);setError("");setNotice("");
-  const {error:visualError}=await db().from("businesses").update({
-   accent_color:biz.accent_color,card_text:biz.card_text,
-   card_text_color:biz.card_text_color||"#ffffff",stamp_color:biz.stamp_color||"#571c32",
-   stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
-  }).eq("id",selected);
-  if(visualError){setBusy(false);setError(visualError.message);return}
-  setBusy(false);success("Diseño de tarjeta guardado.");await reload();
+  try{
+   const {error,count}=await db().from("businesses").update({
+    accent_color:biz.accent_color,card_text:biz.card_text,
+    card_text_color:biz.card_text_color||"#ffffff",stamp_color:biz.stamp_color||"#571c32",
+    stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
+   }).eq("id",selected);
+   if(error||count!==1){setError(error?.message||"No se ha guardado el diseño. Revisa tus permisos.");return}
+   success("Diseño guardado. Los clientes verán la nueva tarjeta.");await reload();
+  }finally{setBusy(false)}
  }
  async function reverseTransaction(transaction:Tx){
   if(transaction.kind==="reversal" || transactions.some(t=>t.reversal_of===transaction.id))return;
@@ -157,14 +172,28 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setBusy(false);if(error){setError(error.message);return}
   success("Movimiento revertido. El saldo del cliente y el historial se han actualizado.");await reload();
  }
- async function upload(file:File|null,field:"logo_url"|"card_background"|"stamp_image_url"){if(!file||!selected)return;
-  if(file.size>5*1024*1024 || !["image/png","image/jpeg","image/webp"].includes(file.type)){setError("Solo imágenes JPG, PNG o WEBP de hasta 5 MB.");return}
-  setBusy(true);setError("");const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]/g,"-");
-  const key=selected+"/"+Date.now()+"-"+safe;
-  const {error}=await db().storage.from("business-assets").upload(key,file,{contentType:file.type,upsert:false});
-  if(error){setError(error.message);setBusy(false);return}
-  const {data}=db().storage.from("business-assets").getPublicUrl(key);
-  await saveBusiness({[field]:data.publicUrl});setBusy(false)
+ async function persistAsset(field:"logo_url"|"card_background"|"stamp_image_url",url:string|null){
+  if(!selected)return false;
+  const {error,count}=await db().from("businesses").update({[field]:url}).eq("id",selected);
+  if(error||count!==1){setError(error?.message||"La imagen se ha subido, pero no se ha podido guardar en el negocio.");return false}
+  // No recargar todo el formulario: preserva colores, mensaje y sellos aún por guardar.
+  setBiz(old=>old?{...old,[field]:url}:old);
+  success(url?"Imagen guardada.":"Imagen retirada.");return true;
+ }
+ async function upload(file:File|null,field:"logo_url"|"card_background"|"stamp_image_url"){
+  if(!file||!selected)return;
+  if(file.size>5*1024*1024 || !["image/png","image/jpeg","image/webp"].includes(file.type)){
+   setError("Solo imágenes JPG, PNG o WEBP de hasta 5 MB.");return
+  }
+  setBusy(true);setError("");setNotice("");
+  try{
+   const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]/g,"-");
+   const key=selected+"/"+Date.now()+"-"+safe;
+   const {error}=await db().storage.from("business-assets").upload(key,file,{contentType:file.type,upsert:false});
+   if(error){setError(error.message);return}
+   const {data}=db().storage.from("business-assets").getPublicUrl(key);
+   await persistAsset(field,data.publicUrl);
+  }finally{setBusy(false)}
  }
  async function invite(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setNotice("");
   const {error}=await db().rpc("invite_staff",{p_business:selected,p_email:inviteEmail,p_role:inviteRole});
@@ -324,7 +353,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
        {biz.stamp_image_url&&<button type="button" className="role-demo-textbutton" onClick={()=>setBiz({...biz,stamp_image_url:null})}>Quitar imagen personalizada</button>}
        <small className="muted">Elige uno de nuestros dibujos o, si lo prefieres, sube tu propia imagen. Todos tus clientes verán el sello que hayas elegido.</small>
       </>}
-      <label className="file-input"><ImagePlus size={18}/> Subir imagen de fondo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"card_background")}/></label>{biz.card_background&&<button type="button" className="role-demo-textbutton" onClick={()=>saveBusiness({card_background:null})}>Quitar imagen de fondo</button>}
+      <label className="file-input"><ImagePlus size={18}/> Subir imagen de fondo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"card_background")}/></label>{biz.card_background&&<button type="button" className="role-demo-textbutton" onClick={()=>void persistAsset("card_background",null)}>Quitar imagen de fondo</button>}
       <button className="button button-dark button-full" disabled={busy} type="button" onClick={saveDesigner}>{busy?"Guardando...":"Guardar diseño"} <Check size={17}/></button>
      </div>
     </section>
