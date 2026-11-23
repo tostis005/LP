@@ -53,6 +53,8 @@ body:has(.workspace-customer){background:#0c0c0f}
 .customer-deck-bottom{font-size:12px;font-weight:750;display:flex;align-items:center;justify-content:space-between;gap:14px;opacity:.94}
 .workspace-customer .customer-deck-item>.loyalty-wallet-open{display:none}
 .workspace-customer .customer-deck-item>.kreyv-loyalty-offers{color:#ead5dd;font-size:12px}
+.customer-home-preferences{text-align:right;margin:3px 0 17px}
+.customer-home-preferences a{font-size:12px;color:#c9a7b3;text-decoration:underline;text-underline-offset:3px}
 .workspace-customer .customer-activity-section{border-top:1px solid #302f35;margin-top:23px;padding-top:24px}
 .workspace-customer .customer-activity-section h2{color:#fff}
 .workspace-customer .customer-activity-list{background:#1a191e;border:1px solid #333139;border-radius:21px;overflow:hidden}
