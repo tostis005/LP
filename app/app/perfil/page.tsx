@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {CheckCircle2,UserRound} from "lucide-react";
+import {CheckCircle2,UserRound,LogOut} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {db} from "@/lib/supabase";
 function Profile({account}:{account:Account}){
@@ -31,6 +31,7 @@ function Profile({account}:{account:Account}){
    {msg&&<div className="alert success"><CheckCircle2 size={17}/>{msg}</div>}
    {error&&<div className="alert error">{error}</div>}
    <button disabled={busy} type="submit" className="button button-dark">{busy?"Guardando...":"Guardar cambios"}</button>
+   <button type="button" className="customer-logout-button" onClick={async()=>{if(!window.confirm("¿Quieres cerrar tu sesión en Kreyv?"))return;await db().auth.signOut();window.location.assign("/acceder")}}><LogOut size={17}/> Cerrar sesión</button>
   </div>
  </form>;
 }
