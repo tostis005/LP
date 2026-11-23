@@ -84,6 +84,8 @@ jobs:
         run: node tests/demo/wallet-fullscreen-qr.mjs
       - name: Verificar paleta clara del cliente, contraste y usabilidad móvil
         run: node tests/demo/customer-visual-balance.mjs
+      - name: Validar informes y campañas automáticas del dueño
+        run: node tests/demo/owner-growth-automation.mjs
       - name: Validar roles, crecimiento y flujos automáticos
         run: node tests/demo/owner-growth-automation.mjs
       - name: Comprobar TypeScript
