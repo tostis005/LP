@@ -16,7 +16,7 @@ assert.doesNotMatch(upload,/client\.query\("INSERT INTO storage\.objects/);
 assert.match(upload,/business-assets/);
 assert.match(upload,/file\.size>5242880/);
 assert.match(editor,/storage\.from\("business-assets"\)\.upload/);
-assert.match(editor,/getPublicUrl\(key\)/);
+assert.match(editor,/getPublicUrl\(uploaded\.data\?\.path\|\|key\)/,"The saved asset path follows WebP conversion");
 assert.match(campaign,/imagePath\(input\.image_url/);
 assert.match(campaign,/action==="create_send"/);
 assert.match(docker,/uploads:\/app\/uploads/);
