@@ -19,6 +19,8 @@ BEGIN
  IF NOT FOUND OR v_rule.id IS NULL OR v_rule.business_id IS DISTINCT FROM v_member.business_id
   OR NOT v_rule.active OR v_rule.trigger_kind<>'stamps' OR v_rule.staff_instruction=''
   OR v_member.total_earned<v_rule.target_stamps
+  OR NOT EXISTS(SELECT 1 FROM public.automation_queue q
+     WHERE q.rule_id=p_rule AND q.membership_id=p_membership)
   OR now()>v_member.created_at+make_interval(days=>v_rule.window_days)
   OR NOT public.is_business_staff(v_member.business_id)
   OR NOT EXISTS(SELECT 1 FROM public.loyalty_programs p
@@ -61,6 +63,8 @@ BEGIN
    FROM public.automation_rules r
    WHERE r.business_id=m.business_id AND r.active AND r.trigger_kind='stamps'
     AND r.staff_instruction<>'' AND now()<=m.created_at+make_interval(days=>r.window_days)
+    AND (m.total_earned<r.target_stamps OR EXISTS(
+      SELECT 1 FROM public.automation_queue q WHERE q.rule_id=r.id AND q.membership_id=m.id))
     AND EXISTS(SELECT 1 FROM public.loyalty_programs pr
        WHERE pr.business_id=m.business_id AND pr.type='stamps')
   ),'[]'::jsonb)
