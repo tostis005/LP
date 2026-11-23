@@ -56,6 +56,8 @@ jobs:
         run: node tests/demo/wallet-fullscreen-qr.mjs
       - name: Verificar paleta clara del cliente, contraste y usabilidad móvil
         run: node tests/demo/customer-visual-balance.mjs
+      - name: Verificar Tarjeta del dueño y flujos automáticos sin ejemplos
+        run: node tests/demo/owner-final-card-flows.mjs
       - name: TypeScript
         run: npm run typecheck
       - name: Build de Next.js
