@@ -51,7 +51,7 @@ const COLOR_PRESETS=["#571c32","#351623","#8b3c58","#a7637c","#7760a5","#c9784f"
 const STAMP_COLOR_PRESETS=["#571c32","#8b3c58","#0f172a","#2563eb","#b91c1c","#c2410c","#7c3aed","#0f766e","#a16207","#db2777","#ffffff"];
 export default function BusinessWorkspace({account}:{account:Account}){
  const router=useRouter(),pathname=usePathname();
- const manageable=account.businesses.filter(b=>b.role!=="employee");
+ const manageable=account.businesses.filter(b=>b.active===true&&(b.role==="owner"||b.role==="manager"));
  const [selected,setSelected]=useState(manageable[0]?.business_id||"");
  const section=pathname.split("/")[2];
  // La ruta pública se llama /negocio/tarjeta, pero el identificador interno es card.
@@ -84,21 +84,26 @@ export default function BusinessWorkspace({account}:{account:Account}){
  useEffect(()=>{setSiteOrigin(window.location.origin)},[]);
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
+  // Una pantalla solo consulta lo que necesita; evita saturar las conexiones
+  // cuando se abre Datos y separa los errores de marketing de los informes.
+  const empty=Promise.resolve({data:[],error:null});
+  const forReport=tab==="reports",forTeam=tab==="team",forCard=tab==="card";
+  const forCampaign=tab==="marketing",forCustomers=tab==="customers",forLocations=tab==="locations";
   const [b,p,c,s,i,l,t,d,a,m,r,o,g,gs]=await Promise.all([
    db().from("businesses").select("*").eq("id",selected).maybeSingle(),
    db().from("loyalty_programs").select("*").eq("business_id",selected).maybeSingle(),
-   db().rpc("business_customer_directory",{p_business:selected}),
-   db().rpc("business_staff_directory",{p_business:selected}),
-   db().from("business_invitations").select("id,email,role,created_at").eq("business_id",selected).is("claimed_at",null),
-   db().from("business_locations").select("*").eq("business_id",selected),
-   db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id,employee_id,reversal_of,reversal_reason").eq("business_id",selected).order("created_at",{ascending:false}).limit(250),
-   db().from("marketing_campaigns").select("id,subject,body_text,channel,template_name,template_language,status,recipient_count,sent_count,failed_count,created_at").eq("business_id",selected).order("created_at",{ascending:false}),
-   db().rpc("business_employee_activity",{p_business:selected,p_days:30}),
-    db().rpc("business_dashboard_metrics",{p_business:selected,p_days:periodDays}),
-    db().rpc("business_reward_ranking",{p_business:selected,p_days:periodDays}),
-    db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true}),
-     db().rpc("business_growth_series",{p_business:selected,p_days:periodDays}),
-     db().rpc("business_growth_summary",{p_business:selected,p_days:periodDays})
+   forReport||forCustomers||forCard?db().rpc("business_customer_directory",{p_business:selected}):empty,
+   forReport||forTeam?db().rpc("business_staff_directory",{p_business:selected}):empty,
+   forTeam?db().from("business_invitations").select("id,email,role,created_at").eq("business_id",selected).is("claimed_at",null):empty,
+   forLocations?db().from("business_locations").select("*").eq("business_id",selected):empty,
+   forReport?db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id,employee_id,reversal_of,reversal_reason").eq("business_id",selected).order("created_at",{ascending:false}).limit(250):empty,
+   forCampaign?db().from("marketing_campaigns").select("id,subject,body_text,channel,template_name,template_language,status,recipient_count,sent_count,failed_count,created_at").eq("business_id",selected).order("created_at",{ascending:false}):empty,
+   forReport?db().rpc("business_employee_activity",{p_business:selected,p_days:30}):empty,
+    forReport?db().rpc("business_dashboard_metrics",{p_business:selected,p_days:periodDays}):empty,
+    forReport?db().rpc("business_reward_ranking",{p_business:selected,p_days:periodDays}):empty,
+    forCard?db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true}):empty,
+     forReport?db().rpc("business_growth_series",{p_business:selected,p_days:periodDays}):empty,
+     forReport?db().rpc("business_growth_summary",{p_business:selected,p_days:periodDays}):empty
   ]);
   setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
   setStaff((s.data||[]) as Employee[]);setInvites(i.data||[]);setLocations((l.data||[]) as Location[]);
@@ -109,6 +114,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    setMetrics((m.data||[]) as MetricRow[]);setGrowth((g.data||[]) as GrowthRow[]);setGrowthSummary((gs.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
   const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error;
   if(failure)setError(failure.message);
+  if(forCampaign){
   const [pricing,used,pushItems]=await Promise.all([
    db().rpc(marketingChannel==="email"?"business_mail_quote":marketingChannel==="whatsapp"?"business_whatsapp_quote":"business_push_pricing",{p_business:selected}),
    db().rpc("business_marketing_usage",{p_business:selected}),
@@ -121,8 +127,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setDrafts([...(d.data||[]) as Draft[],...(pushItems.data||[]) as Draft[]]
    .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)));
   if(pushItems.error)setError(pushItems.error.message);
+  }
   setLoading(false);
- },[selected,periodDays,marketingChannel]);
+ },[selected,periodDays,marketingChannel,tab]);
  useEffect(()=>{reload()},[reload]);
  function success(s:string){setNotice(s);setError("");showActionToast(s)}
  async function saveBusiness(fields:Partial<Business>){
@@ -435,7 +442,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
      </div>
     </form>}
    </div>}
-    {tab==="reports"&&<>
+    {tab==="reports"&&<div className="owner-reports-stack">
    <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType}/>
    <div className="panel-card"><h2>Actividad por empleado · últimos 30 días</h2>
     <p className="muted">Total de operaciones de compra verificadas manualmente. Los reembolsos se detallan en el historial.</p>
@@ -461,13 +468,13 @@ export default function BusinessWorkspace({account}:{account:Account}){
          <span title={t.reversal_reason||"Movimiento ya corregido"} className="table-pill inactive">{t.kind==="reversal"?"Registrado":"Corregido"}</span>}</td>
       </tr>})}</tbody></table></div>
    </div>
- </>}
+ </div>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">
     <div className="owner-campaign-switch" role="group" aria-label="Tipo de campaña">
      <button type="button" className={campaignMode==="once"?"active":""} onClick={()=>setCampaignMode("once")}>Campañas puntuales</button>
      <button type="button" className={campaignMode==="automatic"?"active":""} onClick={()=>setCampaignMode("automatic")}>Campañas automáticas</button>
     </div>
-    {campaignMode==="automatic"?<BusinessAutomationPanel businessId={selected} programType={prog.type}/>:campaignView==="list"?<>
+    {campaignMode==="automatic"?<BusinessAutomationPanel businessId={selected} programType={prog.type} currency={currency}/>:campaignView==="list"?<>
       {!!selected&&<BusinessOffersPanel businessId={selected} onCreated={()=>void reload()} onCampaignsLoaded={onGroupedCampaigns}/>}
 
 
