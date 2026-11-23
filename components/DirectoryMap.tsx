@@ -25,9 +25,9 @@ function pinIcon(hasCard:boolean){
   iconSize:[46,53],iconAnchor:[23,52],popupAnchor:[0,-48]
  });
 }
-function Pins({locations}:{locations:DirectoryPin[]}){
+function Pins({locations,onSelect}:{locations:DirectoryPin[];onSelect?:(pin:DirectoryPin)=>void}){
  const icons=useMemo(()=>new Map(locations.map(l=>[l.id,pinIcon(Boolean(l.hasCard))])),[locations]);
- return <>{locations.map(x=><Marker key={x.id} position={[x.lat,x.lng]} icon={icons.get(x.id)!}>
+ return <>{locations.map(x=><Marker key={x.id} position={[x.lat,x.lng]} icon={icons.get(x.id)!} eventHandlers={{click:()=>onSelect?.(x)}}>
   <Popup>
    <div className="loyally-map-popup">
     <strong>{x.businesses?.name||x.name}</strong>
@@ -41,10 +41,10 @@ function Pins({locations}:{locations:DirectoryPin[]}){
   </Popup>
  </Marker>)}</>;
 }
-export default function DirectoryMap({locations,center}:{locations:DirectoryPin[];center:[number,number]}){
+export default function DirectoryMap({locations,center,onSelect}:{locations:DirectoryPin[];center:[number,number];onSelect?:(pin:DirectoryPin)=>void}){
  return <MapContainer center={center} zoom={11} scrollWheelZoom={false} style={{height:"100%",width:"100%",borderRadius:18}}>
   <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
   <Recenter center={center}/>
-  <Pins locations={locations}/>
+  <Pins locations={locations} onSelect={onSelect}/>
  </MapContainer>;
 }
