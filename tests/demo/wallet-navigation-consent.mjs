@@ -24,7 +24,8 @@ for(const path of ["/negocio","/negocio/tarjeta","/negocio/team","/negocio/marke
 assert.doesNotMatch(nav,/Más opciones|\/negocio\/designer|\/negocio\/program|\/negocio\/facturacion|\/negocio\/locations|\/negocio\/settings/);
 assert.match(shell,/business-account-menu/);
 assert.match(shell,/\/negocio\/facturacion/);
-assert.match(shell,/business-mobile-all-sections/);
+assert.doesNotMatch(shell,/business-mobile-all-sections/,"Use the main mobile bottom bar without duplicating the menu above Tarjeta");
+assert.match(mobile,/label:"Tarjeta",icon:"mi-tarjeta"/,"Business nav uses the same card icon as Inicio and sidebar");
 assert.match(mobile,/\/negocio\/team/);
 assert.doesNotMatch(mobile,/label:"Más"/);
 assert.doesNotMatch(business,/business-settings-hub/);
