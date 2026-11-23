@@ -7,6 +7,7 @@ import "./brand-tokens.css";
 import "./brand-kreyv.css";
 import "./offers.css";
 import "./product-polish.css";
+import "./customer-app.css";
 import {BRAND_NAME, BRAND_THEME} from "@/lib/brand";
 import {PwaSetup} from "@/components/PwaSetup";
 import {AppBottomNav} from "@/components/AppBottomNav";

@@ -70,21 +70,31 @@ function CustomerHome({account}:{account:Account}){
  useEffect(()=>{load()},[load]);
  const prog=(id:string)=>programs.find(x=>x.business_id===id);
  const readyRewards=cards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length;
+ const firstName=String(account.user.user_metadata?.full_name||"").trim().split(/\s+/)[0];
+ const rewardCards=cards.filter(c=>{const p=prog(c.business_id);return p?.type==="stamps"&&p.reward_cost>0;});
+ const closest=rewardCards.sort((a,b)=>{
+  const pa=prog(a.business_id)!,pb=prog(b.business_id)!;
+  return Math.max(0,pa.reward_cost-a.balance)-Math.max(0,pb.reward_cost-b.balance);
+ })[0];
+ const closestProgram=closest?prog(closest.business_id):undefined;
+ const remaining=closest&&closestProgram?Math.max(0,closestProgram.reward_cost-closest.balance):0;
  return <div className="customer-first-layout">
   <PushWelcomePrompt/>
-  <div className="customer-toolbar">
-   <div className="customer-toolbar-summary">
-    <span className="customer-card-count">{cards.length} {cards.length===1?"tarjeta":"tarjetas"}</span>
-    {readyRewards>0&&<span className="customer-reward-ready"><Gift size={15}/>{readyRewards} {readyRewards===1?"recompensa disponible":"recompensas disponibles"}</span>}
-    <Link className="customer-preferences-link" href="/app/ajustes">Gestionar notificaciones</Link>
-   </div>
-   <div className="customer-toolbar-actions">
-    <Link className="button button-outline button-sm" href="/app/novedades">Avisos {unreadOffers>0&&<span className="kreyv-offer-count">{unreadOffers}</span>}</Link>
-    <Link className="button button-dark button-sm" href="/app/descubrir"><Plus size={16}/> Añadir tarjeta</Link>
-   </div>
+  <div className="customer-home-greeting">
+   <span className="customer-overline">TUS RECOMPENSAS</span>
+   <h2>Hola{firstName?", "+firstName:""}<span className="customer-greeting-dot">.</span></h2>
+   <p>{cards.length} {cards.length===1?"tarjeta":"tarjetas"}{readyRewards>0?" · "+readyRewards+" "+(readyRewards===1?"premio disponible":"premios disponibles"):""}</p>
   </div>
+  {closest&&closestProgram&&<section className="customer-spotlight" aria-label="Tu próxima recompensa">
+   <div className="customer-spotlight-head"><span>{remaining===0?"PREMIO LISTO":remaining===1?"CASI LO TIENES":"SIGUE SUMANDO"}</span><Gift size={21}/></div>
+   <h3>{remaining===0?"¡Ya puedes canjear tu premio!":remaining===1?"Te falta solo 1 sello":"Te faltan "+remaining+" sellos"} en {closest.businesses.name}</h3>
+   <p>{closestProgram.reward_label}</p>
+   <div className="customer-spotlight-foot"><span>{Math.min(closest.balance,closestProgram.reward_cost)}/{closestProgram.reward_cost} sellos</span><Link href={"/app?card="+encodeURIComponent(closest.id)} onClick={()=>window.dispatchEvent(new CustomEvent("kreyv:open-card",{detail:closest.id}))}>Ver tarjeta <ArrowUpRight size={17}/></Link></div>
+  </section>}
+  <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza para verlas</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
   {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button></div>}
-  {loading?<div className="soft-panel">Cargando tarjetas...</div>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid">{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0}/>)}</div>}
+  {loading?<div className="soft-panel">Cargando tarjetas...</div>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid" role="region" aria-label="Tus tarjetas, desliza horizontalmente para verlas" tabIndex={0}>{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0} compact/>)}</div>}
+  <div className="customer-home-preferences"><Link href="/app/ajustes">Gestionar notificaciones</Link></div>
   {movements.length>0&&<section className="customer-activity-section" aria-label="Últimos movimientos">
    <h2>Actividad reciente</h2>
    <div className="customer-activity-list">{movements.map(m=><div className="activity-row" key={m.id}><div className={"activity-icon "+(m.kind==="earn"?"positive":"negative")}>{m.kind==="earn"?<Plus size={19}/>:<Gift size={19}/>}</div><div><strong>{cards.find(c=>c.business_id===m.business_id)?.businesses.name||"Negocio"}</strong><span>{m.kind==="earn"?"Compra registrada":m.kind==="redeem"?"Recompensa canjeada":"Corrección de movimiento"} · {dateShort(m.created_at)}</span></div><b className={m.amount_delta>0?"positive-text":"negative-text"}>{m.amount_delta>0?"+":""}{units(m.amount_delta,prog(m.business_id)?.type,cards.find(c=>c.business_id===m.business_id)?.businesses.currency)}</b></div>)}</div>
