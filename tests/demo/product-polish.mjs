@@ -17,7 +17,7 @@ assert.doesNotMatch(reward,/Precio venta|Precio habitual|Coste real|precio oblig
 assert.match(reward,/view==="list"/,"Reward catalog returns to list");
 assert.match(reward,/setView\("list"\)/);
 assert.match(analytics,/Clientes recurrentes/);
-assert.match(analytics,/Recompensas más canjeadas/);
+assert.match(analytics,/Recompensas canjeadas/);
 assert.doesNotMatch(analytics,/cost_ratio|Coste de recompensas/);
 assert.match(business,/repeatCustomers=\{repeatCount\}/);
 assert.match(admin,/businessView==="list"/);
