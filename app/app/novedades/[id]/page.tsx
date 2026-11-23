@@ -4,6 +4,7 @@ import Link from "next/link";
 import {ArrowLeft,CalendarDays,Gift} from "lucide-react";
 import {usePathname} from "next/navigation";
 import {AppFrame} from "@/components/AppFrame";
+import {offerImageUrl} from "@/lib/offer-images";
 type Offer={id:string;business_id:string;business_name:string;title:string;preview:string;details:string;terms:string;
  image_url:string|null;kind:"offer"|"news"|"notice";valid_from:string|null;valid_until:string|null;received_at:string;seen_at:string|null};
 export default function OfferDetailPage(){
@@ -28,7 +29,7 @@ export default function OfferDetailPage(){
    {loading&&<div className="soft-panel">Cargando oferta...</div>}
    {error&&<div className="alert error" role="alert">{error}</div>}
    {offer&&<article className="panel-card">
-    {offer.image_url&&<img src={offer.image_url} alt="" className="kreyv-offer-hero"/>}
+    {offer.image_url&&<img src={offerImageUrl(offer.image_url,960)} alt="" className="kreyv-offer-hero" decoding="async"/>}
     <span className="page-eyebrow">{offer.business_name}</span>
     <h2>{offer.title}</h2><p className="kreyv-offer-lead">{offer.preview}</p>
     {offer.kind==="offer"&&offer.valid_from&&<p className="kreyv-offer-validity">Disponible desde {new Date(offer.valid_from+"T12:00:00").toLocaleDateString("es-ES")}</p>}
