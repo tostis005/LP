@@ -92,7 +92,7 @@ export function CustomerNotificationSettings({account}:{account:Account}){
   {loading?<p className="muted">Cargando tus tarjetas...</p>:cards.length===0?
    <div className="empty-state compact"><Store size={25}/><h3>Todavía no tienes tarjetas</h3><p>Descubre un negocio y guarda su tarjeta para configurar sus avisos.</p><Link href="/app/descubrir" className="button button-dark">Descubrir negocios</Link></div>:
    <>   <div className="customer-channel-cards">{cards.map(card=>
-    <details className="customer-channel-business" key={card.business_id+":"+focusBusiness} id={"notification-"+card.business_id} defaultOpen={focusBusiness===card.business_id}>
+    <details className="customer-channel-business" key={card.business_id+":"+focusBusiness} id={"notification-"+card.business_id} open={focusBusiness===card.business_id}>
      <summary>
       <span className="customer-channel-business-mark" style={{background:card.color}}>{card.name.slice(0,1).toUpperCase()}</span>
       <span className="customer-channel-business-title"><strong>{card.name}</strong><small>{[card.email,card.whatsapp,card.push].filter(Boolean).length} de 3 canales activados</small></span>
