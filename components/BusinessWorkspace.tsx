@@ -13,22 +13,23 @@ import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {StampCard} from "@/components/StampCard";
 import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
-import {BusinessAnalytics,type MetricRow,type RankingRow} from "@/components/BusinessAnalytics";
+import {BusinessAnalytics,type MetricRow,type RankingRow,type GrowthRow} from "@/components/BusinessAnalytics";
+import {BusinessAutomationPanel} from "@/components/BusinessAutomationPanel";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
 import {BusinessOffersPanel} from "@/components/BusinessOffersPanel";
 type Tab="overview"|"card"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 type CardArea="design"|"rules"|"rewards";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
- {id:"overview",label:"Resumen",icon:<BarChart3 size={17}/>},
- {id:"card",label:"Mi tarjeta",icon:<CreditCard size={17}/>},
+ {id:"overview",label:"Inicio",icon:<BarChart3 size={17}/>},
+ {id:"card",label:"Tarjeta",icon:<CreditCard size={17}/>},
  {id:"settings",label:"Negocio",icon:<Store size={17}/>},
  {id:"designer",label:"Diseñar mi tarjeta",icon:<Brush size={17}/>},
  {id:"program",label:"Premios y sellos",icon:<Gift size={17}/>},
  {id:"team",label:"Empleados",icon:<Users size={17}/>},
  {id:"customers",label:"Clientes",icon:<CreditCard size={17}/>},
  {id:"locations",label:"Ubicaciones",icon:<MapPin size={17}/>},
- {id:"reports",label:"Indicadores",icon:<Activity size={17}/>},
+ {id:"reports",label:"Datos",icon:<Activity size={17}/>},
  {id:"marketing",label:"Campañas",icon:<Mail size={17}/>}
 ];
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
@@ -63,12 +64,12 @@ export default function BusinessWorkspace({account}:{account:Account}){
  useEffect(()=>{try{const stored=window.sessionStorage.getItem("loyally_selected_business");if(stored&&manageable.some(b=>b.business_id===stored))setSelected(stored);}catch{}},[account.user.id]);
  const [biz,setBiz]=useState<Business|null>(null),[prog,setProg]=useState<Program|null>(null),[customers,setCustomers]=useState<Customer[]>([]),[staff,setStaff]=useState<Employee[]>([]),[invites,setInvites]=useState<{id:string;email:string;role:string;created_at:string}[]>([]),[locations,setLocations]=useState<Location[]>([]),[transactions,setTransactions]=useState<Tx[]>([]),[drafts,setDrafts]=useState<Draft[]>([]);
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
-  const [periodDays,setPeriodDays]=useState(30),[metrics,setMetrics]=useState<MetricRow[]>([]),[ranking,setRanking]=useState<RankingRow[]>([]),[rewardOptions,setRewardOptions]=useState<RewardOption[]>([]);
+  const [periodDays,setPeriodDays]=useState(30),[metrics,setMetrics]=useState<MetricRow[]>([]),[growthSummary,setGrowthSummary]=useState<MetricRow[]>([]),[growth,setGrowth]=useState<GrowthRow[]>([]),[ranking,setRanking]=useState<RankingRow[]>([]),[rewardOptions,setRewardOptions]=useState<RewardOption[]>([]);
  const [activity,setActivity]=useState<{user_id:string;employee_name:string;operations:number;awarded_units:number}[]>([]);
  const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee"),[teamView,setTeamView]=useState<"list"|"invite">("list");
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState("Tijuana"),[country,setCountry]=useState("México"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState(""),[quote,setQuote]=useState<MailQuote|null>(null);
- const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp"|"push">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null),[campaignView,setCampaignView]=useState<"list"|"editor">("list");
+ const [marketingChannel,setMarketingChannel]=useState<"email"|"whatsapp"|"push">("email"),[editingDraft,setEditingDraft]=useState<string|null>(null),[campaignView,setCampaignView]=useState<"list"|"editor">("list"),[campaignMode,setCampaignMode]=useState<"once"|"automatic">("once");
  const [groupedCampaignIds,setGroupedCampaignIds]=useState<string[]>([]),[groupedOfferCount,setGroupedOfferCount]=useState(0);
  const onGroupedCampaigns=useCallback((ids:string[],count:number)=>{
   setGroupedCampaignIds(old=>old.length===ids.length&&old.every((v,i)=>v===ids[i])?old:ids);
@@ -80,7 +81,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  useEffect(()=>{setSiteOrigin(window.location.origin)},[]);
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
-  const [b,p,c,s,i,l,t,d,a,m,r,o]=await Promise.all([
+  const [b,p,c,s,i,l,t,d,a,m,r,o,g,gs]=await Promise.all([
    db().from("businesses").select("*").eq("id",selected).maybeSingle(),
    db().from("loyalty_programs").select("*").eq("business_id",selected).maybeSingle(),
    db().rpc("business_customer_directory",{p_business:selected}),
@@ -92,7 +93,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
    db().rpc("business_employee_activity",{p_business:selected,p_days:30}),
     db().rpc("business_dashboard_metrics",{p_business:selected,p_days:periodDays}),
     db().rpc("business_reward_ranking",{p_business:selected,p_days:periodDays}),
-    db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true})
+    db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true}),
+     db().rpc("business_growth_series",{p_business:selected,p_days:periodDays}),
+     db().rpc("business_growth_summary",{p_business:selected,p_days:periodDays})
   ]);
   setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
   setStaff((s.data||[]) as Employee[]);setInvites(i.data||[]);setLocations((l.data||[]) as Location[]);
@@ -100,8 +103,8 @@ export default function BusinessWorkspace({account}:{account:Account}){
   if(firstLocation){setLocationName(firstLocation.name);setAddress(firstLocation.address);setCity(firstLocation.city);setCountry(firstLocation.country);setLat(String(firstLocation.lat));setLng(String(firstLocation.lng))}
   else {setLocationName("");setAddress("");setLat("");setLng("")}
   setTransactions((t.data||[]) as Tx[]);setActivity((a.data||[]) as {user_id:string;employee_name:string;operations:number;awarded_units:number}[]);
-   setMetrics((m.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
-  const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error;
+   setMetrics((m.data||[]) as MetricRow[]);setGrowth((g.data||[]) as GrowthRow[]);setGrowthSummary((gs.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
+  const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error;
   if(failure)setError(failure.message);
   const [pricing,used,pushItems]=await Promise.all([
    db().rpc(marketingChannel==="email"?"business_mail_quote":marketingChannel==="whatsapp"?"business_whatsapp_quote":"business_push_pricing",{p_business:selected}),
@@ -268,7 +271,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
    <div className="workspace-section-layout">
     <header className="business-section-heading">
      <div><span className="page-eyebrow">GESTIÓN</span><h2>{tabs.find(t=>t.id===tab)?.label||"Resumen"}</h2></div>
-     <Link className="button button-outline button-sm" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Vista previa de la tarjeta <ArrowUpRight size={16}/></Link>
+     {tab==="card"&&<Link className="button button-outline button-sm" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Vista previa <ArrowUpRight size={16}/></Link>}
     </header>
     
     <div className="workspace-section-body">
@@ -280,10 +283,19 @@ export default function BusinessWorkspace({account}:{account:Account}){
     <button type="button" className={cardArea==="rewards"?"active":""} aria-pressed={cardArea==="rewards"} onClick={()=>setCardArea("rewards")}><Gift size={16}/> Premios</button>
    </nav>}
 
-   {tab==="overview"&&<><div className="kpi-grid three"><KPI icon={<Users size={20}/>} theme="purple" title="Clientes" value={customers.length} helper="Tarjetas inscritas"/><KPI icon={<Activity size={20}/>} theme="green" title="Visitas" value={Number(metrics.find(m=>m.metric==="visits")?.current_value||0)} helper={"Últimos "+periodDays+" días"}/><KPI icon={<Gift size={20}/>} theme="peach" title="Premios canjeados" value={Number(metrics.find(m=>m.metric==="redemptions")?.current_value||0)} helper={"Últimos "+periodDays+" días"}/></div>
-    <div className="demo-two-cols"><section className="panel-card"><h2>Últimos movimientos</h2><p className="muted">Operaciones más recientes del programa.</p>{transactions.slice(0,6).map(t=><div className="activity-row" key={t.id}><div className={"activity-icon "+(t.kind==="earn"?"positive":"negative")}>{t.kind==="earn"?<Plus size={18}/>:<Gift size={18}/>}</div><div><strong>{t.kind==="earn"?"Compra verificada":"Recompensa canjeada"}</strong><span>{dateShort(t.created_at)} {t.ticket_ref?"· Ticket "+t.ticket_ref:""}</span></div><b className={t.amount_delta>0?"positive-text":"negative-text"}>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></div>)}{transactions.length===0&&<p className="muted">Todavía no se han registrado movimientos.</p>}</section>
-    <section className="panel-card overview-card"><div className="panel-icon"><Gift size={23}/></div><h2>Programa de fidelización</h2><div className="overview-stat"><span>Modalidad</span><strong>{programType==="stamps"?"Sellos":programType==="points"?"Puntos":"Saldo a favor"}</strong></div><div className="overview-stat"><span>Recompensa</span><strong>{prog.reward_label}</strong></div><div className="overview-stat"><span>Clientes que reciben promociones</span><strong>{canvassed}</strong></div><a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Ver la tarjeta como cliente <ArrowUpRight size={16}/></a><button className="button button-outline button-full" onClick={()=>openSection("card")}>Configurar mi tarjeta <ArrowUpRight size={16}/></button><Link href="/negocio/customers" className="button button-outline button-full">Ver mis clientes <Users size={16}/></Link></section></div>
-   </>}
+   {tab==="overview"&&<div className="owner-start">
+     <div className="owner-start-hero"><span className="page-eyebrow">TU ESPACIO</span>
+      <h3>Todo tu negocio, más sencillo.</h3><p>Configura tu tarjeta, coordina al equipo, analiza el crecimiento y comunícate con tus clientes desde cada sección.</p></div>
+     <div className="owner-start-actions">
+      <button type="button" onClick={()=>openSection("card")}><CreditCard size={25}/><strong>Tarjeta</strong><span>Diseño, sellos, límites y premios</span><ArrowUpRight size={18}/></button>
+      <button type="button" onClick={()=>openSection("team")}><Users size={25}/><strong>Empleados</strong><span>Accesos e invitaciones</span><ArrowUpRight size={18}/></button>
+      <button type="button" onClick={()=>openSection("reports")}><BarChart3 size={25}/><strong>Datos</strong><span>Altas, habituales y evolución</span><ArrowUpRight size={18}/></button>
+      <button type="button" onClick={()=>openSection("marketing")}><Mail size={25}/><strong>Campañas</strong><span>Envíos puntuales y automatizaciones</span><ArrowUpRight size={18}/></button>
+     </div>
+     <div className="owner-start-links"><Link href="/negocio/customers"><Users size={16}/> Clientes del negocio</Link>
+      <Link href="/negocio/settings"><Settings2 size={16}/> Información del negocio</Link>
+      <Link href="/negocio/locations"><MapPin size={16}/> Dirección y ubicación</Link></div>
+    </div>}
    {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido para tus tarjetas y sellos. Puedes cambiarlo desde «Mi tarjeta». Los marcadores del mapa indican si el cliente ya tiene tu tarjeta.</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form><section className="panel-card"><h2>Tu identidad de marca</h2><p className="muted">Sube un logo para personalizar la tarjeta y la ficha de tu negocio.</p><div className="upload-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logo del negocio"/>:<div className="upload-logo" style={{background:biz.accent_color}}>{initials(biz.name)}</div>}</div><label className="file-input"><ImagePlus size={18}/> Subir logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label><div className="info-callout"><ShieldCheck size={18}/> Puedes usar una imagen de hasta 5 MB. Tu logotipo se mostrará a quienes descubran el negocio y guarden su tarjeta.</div></section></div>}
 
    {tab==="card"&&cardArea==="design"&&<div className="designer-grid lp-new-designer">
@@ -385,7 +397,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
     </form>}
    </div>}
     {tab==="reports"&&<>
-   <BusinessAnalytics metrics={metrics} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length}/>
+   <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType}/>
    <div className="panel-card"><h2>Actividad por empleado · últimos 30 días</h2>
     <p className="muted">Total de operaciones de compra verificadas manualmente. Los reembolsos se detallan en el historial.</p>
     <div className="table-wrap"><table className="data-table"><thead><tr><th>Empleado</th><th>Compras registradas</th><th>Unidades asignadas</th></tr></thead>
@@ -412,7 +424,11 @@ export default function BusinessWorkspace({account}:{account:Account}){
    </div>
  </>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">
-    {campaignView==="list"?<>
+    <div className="owner-campaign-switch" role="group" aria-label="Tipo de campaña">
+     <button type="button" className={campaignMode==="once"?"active":""} onClick={()=>setCampaignMode("once")}>Campañas puntuales</button>
+     <button type="button" className={campaignMode==="automatic"?"active":""} onClick={()=>setCampaignMode("automatic")}>Campañas automáticas</button>
+    </div>
+    {campaignMode==="automatic"?<BusinessAutomationPanel businessId={selected} programType={prog.type}/>:campaignView==="list"?<>
       {!!selected&&<BusinessOffersPanel businessId={selected} onCreated={()=>void reload()} onCampaignsLoaded={onGroupedCampaigns}/>}
 
 
