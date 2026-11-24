@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {analyzeDenue,categoryFor} from "../../lib/server/denue.ts";
+import {analyzeDenue,categoryFor,foodPilotImport} from "../../lib/server/denue.ts";
 const header="id,nom_estab,codigo_act,nombre_act,cve_ent,entidad,cve_mun,municipio,cve_loc,localidad,correoelec,www";
 const csv=[
  header,
@@ -34,4 +34,12 @@ test("market analysis observes missing addresses without exposing email values",
  assert.equal(seen.filter(r=>r.hasEmail).length,2);
  assert.equal(seen.filter(r=>!r.hasEmail).length,1);
  assert.equal(seen.some(r=>"email" in r),false);
+});
+
+test("food pilot keeps food establishments without email and excludes non-food industries",()=>{
+ const input=csv+"\n6,Helados,461170,Helados,02,Baja California,003,Tecate,0001,Tecate,,";
+ const {prospects}=foodPilotImport(input,"02003");
+ assert.equal(prospects.length,2);
+ assert.equal(prospects.filter(r=>r.email===null).length,1);
+ assert.equal(prospects.some(r=>r.activity_code==="812110"||r.activity_code==="811192"),false);
 });
