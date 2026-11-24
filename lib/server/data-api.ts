@@ -166,6 +166,9 @@ const rpcMap:Record<string,Spec>={
  find_join_business:{args:[["p_slug","text"]],returns:"table"},
  public_business_details:{args:[["p_slug","text"]],returns:"table"},
  manager_reverse_transaction:{args:[["p_transaction","uuid"],["p_reason","text"]],returns:"scalar"},
+ business_owner_activity:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
+ business_owner_transactions:{args:[["p_business","uuid"],["p_from","text"],["p_to","text"],["p_employee","uuid"],["p_kind","text"],["p_search","text"],["p_limit","integer"],["p_offset","integer"]],returns:"table"},
+ business_owner_customer_activity:{args:[["p_business","uuid"]],returns:"table"},
  business_employee_activity:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  admin_convert_lead:{args:[["p_lead","uuid"],["p_slug","text"]],returns:"scalar"}
 };
