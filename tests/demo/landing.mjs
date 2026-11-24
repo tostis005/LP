@@ -93,3 +93,9 @@ assert.doesNotMatch(landingCss,/\.loi-feature:nth-child\(n\) \.loi-feature-icon/
 assert.match(landingCss,/\.loi-site \.loi-feature\{display:grid;grid-template-columns:44px minmax\(0,1fr\);grid-template-rows:auto auto;column-gap:20px/,"Leave a full 20px between icon background and text");
 assert.match(landingCss,/\.loi-site \.loi-feature \.loi-feature-icon\{grid-column:1;grid-row:1 \/ 3;width:44px;height:44px/,"Mobile icon fits its 44px grid column");
 console.log("Commercial landing: ES/EN copy parity, filled business icon collection and KREYVI mark verified.");
+
+assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-visual-card\.stamp-visual-rebalanced\{\s*display:block;position:relative;aspect-ratio:auto;height:auto;min-height:0!important/,"Preview does not inherit a fixed card aspect ratio");
+assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-visual-main\{[^}]*overflow:visible/,"No clipped card content");
+assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-grid\{\s*grid-template-columns:repeat\(var\(--stamp-columns\),minmax\(0,1fr\)\)/,"Stamps span the full preview width");
+assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-visual-footer \.stamp-reward-name\{[^}]*white-space:normal;overflow:visible/,"Reward text wraps and remains readable");
+assert.match(landingCss,/\.loi-site \.loi-showcase-phone\{\s*display:flex;flex-direction:column;align-items:stretch;\s*width:min\(340px,100%\);max-width:100%;height:auto;min-height:0/,"Phone height follows its content");

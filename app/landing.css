@@ -427,3 +427,67 @@
  .loi-site .loi-showcase-phone .stamp-slot{max-width:29px}
  .loi-site .loi-hero-showcase{min-height:0;row-gap:14px}
 }
+
+/* Commercial phone preview: no QR column is needed, so use the whole card.
+   Keep actual customer and merchant cards untouched. */
+.loi-site .loi-hero-showcase{min-height:0;padding:8px 0 18px}
+.loi-site .loi-showcase-phone{
+ display:flex;flex-direction:column;align-items:stretch;
+ width:min(340px,100%);max-width:100%;height:auto;min-height:0;
+ padding:18px 16px 12px;border-radius:32px;
+}
+.loi-site .loi-phone-heading{color:var(--color-brand);font-size:12px}
+.loi-site .loi-phone-mini-icon{background:var(--color-accent-100);color:var(--color-brand)}
+.loi-site .loi-phone-greeting{font-size:24px;line-height:1.2}
+.loi-site .loi-showcase-phone>p{font-size:12px;margin:6px 0 16px;line-height:1.5}
+.loi-site .loi-showcase-phone .stamp-visual-card.stamp-visual-rebalanced{
+ display:block;position:relative;aspect-ratio:auto;height:auto;min-height:0!important;
+ padding:16px!important;border-radius:16px;
+}
+.loi-site .loi-showcase-phone .stamp-visual-main{
+ display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
+ gap:9px;min-width:0;min-height:0;overflow:visible;
+}
+.loi-site .loi-showcase-phone .stamp-business-logo{
+ width:36px;height:36px;font-size:17px;border-radius:9px;
+}
+.loi-site .loi-showcase-phone .stamp-visual-name{
+ font-size:20px;line-height:1.2;white-space:normal;overflow:visible;
+}
+.loi-site .loi-showcase-phone .stamp-visual-side{
+ position:absolute;top:16px;right:16px;max-width:calc(100% - 80px);
+}
+.loi-site .loi-showcase-phone .stamp-visual-pill{
+ font-size:8px;line-height:1.3;letter-spacing:.025em;padding:5px 8px;
+}
+.loi-site .loi-showcase-phone .stamp-grid{
+ grid-template-columns:repeat(var(--stamp-columns),minmax(0,1fr));
+ gap:9px 12px;justify-items:center;margin:3px 0 2px;width:100%;
+}
+.loi-site .loi-showcase-phone .stamp-slot{width:100%;max-width:45px;transform:none}
+.loi-site .loi-showcase-phone .stamp-slot svg{width:72%;height:72%}
+.loi-site .loi-showcase-phone .stamp-visual-message{
+ display:block;font-size:9px;line-height:1.35;letter-spacing:.04em;overflow:visible;opacity:.9;
+}
+.loi-site .loi-showcase-phone .stamp-visual-footer{
+ display:grid;gap:4px;margin:0;padding-top:9px;border-top:1px solid #ffffff35;
+}
+.loi-site .loi-showcase-phone .stamp-visual-footer strong{font-size:12px;line-height:1.35}
+.loi-site .loi-showcase-phone .stamp-visual-footer .stamp-reward-name{
+ font-size:12px;line-height:1.35;margin:0;white-space:normal;overflow:visible;
+}
+.loi-site .loi-phone-progress{margin-top:12px;padding:12px}
+.loi-site .loi-phone-progress span{color:var(--color-brand)}
+.loi-site .loi-phone-nav{
+ margin-top:16px;padding:12px 0 2px;border-color:var(--color-bg-2);
+}
+.loi-site .loi-phone-nav span{font-size:10px;color:var(--color-text-2)}
+.loi-site .loi-phone-nav .active{color:var(--color-brand)}
+@media(max-width:650px){
+ .loi-site .loi-showcase-phone{width:min(310px,100%);padding:14px 12px 10px;border-radius:29px}
+ .loi-site .loi-showcase-phone .stamp-visual-card.stamp-visual-rebalanced{padding:14px!important}
+ .loi-site .loi-showcase-phone .stamp-visual-side{top:14px;right:14px}
+ .loi-site .loi-showcase-phone .stamp-grid{gap:8px}
+ .loi-site .loi-showcase-phone .stamp-slot{max-width:42px}
+ .loi-site .loi-phone-greeting{font-size:22px}
+}
