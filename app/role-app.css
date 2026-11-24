@@ -866,7 +866,7 @@
 .workspace-business .table-pill small{font-weight:650;font-size:10px}
 
 /* Owner: tabs and data panels, no extra destinations in the mobile navigation. */
-.workspace-business .owner-start-primary-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+.workspace-business .owner-start-primary-links{grid-template-columns:repeat(3,minmax(0,1fr))}
 .workspace-business .owner-data-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;margin-bottom:16px}
 .workspace-business .owner-data-tabs a{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:46px;padding:10px 8px;border-radius:10px;text-decoration:none;background:#fff;color:var(--color-brand);border:1px solid #e7d7d3;font-size:13px;font-weight:750}
 .workspace-business .owner-data-tabs a.active{background:var(--color-brand);color:white;border-color:var(--color-brand)}
@@ -897,10 +897,7 @@
 .owner-data-pagination{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:16px;font-size:12px}
 .owner-tx-detail{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px;background:#fbf6f5}
 .owner-customers-panel{display:grid;gap:16px}
-.owner-customer-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0 24px}
-.owner-customer-kpis>div{display:flex;flex-direction:column;gap:8px;border:1px solid #e9dce0;border-radius:10px;padding:13px;min-width:0}
-.owner-customer-kpis span{font-size:12px;color:#75646b}
-.owner-customer-kpis strong{font-size:24px}
+.owner-customer-kpis{margin:15px 0 24px}
 .owner-customer-chart-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .owner-customer-chart-head label{display:flex;align-items:center;gap:7px;font-size:12px}
 .owner-customers-panel .owner-growth-chart{margin:6px 0 14px}
@@ -914,5 +911,81 @@
  .owner-data-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
  .owner-filter-search{grid-column:1/-1}
  .owner-customer-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
- .owner-customer-kpis>div{padding:10px}
+}
+
+/* Mi negocio conserva el contexto en las tres vistas. */
+.workspace-business .owner-business-context{margin-bottom:20px}
+.workspace-business .owner-start-primary-links a.active,
+.workspace-business .owner-start-primary-links a.active:hover,
+.workspace-business .owner-start-primary-links a.active:focus-visible{
+ background:var(--color-brand);color:#fff;box-shadow:none
+}
+.workspace-business .workspace-section-body .owner-business-settings{
+ display:grid;grid-template-columns:minmax(0,1fr);width:100%;max-width:none;min-width:0
+}
+.workspace-business .owner-business-info{
+ width:100%;max-width:none;min-width:0;box-sizing:border-box;justify-self:stretch
+}
+.workspace-business .owner-business-info .form-stack{
+ width:100%;max-width:none;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px
+}
+.workspace-business .owner-business-info .form-stack>label,.workspace-business .owner-business-info .form-stack>div{min-width:0}
+.workspace-business .owner-business-info .form-stack>.business-category-preview,
+.workspace-business .owner-business-info .form-stack>label:has(textarea),
+.workspace-business .owner-business-info .form-stack>.check-control{grid-column:1/-1}
+.workspace-business .owner-business-info .form-stack>.button{justify-self:start;min-width:185px}
+/* Selectores del mismo sistema visual, con área táctil generosa y anchos estables. */
+.workspace-business .owner-data-filters{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;
+ padding:16px;background:#faf6f5;border:1px solid #eadcda;border-radius:16px;margin:16px 0
+}
+.workspace-business .owner-data-filters label{
+ display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:700;color:var(--color-text-2);min-width:0
+}
+.workspace-business .owner-data-filters input,
+.workspace-business .owner-data-filters select,
+.workspace-business .owner-period-control select{
+ appearance:none;-webkit-appearance:none;
+ box-sizing:border-box;min-width:0;max-width:100%;min-height:44px;
+ border:1px solid #dfd0cb;border-radius:11px;background-color:#fff;
+ color:var(--color-text);font:inherit;font-size:13px;font-weight:600;
+ padding:10px 12px;outline-offset:3px
+}
+.workspace-business .owner-data-filters select,
+.workspace-business .owner-period-control select{
+ cursor:pointer;padding-right:33px;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23764a5b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+ background-repeat:no-repeat;background-position:right 10px center;background-size:16px
+}
+.workspace-business .owner-data-filters input[type=date]{
+ appearance:auto;-webkit-appearance:auto;min-width:0;width:100%;color-scheme:light
+}
+.workspace-business .owner-data-filters input:focus,
+.workspace-business .owner-data-filters select:focus,
+.workspace-business .owner-period-control select:focus{border-color:var(--color-brand);outline:2px solid #a85e7944;outline-offset:1px}
+.workspace-business .owner-transaction-filters .owner-filter-search{grid-column:1/-1}
+.workspace-business .owner-period-control{
+ display:flex;align-items:center;gap:10px;color:var(--color-text-2);font-weight:750;font-size:12px
+}
+.workspace-business .owner-period-control select{width:auto;min-width:112px;color:var(--color-brand)}
+.workspace-business .owner-customer-kpis .owner-kpi{background:#fff}
+.workspace-business .owner-tx-detail{
+ display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px;
+ padding:16px;border:1px solid #eadcda;border-radius:12px;background:#faf6f5
+}
+.workspace-business .owner-tx-detail>span{display:flex;flex-direction:column;gap:4px;min-width:0;overflow-wrap:anywhere}
+.workspace-business .owner-tx-detail small{font-size:11px;color:var(--color-text-2)}
+.workspace-business .owner-tx-detail strong{font-size:13px;color:var(--color-text)}
+.workspace-business .owner-tx-detail>.button{margin-left:auto}
+@media(max-width:950px){
+ .workspace-business .owner-data-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+ .workspace-business .owner-business-context{margin-bottom:14px}
+ .workspace-business .owner-business-info .form-stack{grid-template-columns:minmax(0,1fr);gap:14px}
+ .workspace-business .owner-business-info .form-stack>.button{width:100%;justify-self:stretch}
+ .workspace-business .owner-data-filters{padding:12px;gap:10px}
+ .workspace-business .owner-data-filters input,.workspace-business .owner-data-filters select{font-size:12px;padding-left:9px}
+ .workspace-business .owner-data-filters select{padding-right:26px;background-position:right 6px center}
+ .workspace-business .owner-tx-detail>.button{margin-left:0}
 }

@@ -23,7 +23,7 @@ import {BusinessOffersPanel} from "@/components/BusinessOffersPanel";
 type Tab="overview"|"card"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 type CardArea="design"|"rules"|"rewards";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
- {id:"overview",label:"Inicio",icon:<House size={17}/>},
+ {id:"overview",label:"Mi negocio",icon:<House size={17}/>},
  {id:"card",label:"Tarjeta",icon:<CreditCard size={17}/>},
  {id:"settings",label:"Negocio",icon:<Store size={17}/>},
  {id:"designer",label:"Diseñar mi tarjeta",icon:<Brush size={17}/>},
@@ -66,6 +66,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  // La ruta pública se llama /negocio/tarjeta, pero el identificador interno es card.
  // Antes caía en Inicio y mostraba sus accesos directos en lugar del editor de tarjeta.
  const tab:Tab=section==="tarjeta"||section==="designer"||section==="program"?"card":tabs.find(t=>t.id===(section==="customers"||section==="transactions"?"reports":section))?.id||"overview";
+ const inBusinessHome=tab==="overview"||tab==="settings"||tab==="locations";
  const dataArea=section==="customers"?"customers":section==="transactions"?"transactions":"summary";
  const [cardArea,setCardArea]=useState<CardArea>(section==="program"?"rules":"design");
  function openSection(next:Tab){
@@ -309,7 +310,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   {!selected?<div className="empty-state"><Store size={33}/><h3>Todavía no gestionas ningún negocio</h3><p>Solicita acceso a tu establecimiento para comenzar.</p></div>:<>
    <div className="workspace-section-layout">
     <header className="business-section-heading">
-     <div><span className="page-eyebrow">GESTIÓN</span><h2>{tabs.find(t=>t.id===tab)?.label||"Resumen"}</h2></div>
+     <div><span className="page-eyebrow">GESTIÓN</span><h2>{inBusinessHome?"Mi negocio":tabs.find(t=>t.id===tab)?.label||"Resumen"}</h2></div>
      {tab==="card"&&<Link className="button button-outline button-sm" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Vista previa <ArrowUpRight size={16}/></Link>}
     </header>
     
@@ -323,14 +324,17 @@ export default function BusinessWorkspace({account}:{account:Account}){
     <button type="button" className={cardArea==="rewards"?"active":""} aria-pressed={cardArea==="rewards"} onClick={()=>setCardArea("rewards")}><Gift size={16}/> 3. Recompensas</button>
    </nav>}
 
-   {tab==="overview"&&<div className="owner-start">
+   {inBusinessHome&&<div className="owner-start owner-business-context">
      <div className="owner-start-hero"><h3>{biz.name}</h3>
       <p>{prog.type==="stamps"?"Programa de sellos":prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"} · {prog.reward_label}</p>
      </div>
      <nav className="owner-start-links owner-start-primary-links" aria-label="Configuración del negocio">
-      <Link href="/negocio/settings" title="Información del negocio"><Settings2 size={18}/> Información</Link>
-      <Link href="/negocio/locations" title="Dirección y ubicación"><MapPin size={18}/> Ubicación</Link>
+      <Link href="/negocio" className={tab==="overview"?"active":""} aria-current={tab==="overview"?"page":undefined}><CreditCard size={18}/> Tarjeta actual</Link>
+      <Link href="/negocio/settings" title="Información del negocio" className={tab==="settings"?"active":""} aria-current={tab==="settings"?"page":undefined}><Settings2 size={18}/> Información</Link>
+      <Link href="/negocio/locations" title="Dirección y ubicación" className={tab==="locations"?"active":""} aria-current={tab==="locations"?"page":undefined}><MapPin size={18}/> Ubicación</Link>
      </nav>
+    </div>}
+   {tab==="overview"&&<div className="owner-start">
      <section className="owner-start-card" aria-label="Tarjeta actual del negocio">
       <div className="owner-start-card-heading"><h3>Tu tarjeta actual</h3>
        <button type="button" className="button button-outline button-sm" onClick={()=>openSection("card")}>Editar tarjeta <ArrowUpRight size={16}/></button>
@@ -347,7 +351,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
       </div>
      </section>
     </div>}
-   {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido para tus tarjetas y sellos. Puedes cambiarlo desde «Mi tarjeta». Los marcadores del mapa indican si el cliente ya tiene tu tarjeta.</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form></div>}
+   {tab==="settings"&&<div className="settings-grid owner-business-settings"><form className="panel-card owner-business-info" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido para tus tarjetas y sellos. Puedes cambiarlo desde «Mi tarjeta». Los marcadores del mapa indican si el cliente ya tiene tu tarjeta.</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form></div>}
 
    {tab==="card"&&cardArea==="design"&&<div className="designer-grid lp-new-designer">
     <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseño de la tarjeta</h2>
