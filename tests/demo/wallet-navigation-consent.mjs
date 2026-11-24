@@ -51,3 +51,8 @@ for(const screen of [access,entry]){
  assert.match(screen,/<details className="lp-signup-consent-details"><summary>Más información<\/summary>/,"Channel information available on demand");
  assert.doesNotMatch(screen,/checked=\{marketingOptIn\}[^>]*\brequired\b/,"Marketing stays optional");
 }
+
+for(const screen of [access,entry]){
+ assert.match(screen,/!marketingOptIn&&"No te pierdas las ofertas y promociones de los locales participantes\. "/,"Show a friendly invitation only before opt-in");
+ assert.match(screen,/Puedes cambiar tus preferencias en Ajustes cuando quieras\./,"Explain how to change preferences");
+}
