@@ -74,6 +74,7 @@ services:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?Falta NEXT_PUBLIC_SITE_URL}
+      LP_ALLOWED_ORIGINS: ${LP_ALLOWED_ORIGINS:-https://kreyvi.com,https://www.kreyvi.com}
       PGHOST: db
       PGPORT: "5432"
       PGDATABASE: ${POSTGRES_DB:?Falta POSTGRES_DB}

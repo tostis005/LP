@@ -46,7 +46,7 @@ export class ApiError extends Error {
   constructor(message:string,public status:number=400){super(message)}
 }
 export function checkOrigin(request:Request) {
-  if(!isAllowedOrigin(request.headers.get("origin"),process.env.NEXT_PUBLIC_SITE_URL))
+  if(!isAllowedOrigin(request.headers.get("origin"),process.env.NEXT_PUBLIC_SITE_URL,process.env.LP_ALLOWED_ORIGINS))
     throw new ApiError("Origen de solicitud no permitido.",403);
 }
 export function responseError(e:unknown) {

@@ -66,3 +66,9 @@
 :is(.public-login,.loyal-app-entry) .lp-signup-consent{background:var(--color-bg);border-color:var(--color-bg-2)}
 :is(.public-login,.loyal-app-entry) .lp-signup-consent strong{color:var(--color-brand)}
 .public-login .auth-login-visible .lp-signup-consent input[type=checkbox]{width:18px;height:18px;min-height:18px;padding:0}
+
+/* Lightweight, voluntary commercial opt-in on both registration screens. */
+:is(.public-login,.loyal-app-entry) .lp-signup-consent{background:transparent;border:0;padding:8px 0!important;margin:3px 0!important;gap:12px!important}
+:is(.public-login,.loyal-app-entry) .lp-signup-consent>span{gap:5px}
+:is(.public-login,.loyal-app-entry) .lp-signup-consent small{font-weight:400;font-size:12px;line-height:1.5;color:var(--color-text-2)}
+:is(.public-login,.loyal-app-entry) .lp-signup-consent input[type=checkbox]{width:18px;height:18px;min-height:18px;padding:0}

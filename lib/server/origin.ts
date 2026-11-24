@@ -3,12 +3,15 @@ import {isIP} from "node:net";
 // Compare the browser Origin with the configured public URL. An IP-based
 // installation may be reachable through both the HTTP and HTTPS Caddy sites,
 // while NEXT_PUBLIC_SITE_URL names only one of those schemes.
-export function isAllowedOrigin(origin:string|null,publicSiteUrl:string|undefined):boolean {
+export function isAllowedOrigin(origin:string|null,publicSiteUrl:string|undefined,allowedOrigins:string|undefined=undefined):boolean {
  if(!origin)return true; // Non-browser clients need an independent session.
  if(!publicSiteUrl)return false;
  try {
   const requested=new URL(origin),site=new URL(publicSiteUrl);
   if(requested.origin===site.origin && origin===requested.origin)return true;
+  // Explicit HTTPS aliases only. Never trust the incoming Host or forwarded host.
+  if(origin===requested.origin && requested.protocol==="https:" && !requested.port &&
+     (allowedOrigins||"").split(",").map(value=>value.trim()).includes(origin))return true;
 
   // Only the exact configured public IP, with standard HTTP(S) ports.
   // Do not accept arbitrary hosts, forwarded-host values or alternate ports.

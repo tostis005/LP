@@ -24,4 +24,13 @@ assert.equal(isAllowedOrigin("http://loyally.example","https://loyally.example")
 assert.equal(isAllowedOrigin("https://loyally.example","https://loyally.example"),true,"same exact domain works");
 assert.equal(isAllowedOrigin("https://loyally.example:443","https://loyally.example"),false,"noncanonical origin rejected");
 assert.equal(isAllowedOrigin("http://127.0.0.1:3100","http://127.0.0.1:3100"),true,"explicit localhost port works when configured");
-console.log("Origin validation: 13 cases passed.");
+const aliases="https://kreyvi.com,https://www.kreyvi.com";
+assert.equal(isAllowedOrigin("https://kreyvi.com",ip,aliases),true);
+assert.equal(isAllowedOrigin("https://www.kreyvi.com",ip,aliases),true);
+assert.equal(isAllowedOrigin("https://kreyvi.com","https://www.kreyvi.com",aliases),true);
+assert.equal(isAllowedOrigin("https://kreyvi.com.evil.example",ip,aliases),false);
+assert.equal(isAllowedOrigin("http://kreyvi.com",ip,aliases),false);
+assert.equal(isAllowedOrigin("https://kreyvi.com:8443",ip,aliases),false);
+assert.equal(isAllowedOrigin("https://evil.example",ip,aliases),false);
+assert.equal(isAllowedOrigin("https://kreyvi.com",ip),false);
+console.log("Origin validation: canonical origin, explicit HTTPS aliases and hostile origins tested.");
