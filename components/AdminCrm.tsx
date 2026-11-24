@@ -9,7 +9,7 @@ type Data={prospects:Prospect[];count:{total:number;unique_emails:number};region
 const stages:Record<string,string>={pending_review:"Por revisar",qualified:"Cualificado",contacted:"Contactado",interested:"Interesado",trial:"En prueba",converted:"Cliente",discarded:"Descartado",do_not_contact:"No contactar"};
 export function AdminCrm(){
  const [data,setData]=useState<Data|null>(null),[report,setReport]=useState<Report|null>(null),[file,setFile]=useState<File|null>(null);
- const [country,setCountry]=useState(""),[state,setState]=useState(""),[municipality,setMunicipality]=useState(""),[city,setCity]=useState(""),[category,setCategory]=useState(""),[status,setStatus]=useState(""),[search,setSearch]=useState(""),[page,setPage]=useState(0),[scope,setScope]=useState("02003");
+ const [country,setCountry]=useState(""),[state,setState]=useState(""),[municipality,setMunicipality]=useState(""),[city,setCity]=useState(""),[category,setCategory]=useState("pilot_food"),[status,setStatus]=useState(""),[search,setSearch]=useState(""),[page,setPage]=useState(0),[scope,setScope]=useState("02003");
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
  useEffect(()=>{
   const controller=new AbortController();
@@ -64,7 +64,7 @@ export function AdminCrm(){
    <label>Estado<select value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label>Municipio<select value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label>Ciudad / localidad<select value={city} disabled={!municipality} onChange={e=>{setCity(e.target.value);setPage(0)}}><option value="">Todas</option>{cities.map(r=><option key={r.locality_code} value={r.locality_code}>{r.city} ({r.total})</option>)}</select></label>
-   <label>Sector<select value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option>{data?.categories.map(c=><option key={c.category}>{c.category}</option>)}</select></label>
+   <label>Sector<select value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="pilot_food">Piloto: restauración, cafeterías y heladerías</option><option value="">Todos</option>{data?.categories.map(c=><option key={c.category}>{c.category}</option>)}</select></label>
    <label>Estado comercial<select value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
    <div className="search-box small-search"><Search size={17}/><input aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Nombre o correo"/></div>
   </div>
