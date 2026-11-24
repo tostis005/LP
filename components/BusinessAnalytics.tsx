@@ -1,6 +1,6 @@
 "use client";
 import {useState} from "react";
-import {ArrowDownRight,ArrowUpRight,Gift,TrendingUp,Users} from "lucide-react";
+import {ArrowDownRight,ArrowUpRight,Gift,Users} from "lucide-react";
 import {reportDateLabel} from "@/lib/report-date";
 export type MetricRow={metric:string;current_value:number;previous_value:number};
 export type RankingRow={reward_label:string;redemptions:number;retail_cents:number;cost_cents:number;unpriced:number};
@@ -57,6 +57,8 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
  const kpis=[
   {key:"new_customers",label:"Nuevas tarjetas",value:integer(lookup("new_customers")),helper:"Clientes que se han inscrito"},
   {key:"habitual_customers",label:"Clientes habituales",value:integer(lookup("habitual_customers")),helper:"Con compras recurrentes en el periodo"},
+  {key:"visits",label:"Compras registradas",value:integer(legacy("visits")),helper:"Compras verificadas"},
+  {key:"redemptions",label:"Recompensas canjeadas",value:integer(legacy("redemptions")),helper:"Canjes no revertidos"},
   {key:"avg_units_habitual",label:unit==="sellos"?"Sellos por habitual":"Unidades por habitual",value:lookup("avg_units_habitual").toFixed(2),helper:"Media ganada por cliente habitual en el periodo"},
   {key:"avg_visits_habitual",label:"Visitas por habitual",value:lookup("avg_visits_habitual").toFixed(2),helper:"Compras medias registradas por cliente habitual"}
  ];
@@ -67,7 +69,7 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
   </div>
   <div className="owner-kpi-grid">{kpis.map(card=><article key={card.key} className="owner-kpi">
    <span>{card.label}</span><strong>{card.value}</strong>
-   <Change value={lookup(card.key)} previous={lookup(card.key,true)}/>
+   <Change value={card.key==="visits"||card.key==="redemptions"?legacy(card.key):lookup(card.key)} previous={card.key==="visits"||card.key==="redemptions"?Number(metrics.find(m=>m.metric===card.key)?.previous_value||0):lookup(card.key,true)}/>
    <small>{card.helper}</small>
   </article>)}</div>
   <div className="owner-growth-grid">
@@ -75,12 +77,34 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
    <MiniChart title="Clientes habituales activos" description="Con compras recurrentes" rows={growth} field="habitual_customers"/>
   </div>
   <div className="owner-data-secondary">
-   <div className="owner-data-stat"><TrendingUp size={20}/><div><strong>{integer(legacy("visits"))}</strong><span>Compras verificadas en el periodo</span></div></div>
-   <div className="owner-data-stat"><Gift size={20}/><div><strong>{integer(legacy("redemptions"))}</strong><span>Recompensas canjeadas</span></div></div>
    <div className="owner-data-stat"><Users size={20}/><div><strong>{integer(repeatCustomers)}</strong><span>Clientes recurrentes históricos: 2 o más visitas desde que se inscribieron ({totalCustomers} tarjetas)</span></div></div>
   </div>
   <section className="panel-card owner-ranking"><h3><Gift size={18}/> Recompensas canjeadas</h3>
-   {ranking.length?<div className="table-wrap"><table className="data-table"><thead><tr><th>Recompensa</th><th>Canjes</th></tr></thead><tbody>{ranking.map((r,i)=><tr key={r.reward_label+"-"+i}><td><strong>{r.reward_label}</strong></td><td>{r.redemptions}</td></tr>)}</tbody></table></div>:<p className="muted">Aún no hay canjes en este periodo.</p>}
+   <RewardDonut ranking={ranking}/>
+
   </section>
  </section>;
+}
+
+const rewardColors=["#66283f","#a85e79","#ca927b","#d8bca1","#7775a3","#5a9087","#a4a258","#7596ad"];
+function RewardDonut({ranking}:{ranking:RankingRow[]}){
+ const [active,setActive]=useState<string|null>(null);
+ const sorted=ranking.filter(r=>Number(r.redemptions)>0).sort((a,b)=>Number(b.redemptions)-Number(a.redemptions));
+ const rows=sorted.length>7?[...sorted.slice(0,7),{reward_label:"Otros",redemptions:sorted.slice(7).reduce((n,r)=>n+Number(r.redemptions),0)}]:sorted;
+ const total=rows.reduce((n,r)=>n+Number(r.redemptions),0);
+ if(!total)return <p className="muted">Aún no hay canjes en este periodo.</p>;
+ let offset=0;const circumference=2*Math.PI*73;
+ const chosen=rows.find(r=>r.reward_label===active);
+ return <div className="owner-reward-donut">
+  <svg viewBox="0 0 200 200" role="img" aria-label={total+" canjes; consulta la leyenda para el desglose"}>
+   {rows.map((r,i)=>{const length=Number(r.redemptions)/total*circumference;const start=offset;offset+=length;
+    return <circle key={r.reward_label} cx="100" cy="100" r="73" fill="none" stroke={rewardColors[i]} strokeWidth={active===r.reward_label?30:25}
+     strokeDasharray={length+" "+Math.max(0,circumference-length)} strokeDashoffset={-start} transform="rotate(-90 100 100)"><title>{r.reward_label}: {r.redemptions}</title></circle>})}
+   <text x="100" y="99" textAnchor="middle" className="owner-donut-total">{integer(chosen?Number(chosen.redemptions):total)}</text>
+   <text x="100" y="119" textAnchor="middle" className="owner-donut-caption">{chosen?"Canjes seleccionados":"Canjes totales"}</text>
+  </svg>
+  <div className="owner-reward-legend">{rows.map((r,i)=><button type="button" key={r.reward_label} aria-pressed={active===r.reward_label}
+   onClick={()=>setActive(active===r.reward_label?null:r.reward_label)} onFocus={()=>setActive(r.reward_label)}
+   className="owner-legend-row"><span style={{background:rewardColors[i]}}/><span>{r.reward_label}</span><strong>{integer(Number(r.redemptions))}</strong><small>{(Number(r.redemptions)/total*100).toFixed(1)}%</small></button>)}</div>
+ </div>;
 }
