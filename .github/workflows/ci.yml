@@ -90,6 +90,8 @@ jobs:
         run: node tests/demo/owner-card-chart-priority.mjs
       - name: Validar formularios anchos, accesos, fotos pequeñas y estado demo
         run: node tests/demo/owner-desktop-images-marketing.mjs
+      - name: Validar panel de Datos del propietario
+        run: node tests/demo/owner-data-panel.mjs
       - name: Validar informes e imágenes del ejemplo Café Noma
         run: node tests/demo/owner-noma-polish.mjs
       - name: Verificar Café Noma, notificaciones y mapa sin navegación duplicada
