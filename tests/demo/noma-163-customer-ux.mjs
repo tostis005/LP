@@ -24,7 +24,7 @@ assert.match(provision,/if\(slug==="cafe-noma"\)/,"Provision a single owner busi
 assert.match(owner,/b\.active===true/,"Only active assigned businesses");
 assert.match(offers,/offerImageUrl\(o\.image_url,480\)/);
 assert.match(details,/offerImageUrl\(offer\.image_url,960\)/);
-assert.match(getAsset,/width===480\|\|width===960/);
+assert.match(getAsset,/\[96,192,256,512,480,720,960,1200\]\.includes\(width\)/,"Offer and logo sizes are all supported");
 assert.match(putAsset,/isOfferImage=match\[2\]\.startsWith\("oferta-"\)/);
 assert.match(join,/const accepted=globalConsent===null\?marketing:globalConsent/,"One-step optional consent");
 assert.match(join,/router\.replace\("\/app"/,"Open the newly added card immediately");
