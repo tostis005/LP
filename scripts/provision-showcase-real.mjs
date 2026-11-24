@@ -69,6 +69,9 @@ try{
   if(!createdSlugs.has(slug))continue;
   await db.query("INSERT INTO public.loyalty_memberships(business_id,customer_id,balance,total_earned) VALUES($1,$2,0,0) ON CONFLICT(business_id,customer_id) DO NOTHING",[existing[slug],ids.CUSTOMER]);
  }
+ // Las migraciones pueden preceder a la provisión del escaparate interno.
+ await db.query("SELECT public.seed_internal_noma_to_163()");
+ await db.query("SELECT public.seed_internal_noma_dashboard()");
  await db.query("COMMIT");
  console.log("Cuentas autenticadas y negocios persistentes preparados; se han conservado los datos preexistentes.");
 }catch(error){await db.query("ROLLBACK");throw error}
