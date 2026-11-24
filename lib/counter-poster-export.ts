@@ -1,6 +1,14 @@
 export const POSTER_SIZES={A6:{width:105,height:148},A5:{width:148,height:210}} as const;
 export type PosterSize=keyof typeof POSTER_SIZES;
 export const PRINT_DPI=300;
+export const CARD_RATIO=85.60/53.98;
+/** The poster is at most 360 CSS px wide; download only the required asset variant. */
+export function posterAssetUrl(value:string,width:number):string{
+ const match=value.match(/^(?:https?:\/\/(?:www\.kreyvi\.com|kreyvi\.com|169\.58\.121\.198)(?::\d+)?)?(\/api\/assets\/business-assets\/[^?#]+)(\?[^#]*)?(?:#.*)?$/i);
+ if(!match)return value;
+ const query=new URLSearchParams(match[2]||"");query.set("w",String(width));
+ return match[1]+"?"+query.toString();
+}
 const encode=(s:string)=>new TextEncoder().encode(s);
 const mmToPt=(mm:number)=>(mm*72/25.4).toFixed(5);
 /** Single-page PDF with exact ISO paper size and a high-resolution embedded image. */
@@ -23,11 +31,16 @@ function readData(blob:Blob){return new Promise<string>((resolve,reject)=>{const
 export async function rasterPoster(svg:SVGSVGElement,size:PosterSize){
  const clone=svg.cloneNode(true) as SVGSVGElement;
  // Embed all images before rasterization; no cross-origin canvas contamination.
+ const assets=new Map<string,Promise<string>>();
  await Promise.all(Array.from(clone.querySelectorAll("image")).map(async image=>{
-  const href=image.getAttribute("href");if(!href||href.startsWith("data:"))return;
-  const response=await fetch(href,{credentials:"same-origin"});
-  if(!response.ok)throw new Error("No se pudo cargar una imagen del diseño. Vuelve a intentarlo.");
-  image.setAttribute("href",await readData(await response.blob()));
+  const href=image.getAttribute("data-print-href")||image.getAttribute("href");
+  image.removeAttribute("data-print-href");if(!href||href.startsWith("data:"))return;
+  if(!assets.has(href))assets.set(href,(async()=>{
+   const response=await fetch(href,{credentials:"same-origin"});
+   if(!response.ok)throw new Error("No se pudo cargar una imagen del diseño. Vuelve a intentarlo.");
+   return readData(await response.blob());
+  })());
+  image.setAttribute("href",await assets.get(href)!);
  }));
  const paper=POSTER_SIZES[size],canvas=document.createElement("canvas");
  canvas.width=Math.round(paper.width/25.4*PRINT_DPI);canvas.height=Math.round(paper.height/25.4*PRINT_DPI);
@@ -40,5 +53,5 @@ export async function rasterPoster(svg:SVGSVGElement,size:PosterSize){
   return canvas;
  }finally{URL.revokeObjectURL(url)}
 }
-export function canvasBlob(canvas:HTMLCanvasElement,type:"image/png"|"image/jpeg"){return new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("No se pudo exportar el archivo.")),type,.99))}
+export function canvasBlob(canvas:HTMLCanvasElement,type:"image/png"|"image/jpeg"){return new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("No se pudo exportar el archivo.")),type,.92))}
 export function downloadPoster(blob:Blob,name:string){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),30000)}

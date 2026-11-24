@@ -108,7 +108,7 @@ assert.match(posterUi,/marginSize=\{4\}/,"QR quiet zone");
 assert.match(posterUi,/business\.card_background/);
 assert.match(posterUi,/business\.stamp_image_url/);
 assert.match(posterUi,/publicJoinUrl\(business.slug\)/);
-const loadTs=(path)=>{const module={exports:{}};runInNewContext(ts.transpileModule(readFileSync(new URL("../../"+path,import.meta.url),"utf8"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText,{module,exports:module.exports,URL,Blob,TextEncoder,Uint8Array});return module.exports};
+const loadTs=(path)=>{const module={exports:{}};runInNewContext(ts.transpileModule(readFileSync(new URL("../../"+path,import.meta.url),"utf8"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText,{module,exports:module.exports,URL,URLSearchParams,Blob,TextEncoder,Uint8Array});return module.exports};
 const {POSTER_SIZES,posterPdf,PRINT_DPI}=loadTs("lib/counter-poster-export.ts");
 assert.equal(PRINT_DPI,300);assert.equal(POSTER_SIZES.A6.width,105);assert.equal(POSTER_SIZES.A5.height,210);
 for(const size of ["A5","A6"]){const paper=POSTER_SIZES[size],pdf=await posterPdf(new Uint8Array([255,216,255,217]),{width:Math.round(paper.width/25.4*300),height:Math.round(paper.height/25.4*300)},size).text();assert.match(pdf,/^%PDF-1.4/);assert.ok(pdf.includes("/MediaBox [0 0 "+(paper.width*72/25.4).toFixed(5)+" "+(paper.height*72/25.4).toFixed(5)+"]"));assert.match(pdf,/startxref\n\d+\n%%EOF/)}
@@ -116,3 +116,14 @@ const {publicJoinUrl,safeJoinTarget}=loadTs("lib/public-url.ts");
 assert.equal(publicJoinUrl("cafe-noma"),"https://kreyvi.com/unirse/cafe-noma");
 assert.equal(safeJoinTarget("/unirse/cafe-noma?alta=1"),"/unirse/cafe-noma?alta=1");
 for(const value of ["https://evil.example","//evil.example","/unirse/../admin","/unirse/cafe?next=https://evil.example"])assert.equal(safeJoinTarget(value),null);
+
+const {CARD_RATIO,posterAssetUrl}=loadTs("lib/counter-poster-export.ts");
+assert.ok(Math.abs(CARD_RATIO-1.586)<.001);
+assert.match(posterUi,/cardHeight=cardWidth\/CARD_RATIO/);
+assert.match(posterUi,/width=\{cardWidth\} height=\{cardHeight\}/);
+assert.match(posterUi,/posterAssetUrl\(business.card_background,480\)/);
+assert.match(posterUi,/data-print-href=\{posterAssetUrl\(business.card_background,printWidth\)\}/);
+assert.equal(posterAssetUrl("https://kreyvi.com/api/assets/business-assets/id/logo.webp?w=512",96),"/api/assets/business-assets/id/logo.webp?w=96");
+const joinUi=readFileSync(new URL("../../app/unirse/[slug]/page.tsx",import.meta.url),"utf8");
+assert.ok(joinUi.indexOf('className="join-action-panel"')<joinUi.indexOf('className="join-info-panel"'));
+assert.match(joinUi,/logoImageUrl\(offer.logo_url,192\)/);

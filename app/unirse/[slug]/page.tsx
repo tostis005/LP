@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import {useParams,useRouter} from "next/navigation";
 import {ArrowUpRight,Gift,Heart,MapPin,Check,ArrowLeft,BellRing} from "lucide-react";
 import {Brand} from "@/components/Brand";
+import {logoImageUrl} from "@/lib/asset-images";
 import {StampCard} from "@/components/StampCard";
 import {StampMark} from "@/components/StampMarks";
 import {categoryStampKind} from "@/lib/business-categories";
@@ -97,31 +98,25 @@ export default function JoinPage(){
   {loading?<div className="join-box"><div className="loading-screen">Descubriendo este negocio...</div></div>:!offer?<div className="join-box"><div className="empty-state"><h2>Este enlace no está disponible</h2><p>{error}</p></div></div>:
    <main className="join-detail">
     <div className="join-detail-main">
-     <div className="join-business-hero" style={{background:offer.accent_color||"var(--color-brand)"}}>
-      <div className="join-business-illustration"><StampMark kind={business?.stamp_icon||categoryStampKind(category)} size={66}/></div>
+     <div className="join-business-hero">
+      <div className="join-business-illustration" style={{backgroundColor:offer.logo_url?"#ffffff":offer.accent_color||"var(--color-brand)",color:offer.card_text_color||"#ffffff"}}>{offer.logo_url?<img src={logoImageUrl(offer.logo_url,192)} alt="" decoding="async"/>:<StampMark kind={business?.stamp_icon||categoryStampKind(category)} size={36}/>}</div>
+      <div className="join-business-identity">
       <span className="join-business-category">{category||"Negocio local"}</span>
       <h1>{offer.business_name}</h1>
-      <p>{offer.description||"Un lugar al que siempre apetece volver. Descubre qué lo hace especial y empieza a disfrutar de sus recompensas."}</p>
+      </div>
+      <div className="join-reward-large"><Gift size={21}/><strong>{programPromise(offerProgram)}</strong></div>
      </div>
-     <section className="join-info-panel">
-      <span className="eyebrow">UNA BUENA VISITA MERECE UN PREMIO</span>
-      <h2>Así funciona su programa</h2>
-      <div className="join-reward-large"><Gift size={23}/><strong>{programPromise(offerProgram)}</strong></div>
-      <p>{programExplanation(offerProgram)}</p>
-      {offerProgram?.type==="stamps"&&program&&<div className="join-card-preview">
-       <StampCard name={offer.business_name} color={business?.accent_color||offer.accent_color} reward={program.reward_label} total={Math.max(2,program.reward_cost)} earned={0} icon={business?.stamp_icon||categoryStampKind(category)} message={business?.card_text||"GRACIAS POR VOLVER"} textColor={business?.card_text_color} stampColor={business?.stamp_color}/>
-       <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
-      </div>}
+     <section className="join-action-panel" aria-label="Conseguir mi tarjeta">
       {isBusinessAccount?<div className="info-callout"><Heart size={19}/><div><strong>Esta ficha es para tus clientes</strong><p>Estás dentro con una cuenta de negocio. Para guardar tarjetas y premios, utiliza una cuenta de cliente independiente.</p><Link href="/negocio">Volver a mi negocio <ArrowUpRight size={16}/></Link></div></div>:
-      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><div className="join-subscribed-links"><Link href={"/app"+(membershipId?"?card="+encodeURIComponent(membershipId):"")} className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link></div></div>:
+      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><div className="join-subscribed-links"><Link href={"/app"+(membershipId?"?card="+encodeURIComponent(membershipId):"")} className="button button-dark">Abrir mi tarjeta <ArrowUpRight size={16}/></Link></div></div>:
       <div className="join-subscribe">
-       <h3>¿Te apuntas?</h3>
-       <p>Unirte es gratis. Podrás consultar tus sellos y recompensas siempre que quieras.</p>
+       <h2>Tu tarjeta, en el móvil</h2>
+       <p>Consíguela gratis y empieza a disfrutar de tus recompensas.</p>
        {signed&&globalConsent===null&&<>
         <label className="join-marketing-choice join-unified-promo">
          <input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);setError("")}}/>
-         <span><strong><BellRing size={17}/> Sí, quiero recibir promociones, regalos y novedades de {offer.business_name}</strong>
-          <small>Por <b>correo electrónico, WhatsApp y notificaciones push</b> de tus tarjetas actuales y futuras. Podrás cambiarlo en Ajustes.</small>
+         <span><strong><BellRing size={17}/> Quiero recibir ofertas y novedades</strong>
+          <small>No te pierdas las promociones de los locales participantes. Puedes cambiar tus preferencias en Ajustes.</small><details><summary>Más información</summary><small>De tus tarjetas actuales y futuras, por correo electrónico, WhatsApp y notificaciones push. Es opcional.</small></details>
          </span>
         </label>
         {marketing&&(!/^\+[1-9][0-9]{7,14}$/.test(savedPhone))&&
@@ -131,8 +126,19 @@ export default function JoinPage(){
          </label>}
        </>}
        {error&&<div className="alert error" role="alert">{error}</div>}
-       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Conseguir mi tarjeta gratis":"Entrar y conseguir mi tarjeta"} <ArrowUpRight size={17}/></button>
+       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Añadir mi tarjeta":"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
       </div>}
+     </section>
+     <section className="join-info-panel">
+      <span className="eyebrow">UNA BUENA VISITA MERECE UN PREMIO</span>
+      <h2>Así funciona su programa</h2>
+      {offer.description&&<p className="join-business-description">{offer.description}</p>}
+      <p>{programExplanation(offerProgram)}</p>
+      {offerProgram?.type==="stamps"&&program&&<div className="join-card-preview">
+       <StampCard name={offer.business_name} color={business?.accent_color||offer.accent_color} reward={program.reward_label} total={Math.max(2,program.reward_cost)} earned={0} logoUrl={business?.logo_url} icon={business?.stamp_icon||categoryStampKind(category)} message={business?.card_text||"GRACIAS POR VOLVER"} textColor={business?.card_text_color} stampColor={business?.stamp_color}/>
+       <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
+      </div>}
+
      </section>
     </div>
     <aside className="join-detail-side">
@@ -140,7 +146,7 @@ export default function JoinPage(){
       {hasLocation?locations.map(l=><div className="join-address" key={l.id}><strong>{l.name}</strong><span>{l.address}</span><span>{l.city}, {l.country}</span><a target="_blank" rel="noopener noreferrer" href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(l.lat+","+l.lng)}>Cómo llegar <ArrowUpRight size={14}/></a></div>):<p>Este negocio todavía no ha añadido una dirección pública.</p>}
      </section>
      {hasLocation&&<div className="join-mini-map"><DirectoryMapView locations={locations.map(l=>({...l,businesses:{name:offer.business_name,category,slug:params.slug,accent_color:offer.accent_color,stamp_icon:offer.stamp_icon,stamp_color:offer.stamp_color},offerText:programPromise(offerProgram)}))} center={[locations[0].lat,locations[0].lng]}/></div>}
-     <section className="join-side-card"><Heart size={23}/><h3>Cada visita tiene algo bueno</h3><p>Descubre negocios, elige tus favoritos y lleva todas tus tarjetas en KREYVI.</p><Link href="/app/descubrir">Seguir explorando <ArrowUpRight size={15}/></Link></section>
+     <section className="join-side-card"><Heart size={23}/><h3>Cada visita tiene algo bueno</h3><p>Descubre negocios, elige tus favoritos y lleva todas tus tarjetas en Kreyvi.</p><Link href="/app/descubrir">Seguir explorando <ArrowUpRight size={15}/></Link></section>
     </aside>
    </main>
   }

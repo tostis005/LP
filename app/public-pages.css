@@ -79,3 +79,43 @@
 
 :is(.public-login,.loyal-app-entry) .lp-signup-consent-hint{margin:-8px 0 0 30px;font-size:12px;line-height:1.5;font-weight:400;color:var(--color-text-2)}
 :is(.public-login,.loyal-app-entry) .lp-signup-consent-hint+.lp-signup-consent-details{margin-top:-4px}
+
+/* QR landing: the customer's first action is directly after the merchant identity. */
+.join-page.join-page-rich{padding:clamp(14px,3vw,30px);background:var(--color-bg)}
+.join-page-rich .join-top{gap:12px;min-height:42px}
+.join-page-rich .join-top .text-link{font-size:12px;text-align:right;gap:4px}
+.join-page-rich .join-detail{width:min(1020px,100%);margin:22px auto 48px;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px}
+.join-page-rich .join-detail-main,.join-page-rich .join-detail-side{gap:14px}
+.join-page-rich .join-business-hero{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:14px;min-height:0;padding:20px;border-radius:18px;background:var(--color-surface);border:1px solid var(--color-bg-2);color:var(--color-brand)}
+.join-page-rich .join-business-illustration{width:64px;height:64px;border-radius:13px;margin:0;overflow:hidden;border:1px solid var(--color-bg-2)}
+.join-page-rich .join-business-illustration img{width:100%;height:100%;object-fit:contain}
+.join-business-identity{min-width:0;display:grid;gap:4px}
+.join-page-rich .join-business-category{font-size:11px;letter-spacing:.08em;color:var(--color-text-2);opacity:1}
+.join-page-rich .join-business-hero h1{margin:0;color:var(--color-brand-900);font-size:clamp(24px,4vw,36px);line-height:1.12;overflow-wrap:anywhere}
+.join-page-rich .join-reward-large{grid-column:1/-1;background:var(--color-accent-100);border:0;border-radius:11px;padding:12px;gap:10px}
+.join-page-rich .join-reward-large strong{font-size:15px;line-height:1.4}
+.join-page-rich .join-action-panel,.join-page-rich .join-info-panel,.join-page-rich .join-side-card{min-width:0;border:1px solid var(--color-bg-2);background:var(--color-surface);border-radius:18px;padding:20px}
+.join-page-rich .join-subscribe,.join-page-rich .join-subscribed{display:grid;gap:10px;padding:0;margin:0;border:0;background:none}
+.join-page-rich .join-action-panel h2,.join-page-rich .join-info-panel h2,.join-page-rich .join-side-card h2,.join-page-rich .join-side-card h3{font-size:21px;line-height:1.25;margin:0;color:var(--color-brand-900)}
+.join-page-rich .join-action-panel p,.join-page-rich .join-info-panel>p,.join-page-rich .join-side-card p{font-size:14px;line-height:1.55;color:var(--color-text-2);margin:0}
+.join-page-rich .join-action-panel .button-dark{min-height:50px;font-size:15px;width:100%;justify-content:center}
+.join-page-rich .join-info-panel,.join-page-rich .join-side-card{display:grid;gap:12px}
+.join-page-rich .join-card-preview{width:min(100%,360px);margin:4px auto 0;gap:8px}
+.join-page-rich .join-card-preview>small{line-height:1.5;color:var(--color-text-2)}
+.join-page-rich .join-card-preview .stamp-visual-card:not(.has-qr){grid-template-columns:minmax(0,1fr);position:relative}
+.join-page-rich .join-card-preview .stamp-visual-main{padding-right:0}
+.join-page-rich .join-card-preview .stamp-visual-side{position:absolute;top:12px;right:12px;max-width:45%;height:auto}
+.join-page-rich .join-marketing-choice{gap:10px;padding:8px 0;align-items:flex-start;background:transparent;border:0;margin:0}
+.join-page-rich .join-marketing-choice strong{font-size:13px;line-height:1.4}
+.join-page-rich .join-marketing-choice small{font-size:12px;line-height:1.5;color:var(--color-text-2)}
+.join-page-rich .join-marketing-choice details{font-size:12px;color:var(--color-text-2)}
+.join-page-rich .join-phone-field{margin:0}
+.join-page-rich .join-address{margin:0;padding:10px 0}
+@media(max-width:800px){
+ .join-page-rich .join-detail{grid-template-columns:1fr;margin-top:14px;gap:14px}
+ .join-page-rich .join-detail-side{grid-template-columns:1fr}
+ .join-page-rich .join-business-hero{grid-template-columns:52px minmax(0,1fr);padding:16px;gap:12px}
+ .join-page-rich .join-business-illustration{width:52px;height:52px}
+ .join-page-rich .join-action-panel,.join-page-rich .join-info-panel,.join-page-rich .join-side-card{padding:16px}
+ .join-page-rich .join-action-panel h2{font-size:20px}
+}
