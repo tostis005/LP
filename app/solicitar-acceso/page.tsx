@@ -16,10 +16,10 @@ export default function RequestAccess(){
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
  return <><PublicHeader/><main className="request-page"><div className="container request-grid">
-  <section className="request-copy"><div className="eyebrow">CRECE CON KREYVI</div>
+  <section className="request-copy"><div className="eyebrow">CRECE CON NOSOTROS</div>
    <h1>Tu negocio merece <em>clientes que regresen.</em></h1>
-   <p>Cuéntanos un poco sobre tu negocio. Revisaremos la solicitud y, cuando podamos darte acceso, crearemos personalmente tu espacio en KREYVI.</p>
-   <div className="request-benefits"><div><div className="request-benefit-icon"><Heart size={19}/></div><span>Tarjetas digitales que enamoran</span></div><div><div className="request-benefit-icon"><Store size={19}/></div><span>Control sencillo para tu equipo</span></div><div><div className="request-benefit-icon"><MapPin size={19}/></div><span>Más visibilidad ante clientes locales</span></div></div>
+   <p>Cuéntanos un poco sobre tu negocio. Revisaremos la solicitud y, cuando podamos darte acceso, crearemos personalmente tu espacio en Kreyvi.</p>
+   <div className="request-benefits"><div><div className="request-benefit-icon"><Heart size={19}/></div><span>Tarjetas digitales con tu marca</span></div><div><div className="request-benefit-icon"><Store size={19}/></div><span>Control sencillo para tu equipo</span></div><div><div className="request-benefit-icon"><MapPin size={19}/></div><span>Más visibilidad ante clientes locales</span></div></div>
    <div className="request-note"><ShieldCheck size={20}/><span>El alta no es automática: nuestro equipo revisa todas las solicitudes antes de activar un negocio.</span></div>
   </section>
   <section className="panel-card request-form">
@@ -31,7 +31,7 @@ export default function RequestAccess(){
    <div className="form-two"><label>Sector<select value={category} onChange={e=>setCategory(e.target.value)}>{["Cafetería","Restaurante","Barbería","Belleza","Tienda","Salud y bienestar","Otros"].map(c=><option key={c}>{c}</option>)}</select></label><label>Ciudad<input required minLength={2} maxLength={120} value={city} onChange={e=>setCity(e.target.value)} placeholder="Madrid"/></label></div>
    <label>¿Qué te gustaría conseguir? (opcional)<textarea rows={4} maxLength={1000} value={message} onChange={e=>setMessage(e.target.value)} placeholder="Nos gustaría fidelizar a nuestros clientes..."/></label>
    <div className="honeypot-field" aria-hidden="true"><label>Deja este campo vacío<input tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)}/></label></div>
-   <div className="check-control"><input type="checkbox" id="consent-access" required checked={consent_contact} onChange={e=>setConsent(e.target.checked)}/><label htmlFor="consent-access"><strong>Autorizo que KREYVI me contacte sobre esta solicitud.</strong><small>No implica aceptar publicidad ni suscribirse a una lista de marketing. Solo utilizaremos estos datos para responder a la solicitud.</small></label></div>
+   <div className="check-control"><input type="checkbox" id="consent-access" required checked={consent_contact} onChange={e=>setConsent(e.target.checked)}/><label htmlFor="consent-access"><strong>Autorizo que Kreyvi me contacte sobre esta solicitud.</strong><small>No implica aceptar publicidad ni suscribirse a una lista de marketing. Solo utilizaremos estos datos para responder a la solicitud.</small></label></div>
    {error&&<div className="alert error" role="alert">{error}</div>}
    <button className="button button-dark button-full" disabled={busy}>{busy?"Enviando...":"Solicitar acceso"} <ArrowUpRight size={18}/></button>
    <p className="tiny-note">El acceso a la plataforma se concede manualmente. No se realiza ningún cobro al enviar esta solicitud.</p>

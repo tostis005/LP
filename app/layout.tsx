@@ -9,6 +9,7 @@ import "./offers.css";
 import "./product-polish.css";
 import "./customer-app.css";
 import "./role-app.css";
+import "./public-pages.css";
 import {BRAND_NAME, BRAND_THEME} from "@/lib/brand";
 import {PwaSetup} from "@/components/PwaSetup";
 import {AppBottomNav} from "@/components/AppBottomNav";

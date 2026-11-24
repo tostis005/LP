@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
-const login=read("app/acceder/page.tsx");
+const publicLogin=read("app/acceder/page.tsx");
+const login=read("app/acceder2/page.tsx");
+assert.doesNotMatch(publicLogin,/qa-access|qaEnabled|selectProfile|auth-profile-grid|acceder2/,"Public login must not expose management profiles");
+assert.match(read("app/acceder2/layout.tsx"),/robots:\{index:false,follow:false\}/,"Management page is excluded from indexing");
 const auth=read("app/api/local/qa-access/route.ts");
 const confirm=read("app/acceso-perfiles/page.tsx");
 const migration=read("db/migrations/220_qa_access_links.sql");
@@ -35,3 +38,10 @@ assert.match(mail,/\.\.\.\(cc\?\{cc\}:\{\}\)/,"CC is passed to nodemailer");
 assert.match(mail,/await sendMail\(email,subject,/,"Account verification and recovery must remain single-recipient");
 
 console.log("OK: authorized profile switching uses Gmail proof and time-limited real PostgreSQL sessions.");
+
+const publicHeader=read("components/PublicHeader.tsx");
+const publicCss=read("app/public-pages.css");
+assert.match(publicHeader,/href="\/acceder"/,"Public header links to normal login");
+assert.doesNotMatch(publicHeader,/acceder2/,"No public navigation to management access");
+assert.match(publicCss,/\.request-copy h1 em,\.pricing-page h1 em\{font-style:normal;color:var\(--color-accent-600\)/,"Contact and pricing use corporate gold");
+assert.match(read("app/layout.tsx"),/import "\.\/public-pages.css"/,"Public styles are shared across routes");

@@ -85,7 +85,7 @@ export default function JoinPage(){
   {loading?<div className="join-box"><div className="loading-screen">Descubriendo este negocio...</div></div>:!offer?<div className="join-box"><div className="empty-state"><h2>Este enlace no está disponible</h2><p>{error}</p></div></div>:
    <main className="join-detail">
     <div className="join-detail-main">
-     <div className="join-business-hero" style={{background:offer.accent_color||"#571c32"}}>
+     <div className="join-business-hero" style={{background:offer.accent_color||"var(--color-brand)"}}>
       <div className="join-business-illustration"><StampMark kind={business?.stamp_icon||categoryStampKind(category)} size={66}/></div>
       <span className="join-business-category">{category||"Negocio local"}</span>
       <h1>{offer.business_name}</h1>
