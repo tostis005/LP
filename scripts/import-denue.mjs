@@ -1,6 +1,6 @@
 import {readFileSync} from "node:fs";
 import pg from "pg";
-import {analyzeDenue,decodeDenue} from "../lib/server/denue.ts";
+import {foodPilotImport,decodeDenue} from "../lib/server/denue.ts";
 // Explicit operator command, never sends mail. The archive stays on the server.
 const args=process.argv.slice(2);
 const edition=args.shift(), scope=args.shift();
@@ -10,10 +10,10 @@ const c=await pool.connect();
 try{
  for(const path of args){
   const b=readFileSync(path);
-  const data=analyzeDenue(decodeDenue(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)),scope==="all"?"":scope);
+  const data=foodPilotImport(decodeDenue(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)),scope==="all"?"":scope);
   if(!data.report.total)throw Error("No matching establishments in input");
   const stateCodes=[...new Set(data.report.byCity.map(x=>x.state_code))];
-  const key="DENUE "+edition+" "+scope+" "+path.split("/").at(-1);
+  const key="DENUE food pilot "+edition+" "+scope+" "+path.split("/").at(-1);
   await c.query("BEGIN");
   try{
    await c.query("SELECT pg_advisory_xact_lock(hashtext('kreyvi-denue-import'))");
@@ -31,8 +31,8 @@ try{
      [JSON.stringify(batch)]);
     imported+=r.rowCount||0;
    }
-   await c.query("UPDATE public.crm_prospects p SET status='do_not_contact',updated_at=now() WHERE p.status<>'do_not_contact' AND EXISTS (SELECT 1 FROM public.crm_email_exclusions e WHERE e.email=lower(p.email))");
-   await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[key,JSON.stringify({...data.report,edition,scope,stateCode:stateCodes.length===1?stateCodes[0]:null,imported})]);
+   await c.query("UPDATE public.crm_prospects p SET status='do_not_contact',updated_at=now() WHERE p.status<>'do_not_contact' AND EXISTS (SELECT 1 FROM public.crm_email_exclusions e WHERE e.email IN (lower(p.email),lower(p.public_email)))");
+   await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[key,JSON.stringify({...data.report,edition,scope,pilotFood:true,stateCode:stateCodes.length===1?stateCodes[0]:null,imported})]);
    await c.query("COMMIT");
    console.log(JSON.stringify({edition,scope,imported,total:data.report.total,relevant:data.report.relevant,withEmail:data.report.withEmail,uniqueEmails:data.report.uniqueEmails}));
   }catch(e){await c.query("ROLLBACK");throw e;}
