@@ -29,7 +29,7 @@ const validEmail=(v:string)=>v.length<=254&&/^[^\s@,;<>]+@[a-z0-9](?:[a-z0-9.-]*
 type Counts={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
 type Geo=Counts & {state:string;municipality:string;city:string;state_code:string;municipality_code:string;locality_code:string};
 const blank=():Counts=>({total:0,relevant:0,withEmail:0,missingOrInvalidEmail:0,uniqueEmails:0});
-export function analyzeDenue(text:string, municipalityFilter="", observe?:(row:Omit<Prospect,"email">&{hasEmail:boolean;hasWebsite:boolean})=>void){
+export function analyzeDenue(text:string, municipalityFilter="", observe?:(row:Omit<Prospect,"email">&{hasEmail:boolean;hasWebsite:boolean})=>void,includeActivity?:(code:string)=>boolean){
  const prospects:Prospect[]=[], seen=new Set<string>(), unique=new Set<string>();
  const total=blank(), byCity=new Map<string,Geo>(), bySector=new Map<string,Counts>(), cityEmails=new Map<string,Set<string>>(), sectorEmails=new Map<string,Set<string>>();
  let header:string[]|null=null,duplicates=0,skipped=0;
@@ -45,7 +45,7 @@ export function analyzeDenue(text:string, municipalityFilter="", observe?:(row:O
   const key=state_code+municipality_code+locality_code,category=categoryFor(activity_code),email=get("correoelec").toLowerCase();
   const g=byCity.get(key)||{...blank(),state,municipality,city,state_code,municipality_code,locality_code};byCity.set(key,g);
   total.total++;g.total++;
-  if(!category)return;
+  if(!category||(includeActivity&&!includeActivity(activity_code)))return;
   const s=bySector.get(category)||blank();bySector.set(category,s);
   total.relevant++;g.relevant++;s.total++;s.relevant++;
   if(observe)observe({source_id:id,name,country_code:"MX",state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,website:get("www"),hasEmail:validEmail(email),hasWebsite:!!get("www")});
@@ -71,6 +71,6 @@ export function foodPilotImport(text:string,municipalityFilter=""){
   if(!isFoodPilot(row.activity_code)||row.hasEmail)return;
   const {hasEmail,hasWebsite,...business}=row;
   missing.push({...business,email:null});
- });
+ },isFoodPilot);
  return {...result,prospects:[...result.prospects.filter(p=>isFoodPilot(p.activity_code)),...missing]};
 }
