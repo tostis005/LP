@@ -6,7 +6,7 @@ import {BrowserQRCodeReader,type IScannerControls} from "@zxing/browser";
 import {Camera,Check,Gift,Keyboard,Minus,Plus,RefreshCw,ScanLine,ShieldCheck,StopCircle,Ticket} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {db} from "@/lib/supabase";
-import {dateShort,normalizeToken,units} from "@/lib/format";
+import {dateShort,normalizeToken,units,customerDisplayName} from "@/lib/format";
 import {displayCurrency} from "@/lib/currency";
 type RewardChoice={id:string;label:string;retail_cents:number|null};
 type StaffNote={rule_id:string;name:string;target:number;expires_at:string;instruction:string;redeemed:boolean};
@@ -90,7 +90,7 @@ function StaffMain({account}:{account:Account}){
   {success&&<div className="alert success" role="status"><Check size={18}/>{success}</div>}
   {!card?<div className="scan-await"><ScanLine size={35}/><strong>Esperando una tarjeta</strong><p>Al escanear verás el nombre abreviado, los sellos y las acciones disponibles.</p></div>:<>
    <div className="staff-customer-summary">
-    <div className="staff-customer-header"><span>CLIENTE</span><strong>{card.customer_name||"Cliente"}</strong><small>{card.business_name}</small></div>
+    <div className="staff-customer-header"><span>CLIENTE</span><strong>{customerDisplayName(card.customer_name)}</strong><small>{card.business_name}</small></div>
     <div className="staff-customer-stats">
      <div><small>Saldo actual</small><strong>{units(card.balance,card.program_type,currency)}</strong></div>
      <div><small>Fecha de alta</small><strong>{card.joined_at?dateShort(card.joined_at):"—"}</strong></div>
