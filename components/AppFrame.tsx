@@ -18,7 +18,7 @@ const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
   {href:"/negocio",label:"Inicio",icon:<KreyvIcon name="inicio" size={18}/>},
   {href:"/negocio/tarjeta",label:"Tarjeta",icon:<KreyvIcon name="mi-tarjeta" size={18}/>},
   {href:"/negocio/team",label:"Empleados",icon:<KreyvIcon name="perfil" size={18}/>},
-  {href:"/negocio/reports",label:"Datos",icon:<KreyvIcon name="recompensa" size={18}/>},
+  {href:"/negocio/reports",label:"Datos",icon:<BarChart3 size={18}/>},
   {href:"/negocio/marketing",label:"Campañas",icon:<KreyvIcon name="campanas" size={18}/>}
  ],
  staff:[{href:"/empleado",label:"Escanear tarjetas",icon:<KreyvIcon name="qr" size={18}/>}],
@@ -26,6 +26,7 @@ const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
 };
 export function AppFrame({ area, title, subtitle, children }: {area:Area;title:string;subtitle:string;children:(a:Account)=>ReactNode}) {
  const router=useRouter(), pathname=usePathname();
+ const activePath=area==="business"&&["/negocio/customers","/negocio/transactions"].includes(pathname)?"/negocio/reports":pathname;
  const [user,setUser]=useState<User|null>(null),[roles,setRoles]=useState<BusinessRole[]>([]),[admin,setAdmin]=useState(false);
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[version,setVersion]=useState(0);
  useEffect(()=>{let live=true;
@@ -56,7 +57,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
  return <div className={"workspace workspace-"+area}>
   <aside className="sidebar"><div className="sidebar-brand"><Brand/></div><div className="sidebar-caption">NAVEGACIÓN</div><nav className="side-links" aria-label="Menú principal">
-   {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={pathname===i.href?"page":undefined} className={"side-link"+(pathname===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
+   {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={activePath===i.href?"page":undefined} className={"side-link"+(activePath===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
   </nav><div className="sidebar-spacer"/><button type="button" className="side-logout" onClick={logout}><LogOut size={17}/> Cerrar sesión</button>
   </aside>
   <div className="workspace-main">{area==="customer"&&<div className="customer-native-header"><Brand/><CustomerInboxBell/></div>}<header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label">{area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Mi cuenta"}</div><div className="workspace-user">{area==="customer"&&<CustomerInboxBell/>}{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
@@ -67,7 +68,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  <button type="button" className="mobile-logout" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20}/></button></div></header>
    <div className="workspace-content">{area==="business"&&pathname.startsWith("/negocio/")&&<nav className="workspace-breadcrumbs" aria-label="Ruta de navegación">
      <Link href="/negocio">Mi negocio</Link><ChevronRight size={14}/>
-     <span aria-current="page">{menus.business.find(i=>i.href===pathname)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
+     <span aria-current="page">{menus.business.find(i=>i.href===activePath)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
     </nav>}
 <div className="workspace-title"><div><h1>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div></div>{children(account)}</div>
 
