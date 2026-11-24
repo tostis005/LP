@@ -21,8 +21,8 @@ export async function POST(request:Request){
   if(!device)throw new ApiError("Este móvil no está vinculado a tu cuenta. Vuelve a probar las notificaciones.",409);
   await rateLimit("push-self-test:"+hashToken(actor.id).slice(0,24),3,10);
   try{
-   await sendWebPush({...device,delivery_id:randomUUID(),business_name:"Kreyv",
-    title:"Notificación de prueba",body_text:"Si ves este aviso, Kreyv puede enviar notificaciones a tu teléfono.",
+   await sendWebPush({...device,delivery_id:randomUUID(),business_name:"KREYVI",
+    title:"Notificación de prueba",body_text:"Si ves este aviso, KREYVI puede enviar notificaciones a tu teléfono.",
     offer_id:null});
   }catch(e){
    const status=(e as {statusCode?:number}).statusCode;

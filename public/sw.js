@@ -1,5 +1,5 @@
-/* Kreyv PWA: solo se guarda una página pública sin datos personales. */
-const CACHE="kreyv-offline-v4";
+/* KREYVI PWA: solo se guarda una página pública sin datos personales. */
+const CACHE="kreyv-offline-v5";
 const PUSH_ICON="/kreyv-notification-icon-v2-192.png";
 const PUSH_BADGE="/kreyv-notification-badge-v2-96.png";
 self.addEventListener("install",event=>{
@@ -27,7 +27,7 @@ self.addEventListener("fetch",event=>{
 self.addEventListener("push",event=>{
  let data={};
  try{data=event.data?event.data.json():{}}catch{}
- const title=typeof data.title==="string"?data.title.slice(0,180):"Kreyv";
+ const title=typeof data.title==="string"?data.title.slice(0,180):"KREYVI";
  const body=typeof data.body==="string"?data.body.slice(0,500):"Tienes novedades de tus negocios favoritos.";
  const url=typeof data.url==="string"&&data.url.startsWith("/")&&!data.url.startsWith("//")?data.url:"/app";
  const tag=typeof data.tag==="string"?data.tag:"kreyv";

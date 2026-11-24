@@ -94,8 +94,8 @@ export function PushWelcomePrompt(){
      <p>Tu teléfono está registrado. Podrás cambiar tus preferencias en «Ajustes».</p>
      <button type="button" className="button button-dark button-full" onClick={()=>setShow(false)}><CheckCircle2 size={17}/> Continuar a mis tarjetas</button>
     </>:<>
-     <h2 id="lp-push-welcome-title">¿Quieres recibir avisos de Kreyv?</h2>
-     <p>Recibe en tu móvil las ofertas y novedades de tus tarjetas, incluso con Kreyv cerrada.</p>
+     <h2 id="lp-push-welcome-title">¿Quieres recibir avisos de KREYVI?</h2>
+     <p>Recibe en tu móvil las ofertas y novedades de tus tarjetas, incluso con KREYVI cerrada.</p>
      {error&&<p role="alert" className="alert error">{error}</p>}
      <button type="button" className="button button-dark button-full" disabled={busy} onClick={activate}>
       <BellRing size={17}/>{busy?"Activando...":"Permitir notificaciones"}

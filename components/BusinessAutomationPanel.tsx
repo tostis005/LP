@@ -160,7 +160,7 @@ export function BusinessAutomationPanel({businessId,programType,currency="MXN"}:
     </section>
    </div>
    <div className="automation-builder-bottom">
-    <p><Gift size={16}/> Canal: Avisos de KREYV · No modifica el saldo.</p>
+    <p><Gift size={16}/> Canal: Avisos de KREYVI · No modifica el saldo.</p>
     <button className="button button-dark" disabled={busy||mode==="new"&&!trigger}><Save size={17}/>{busy?"Guardando...":mode==="edit"?"Guardar mensaje":"Crear y activar campaña"}</button>
    </div>
   </form>}

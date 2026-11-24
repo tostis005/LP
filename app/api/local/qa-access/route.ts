@@ -114,8 +114,8 @@ export async function POST(request:Request){
    );
    const link=origin+"/acceso-perfiles?token="+token;
    try{
-    await sendMail(qaRecipient(),"Acceso de validación a Kreyv",
-     "Se ha solicitado acceso al perfil "+roles[role].label+" de Kreyv.\n\n"+
+    await sendMail(qaRecipient(),"Acceso de validación a KREYVI",
+     "Se ha solicitado acceso al perfil "+roles[role].label+" de KREYVI.\n\n"+
      "Para confirmar que eres quien administra la plataforma, abre este enlace (válido durante 15 minutos):\n\n"+
      link+"\n\nSi no lo has solicitado, ignora el mensaje.",undefined,qaCopyRecipient());
    }catch(e){

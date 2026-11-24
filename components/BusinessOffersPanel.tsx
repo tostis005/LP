@@ -186,7 +186,7 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
      placeholder="Ven con un amigo y disfruta de la promoción."/></label>
    <label>Contenido completo <small>({details.length}/6000)</small>
     <textarea required minLength={3} maxLength={6000} rows={6} value={details} onChange={e=>setDetails(e.target.value)}
-     placeholder="Explica la oferta para que los clientes puedan consultarla dentro de Kreyv."/></label>
+     placeholder="Explica la oferta para que los clientes puedan consultarla dentro de KREYVI."/></label>
    {kind==="offer"&&<div className="kreyv-campaign-validity">
     <div className="kreyv-editor-section"><span className="kreyv-editor-step">02</span><div><strong>Vigencia de la promoción</strong><p>Las fechas indican cuándo es válida la oferta; el aviso se envía al confirmar.</p></div></div>
     <div className="kreyv-campaign-dates">

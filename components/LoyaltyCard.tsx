@@ -66,7 +66,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    ctx.fillStyle="#fbf6fa";ctx.fillRect(0,0,1080,1270);
    ctx.fillStyle=bg;rounded(64,62,952,1140,40);ctx.fill();
    ctx.fillStyle="rgba(255,255,255,.08)";ctx.beginPath();ctx.arc(960,135,270,0,Math.PI*2);ctx.fill();
-   ctx.fillStyle="#ffffff";ctx.font="bold 35px Arial,sans-serif";ctx.fillText("KREYV",118,146);
+   ctx.fillStyle="#ffffff";ctx.font="bold 35px Arial,sans-serif";ctx.fillText("KREYVI",118,146);
    ctx.fillStyle="rgba(255,255,255,.80)";ctx.font="bold 20px Arial,sans-serif";ctx.fillText("MI TARJETA DE FIDELIZACIÓN",118,212);
    ctx.fillStyle="#ffffff";ctx.font="bold 59px Arial,sans-serif";ctx.fillText(business.name.slice(0,45),118,316,840);
    ctx.font="29px Arial,sans-serif";ctx.fillText((program?.reward_label||"Mis próximos premios").slice(0,85),118,383,840);
@@ -79,7 +79,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    }finally{URL.revokeObjectURL(url)}
    ctx.fillStyle="#ffffff";ctx.textAlign="center";
    ctx.font="bold 27px Arial,sans-serif";ctx.fillText("Enseña tu QR en el establecimiento",540,1091);
-   ctx.font="20px Arial,sans-serif";ctx.fillText("El saldo y los sellos se consultan actualizados en Kreyv",540,1132);
+   ctx.font="20px Arial,sans-serif";ctx.fillText("El saldo y los sellos se consultan actualizados en KREYVI",540,1132);
    ctx.textAlign="start";
    const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,"image/png"));
    if(!blob)throw new Error("No se pudo crear la imagen");
@@ -122,7 +122,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    <span className="lc-card-reward">{program?.reward_label||"Tu próxima recompensa"}</span>
   </div>
   <div className="lc-card-aside">
-   <span className="lc-chip">KREYV</span>
+   <span className="lc-chip">KREYVI</span>
    <span className="lc-qr-large"><QRCodeSVG value={qrUrl} size={240} level="M" includeMargin/></span>
   </div>
  </button>}
@@ -133,7 +133,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  <button className="modal-close" aria-label="Cerrar" onClick={closeCard}><X size={20}/></button>
  <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
  <div className="loyally-modal-card-preview" style={{backgroundColor:color,color:previewInk}}>
-  <div className="loyally-modal-card-top"><span>{business.name}</span><span>KREYV</span></div>
+  <div className="loyally-modal-card-top"><span>{business.name}</span><span>KREYVI</span></div>
   <strong>{program?.reward_label||"Mis recompensas"}</strong>
   {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance}
    kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}

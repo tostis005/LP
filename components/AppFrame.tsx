@@ -47,7 +47,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
   }
   load();return()=>{live=false}
  },[router,version,pathname]);
- async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en Kreyv?"))return;await db().auth.signOut();router.replace("/acceder")}
+ async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en KREYVI?"))return;await db().auth.signOut();router.replace("/acceder")}
  const hasBusiness=roles.some(x=>x.role==="owner"||x.role==="manager");
  const allowed=area==="customer"?!admin&&roles.length===0:area==="admin"?admin:area==="business"?hasBusiness:roles.some(x=>x.role==="employee");
  if(loading)return <div className="loading-screen"><div className="spinner"/> Preparando tu espacio...</div>;

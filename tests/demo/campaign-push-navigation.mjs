@@ -55,7 +55,7 @@ assert.equal(typeof listeners.push,"function");
 assert.equal(typeof listeners.notificationclick,"function");
 let display;
 listeners.push({
- data:{json:()=>({title:"Oferta Kreyv",body:"Consulta el detalle",url:page})},
+ data:{json:()=>({title:"Oferta KREYVI",body:"Consulta el detalle",url:page})},
  waitUntil(task){display=task}
 });
 await display;

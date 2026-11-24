@@ -45,7 +45,7 @@ export async function emailToken(userId:string,purpose:"verify"|"reset",email:st
     [hashToken(token),userId,purpose,purpose==="reset"?"1 hour":"24 hours"]
   );
   const link=site.replace(/\/$/,"")+"/api/local/auth/verify?purpose="+purpose+"&token="+token;
-  const subject=purpose==="verify"?"Confirma tu cuenta de Kreyv":"Recupera tu acceso a Kreyv";
+  const subject=purpose==="verify"?"Confirma tu cuenta de KREYVI":"Recupera tu acceso a KREYVI";
   await sendMail(email,subject,"Utiliza el siguiente enlace, válido durante un tiempo limitado:\n\n"+link+"\n\nSi no lo solicitaste, ignora este correo.");
 }
 export async function rateLimit(key:string,max:number,minutes=15) {
@@ -64,7 +64,7 @@ export async function createSession(userId:string,ttlMs=PERSISTENT_SESSION_DAYS*
   );
   return {token,expires};
 }
-// Activa una sesión persistente mientras la persona utilice Kreyv.
+// Activa una sesión persistente mientras la persona utilice KREYVI.
  // Las sesiones existentes de 45 minutos/30 días también se pueden renovar
  // sin cambiar su token, siempre que aún sean válidas.
 export async function extendSession(userId:string,token:string):Promise<Date>{

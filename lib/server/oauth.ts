@@ -33,7 +33,7 @@ export function providerEnabled(p:OAuthProvider):boolean{
 }
 export function callbackUrl(p:OAuthProvider){
  const site=baseUrl();
- if(!site)throw new ApiError("Configura el dominio HTTPS de Kreyv.",503);
+ if(!site)throw new ApiError("Configura el dominio HTTPS de KREYVI.",503);
  return new URL("/api/local/oauth/"+p+"/callback",site).toString();
 }
 function appleSecret():string{

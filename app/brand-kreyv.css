@@ -1,4 +1,4 @@
-/* Adaptación visual Kreyv: solo marco de la plataforma. Colores y logos propios de las tarjetas permanecen independientes. */
+/* Adaptación visual KREYVI: solo marco de la plataforma. Colores y logos propios de las tarjetas permanecen independientes. */
 :root{
  --brand-wine:var(--color-brand);--brand-wine-hover:var(--color-brand-500);--brand-ink:var(--color-text);
  --brand-cream:var(--color-bg);--brand-blush:var(--color-brand-100);--brand-border:var(--color-bg-2);
@@ -31,7 +31,7 @@ button,input,select,textarea{font-family:var(--font-body)}
 .kpi-card strong,.positive-text,.overview-stat strong{color:var(--color-brand)}
 /* Selección de logo según el fondo y la paleta, sin JavaScript. */
 .brand{display:inline-flex;align-items:center;line-height:1;position:relative}
-.brand .brand-logo-image{display:none;width:145px;height:auto;max-height:48px}
+.brand .brand-logo-image{display:none;width:175px;height:auto;max-height:48px}
 .brand .brand-logo-vino-light{display:block}
 .brand.brand-light .brand-logo-vino-light{display:none}
 .brand.brand-light .brand-logo-vino-dark{display:block}
@@ -41,6 +41,6 @@ button,input,select,textarea{font-family:var(--font-body)}
 [data-theme="tinta-maiz"] .brand.brand-light .brand-logo-ink-light{display:none}
 [data-theme="tinta-maiz"] .brand.brand-light .brand-logo-ink-dark{display:block}
 .brand .brand-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:700px){.brand .brand-logo-image{width:120px;max-height:42px}}
+@media(max-width:700px){.brand .brand-logo-image{width:145px;max-height:42px}}
 
 .kreyv-icon{display:inline-block;vertical-align:middle;flex-shrink:0}

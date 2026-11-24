@@ -24,10 +24,10 @@ export function InstallLoyally(){
   if(response.outcome==="accepted")setPrompt(null);
  }
  return <div className="lp-install-widget">
-  <button type="button" className="lp-install-button" onClick={install}><Download size={17}/> Instalar Kreyv</button>
-  {showHelp&&<div className="lp-install-help" role="dialog" aria-label="Instalar Kreyv">
+  <button type="button" className="lp-install-button" onClick={install}><Download size={17}/> Instalar KREYVI</button>
+  {showHelp&&<div className="lp-install-help" role="dialog" aria-label="Instalar KREYVI">
    <button type="button" onClick={()=>setShowHelp(false)} className="lp-install-close" aria-label="Cerrar"><X size={17}/></button>
-   <strong>Añade Kreyv a tu iPhone</strong>
+   <strong>Añade KREYVI a tu iPhone</strong>
    <p>Abre esta página en Safari, toca <Share2 size={15} aria-hidden="true"/> Compartir y elige «Añadir a pantalla de inicio».</p>
    <small>Gratis y sin App Store. Se actualizará desde nuestra web.</small>
   </div>}

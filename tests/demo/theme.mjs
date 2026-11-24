@@ -54,4 +54,4 @@ function luminance(hex){
 }
 const contrast=(1.05/(luminance("#845268")+.05));
 assert.ok(contrast>=4.5,"Small secondary text must contrast with light backgrounds");
-console.log("Kreyv theme: consistent wine shell, accessible secondary color, and independent merchant colors.");
+console.log("KREYVI theme: consistent wine shell, accessible secondary color, and independent merchant colors.");

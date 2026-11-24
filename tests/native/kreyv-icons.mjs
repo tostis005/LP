@@ -7,5 +7,5 @@ try{
  assert.match(rows[0].definition,/\x27floristeria\x27/,"Floristería must be allowed in the database");
  const rule=rows[0].definition;
  for(const value of ["coffee","burger","restaurant","beard","hair","pizza","bread","croissant","icecream","flower","scissors","star","heart","gift","taco","donut","gym","spa","pet","nails","book","car","bicycle","juice","cafeteria","restaurante","hamburgueseria","pizzeria","taqueria","panaderia","pasteleria","heladeria","bar","vinoteca","gastronomia","comida-para-llevar","tienda","comercio","peluqueria","barberia","gimnasio","bienestar","salud","mascotas","libreria","ocio","eventos"])assert.ok(rule.includes("'"+value+"'"),"Missing allowed stamp icon "+value);
- console.log("OK: legacy and new Kreyv stamp icon IDs are supported by PostgreSQL.");
+ console.log("OK: legacy and new KREYVI stamp icon IDs are supported by PostgreSQL.");
 }finally{await pool.end()}

@@ -8,7 +8,7 @@ const manifest=read("app/manifest.ts");
 const logo=read("components/Brand.tsx");
 const theme=read("app/brand-kreyv.css");
 const card=read("components/LoyaltyCard.tsx");
-assert.match(config,/BRAND_NAME = "Kreyv"/);
+assert.match(config,/BRAND_NAME = "KREYVI"/);
 assert.match(config,/BRAND_THEME: BrandTheme = "vino-mostaza"/);
 assert.match(layout,/data-theme=\{BRAND_THEME\}/);
 assert.match(layout,/kreyv-favicon-v3.svg/);
@@ -25,6 +25,7 @@ for(const pal of ["vino-mostaza","tinta-maiz"])for(const variant of ["claro","os
  const file="public/brand/kreyv-pegada-"+pal+"-"+variant+".svg";
  assert.match(logo,new RegExp("kreyv-pegada-"+pal+"-"+variant+"\\.svg"));
  assert.match(read(file),/<svg/);
+ assert.match(read(file),/>KR<tspan[^>]*>EY<\/tspan>VI<\/text>/);
 }
 for(const file of ["public/kreyv-mark-v3.svg","public/kreyv-favicon-v3.svg","public/icon.svg","public/icon-192.png","public/icon-512.png","public/apple-touch-icon.png"]){
  const size=statSync(new URL("../../"+file,import.meta.url)).size;assert.ok(size>200,"Missing real PWA icon: "+file);
@@ -32,4 +33,4 @@ for(const file of ["public/kreyv-mark-v3.svg","public/kreyv-favicon-v3.svg","pub
 assert.match(theme,/--brand-wine:var\(--color-brand\)/);
 assert.match(card,/backgroundColor:color/,"Business card keeps merchant color");
 assert.doesNotMatch(card,/color:var\(--color-brand\)/);
-console.log("Kreyv brand: names, colors, typefaces, logo variants, PWA artwork and merchant card isolation OK.");
+console.log("KREYVI brand: names, colors, typefaces, logo variants, PWA artwork and merchant card isolation OK.");

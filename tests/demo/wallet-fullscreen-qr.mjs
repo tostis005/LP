@@ -29,5 +29,5 @@ console.log("OK: Wallet controls are hidden; QR download and card/reward fullscr
 assert.match(style,/\.loyalty-global-bottom-nav\{z-index:150\}/,"Find existing bottom navigation stacking order");
 assert.match(style,/\.qr-modal-backdrop\{z-index:500/,"Card modal must always render over the fixed bottom navigation");
 assert.match(style,/\.qr-modal\{padding-bottom:calc\(42px \+ env\(safe-area-inset-bottom,0px\)\)/,"Modal must have room to reach the last action");
-assert.doesNotMatch(card,/Kreyv active la emisión de tarjetas/,"Wallet configuration notice must not appear in the UI");
+assert.doesNotMatch(card,/KREYVI active la emisión de tarjetas/,"Wallet configuration notice must not appear in the UI");
 console.log("OK: card modal sits above fixed navigation and its final actions stay scrollable.");

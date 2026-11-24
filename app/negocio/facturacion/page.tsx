@@ -58,7 +58,7 @@ function OwnerBilling({account}:{account:Account}){
   <div className="billing-grid">
    <section className="panel-card billing-plan"><div className="panel-icon"><CreditCard size={23}/></div>
     <div className="eyebrow">PLAN BUSINESS</div><h2>Una comunidad que vale mucho más.</h2>
-    <div className="billing-price">Kreyv Business</div>
+    <div className="billing-price">KREYVI Business</div>
     <p className="muted">Tus tarjetas, recompensas, clientes, resultados y personalización desde un mismo espacio.</p>
     {loading?<p className="muted">Cargando suscripción...</p>:billing&&<>
       <div className="billing-status"><span>Estado</span><strong>{statusLabels[billing.status]||billing.status}</strong></div>

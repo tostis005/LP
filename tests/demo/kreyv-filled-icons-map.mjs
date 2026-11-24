@@ -28,4 +28,4 @@ assert.match(discover,/hasCard:Boolean\(myCards\[e\.business_id\]\)/);
 assert.doesNotMatch(map,/categoryStampKind|stampMarkup/);
 const appNav=read("components/AppBottomNav.tsx"),frame=read("components/AppFrame.tsx"),home=read("components/LandingHome.tsx");
 for(const file of [appNav,frame,home])assert.match(file,/KreyvIcon/);
-console.log("Kreyv: 43 professionally styled scalable icons and ownership-sensitive map stars verified.");
+console.log("KREYVI: 43 professionally styled scalable icons and ownership-sensitive map stars verified.");

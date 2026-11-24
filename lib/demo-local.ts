@@ -187,7 +187,7 @@ class DemoQuery implements PromiseLike<DemoResult>{
   }
   if(!["administrador","gestor","cliente"].includes(demoRole()||""))return fail("No tienes permiso para modificar este apartado.");
   if(this.table==="business_locations"){
-   if(this.action==="insert"||this.action==="delete")return fail("Solo Loyally puede registrar nuevos establecimientos.");
+   if(this.action==="insert"||this.action==="delete")return fail("Solo KREYVI puede registrar nuevos establecimientos.");
    if(demoRole()!=="administrador"&&rows.some(r=>!state.tables.business_members.some(m=>m.business_id===r.business_id&&m.user_id===actor()&&m.active&&m.role!=="employee")))return fail("No puedes editar esta dirección.");
    if(this.action==="update"&&this.data&&Object.prototype.hasOwnProperty.call(this.data,"business_id"))return fail("No puedes mover una dirección a otro negocio.");
   }
@@ -289,7 +289,7 @@ function rpc(name:string,args:Record<string,any>={}):Promise<DemoResult>{
      result=ok(labels.map(label=>{const rr=rewards.filter(r=>r.reward_label===label);return {reward_label:label,redemptions:rr.length,retail_cents:rr.reduce((s,r)=>s+Number(r.retail_cents||0),0),cost_cents:rr.reduce((s,r)=>s+Number(r.cost_cents||0),0),unpriced:rr.filter(r=>r.cost_cents==null||r.retail_cents==null).length}}).sort((a,b)=>b.redemptions-a.redemptions));break;
     }
     case "manager_create_branch":{
-     result=fail("Los nuevos establecimientos son registrados por Loyally desde administración.");break;
+     result=fail("Los nuevos establecimientos son registrados por KREYVI desde administración.");break;
     }
     case "business_employee_activity":{
     const tx=table.loyalty_transactions.filter(t=>t.business_id===biz&&t.kind==="earn");

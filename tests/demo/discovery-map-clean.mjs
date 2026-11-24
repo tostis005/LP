@@ -35,7 +35,7 @@ assert.match(discover,/className="customer-map-locate"/,"Geolocation remains ava
 
 assert.match(css,/mapa editorial minimalista/);
 assert.match(css,/filter:grayscale\(1\) saturate\(0\)/,"Muted cartography keeps the map professionally neutral");
-assert.match(css,/\.customer-map-stage \.loyally-map-pin\.is-owned\{[\s\S]*?background:var\(--color-brand\)!important/,"Owned businesses use Kreyv wine");
+assert.match(css,/\.customer-map-stage \.loyally-map-pin\.is-owned\{[\s\S]*?background:var\(--color-brand\)!important/,"Owned businesses use KREYVI wine");
 assert.match(css,/\.customer-map-stage \.loyally-map-pin\.is-unowned\{[\s\S]*?background:#fff!important/,"Unowned businesses stay outlined on white");
 assert.match(css,/\.customer-map-locate\{/,"Location button remains available");
 assert.doesNotMatch(discover,/Apple Wallet|Google Wallet|directory-wallet-links/);

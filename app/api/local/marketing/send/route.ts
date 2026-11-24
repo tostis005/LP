@@ -15,7 +15,7 @@ async function sendWhatsapp(item:WhatsappDelivery,offerUrl?:string){
  // Una plantilla Marketing aprobada en Meta: “Hola, {{1}}” (una variable de texto).
  if(item.template_name!==process.env.WHATSAPP_MARKETING_TEMPLATE||
   item.template_language!==(process.env.WHATSAPP_TEMPLATE_LANGUAGE||"es_MX"))
-  throw new ApiError("La plantilla aún no está activada por Kreyv.",503);
+  throw new ApiError("La plantilla aún no está activada por KREYVI.",503);
  if(!/^\+[1-9][0-9]{7,14}$/.test(item.phone))throw new Error("Teléfono no válido");
  const message=campaignWhatsAppText(item.body_text+(offerUrl?"\n\nVer oferta completa: "+offerUrl:""));
  if(message.length<3||message.length>900)throw new Error("La plantilla excede el tamaño permitido");
@@ -47,12 +47,12 @@ export async function POST(request:Request){
    return result.rows[0];
   });
   if(meta.channel==="whatsapp"){
-   if(!whatsappReady())throw new ApiError("WhatsApp aún no está activado. Consulta al equipo de Kreyv.",503);
+   if(!whatsappReady())throw new ApiError("WhatsApp aún no está activado. Consulta al equipo de KREYVI.",503);
    if(meta.template_name!==process.env.WHATSAPP_MARKETING_TEMPLATE||
     meta.template_language!==(process.env.WHATSAPP_TEMPLATE_LANGUAGE||"es_MX"))
-    throw new ApiError("El mensaje debe utilizar la plantilla aprobada de Kreyv.",503);
+    throw new ApiError("El mensaje debe utilizar la plantilla aprobada de KREYVI.",503);
   }else if(process.env.LP_ENABLE_MARKETING_SEND!=="true"||!smtpReady()||!process.env.NEXT_PUBLIC_SITE_URL)
-   throw new ApiError("El envío de correos aún no está activado. Consulta al equipo de Kreyv.",503);
+   throw new ApiError("El envío de correos aún no está activado. Consulta al equipo de KREYVI.",503);
   if(["sent","partial","failed"].includes(meta.status))
    return Response.json({sent:0,failed:0,remaining:0,status:meta.status});
   if(meta.status==="draft"){
@@ -75,7 +75,7 @@ export async function POST(request:Request){
     if(meta.channel==="email"){
      const d=item as EmailDelivery;
      const unsubscribe=site+"/baja/"+d.unsubscribe_token;
-     const extended=d.body_text+(offerUrl?"\n\n[Ver oferta completa en Kreyv]("+offerUrl+")":"");
+     const extended=d.body_text+(offerUrl?"\n\n[Ver oferta completa en KREYVI]("+offerUrl+")":"");
      const text=campaignPlainText(extended)+"\n\n---\nRecibes este mensaje porque aceptaste recibir campañas de "+d.business_name+
       ". Para dejar de recibirlas: "+unsubscribe;
      await sendMail(d.email,d.subject,text,campaignEmailHtml(extended,d.business_name,unsubscribe));

@@ -13,7 +13,7 @@ export function BranchCreator({businessId,email,onCreated}:{businessId:string;em
  return <section className="panel-card" style={{marginTop:20}}>
   <div className="panel-icon"><Store size={21}/></div>
   <h2>Crear sucursal con tarjeta independiente</h2>
-  <p className="muted">Esta opción crea otro negocio real en Kreyv: tendrá su propia tarjeta, clientes, equipo, premios y estadísticas. Copiamos los colores iniciales para mantener la marca, pero no compartimos datos ni accesos.</p>
+  <p className="muted">Esta opción crea otro negocio real en KREYVI: tendrá su propia tarjeta, clientes, equipo, premios y estadísticas. Copiamos los colores iniciales para mantener la marca, pero no compartimos datos ni accesos.</p>
   <form className="form-stack" onSubmit={create}>
    <label>Nombre que verá el cliente<input required minLength={2} maxLength={120} value={name} onChange={e=>{setName(e.target.value);setSlug(e.target.value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""))}} placeholder="Café Noma · Zona Río"/></label>
    <label>Identificador de la sucursal (URL)<input required pattern="[a-z0-9]+(-[a-z0-9]+)*" value={slug} onChange={e=>setSlug(e.target.value.toLowerCase())} placeholder="cafe-noma-zona-rio"/></label>

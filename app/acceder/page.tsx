@@ -72,20 +72,20 @@ export default function Login(){
     <p>La fidelización que pone a las personas y a los pequeños negocios en el centro.</p>
     <div className="auth-stamp-illustration"><StampCard name="Tu cafetería" color="#5E1A2B" reward="Tu próximo café gratis" total={8} earned={5} icon="coffee" message="SIEMPRE ES UN BUEN DÍA"/></div>
    </div>
-   <div className="auth-story-foot">Kreyv ♡ · Tan sencillo como volver.</div>
+   <div className="auth-story-foot">KREYVI ♡ · Tan sencillo como volver.</div>
   </aside>
   <section className="auth-right auth-right-compact">
    <div className="auth-mobile-logo"><Brand/></div>
    <div className="auth-form-wrap auth-choice-wrap auth-full-login">
-    <div className="eyebrow">BIENVENIDO A KREYV</div>
+    <div className="eyebrow">BIENVENIDO A KREYVI</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
-    <p className="auth-intro">{mode==="login"?"Accede a Kreyv y descubre tu espacio según el tipo de cuenta.":mode==="signup"?"Crea tu cuenta y guarda todas tus tarjetas en un solo lugar.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
+    <p className="auth-intro">{mode==="login"?"Accede a KREYVI y descubre tu espacio según el tipo de cuenta.":mode==="signup"?"Crea tu cuenta y guarda todas tus tarjetas en un solo lugar.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
     <SocialAuthButtons next={loginTarget}/>
     <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
      {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div></>}
      <label>Correo electrónico<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>
      {mode!=="forgot"&&<label>Contraseña<div className="password-input"><input value={password} type={visible?"text":"password"} onChange={e=>setPassword(e.target.value)} required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} placeholder="Tu contraseña"/><button type="button" aria-label={visible?"Ocultar contraseña":"Mostrar contraseña"} onClick={()=>setVisible(v=>!v)}>{visible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y avisos</strong><small>De Kreyv y mis tarjetas, por correo, WhatsApp y push. Aplicable a las tarjetas futuras; configurable desde Ajustes.</small></span></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y avisos</strong><small>De KREYVI y mis tarjetas, por correo, WhatsApp y push. Aplicable a las tarjetas futuras; configurable desde Ajustes.</small></span></label>}
      {mode==="signup"&&marketingOptIn&&<label>WhatsApp para tus avisos<input type="tel" inputMode="tel" required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>Incluye el prefijo internacional.</small></label>}
      
      {mode==="login"&&<button className="inline-action forgot-action" type="button" onClick={()=>switchMode("forgot")}>¿Olvidaste la contraseña?</button>}

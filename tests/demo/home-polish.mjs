@@ -20,7 +20,7 @@ assert.notEqual(icons.automocion,icons.comercio);
 assert.notEqual(icons.categorias,icons.libreria);
 assert.ok(icons.barberia.length>180,"Barbería must have a full beard and distinct moustache");
 const iconBoxes=m.exports.KREYV_ICON_BOXES;
-// Hashes de los trazados vectorizados directamente de la imagen aprobada de Kreyv.
+// Hashes de los trazados vectorizados directamente de la imagen aprobada de KREYVI.
 // Evitan que un rediseño aproximado sustituya sin querer las siluetas validadas.
 const {createHash}=await import("node:crypto");
 const hash=path=>createHash("sha256").update(path).digest("hex");
@@ -30,7 +30,7 @@ assert.equal(hash(icons.panaderia),"cfae981a20ddf5b76a937a82909299e376c171fb5415
 assert.equal(hash(icons.barberia),"5bb553f894187c72610a9f2374a7eee0db7f897830a5c18ebf6486eaaf5f74e0");
 assert.equal((icons.panaderia.match(/M/g)||[]).length,1,"Panadería: una hogaza con tres cortes, sin recortes añadidos");
 assert.equal((icons.barberia.match(/M/g)||[]).length,2,"Barbería: bigote y barba completos como en el diseño aprobado");
-assert.match(read("components/KreyvIcon.tsx"),/fill="currentColor"/,"Color heredado de Kreyv");
+assert.match(read("components/KreyvIcon.tsx"),/fill="currentColor"/,"Color heredado de KREYVI");
 
 const cats=read("lib/business-categories.ts");
 assert.match(cats,/name:"Floristería",stamp:"floristeria"/);
@@ -59,4 +59,4 @@ assert.match(css,/grid-template-columns:30px minmax\(0,1fr\)/,"Category icons ha
 assert.match(css,/justify-self:center;align-self:center/,"Icons are centered both ways");
 assert.match(css,/@media\(max-width:580px\)/,"Responsive details remain");
 assert.match(read("db/migrations/270_floristeria_distinct_icon.sql"),/'floristeria'/);
-console.log("OK: professional 43-icon family, consistent home grid and responsive Kreyv palette.");
+console.log("OK: professional 43-icon family, consistent home grid and responsive KREYVI palette.");

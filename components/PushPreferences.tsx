@@ -92,7 +92,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
   setBusy(true);setError("");setNotice("");
   try{
    if(!config.enabled||!config.publicKey)throw new Error("Las notificaciones no están disponibles en este momento.");
-   if(!supported)throw new Error("Este navegador no admite notificaciones push. En iPhone, abre Kreyv desde el icono de inicio.");
+   if(!supported)throw new Error("Este navegador no admite notificaciones push. En iPhone, abre KREYVI desde el icono de inicio.");
    if(Notification.permission==="denied")throw new Error("Las notificaciones están bloqueadas en el teléfono. Actívalas en los ajustes del sistema y vuelve a probar.");
    // El permiso inicial solo puede solicitarse al pulsar el botón.
    if(Notification.permission!=="granted"){
@@ -134,7 +134,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
 
   {loading?<p className="muted">Comprobando notificaciones...</p>:<>
    {!config.enabled&&<div className="info-callout"><ShieldCheck size={18}/>Las notificaciones no están disponibles en este momento.</div>}
-   {config.enabled&&!supported&&<div className="info-callout"><BellOff size={18}/>Necesitas un navegador compatible. En iPhone, instala Kreyv en la pantalla de inicio y ábrela desde su icono (iOS 16.4 o posterior).</div>}
+   {config.enabled&&!supported&&<div className="info-callout"><BellOff size={18}/>Necesitas un navegador compatible. En iPhone, instala KREYVI en la pantalla de inicio y ábrela desde su icono (iOS 16.4 o posterior).</div>}
    {config.enabled&&supported&&<div className="campaign-compose-actions" style={{marginBottom:14}}>
     <button className="button button-dark button-sm" type="button" disabled={busy}
      onClick={testNotification}><Bell size={16}/>{busy?"Enviando...":"Enviar prueba"}</button>
