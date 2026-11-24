@@ -67,7 +67,7 @@ const auth={
  getSession:async()=>post<{session:{access_token:string;user:User}|null}>("/api/local/auth",{action:"getSession"}),
  signOut:async()=>post("/api/local/auth",{action:"signOut"}),
  signInWithPassword:async(data:{email:string;password:string})=>post("/api/local/auth",{action:"signInWithPassword",...data}),
- signUp:async(data:{email:string;password:string;options?:{data?:{full_name?:string;whatsapp?:string;platform_marketing_opt_in?:boolean;platform_push_opt_in?:boolean;card_notifications_opt_in?:boolean};emailRedirectTo?:string}})=>post<{user:User|null;session:unknown}>("/api/local/auth",{action:"signUp",email:data.email,password:data.password,full_name:data.options?.data?.full_name,whatsapp:data.options?.data?.whatsapp,platform_marketing_opt_in:data.options?.data?.platform_marketing_opt_in===true,platform_push_opt_in:data.options?.data?.platform_push_opt_in===true,card_notifications_opt_in:data.options?.data?.card_notifications_opt_in===true}),
+ signUp:async(data:{email:string;password:string;options?:{data?:{full_name?:string;whatsapp?:string;platform_marketing_opt_in?:boolean;platform_push_opt_in?:boolean;card_notifications_opt_in?:boolean;return_to?:string};emailRedirectTo?:string}})=>post<{user:User|null;session:unknown}>("/api/local/auth",{action:"signUp",email:data.email,password:data.password,full_name:data.options?.data?.full_name,whatsapp:data.options?.data?.whatsapp,platform_marketing_opt_in:data.options?.data?.platform_marketing_opt_in===true,platform_push_opt_in:data.options?.data?.platform_push_opt_in===true,card_notifications_opt_in:data.options?.data?.card_notifications_opt_in===true,return_to:data.options?.data?.return_to}),
  resetPasswordForEmail:async(email:string,_options?:{redirectTo?:string})=>post("/api/local/auth",{action:"resetPasswordForEmail",email}),
  updateUser:async(data:{email?:string;password?:string;whatsapp?:string})=>post("/api/local/auth",{action:"updateUser",...data}),
  exchangeCodeForSession:async(_code:string)=>({data:null,error:err("El enlace de acceso ya no utiliza códigos externos.")}),
@@ -85,7 +85,7 @@ const storage={
     return {data:r.ok?{path:result.path}:null,error:r.ok?null:err(result.error||"Error al subir la imagen.")};
    }catch{return {data:null,error:err("No se pudo subir la imagen.")}}
   },
-  getPublicUrl(path:string){return {data:{publicUrl:(typeof window!=="undefined"?window.location.origin:"")+"/api/assets/"+encodeURIComponent(bucket)+"/"+path.split("/").map(encodeURIComponent).join("/")}}}
+  getPublicUrl(path:string){return {data:{publicUrl:"https://kreyvi.com/api/assets/"+encodeURIComponent(bucket)+"/"+path.split("/").map(encodeURIComponent).join("/")}}}
  }}
 };
 const localDb={auth,storage,from:(table:string)=>new Query(table),rpc:(name:string,args:Record<string,unknown>={})=>post("/api/local/rpc",{name,args})};

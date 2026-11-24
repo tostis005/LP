@@ -26,7 +26,7 @@ const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
 };
 export function AppFrame({ area, title, subtitle, children }: {area:Area;title:string;subtitle:string;children:(a:Account)=>ReactNode}) {
  const router=useRouter(), pathname=usePathname();
- const activePath=area==="business"&&["/negocio/customers","/negocio/transactions"].includes(pathname)?"/negocio/reports":area==="business"&&["/negocio/settings","/negocio/locations","/negocio/overview"].includes(pathname)?"/negocio":pathname;
+ const activePath=area==="business"&&["/negocio/customers","/negocio/transactions"].includes(pathname)?"/negocio/reports":area==="business"&&["/negocio/settings","/negocio/locations","/negocio/overview","/negocio/poster"].includes(pathname)?"/negocio":pathname;
  const [user,setUser]=useState<User|null>(null),[roles,setRoles]=useState<BusinessRole[]>([]),[admin,setAdmin]=useState(false);
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[version,setVersion]=useState(0);
  useEffect(()=>{let live=true;
@@ -68,7 +68,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  <button type="button" className="mobile-logout" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20}/></button></div></header>
    <div className="workspace-content">{area==="business"&&pathname.startsWith("/negocio/")&&<nav className="workspace-breadcrumbs" aria-label="Ruta de navegación">
      <Link href="/negocio">Mi negocio</Link><ChevronRight size={14}/>
-     <span aria-current="page">{pathname==="/negocio/settings"?"Información":pathname==="/negocio/locations"?"Ubicación":pathname==="/negocio/customers"?"Datos · Clientes":pathname==="/negocio/transactions"?"Datos · Transacciones":menus.business.find(i=>i.href===activePath)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
+     <span aria-current="page">{pathname==="/negocio/settings"?"Información":pathname==="/negocio/locations"?"Ubicación":pathname==="/negocio/poster"?"Cartel para mostrador":pathname==="/negocio/customers"?"Datos · Clientes":pathname==="/negocio/transactions"?"Datos · Transacciones":menus.business.find(i=>i.href===activePath)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
     </nav>}
 <div className="workspace-title"><div><h1>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div></div>{children(account)}</div>
 

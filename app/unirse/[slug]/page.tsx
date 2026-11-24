@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useEffect,useState,useRef} from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
@@ -20,6 +20,7 @@ export default function JoinPage(){
  const [offer,setOffer]=useState<Offer|null>(null),[business,setBusiness]=useState<Business|null>(null);
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
+ const [membershipId,setMembershipId]=useState("");
  const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con KREYVI.");setLoading(false);return}
@@ -45,14 +46,14 @@ export default function JoinPage(){
     db().from("platform_admins").select("user_id").eq("user_id",u.data.user.id).maybeSingle(),
     db().from("marketing_consents").select("global_business_opt_in").eq("customer_id",u.data.user.id).is("business_id",null).maybeSingle()
    ]);
-   if(alive){setJoined(!!m.data);setIsBusinessAccount(!!admin.data||!!roles.data?.length);setGlobalConsent(defaultChoice.data?.global_business_opt_in??(u.data.user?.user_metadata?.card_notifications_opt_in===true?true:null));}
+   if(alive){setJoined(!!m.data);setMembershipId(m.data?.id||"");setIsBusinessAccount(!!admin.data||!!roles.data?.length);setGlobalConsent(defaultChoice.data?.global_business_opt_in??(u.data.user?.user_metadata?.card_notifications_opt_in===true?true:u.data.user?.user_metadata?.card_notifications_opt_in===false?false:null));}
   }
   if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);
  async function join(){
   if(!offer||busy)return;
   if(isBusinessAccount){setError("Para guardar tarjetas necesitas una cuenta de cliente.");return;}
-  if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder");return;}
+  if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder?next="+encodeURIComponent("/unirse/"+params.slug+"?alta=1"));return;}
   // Una sola acción inscribe la tarjeta; el consentimiento comercial es voluntario
   // y está desmarcado de origen. El permiso del sistema push es siempre explícito.
   const accepted=globalConsent===null?marketing:globalConsent;
@@ -71,12 +72,23 @@ export default function JoinPage(){
     p_business:offer.business_id,p_opted_in:accepted
    });
    if(result.error)throw result.error;
+   window.localStorage.removeItem("lp_pending_join");
    setJoined(true);setSuccess(true);
    const id=String(result.data||"");
    router.replace("/app"+(/^[a-f0-9-]{36}$/i.test(id)?"?card="+encodeURIComponent(id):""));
   }catch(e){setError((e as Error).message);}
   finally{setBusy(false);}
  }
+ const autoJoinAttempted=useRef(false);
+ useEffect(()=>{
+  if(loading||!offer||!signed||isBusinessAccount||joined||busy||autoJoinAttempted.current)return;
+  if(new URLSearchParams(window.location.search).get("alta")!=="1"||globalConsent===null)return;
+  // A scanned URL alone must never create a membership. The prior explicit click is required.
+  if(window.localStorage.getItem("lp_pending_join")!==offer.business_id)return;
+  autoJoinAttempted.current=true;
+  window.localStorage.removeItem("lp_pending_join");
+  void join();
+ },[loading,offer,signed,isBusinessAccount,joined,busy,globalConsent]);
  const category=business?.category||null;
  const offerProgram=program|| (offer?{type:offer.program_type,reward_label:offer.reward_label}:null);
  const hasLocation=locations.length>0;
@@ -101,7 +113,7 @@ export default function JoinPage(){
        <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
       </div>}
       {isBusinessAccount?<div className="info-callout"><Heart size={19}/><div><strong>Esta ficha es para tus clientes</strong><p>Estás dentro con una cuenta de negocio. Para guardar tarjetas y premios, utiliza una cuenta de cliente independiente.</p><Link href="/negocio">Volver a mi negocio <ArrowUpRight size={16}/></Link></div></div>:
-      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><div className="join-subscribed-links"><Link href="/app" className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link></div></div>:
+      success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><div className="join-subscribed-links"><Link href={"/app"+(membershipId?"?card="+encodeURIComponent(membershipId):"")} className="button button-dark">Ver y guardar mi tarjeta <ArrowUpRight size={16}/></Link></div></div>:
       <div className="join-subscribe">
        <h3>¿Te apuntas?</h3>
        <p>Unirte es gratis. Podrás consultar tus sellos y recompensas siempre que quieras.</p>

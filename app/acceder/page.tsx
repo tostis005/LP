@@ -6,6 +6,7 @@ import {Brand} from "@/components/Brand";
 import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import {StampCard} from "@/components/StampCard";
 
+import {safeJoinTarget,PUBLIC_SITE_URL} from "@/lib/public-url";
 import {configured,db} from "@/lib/supabase";
 
 export default function Login(){
@@ -16,19 +17,19 @@ export default function Login(){
  const [loginTarget,setLoginTarget]=useState("/entrar");
  useEffect(()=>{
   const candidate=new URLSearchParams(window.location.search).get("next")||"";
-  if(/^\/app\/novedades\/[a-f0-9-]{36}$/i.test(candidate))setLoginTarget(candidate);
+  if(safeJoinTarget(candidate)||/^\/app\/novedades\/[a-f0-9-]{36}$/i.test(candidate))setLoginTarget(candidate);
  },[]);
  async function submit(e:React.FormEvent){
   e.preventDefault();setBusy(true);setError("");setMessage("");
   try{
    if(!configured())throw new Error("El servidor todavía no está disponible.");
    if(mode==="forgot"){
-    const {error}=await db().auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/auth/callback?next=password"});
+    const {error}=await db().auth.resetPasswordForEmail(email,{redirectTo:PUBLIC_SITE_URL+"/auth/callback?next=password"});
     if(error)throw error;setMessage("Te hemos enviado un email para recuperar tu contraseña.");
    }else if(mode==="signup"){
-    const {data,error}=await db().auth.signUp({email,password,options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn},emailRedirectTo:window.location.origin+"/auth/callback"}});
+    const {data,error}=await db().auth.signUp({email,password,options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn,return_to:safeJoinTarget(loginTarget)||undefined},emailRedirectTo:PUBLIC_SITE_URL+"/auth/callback"}});
     if(error)throw error;
-    if(data.session)router.push("/entrar");else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");
+    if(data.session)router.push(loginTarget);else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");
    }else{
     const {error}=await db().auth.signInWithPassword({email,password});
     if(error)throw error;router.push(loginTarget);
@@ -54,6 +55,7 @@ export default function Login(){
     <div className="eyebrow">BIENVENIDO</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>
     <p className="auth-intro">{mode==="login"?"Introduce tus datos para acceder a tu cuenta.":mode==="signup"?"Crea tu cuenta y guarda todas tus tarjetas en un solo lugar.":"Te enviaremos las instrucciones para recuperar tu contraseña."}</p>
+    {safeJoinTarget(loginTarget)&&<p className="auth-intro">Al terminar, volverás a la tarjeta del negocio que has escaneado.</p>}
     <SocialAuthButtons next={loginTarget}/>
     <form onSubmit={submit} className="form-stack auth-login-form auth-login-visible">
      {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div></>}

@@ -92,7 +92,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  const color=business.accent_color||"#571c32";
  const cardInk=readableCardText(color,business.card_text_color,!!business.card_background);
  const previewInk=readableCardText(color,business.card_text_color);
- const origin=typeof window!=="undefined"?window.location.origin:process.env.NEXT_PUBLIC_SITE_URL||"http://localhost:3000";
+ const origin="https://kreyvi.com";
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
  return <>{!modalOnly&&<div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>

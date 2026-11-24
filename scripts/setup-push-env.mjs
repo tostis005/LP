@@ -15,6 +15,13 @@ function put(key,value){
  if(index<0)lines.push(key+"="+value);
  else lines[index]=key+"="+value;
 }
+// Only the production deployment invokes this flag; local/test configuration is untouched.
+if(process.argv.includes("--kreyvi-production")){
+ put("NEXT_PUBLIC_SITE_URL","https://kreyvi.com");
+ put("LP_ALLOWED_ORIGINS","https://kreyvi.com,https://www.kreyvi.com");
+ const subject=get("VAPID_SUBJECT");
+ if(/^https?:\/\/\d+\.\d+\.\d+\.\d+/.test(subject))put("VAPID_SUBJECT","https://kreyvi.com");
+}
 const url=new URL(get("NEXT_PUBLIC_SITE_URL"));
 if(url.protocol!=="https:"||url.username||url.password)
  throw Error("Web Push requiere NEXT_PUBLIC_SITE_URL con HTTPS válido.");

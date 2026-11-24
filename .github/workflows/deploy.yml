@@ -249,7 +249,7 @@ jobs:
           "${DOCKER[@]}" run --rm --network none \
             --mount "type=bind,source=$PWD/.env.production,target=/loyally/.env.production" \
             --mount "type=bind,source=$PWD/scripts/setup-push-env.mjs,target=/setup-push-env.mjs,readonly" \
-            node:22-bookworm-slim node /setup-push-env.mjs
+            node:22-bookworm-slim node /setup-push-env.mjs /loyally/.env.production --kreyvi-production
 
           "${COMPOSE[@]}" --env-file .env.production config --quiet
           "${COMPOSE[@]}" --env-file .env.production up -d --build --remove-orphans
@@ -267,7 +267,7 @@ jobs:
                grep -q 'Digital loyalty cards' "$homepage_en" &&
                ! grep -q 'Tarjetas de fidelización' "$homepage_en"; then
               # Evitar que un enlace de vista previa o una sección interna vuelva a responder 404/500.
-              for route in /negocio /negocio/reports /negocio/transactions /negocio/customers /negocio/marketing /negocio/vista-previa /app/descubrir /api/local/wallet/status /api/local/marketing/status /kreyv-mark-v3.svg /kreyv-mark-v3-192.png /kreyv-mark-v3-512.png /kreyv-favicon-v3.svg /kreyv-apple-touch-v3.png /manifest.webmanifest; do
+              for route in /negocio /negocio/poster /negocio/reports /negocio/transactions /negocio/customers /negocio/marketing /negocio/vista-previa /app/descubrir /api/local/wallet/status /api/local/marketing/status /kreyv-mark-v3.svg /kreyv-mark-v3-192.png /kreyv-mark-v3-512.png /kreyv-favicon-v3.svg /kreyv-apple-touch-v3.png /manifest.webmanifest; do
                 if ! curl -fsS --max-time 12 "http://127.0.0.1:3100${route}" >/dev/null; then
                   echo "ERROR: la sección ${route} no responde correctamente tras el despliegue."
                   exit 1

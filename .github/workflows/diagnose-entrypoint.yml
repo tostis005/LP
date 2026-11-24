@@ -16,7 +16,7 @@ jobs:
         shell: bash
         run: |
           set -u
-          for url in "http://169.58.121.198/" "https://169.58.121.198/" "https://169.58.121.198/acceder"; do
+          for url in "https://kreyvi.com/" "https://kreyvi.com/" "https://kreyvi.com/acceder"; do
             echo "===== $url ====="
             headers="$(mktemp)"
             body="$(mktemp)"

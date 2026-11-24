@@ -12,6 +12,8 @@ import {db} from "@/lib/supabase";
 import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {StampCard} from "@/components/StampCard";
+import {CounterPoster} from "@/components/CounterPoster";
+import {publicJoinUrl} from "@/lib/public-url";
 import {logoImageUrl} from "@/lib/asset-images";
 import {BUSINESS_CATEGORIES} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow,type GrowthRow} from "@/components/BusinessAnalytics";
@@ -20,10 +22,11 @@ import {BusinessAutomationPanel} from "@/components/BusinessAutomationPanel";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
 import {BusinessOffersPanel} from "@/components/BusinessOffersPanel";
-type Tab="overview"|"card"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
+type Tab="poster"|"overview"|"card"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 type CardArea="design"|"rules"|"rewards";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Mi negocio",icon:<House size={17}/>},
+ {id:"poster",label:"Cartel para mostrador",icon:<FileText size={17}/>},
  {id:"card",label:"Tarjeta",icon:<CreditCard size={17}/>},
  {id:"settings",label:"Negocio",icon:<Store size={17}/>},
  {id:"designer",label:"Diseñar mi tarjeta",icon:<Brush size={17}/>},
@@ -66,7 +69,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  // La ruta pública se llama /negocio/tarjeta, pero el identificador interno es card.
  // Antes caía en Inicio y mostraba sus accesos directos en lugar del editor de tarjeta.
  const tab:Tab=section==="tarjeta"||section==="designer"||section==="program"?"card":tabs.find(t=>t.id===(section==="customers"||section==="transactions"?"reports":section))?.id||"overview";
- const inBusinessHome=tab==="overview"||tab==="settings"||tab==="locations";
+ const inBusinessHome=tab==="overview"||tab==="settings"||tab==="locations"||tab==="poster";
  const dataArea=section==="customers"?"customers":section==="transactions"?"transactions":"summary";
  const [cardArea,setCardArea]=useState<CardArea>(section==="program"?"rules":"design");
  function openSection(next:Tab){
@@ -91,8 +94,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  },[]);
  const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,push:false,template_name:"",template_language:""});
  useEffect(()=>{fetch("/api/local/marketing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setMarketingStatus(v as MarketingStatus)}).catch(()=>{});},[]);
- const [previewEarned,setPreviewEarned]=useState(3),[siteOrigin,setSiteOrigin]=useState("");
- useEffect(()=>{setSiteOrigin(window.location.origin)},[]);
+ const [previewEarned,setPreviewEarned]=useState(3);
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
   // Una pantalla solo consulta lo que necesita; evita saturar las conexiones
@@ -328,12 +330,14 @@ export default function BusinessWorkspace({account}:{account:Account}){
      <div className="owner-start-hero"><h3>{biz.name}</h3>
       <p>{prog.type==="stamps"?"Programa de sellos":prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"} · {prog.reward_label}</p>
      </div>
-     <nav className="owner-start-links owner-start-primary-links" aria-label="Configuración del negocio">
+     <nav className="owner-start-links owner-start-primary-links owner-start-with-poster" aria-label="Configuración del negocio">
       <Link href="/negocio" className={tab==="overview"?"active":""} aria-current={tab==="overview"?"page":undefined}><CreditCard size={18}/> Tarjeta actual</Link>
       <Link href="/negocio/settings" title="Información del negocio" className={tab==="settings"?"active":""} aria-current={tab==="settings"?"page":undefined}><Settings2 size={18}/> Información</Link>
       <Link href="/negocio/locations" title="Dirección y ubicación" className={tab==="locations"?"active":""} aria-current={tab==="locations"?"page":undefined}><MapPin size={18}/> Ubicación</Link>
+      <Link href="/negocio/poster" className={tab==="poster"?"active":""} aria-current={tab==="poster"?"page":undefined}><FileText size={18}/> Cartel para mostrador</Link>
      </nav>
     </div>}
+   {tab==="poster"&&<CounterPoster key={biz.id} business={biz} program={prog}/>}
    {tab==="overview"&&<div className="owner-start">
      <section className="owner-start-card" aria-label="Tarjeta actual del negocio">
       <div className="owner-start-card-heading"><h3>Tu tarjeta actual</h3>
@@ -344,7 +348,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
         stampColor={biz.stamp_color} reward={prog.reward_label} total={prog.reward_cost}
         earned={Math.min(previewEarned,prog.reward_cost)} icon={biz.stamp_icon} imageUrl={biz.stamp_image_url}
         logoUrl={biz.logo_url} backgroundUrl={biz.card_background} message={biz.card_text}
-        qrValue={(siteOrigin||process.env.NEXT_PUBLIC_SITE_URL||"")+"/unirse/"+biz.slug}/>:
+        qrValue={publicJoinUrl(biz.slug)}/>:
         <div className="lp-other-program-preview" style={{backgroundColor:biz.accent_color,color:biz.card_text_color||"#ffffff"}}>
          <strong>{biz.name}</strong><span>{prog.type==="points"?"Puntos":"Saldo a favor"}</span><p>{prog.reward_label}</p>
         </div>}
@@ -391,7 +395,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
     </section>
     <section className="panel-card designer-preview-wrap lp-designer-live">
      <span className="eyebrow">VISTA PREVIA EN DIRECTO</span>
-     {prog.type==="stamps"?<StampCard name={biz.name} color={biz.accent_color} textColor={biz.card_text_color} stampColor={biz.stamp_color} reward={prog.reward_label} total={prog.type==="stamps"?prog.reward_cost:8} earned={Math.min(previewEarned,prog.type==="stamps"?prog.reward_cost:8)} icon={biz.stamp_icon} imageUrl={biz.stamp_image_url} logoUrl={biz.logo_url} backgroundUrl={biz.card_background} message={biz.card_text} qrValue={(siteOrigin||process.env.NEXT_PUBLIC_SITE_URL||"")+"/unirse/"+biz.slug}/>:<div className="lp-other-program-preview" style={{backgroundColor:biz.accent_color,color:biz.card_text_color||"#ffffff"}}><span>{biz.card_text||"GRACIAS POR VOLVER"}</span><h3>{biz.name}</h3><strong>{prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"}</strong><p>{prog.reward_label}</p></div>}
+     {prog.type==="stamps"?<StampCard name={biz.name} color={biz.accent_color} textColor={biz.card_text_color} stampColor={biz.stamp_color} reward={prog.reward_label} total={prog.type==="stamps"?prog.reward_cost:8} earned={Math.min(previewEarned,prog.type==="stamps"?prog.reward_cost:8)} icon={biz.stamp_icon} imageUrl={biz.stamp_image_url} logoUrl={biz.logo_url} backgroundUrl={biz.card_background} message={biz.card_text} qrValue={publicJoinUrl(biz.slug)}/>:<div className="lp-other-program-preview" style={{backgroundColor:biz.accent_color,color:biz.card_text_color||"#ffffff"}}><span>{biz.card_text||"GRACIAS POR VOLVER"}</span><h3>{biz.name}</h3><strong>{prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"}</strong><p>{prog.reward_label}</p></div>}
      {prog.type==="stamps"&&<label className="lp-preview-range">Sellos en la vista previa: <strong>{Math.min(previewEarned,prog.reward_cost)} de {prog.reward_cost}</strong><input type="range" min={0} max={prog.reward_cost} value={Math.min(previewEarned,prog.reward_cost)} onChange={e=>setPreviewEarned(Number(e.target.value))}/></label>}
      <p className="tiny-note">Comparte el enlace de inscripción. Cada cliente tendrá su propio QR para registrar visitas.</p>
      <a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Previsualizar mi tarjeta <ArrowUpRight size={17}/></a>

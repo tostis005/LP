@@ -1,3 +1,4 @@
+import {safeJoinTarget} from "@/lib/public-url";
 import { actorFromRequest,asActor,authPool,cookieToken,hashToken,ApiError,checkOrigin,responseError } from "@/lib/server/db";
 import { hashPassword,passwordMatches,validateEmail,emailToken,rateLimit,createSession,extendSession,setSessionCookie,clearSessionCookie,publicUser,smtpReady } from "@/lib/server/auth";
 export const runtime="nodejs";
@@ -30,6 +31,7 @@ export async function POST(request:Request) {
       const email=String(input.email||"").trim().toLowerCase(),password=String(input.password||"");
       const name=String(input.full_name||"").trim();
       const platformMarketingOptIn=input.platform_marketing_opt_in===true;
+      const returnTo=safeJoinTarget(input.return_to);
       const platformPushOptIn=input.platform_push_opt_in===true;
       const cardNotificationsOptIn=input.card_notifications_opt_in===true;
        const whatsapp=String(input.whatsapp||"").trim();
@@ -39,12 +41,12 @@ export async function POST(request:Request) {
       const exists=await authPool.query("SELECT id,email_confirmed_at FROM auth.users WHERE lower(email)=$1",[email]);
       if(exists.rowCount){
         if(exists.rows[0].email_confirmed_at)throw new ApiError("Este email ya tiene una cuenta. Accede o utiliza la recuperación.",409);
-        await emailToken(exists.rows[0].id,"verify",email);
+        await emailToken(exists.rows[0].id,"verify",email,returnTo);
         return Response.json({data:{user:{id:exists.rows[0].id,email},session:null},error:null});
       }
       const pass=await hashPassword(password);
       const r=await authPool.query("INSERT INTO auth.users(email,password_hash,raw_user_meta_data) VALUES($1,$2,$3::jsonb) RETURNING id",[email,pass,JSON.stringify({full_name:name,whatsapp:whatsapp||null,platform_marketing_opt_in:platformMarketingOptIn,platform_push_opt_in:platformPushOptIn,card_notifications_opt_in:cardNotificationsOptIn})]);
-      await emailToken(r.rows[0].id,"verify",email);
+      await emailToken(r.rows[0].id,"verify",email,returnTo);
       return Response.json({data:{user:{id:r.rows[0].id,email},session:null},error:null},{status:201});
     }
     if(action==="signInWithPassword") {

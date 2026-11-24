@@ -99,3 +99,20 @@ assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-visual-main\{[^
 assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-grid\{\s*grid-template-columns:repeat\(var\(--stamp-columns\),minmax\(0,1fr\)\)/,"Stamps span the full preview width");
 assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-visual-footer \.stamp-reward-name\{[^}]*white-space:normal;overflow:visible/,"Reward text wraps and remains readable");
 assert.match(landingCss,/\.loi-site \.loi-showcase-phone\{\s*display:flex;flex-direction:column;align-items:stretch;\s*width:min\(340px,100%\);max-width:100%;height:auto;min-height:0/,"Phone height follows its content");
+
+const posterUi=readFileSync(new URL("../../components/CounterPoster.tsx",import.meta.url),"utf8");
+const ownerUi=readFileSync(new URL("../../components/BusinessWorkspace.tsx",import.meta.url),"utf8");
+assert.match(ownerUi,/href="\/negocio\/poster"/,"Poster is available in My business");
+assert.match(posterUi,/width="36" height="36" viewBox="0 0 360 360"/,"QR square with 36mm print width at A6");
+assert.match(posterUi,/marginSize=\{4\}/,"QR quiet zone");
+assert.match(posterUi,/business\.card_background/);
+assert.match(posterUi,/business\.stamp_image_url/);
+assert.match(posterUi,/publicJoinUrl\(business.slug\)/);
+const loadTs=(path)=>{const module={exports:{}};runInNewContext(ts.transpileModule(readFileSync(new URL("../../"+path,import.meta.url),"utf8"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText,{module,exports:module.exports,URL,Blob,TextEncoder,Uint8Array});return module.exports};
+const {POSTER_SIZES,posterPdf,PRINT_DPI}=loadTs("lib/counter-poster-export.ts");
+assert.equal(PRINT_DPI,300);assert.equal(POSTER_SIZES.A6.width,105);assert.equal(POSTER_SIZES.A5.height,210);
+for(const size of ["A5","A6"]){const paper=POSTER_SIZES[size],pdf=await posterPdf(new Uint8Array([255,216,255,217]),{width:Math.round(paper.width/25.4*300),height:Math.round(paper.height/25.4*300)},size).text();assert.match(pdf,/^%PDF-1.4/);assert.ok(pdf.includes("/MediaBox [0 0 "+(paper.width*72/25.4).toFixed(5)+" "+(paper.height*72/25.4).toFixed(5)+"]"));assert.match(pdf,/startxref\n\d+\n%%EOF/)}
+const {publicJoinUrl,safeJoinTarget}=loadTs("lib/public-url.ts");
+assert.equal(publicJoinUrl("cafe-noma"),"https://kreyvi.com/unirse/cafe-noma");
+assert.equal(safeJoinTarget("/unirse/cafe-noma?alta=1"),"/unirse/cafe-noma?alta=1");
+for(const value of ["https://evil.example","//evil.example","/unirse/../admin","/unirse/cafe?next=https://evil.example"])assert.equal(safeJoinTarget(value),null);

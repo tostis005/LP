@@ -1,3 +1,4 @@
+import {safeJoinTarget} from "@/lib/public-url";
 import {createHash,createPrivateKey,createPublicKey,randomBytes,sign,timingSafeEqual,verify} from "node:crypto";
 import {authPool,ApiError,hashToken} from "@/lib/server/db";
 import {validateEmail} from "@/lib/server/auth";
@@ -72,7 +73,7 @@ export async function beginOauth(p:OAuthProvider,returnTo:string){
  const state=randomToken(),nonce=randomToken(),verifier=randomToken();
  // Mantener enlaces a avisos concretos al autenticar con Google o Apple;
  // ninguna ruta externa ni otra ruta privada puede inyectarse como destino.
- const destination=["/mi-loyally","/app","/entrar"].includes(returnTo)||
+ const destination=safeJoinTarget(returnTo)||["/mi-loyally","/app","/entrar"].includes(returnTo)||
   /^\/app\/novedades\/[a-f0-9-]{36}$/i.test(returnTo)?returnTo:"/entrar";
  await authPool.query("DELETE FROM auth.oauth_attempts WHERE expires_at<now()");
  await authPool.query(

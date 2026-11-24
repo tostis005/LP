@@ -30,5 +30,12 @@ try{
  assert.equal(second.LP_ENABLE_PUSH_SEND,"false","No reactivar un canal que se deshabilitó");
  assert.equal(second.VAPID_PRIVATE_KEY,first.VAPID_PRIVATE_KEY,"No rotar claves VAPID existentes");
  assert.equal(second.VAPID_PUBLIC_KEY,first.VAPID_PUBLIC_KEY);
+ const migrated=spawnSync(process.execPath,["scripts/setup-push-env.mjs",file,"--kreyvi-production"],{encoding:"utf8"});
+ assert.equal(migrated.status,0,migrated.stderr);
+ const third=parse(readFileSync(file,"utf8"));
+ assert.equal(third.NEXT_PUBLIC_SITE_URL,"https://kreyvi.com");
+ assert.equal(third.VAPID_SUBJECT,"https://kreyvi.com");
+ assert.equal(third.VAPID_PRIVATE_KEY,first.VAPID_PRIVATE_KEY);
+ assert.equal(third.LP_ENABLE_PUSH_SEND,"false");
  console.log("OK: VAPID válido, persistente, privado y desactivación respetada.");
 }finally{rmSync(directory,{recursive:true,force:true})}

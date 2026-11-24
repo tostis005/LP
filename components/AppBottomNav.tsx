@@ -57,7 +57,7 @@ export function AppBottomNav(){
  }
  return <nav className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de KREYVI">
   {items.map(item=>{
-   const active=item.href==="/negocio"?["/negocio","/negocio/overview","/negocio/settings","/negocio/locations"].includes(pathname):item.href==="/negocio/reports"?["/negocio/reports","/negocio/transactions","/negocio/customers"].includes(pathname):pathname===item.href;
+   const active=item.href==="/negocio"?["/negocio","/negocio/overview","/negocio/settings","/negocio/locations","/negocio/poster"].includes(pathname):item.href==="/negocio/reports"?["/negocio/reports","/negocio/transactions","/negocio/customers"].includes(pathname):pathname===item.href;
    return <Link key={item.href} href={item.href} aria-current={active?"page":undefined} className={"mobile-bottom-link"+(active?" active":"")}>{item.href==="/negocio/reports"?<BarChart3 size={20}/>:<KreyvIcon name={item.icon} size={20}/> }<span>{item.label}</span>{role==="customer"&&item.href==="/app/novedades"&&<CustomerInboxNavCount/>}</Link>;
   })}
   {(role==="staff"||role==="admin")&&<button type="button" className="mobile-bottom-link" onClick={logout}><LogOut size={20}/><span>Salir</span></button>}

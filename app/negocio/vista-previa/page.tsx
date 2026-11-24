@@ -33,7 +33,7 @@ function Preview({account}:{account:Account}){
  },[account.user.id]);
  async function copy(){
   if(!business)return;
-  const url=window.location.origin+"/unirse/"+business.slug;
+  const url="https://kreyvi.com/unirse/"+encodeURIComponent(business.slug);
   try{
    if(!navigator.clipboard?.writeText)throw new Error("clipboard not available");
    await navigator.clipboard.writeText(url);setCopied(true);

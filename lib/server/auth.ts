@@ -1,3 +1,4 @@
+import {safeJoinTarget} from "../public-url";
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import nodemailer from "nodemailer";
@@ -35,7 +36,7 @@ export async function sendMail(to:string,subject:string,body:string,html?:string
   });
   await transport.sendMail({from:process.env.SMTP_FROM,to,subject,text:body,...(html?{html}:{}),...(cc?{cc}:{})});
 }
-export async function emailToken(userId:string,purpose:"verify"|"reset",email:string) {
+export async function emailToken(userId:string,purpose:"verify"|"reset",email:string,returnTo?:string|null) {
   const token=randomBytes(32).toString("hex");
   const site=process.env.NEXT_PUBLIC_SITE_URL;
   if(!site)throw new ApiError("Falta configurar NEXT_PUBLIC_SITE_URL",503);
@@ -44,7 +45,7 @@ export async function emailToken(userId:string,purpose:"verify"|"reset",email:st
     "INSERT INTO auth.email_tokens(token_hash,user_id,purpose,expires_at) VALUES($1,$2,$3,now()+$4::interval)",
     [hashToken(token),userId,purpose,purpose==="reset"?"1 hour":"24 hours"]
   );
-  const link=site.replace(/\/$/,"")+"/api/local/auth/verify?purpose="+purpose+"&token="+token;
+  const link=site.replace(/\/$/,"")+"/api/local/auth/verify?purpose="+purpose+"&token="+token+(purpose==="verify"&&safeJoinTarget(returnTo)?"&next="+encodeURIComponent(returnTo!):"");
   const subject=purpose==="verify"?"Confirma tu cuenta de KREYVI":"Recupera tu acceso a KREYVI";
   await sendMail(email,subject,"Utiliza el siguiente enlace, válido durante un tiempo limitado:\n\n"+link+"\n\nSi no lo solicitaste, ignora este correo.");
 }

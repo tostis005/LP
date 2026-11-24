@@ -39,7 +39,7 @@ export function InstallGuide({lang="es"}:{lang?:LandingLanguage}){
  const [origin,setOrigin]=useState("");
  const [message,setMessage]=useState("");
  useEffect(()=>{
-  setOrigin(window.location.origin);
+  setOrigin("https://kreyvi.com");
   setInstalled(window.matchMedia("(display-mode: standalone)").matches||
    (navigator as Navigator&{standalone?:boolean}).standalone===true);
   function onPrompt(event:Event){event.preventDefault();setNativePrompt(event as InstallPrompt);}

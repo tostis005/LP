@@ -56,3 +56,8 @@ for(const screen of [access,entry]){
  assert.match(screen,/!marketingOptIn&&"No te pierdas las ofertas y promociones de los locales participantes\. "/,"Show a friendly invitation only before opt-in");
  assert.match(screen,/Puedes cambiar tus preferencias en Ajustes cuando quieras\./,"Explain how to change preferences");
 }
+
+assert.match(join,/lp_pending_join/,"Preserve the explicit join action through login");
+assert.match(access,/return_to:safeJoinTarget\(loginTarget\)/,"Preserve the business in verification links");
+assert.match(read("lib/server/auth.ts"),/safeJoinTarget\(returnTo\)/);
+assert.match(read("app/api/local/auth/verify/route.ts"),/safeJoinTarget\(request.nextUrl.searchParams.get\("next"\)\)/);
