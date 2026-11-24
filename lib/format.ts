@@ -17,3 +17,12 @@ export function normalizeToken(s: string) {
     return match?.[1] ?? "";
   } catch { return /^[a-f0-9-]{36}$/i.test(candidate) ? candidate : ""; }
 }
+
+/** Nombre visible en operaciones y listados de clientes; nunca muestra apellidos completos. */
+export function customerDisplayName(value?:string|null){
+ const parts=(value||"").replace(/\s*·\s*Demo\s*$/i,"").trim().split(/\s+/).filter(Boolean);
+ if(!parts.length)return "Cliente";
+ if(parts.length===1)return parts[0];
+ const initial=Array.from(parts[1])[0];
+ return parts[0]+" "+initial.toLocaleUpperCase()+".";
+}
