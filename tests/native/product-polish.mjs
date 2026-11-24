@@ -9,9 +9,13 @@ try{
  await db.query("BEGIN");
  const users=Object.fromEntries((await db.query(
   "SELECT id,email FROM auth.users WHERE email=ANY($1::text[])",
-  [["admin@loyally.local","gestor@loyally.local","empleado@loyally.local"]]
+  [["admin@loyally.local","gestor@loyally.local","empleado@loyally.local","cliente@loyally.local"]]
  )).rows.map(x=>[x.email,x.id]));
- const biz=(await db.query("SELECT id FROM public.businesses WHERE slug='interno-cafe-noma'")).rows[0];
+ // Una tienda sin importes históricos para verificar el cambio inicial de moneda.
+ const biz=(await db.query("INSERT INTO public.businesses(name,slug,active,public_listing) VALUES('Moneda de prueba','test-owner-currency-isolated',true,false) RETURNING id")).rows[0];
+ await db.query("INSERT INTO public.loyalty_programs(business_id,type,reward_label,reward_cost) VALUES($1,'stamps','Café',8)",[biz.id]);
+ await db.query("INSERT INTO public.business_members(business_id,user_id,role,active) VALUES($1,$2,'owner',true),($1,$3,'employee',true)",[biz.id,users["gestor@loyally.local"],users["empleado@loyally.local"]]);
+ await db.query("INSERT INTO public.loyalty_memberships(business_id,customer_id) VALUES($1,$2)",[biz.id,users["cliente@loyally.local"]]);
  assert.ok(biz?.id,"CI business must exist");
  for(const email of ["admin@loyally.local","gestor@loyally.local","empleado@loyally.local"])assert.ok(users[email],email);
  await db.query("SET LOCAL ROLE authenticated");

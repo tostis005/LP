@@ -42,5 +42,23 @@ try{
  assert.ok(growth.some(x=>x.metric==="habitual_customers"&&Number(x.current_value)>0));
  const directory=(await q("SELECT count(*)::integer n FROM public.business_customer_directory($1::uuid)",[cafe])).rows[0].n;
  assert.equal(directory,163,"Owner's customer directory must show all example cards");
- console.log("OK: owner only Café Noma, admin remains global, 163 demo cards, valid balances/visits/rewards, zero fake consent.");
+ // Las nuevas consultas se ejecutan con el propietario seleccionado y la misma muestra real.
+ const staffSample=(await q("SELECT count(*)::integer n FROM public.business_members b JOIN auth.users u ON u.id=b.user_id WHERE b.business_id=$1 AND b.role='employee' AND u.email LIKE 'cafe-noma-personal-%@example.invalid'",[cafe])).rows[0].n;
+ assert.equal(staffSample,6,"Six synthetic non-login employees");
+ const staffActivity=(await q("SELECT * FROM public.business_owner_activity($1::uuid,90)",[cafe])).rows;
+ assert.ok(staffActivity.filter(x=>Number(x.operations)>0).length>=6,"Real demo purchases distributed across staff");
+ const rewards=(await q("SELECT * FROM public.business_reward_ranking($1::uuid,90)",[cafe])).rows;
+ assert.ok(rewards.filter(x=>['Café latte','Cappuccino','Flat white','Americano'].includes(x.reward_label)).length>=3,"Redemptions use different catalog choices");
+ const history=(await q("SELECT * FROM public.business_owner_transactions($1::uuid,NULL,NULL,NULL,NULL,NULL,10,0)",[cafe])).rows;
+ assert.equal(history.length,10);
+ assert.ok(Number(history[0].total_count)>250,"History queries cover more than the last 250 records");
+ const next=(await q("SELECT * FROM public.business_owner_transactions($1::uuid,NULL,NULL,NULL,NULL,NULL,10,10)",[cafe])).rows;
+ assert.equal(next.length,10);
+ assert.ok(next.every(x=>!history.some(h=>h.id===x.id)),"Stable pagination");
+ const filtered=(await q("SELECT * FROM public.business_owner_transactions($1::uuid,NULL,NULL,$2::uuid,'earn',NULL,250,0)",[cafe,staffActivity[0].user_id])).rows;
+ assert.ok(filtered.length&&filtered.every(x=>x.employee_id===staffActivity[0].user_id&&x.kind==='earn'));
+ const lastVisits=(await q("SELECT * FROM public.business_owner_customer_activity($1::uuid)",[cafe])).rows;
+ assert.equal(lastVisits.length,163);
+ assert.ok(lastVisits.some(x=>x.last_visit!==null));
+ console.log("OK: owner only Café Noma, admin remains global, 163 cards, six demo staff, reward mix, paginated transactions, last visits and zero fake consent.");
 }finally{await q("ROLLBACK").catch(()=>{});db.release();await p.end();}

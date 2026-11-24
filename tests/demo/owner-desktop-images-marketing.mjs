@@ -15,20 +15,21 @@ const preview=read("app/negocio/vista-previa/page.tsx");
 
 assert.match(css,/\.workspace-business \.workspace-section-body \.program-form\{[^}]*max-width:none/,"Funcionamiento y límites must fill its desktop container");
 assert.match(css,/\.workspace-business \.program-form \.form-stack\{[^}]*max-width:none/,"All limits fields should extend into the available space");
+const panels=read("components/OwnerDataPanels.tsx");
 const navStart=owner.indexOf('owner-start-links owner-start-primary-links');
 const heroStart=owner.indexOf('className="owner-start-hero"');
-assert.ok(navStart>=0&&navStart<heroStart,"Clients, business details and location must be above the hero and card");
-assert.match(css,/\.workspace-business \.owner-start-primary-links\{[^}]*grid-template-columns:repeat\(3/);
+assert.ok(navStart>heroStart&&navStart<owner.indexOf('className="owner-start-card"'),"Business details follow the name and precede the card");
+assert.match(css,/\.workspace-business \.owner-start-primary-links\{[^}]*grid-template-columns:repeat\(2/);
 assert.match(owner,/title="Dirección y ubicación"/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-visual-pill\{[^}]*align-self:flex-end/,"Reward club badge aligns to right card padding");
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-visual-side\{[^}]*align-items:stretch/);
 
 assert.match(owner,/slug==="interno-cafe-noma"&&c\.full_name\?\.includes\("· Demo"\)/,"Simulated marketing status is restricted to example customers");
 assert.match(owner,/n%10<8/,"Most synthetic demo customers may appear opted-in in the mock directory");
-assert.match(owner,/Aceptado <small>· demo<\/small>/);
-assert.match(owner,/estados «demo» son simulados y no permiten enviar campañas/);
+assert.match(panels,/demo\?"Aceptado":"No"/);
+assert.match(panels,/estados «demo» son simulados y no permiten enviar campañas/);
 assert.doesNotMatch(owner,/update\(\{opted_in:true/,"Mock display must never update real permissions");
-assert.match(owner,/x\.marketing_ok\?<span className="table-pill">Aceptado/,"Real consent still takes precedence");
+assert.match(panels,/c\.marketing_ok\?<span className="table-pill">Aceptado/,"Real consent still takes precedence");
 
 assert.match(upload,/isLogo=match\[2\]\.startsWith\("logo-"\)/);
 assert.match(upload,/isStamp=match\[2\]\.startsWith\("sello-"\)/);

@@ -9,7 +9,7 @@ const css=read("app/role-app.css");
 
 assert.doesNotMatch(owner,/className="owner-start-actions"/,"Inicio must not duplicate the four bottom navigation destinations");
 assert.match(owner,/className="owner-start-card-preview"/,"Inicio displays the merchant's actual card instead");
-assert.match(owner,/MI NEGOCIO/);
+assert.match(owner,/owner-start-hero/);
 assert.match(owner,/owner-start-primary-links/,"Owner management tabs appear above the card");
 assert.match(owner,/href="\/negocio\/customers"/,"Clientes is still available as a top tab");
 assert.match(owner,/Información del negocio/);

@@ -3,7 +3,7 @@ import {useCallback,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {AddressPicker} from "@/components/AddressPicker";
 import {usePathname,useRouter} from "next/navigation";
-import {Activity,ArrowUpRight,BarChart3,Brush,Check,ChevronDown,CircleHelp,Clock3,CreditCard,FileText,Gift,ImagePlus,MapPin,Mail,BellRing,Menu,Plus,Settings2,ShieldCheck,Store,Ticket,ToggleLeft,Trash2,Users,Wallet} from "lucide-react";
+import {House,ArrowUpRight,BarChart3,Brush,Check,ChevronDown,CircleHelp,Clock3,CreditCard,FileText,Gift,ImagePlus,MapPin,Mail,BellRing,Menu,Plus,Settings2,ShieldCheck,Store,Ticket,ToggleLeft,Trash2,Users,Wallet} from "lucide-react";
 import type {Account} from "@/components/AppFrame";
 import type {Business,Program,Location} from "@/lib/types";
 import {dateShort,initials,units} from "@/lib/format";
@@ -15,6 +15,7 @@ import {StampCard} from "@/components/StampCard";
 import {logoImageUrl} from "@/lib/asset-images";
 import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow,type GrowthRow} from "@/components/BusinessAnalytics";
+import {EmployeeChart,CustomerPanel,TransactionsPanel,type EmployeeActivity} from "@/components/OwnerDataPanels";
 import {BusinessAutomationPanel} from "@/components/BusinessAutomationPanel";
 import {RewardCatalog,type RewardOption} from "@/components/RewardCatalog";
 import {RichMessageEditor} from "@/components/RichMessageEditor";
@@ -22,7 +23,7 @@ import {BusinessOffersPanel} from "@/components/BusinessOffersPanel";
 type Tab="overview"|"card"|"settings"|"designer"|"program"|"team"|"customers"|"locations"|"reports"|"marketing";
 type CardArea="design"|"rules"|"rewards";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
- {id:"overview",label:"Inicio",icon:<BarChart3 size={17}/>},
+ {id:"overview",label:"Inicio",icon:<House size={17}/>},
  {id:"card",label:"Tarjeta",icon:<CreditCard size={17}/>},
  {id:"settings",label:"Negocio",icon:<Store size={17}/>},
  {id:"designer",label:"Diseñar mi tarjeta",icon:<Brush size={17}/>},
@@ -30,7 +31,7 @@ const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"team",label:"Empleados",icon:<Users size={17}/>},
  {id:"customers",label:"Clientes",icon:<CreditCard size={17}/>},
  {id:"locations",label:"Ubicaciones",icon:<MapPin size={17}/>},
- {id:"reports",label:"Datos",icon:<Activity size={17}/>},
+ {id:"reports",label:"Datos",icon:<BarChart3 size={17}/>},
  {id:"marketing",label:"Campañas",icon:<Mail size={17}/>}
 ];
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
@@ -44,7 +45,6 @@ function demoMarketingAccepted(userId:string){
 }
 
 type Employee={user_id:string;full_name:string;email:string;role:string;active:boolean};
-type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;membership_id:string;employee_id:string|null;reversal_of:string|null;reversal_reason:string|null};
 type Draft={id:string;subject:string;body_text:string;channel:"email"|"whatsapp"|"push";template_name?:string|null;template_language?:string|null;created_at:string;status:string;recipient_count?:number;sent_count?:number;failed_count?:number};
 type MailQuote={contacts:number;price_cents:number|null;total_cents:number|null;currency:string};
 type Usage={channel:"email"|"whatsapp";messages:number;amount_cents:number;currency:string};
@@ -65,7 +65,8 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const section=pathname.split("/")[2];
  // La ruta pública se llama /negocio/tarjeta, pero el identificador interno es card.
  // Antes caía en Inicio y mostraba sus accesos directos en lugar del editor de tarjeta.
- const tab:Tab=section==="tarjeta"||section==="designer"||section==="program"?"card":tabs.find(t=>t.id===section)?.id||"overview";
+ const tab:Tab=section==="tarjeta"||section==="designer"||section==="program"?"card":tabs.find(t=>t.id===(section==="customers"||section==="transactions"?"reports":section))?.id||"overview";
+ const dataArea=section==="customers"?"customers":section==="transactions"?"transactions":"summary";
  const [cardArea,setCardArea]=useState<CardArea>(section==="program"?"rules":"design");
  function openSection(next:Tab){
   if(next==="designer"||next==="program"||next==="card"){
@@ -74,10 +75,10 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setError("");setNotice("");
  }
  useEffect(()=>{try{const stored=window.sessionStorage.getItem("loyally_selected_business");if(stored&&manageable.some(b=>b.business_id===stored))setSelected(stored);}catch{}},[account.user.id]);
- const [biz,setBiz]=useState<Business|null>(null),[prog,setProg]=useState<Program|null>(null),[customers,setCustomers]=useState<Customer[]>([]),[staff,setStaff]=useState<Employee[]>([]),[invites,setInvites]=useState<{id:string;email:string;role:string;created_at:string}[]>([]),[locations,setLocations]=useState<Location[]>([]),[transactions,setTransactions]=useState<Tx[]>([]),[drafts,setDrafts]=useState<Draft[]>([]);
+ const [biz,setBiz]=useState<Business|null>(null),[prog,setProg]=useState<Program|null>(null),[customers,setCustomers]=useState<Customer[]>([]),[staff,setStaff]=useState<Employee[]>([]),[invites,setInvites]=useState<{id:string;email:string;role:string;created_at:string}[]>([]),[locations,setLocations]=useState<Location[]>([]),[drafts,setDrafts]=useState<Draft[]>([]);
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
   const [periodDays,setPeriodDays]=useState(30),[metrics,setMetrics]=useState<MetricRow[]>([]),[growthSummary,setGrowthSummary]=useState<MetricRow[]>([]),[growth,setGrowth]=useState<GrowthRow[]>([]),[ranking,setRanking]=useState<RankingRow[]>([]),[rewardOptions,setRewardOptions]=useState<RewardOption[]>([]);
- const [activity,setActivity]=useState<{user_id:string;employee_name:string;operations:number;awarded_units:number}[]>([]);
+ const [activity,setActivity]=useState<EmployeeActivity[]>([]);
  const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee"),[teamView,setTeamView]=useState<"list"|"invite">("list");
  const [locationName,setLocationName]=useState(""),[address,setAddress]=useState(""),[city,setCity]=useState("Tijuana"),[country,setCountry]=useState("México"),[lat,setLat]=useState(""),[lng,setLng]=useState("");
  const [mailSubject,setMailSubject]=useState(""),[mailBody,setMailBody]=useState(""),[quote,setQuote]=useState<MailQuote|null>(null);
@@ -96,18 +97,18 @@ export default function BusinessWorkspace({account}:{account:Account}){
   // Una pantalla solo consulta lo que necesita; evita saturar las conexiones
   // cuando se abre Datos y separa los errores de marketing de los informes.
   const empty=Promise.resolve({data:[],error:null});
-  const forReport=tab==="reports",forTeam=tab==="team",forCard=tab==="card";
-  const forCampaign=tab==="marketing",forCustomers=tab==="customers",forLocations=tab==="locations";
+  const forReport=tab==="reports"&&dataArea==="summary",forTeam=tab==="team",forCard=tab==="card";
+  const forCampaign=tab==="marketing",forCustomers=tab==="reports"&&dataArea==="customers",forLocations=tab==="locations";
   const [b,p,c,s,i,l,t,d,a,m,r,o,g,gs]=await Promise.all([
    db().from("businesses").select("*").eq("id",selected).maybeSingle(),
    db().from("loyalty_programs").select("*").eq("business_id",selected).maybeSingle(),
    forReport||forCustomers||forCard?db().rpc("business_customer_directory",{p_business:selected}):empty,
-   forReport||forTeam?db().rpc("business_staff_directory",{p_business:selected}):empty,
+   forReport||forTeam||tab==="reports"&&dataArea==="transactions"?db().rpc("business_staff_directory",{p_business:selected}):empty,
    forTeam?db().from("business_invitations").select("id,email,role,created_at").eq("business_id",selected).is("claimed_at",null):empty,
    forLocations?db().from("business_locations").select("*").eq("business_id",selected):empty,
-   forReport?db().from("loyalty_transactions").select("id,kind,amount_delta,purchase_cents,ticket_ref,created_at,membership_id,employee_id,reversal_of,reversal_reason").eq("business_id",selected).order("created_at",{ascending:false}).limit(250):empty,
+   empty,
    forCampaign?db().from("marketing_campaigns").select("id,subject,body_text,channel,template_name,template_language,status,recipient_count,sent_count,failed_count,created_at").eq("business_id",selected).order("created_at",{ascending:false}):empty,
-   forReport?db().rpc("business_employee_activity",{p_business:selected,p_days:30}):empty,
+   forReport?db().rpc("business_owner_activity",{p_business:selected,p_days:periodDays}):empty,
     forReport?db().rpc("business_dashboard_metrics",{p_business:selected,p_days:periodDays}):empty,
     forReport?db().rpc("business_reward_ranking",{p_business:selected,p_days:periodDays}):empty,
     forCard?db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true}):empty,
@@ -119,7 +120,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   const firstLocation=(l.data||[])[0] as Location|undefined;
   if(firstLocation){setLocationName(firstLocation.name);setAddress(firstLocation.address);setCity(firstLocation.city);setCountry(firstLocation.country);setLat(String(firstLocation.lat));setLng(String(firstLocation.lng))}
   else {setLocationName("");setAddress("");setLat("");setLng("")}
-  setTransactions((t.data||[]) as Tx[]);setActivity((a.data||[]) as {user_id:string;employee_name:string;operations:number;awarded_units:number}[]);
+  setActivity((a.data||[]) as EmployeeActivity[]);
    setMetrics((m.data||[]) as MetricRow[]);setGrowth((g.data||[]) as GrowthRow[]);setGrowthSummary((gs.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
   const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error;
   if(failure)setError(failure.message);
@@ -138,7 +139,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   if(pushItems.error)setError(pushItems.error.message);
   }
   setLoading(false);
- },[selected,periodDays,marketingChannel,tab]);
+ },[selected,periodDays,marketingChannel,tab,dataArea]);
  useEffect(()=>{reload()},[reload]);
  function success(s:string){setNotice(s);setError("");showActionToast(s)}
  async function saveBusiness(fields:Partial<Business>){
@@ -180,16 +181,6 @@ export default function BusinessWorkspace({account}:{account:Account}){
    if(error||count!==1){setError(error?.message||"No se ha guardado el diseño. Revisa tus permisos.");return}
    success("Diseño guardado. Los clientes verán la nueva tarjeta.");await reload();
   }finally{setBusy(false)}
- }
- async function reverseTransaction(transaction:Tx){
-  if(transaction.kind==="reversal" || transactions.some(t=>t.reversal_of===transaction.id))return;
-  const reason=window.prompt("Motivo de la corrección (8-300 caracteres). La operación original seguirá visible en el historial:");
-  if(reason===null)return;
-  if(reason.trim().length<8||reason.trim().length>300){setError("Indica un motivo entre 8 y 300 caracteres.");return}
-  setBusy(true);setError("");setNotice("");
-  const {error}=await db().rpc("manager_reverse_transaction",{p_transaction:transaction.id,p_reason:reason.trim()});
-  setBusy(false);if(error){setError(error.message);return}
-  success("Movimiento revertido. El saldo del cliente y el historial se han actualizado.");await reload();
  }
  async function persistAsset(field:"logo_url"|"card_background"|"stamp_image_url",url:string|null){
   if(!selected)return false;
@@ -324,7 +315,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
     
     <div className="workspace-section-body">
    {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success"><Check size={17}/>{notice}</div>}
-   {loading&&!biz?<div className="soft-panel">Cargando negocio...</div>:biz&&prog&&<>
+   {loading&&(!biz||biz.id!==selected)?<div className="soft-panel">Cargando negocio...</div>:biz&&biz.id===selected&&prog&&<>
    {tab==="card"&&<div className="owner-card-intro"><div><h3>Configuración de la tarjeta</h3><p>Diseño, funcionamiento y recompensas.</p></div><span className="owner-card-mode">{prog.type==="stamps"?"Tarjeta de sellos":prog.type==="points"?"Tarjeta de puntos":"Tarjeta de cashback"}</span></div>}
     {tab==="card"&&<nav className="business-card-tabs" aria-label="Configurar mi tarjeta">
     <button type="button" className={cardArea==="design"?"active":""} aria-pressed={cardArea==="design"} onClick={()=>setCardArea("design")}><Brush size={16}/> 1. Diseño</button>
@@ -333,15 +324,13 @@ export default function BusinessWorkspace({account}:{account:Account}){
    </nav>}
 
    {tab==="overview"&&<div className="owner-start">
-     <nav className="owner-start-links owner-start-primary-links" aria-label="Gestiones del negocio">
-      <Link href="/negocio/customers"><Users size={18}/> Clientes</Link>
+     <div className="owner-start-hero"><h3>{biz.name}</h3>
+      <p>{prog.type==="stamps"?"Programa de sellos":prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"} · {prog.reward_label}</p>
+     </div>
+     <nav className="owner-start-links owner-start-primary-links" aria-label="Configuración del negocio">
       <Link href="/negocio/settings" title="Información del negocio"><Settings2 size={18}/> Información</Link>
       <Link href="/negocio/locations" title="Dirección y ubicación"><MapPin size={18}/> Ubicación</Link>
      </nav>
-     <div className="owner-start-hero"><span className="page-eyebrow">MI NEGOCIO</span>
-      <h3>{biz.name}</h3>
-      <p>{prog.type==="stamps"?"Programa de sellos":prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"} · {prog.reward_label}</p>
-     </div>
      <section className="owner-start-card" aria-label="Tarjeta actual del negocio">
       <div className="owner-start-card-heading"><h3>Tu tarjeta actual</h3>
        <button type="button" className="button button-outline button-sm" onClick={()=>openSection("card")}>Editar tarjeta <ArrowUpRight size={16}/></button>
@@ -447,7 +436,6 @@ export default function BusinessWorkspace({account}:{account:Account}){
      </form>
     </>}
    </div>}
-   {tab==="customers"&&<section className="panel-card"><div className="content-heading"><div><h2>Tu comunidad</h2><p>Clientes inscritos y actividad en tu negocio.</p></div><span className="table-pill">{customers.length} clientes</span></div>{customers.some(x=>isDemoCustomer(x,biz.slug))&&<p className="owner-demo-consent-hint">Los estados «demo» son simulados y no permiten enviar campañas.</p>}<div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>{customers.map(x=><tr key={x.user_id}><td><strong>{x.full_name||"Sin nombre"}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(x.email)}</code></td><td><b>{formatBalance(x.balance)}</b></td><td>{x.visits}</td><td>{x.marketing_ok?<span className="table-pill">Aceptado</span>:isDemoCustomer(x,biz.slug)?(demoMarketingAccepted(x.user_id)?<span className="table-pill demo-marketing-pill">Aceptado <small>· demo</small></span>:<span className="table-pill inactive">No <small>· demo</small></span>):<span className="table-pill inactive">No</span>}</td><td>{dateShort(x.joined_at)}</td></tr>)}</tbody></table></div>{customers.length===0&&<p className="muted">Comparte tu programa para conseguir tus primeros clientes.</p>}</section>}
    {tab==="locations"&&<div className="business-location-layout">
     <section className="panel-card business-location-intro">
      <div className="panel-icon"><MapPin size={23}/></div><h2>Tu establecimiento</h2>
@@ -465,32 +453,19 @@ export default function BusinessWorkspace({account}:{account:Account}){
     </form>}
    </div>}
     {tab==="reports"&&<div className="owner-reports-stack">
-   <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType}/>
-   <div className="panel-card"><h2>Actividad por empleado · últimos 30 días</h2>
-    <p className="muted">Total de operaciones de compra verificadas manualmente. Los reembolsos se detallan en el historial.</p>
-    <div className="table-wrap"><table className="data-table"><thead><tr><th>Empleado</th><th>Compras registradas</th><th>Unidades asignadas</th></tr></thead>
-    <tbody>{activity.map(a=><tr key={a.user_id}><td><strong>{a.employee_name}</strong></td><td>{a.operations}</td><td>{a.awarded_units}</td></tr>)}</tbody></table></div>
-    {activity.length===0&&<p className="muted">Todavía no hay compras registradas por el equipo.</p>}
-   </div>
-   <div className="panel-card" style={{marginTop:20}}><h2>Historial y correcciones</h2>
-    <p className="muted">Últimas 250 operaciones. Un responsable puede revertir movimientos de las últimas 72 horas, siempre que el saldo lo permita. No se borran los registros originales.</p>
-    <div className="table-wrap"><table className="data-table"><thead><tr><th>Fecha</th><th>Acción</th><th>Unidades</th><th>Ticket</th><th>Compra</th><th>Empleado</th><th>Acción</th></tr></thead>
-    <tbody>{transactions.map(t=>{
-      const reversed=transactions.some(v=>v.reversal_of===t.id);
-      const actor=staff.find(s=>s.user_id===t.employee_id);
-      return <tr key={t.id}>
-        <td>{dateShort(t.created_at)}</td>
-        <td>{t.kind==="earn"?"Compra":t.kind==="redeem"?"Canje":"Corrección"}{reversed?" · Revertida":""}</td>
-        <td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td>
-        <td>{t.ticket_ref||"—"}</td>
-        <td>{t.purchase_cents==null?"—":new Intl.NumberFormat("es-MX",{style:"currency",currency}).format(t.purchase_cents/100)}</td>
-        <td>{actor?.full_name||actor?.email||"—"}</td>
-        <td>{t.kind!=="reversal"&&!reversed?
-         <button type="button" disabled={busy||new Date(t.created_at).getTime()<Date.now()-72*60*60*1000} className="inline-table-button" onClick={()=>reverseTransaction(t)}>Revertir</button>:
-         <span title={t.reversal_reason||"Movimiento ya corregido"} className="table-pill inactive">{t.kind==="reversal"?"Registrado":"Corregido"}</span>}</td>
-      </tr>})}</tbody></table></div>
-   </div>
- </div>}
+     <nav className="business-card-tabs owner-data-tabs" aria-label="Datos del negocio">
+      <Link href="/negocio/reports" className={dataArea==="summary"?"active":""} aria-current={dataArea==="summary"?"page":undefined}><BarChart3 size={16}/> Resumen</Link>
+      <Link href="/negocio/transactions" className={dataArea==="transactions"?"active":""} aria-current={dataArea==="transactions"?"page":undefined}><FileText size={16}/> Transacciones</Link>
+      <Link href="/negocio/customers" className={dataArea==="customers"?"active":""} aria-current={dataArea==="customers"?"page":undefined}><Users size={16}/> Clientes</Link>
+     </nav>
+     {dataArea==="summary"&&<>
+      <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType}/>
+      <EmployeeChart rows={activity} days={periodDays} programType={programType} currency={currency}/>
+     </>}
+     {dataArea==="transactions"&&<TransactionsPanel key={selected} businessId={selected} staff={staff} formatBalance={formatBalance} currency={currency}/>}
+     {dataArea==="customers"&&<CustomerPanel key={selected} businessId={selected} customers={customers} formatBalance={formatBalance} privateEmail={privateEmail}
+      demoStatus={x=>isDemoCustomer(x,biz.slug)?demoMarketingAccepted(x.user_id):null}/>}
+    </div>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">
     <div className="owner-campaign-switch" role="group" aria-label="Tipo de campaña">
      <button type="button" className={campaignMode==="once"?"active":""} onClick={()=>setCampaignMode("once")}>Campañas puntuales</button>
