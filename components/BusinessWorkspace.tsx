@@ -65,7 +65,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const section=pathname.split("/")[2];
  // La ruta pública se llama /negocio/tarjeta, pero el identificador interno es card.
  // Antes caía en Inicio y mostraba sus accesos directos en lugar del editor de tarjeta.
- const tab:Tab=section==="tarjeta"||section==="designer"||section==="program"?"card":section==="customers"||section==="transactions"?"reports":tabs.find(t=>t.id===section)?.id||"overview";
+ const tab:Tab=section==="tarjeta"||section==="designer"||section==="program"?"card":tabs.find(t=>t.id===(section==="customers"||section==="transactions"?"reports":section))?.id||"overview";
  const dataArea=section==="customers"?"customers":section==="transactions"?"transactions":"summary";
  const [cardArea,setCardArea]=useState<CardArea>(section==="program"?"rules":"design");
  function openSection(next:Tab){
