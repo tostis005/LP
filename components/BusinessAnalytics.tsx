@@ -65,7 +65,7 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
  return <section className="owner-data-dashboard">
   <div className="owner-data-heading">
    <div><span className="page-eyebrow">INFORMES</span><h2>Evolución del negocio</h2></div>
-   <label>Periodo <select value={days} onChange={e=>onDays(Number(e.target.value))}><option value={7}>7 días</option><option value={30}>30 días</option><option value={90}>90 días</option></select></label>
+   <label className="owner-period-control">Periodo <select value={days} onChange={e=>onDays(Number(e.target.value))}><option value={7}>7 días</option><option value={30}>30 días</option><option value={90}>90 días</option></select></label>
   </div>
   <div className="owner-kpi-grid">{kpis.map(card=><article key={card.key} className="owner-kpi">
    <span>{card.label}</span><strong>{card.value}</strong>
@@ -86,7 +86,7 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
  </section>;
 }
 
-const rewardColors=["#66283f","#a85e79","#ca927b","#d8bca1","#7775a3","#5a9087","#a4a258","#7596ad"];
+const rewardColors=["#67263e","#187b83","#cf8b22","#5264b3","#a44585","#55813c","#cb5c44","#657585"];
 function RewardDonut({ranking}:{ranking:RankingRow[]}){
  const [active,setActive]=useState<string|null>(null);
  const sorted=ranking.filter(r=>Number(r.redemptions)>0).sort((a,b)=>Number(b.redemptions)-Number(a.redemptions));
