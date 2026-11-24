@@ -19,7 +19,7 @@ const panels=read("components/OwnerDataPanels.tsx");
 const navStart=owner.indexOf('owner-start-links owner-start-primary-links');
 const heroStart=owner.indexOf('className="owner-start-hero"');
 assert.ok(navStart>heroStart&&navStart<owner.indexOf('className="owner-start-card"'),"Business details follow the name and precede the card");
-assert.match(css,/\.workspace-business \.owner-start-primary-links\{[^}]*grid-template-columns:repeat\(2/);
+assert.match(css,/\.workspace-business \.owner-start-primary-links\{[^}]*grid-template-columns:repeat\(3/);
 assert.match(owner,/title="Dirección y ubicación"/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-visual-pill\{[^}]*align-self:flex-end/,"Reward club badge aligns to right card padding");
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-visual-side\{[^}]*align-items:stretch/);
@@ -27,7 +27,7 @@ assert.match(css,/\.stamp-visual-rebalanced \.stamp-visual-side\{[^}]*align-item
 assert.match(owner,/slug==="interno-cafe-noma"&&c\.full_name\?\.includes\("· Demo"\)/,"Simulated marketing status is restricted to example customers");
 assert.match(owner,/n%10<8/,"Most synthetic demo customers may appear opted-in in the mock directory");
 assert.match(panels,/demo\?"Aceptado":"No"/);
-assert.match(panels,/estados «demo» son simulados y no permiten enviar campañas/);
+assert.match(panels,/estados de marketing de los clientes de ejemplo son simulados y no permiten enviar campañas/);
 assert.doesNotMatch(owner,/update\(\{opted_in:true/,"Mock display must never update real permissions");
 assert.match(panels,/c\.marketing_ok\?<span className="table-pill">Aceptado/,"Real consent still takes precedence");
 
