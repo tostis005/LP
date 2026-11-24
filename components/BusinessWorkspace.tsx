@@ -12,6 +12,7 @@ import {db} from "@/lib/supabase";
 import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {StampCard} from "@/components/StampCard";
+import {logoImageUrl} from "@/lib/asset-images";
 import {BUSINESS_CATEGORIES,categoryStampKind} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow,type GrowthRow} from "@/components/BusinessAnalytics";
 import {BusinessAutomationPanel} from "@/components/BusinessAutomationPanel";
@@ -33,6 +34,15 @@ const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"marketing",label:"Campañas",icon:<Mail size={17}/>}
 ];
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
+/** Simulación visual exclusivamente de la muestra; no se registra consentimiento. */
+function isDemoCustomer(c:Customer,slug:string){
+ return slug==="interno-cafe-noma"&&c.full_name?.includes("· Demo");
+}
+function demoMarketingAccepted(userId:string){
+ const n=parseInt(userId.replace(/-/g,"").slice(-2),16);
+ return Number.isFinite(n)&&n%10<8;
+}
+
 type Employee={user_id:string;full_name:string;email:string;role:string;active:boolean};
 type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;membership_id:string;employee_id:string|null;reversal_of:string|null;reversal_reason:string|null};
 type Draft={id:string;subject:string;body_text:string;channel:"email"|"whatsapp"|"push";template_name?:string|null;template_language?:string|null;created_at:string;status:string;recipient_count?:number;sent_count?:number;failed_count?:number};
@@ -197,7 +207,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   setBusy(true);setError("");setNotice("");
   try{
    const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]/g,"-");
-   const key=selected+"/"+(field==="card_background"?"cardbg-":"")+Date.now()+"-"+safe;
+   const key=selected+"/"+(field==="card_background"?"cardbg-":field==="logo_url"?"logo-":"sello-")+Date.now()+"-"+safe;
    const {data:uploaded,error}=await db().storage.from("business-assets").upload(key,file,{contentType:file.type,upsert:false});
    if(error){setError(error.message);return}
    const {data}=db().storage.from("business-assets").getPublicUrl(uploaded?.path||key);
@@ -323,6 +333,11 @@ export default function BusinessWorkspace({account}:{account:Account}){
    </nav>}
 
    {tab==="overview"&&<div className="owner-start">
+     <nav className="owner-start-links owner-start-primary-links" aria-label="Gestiones del negocio">
+      <Link href="/negocio/customers"><Users size={18}/> Clientes</Link>
+      <Link href="/negocio/settings"><Settings2 size={18}/> Información del negocio</Link>
+      <Link href="/negocio/locations"><MapPin size={18}/> Dirección y ubicación</Link>
+     </nav>
      <div className="owner-start-hero"><span className="page-eyebrow">MI NEGOCIO</span>
       <h3>{biz.name}</h3>
       <p>{prog.type==="stamps"?"Programa de sellos":prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"} · {prog.reward_label}</p>
@@ -342,18 +357,13 @@ export default function BusinessWorkspace({account}:{account:Account}){
         </div>}
       </div>
      </section>
-     <nav className="owner-start-links" aria-label="Otras gestiones">
-      <Link href="/negocio/customers"><Users size={16}/> Clientes del negocio</Link>
-      <Link href="/negocio/settings"><Settings2 size={16}/> Información del negocio</Link>
-      <Link href="/negocio/locations"><MapPin size={16}/> Dirección y ubicación</Link>
-     </nav>
     </div>}
    {tab==="settings"&&<div className="settings-grid"><form className="panel-card" onSubmit={e=>{e.preventDefault();saveBusiness({name:biz.name,description:biz.description,category:biz.category,public_listing:biz.public_listing})}}><div className="panel-icon"><Settings2 size={22}/></div><h2>Información del negocio</h2><p className="muted">Así te descubrirán tus clientes.</p><p className="muted">Moneda del establecimiento: <strong>{currency}</strong></p><div className="form-stack"><label>Nombre comercial<input required value={biz.name} onChange={e=>setBiz({...biz,name:e.target.value})}/></label><label>¿Qué tipo de negocio tienes?<select value={biz.category||""} onChange={e=>setBiz({...biz,category:e.target.value})}><option value="">Seleccionar</option>{BUSINESS_CATEGORIES.map(v=><option key={v.name}>{v.name}</option>)}</select></label><div className="business-category-preview"><StampMark kind={categoryStampKind(biz.category)} size={28}/><span>Este es el icono sugerido para tus tarjetas y sellos. Puedes cambiarlo desde «Mi tarjeta». Los marcadores del mapa indican si el cliente ya tiene tu tarjeta.</span></div><label>Descripción<textarea rows={5} maxLength={500} value={biz.description||""} onChange={e=>setBiz({...biz,description:e.target.value})} placeholder="Cuéntales a tus clientes qué hace especial a tu negocio..."/></label><div className="check-control"><input id="public-listing" type="checkbox" checked={biz.public_listing} onChange={e=>setBiz({...biz,public_listing:e.target.checked})}/><label htmlFor="public-listing"><strong>Aparecer en el directorio público</strong><small>Tu negocio podrá descubrirse en el mapa cuando tenga una ubicación.</small></label></div><button className="button button-dark" disabled={busy}>Guardar cambios</button></div></form></div>}
 
    {tab==="card"&&cardArea==="design"&&<div className="designer-grid lp-new-designer">
     <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseño de la tarjeta</h2>
      <div className="form-stack">
-      <div className="owner-card-brand-upload"><div className="owner-card-brand-preview">{biz.logo_url?<img src={biz.logo_url} alt="Logotipo actual del negocio"/>:<span style={{background:biz.accent_color}}>{initials(biz.name)}</span>}</div>
+      <div className="owner-card-brand-upload"><div className="owner-card-brand-preview">{biz.logo_url?<img src={logoImageUrl(biz.logo_url,256)} alt="Logotipo actual del negocio" decoding="async"/>:<span style={{background:biz.accent_color}}>{initials(biz.name)}</span>}</div>
        <div><strong>Logotipo de la tarjeta</strong><small>También se utiliza en la ficha del negocio.</small>
         <label className="file-input"><ImagePlus size={18}/> Subir o cambiar logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label>
         <small>JPG, PNG o WEBP hasta 5 MB. Se guarda al subirlo.</small>
@@ -437,7 +447,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
      </form>
     </>}
    </div>}
-   {tab==="customers"&&<section className="panel-card"><div className="content-heading"><div><h2>Tu comunidad</h2><p>Clientes inscritos y actividad en tu negocio.</p></div><span className="table-pill">{customers.length} clientes</span></div><div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>{customers.map(x=><tr key={x.user_id}><td><strong>{x.full_name||"Sin nombre"}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(x.email)}</code></td><td><b>{formatBalance(x.balance)}</b></td><td>{x.visits}</td><td>{x.marketing_ok?<span className="table-pill">Aceptado</span>:<span className="table-pill inactive">No</span>}</td><td>{dateShort(x.joined_at)}</td></tr>)}</tbody></table></div>{customers.length===0&&<p className="muted">Comparte tu programa para conseguir tus primeros clientes.</p>}</section>}
+   {tab==="customers"&&<section className="panel-card"><div className="content-heading"><div><h2>Tu comunidad</h2><p>Clientes inscritos y actividad en tu negocio.</p></div><span className="table-pill">{customers.length} clientes</span></div>{customers.some(x=>isDemoCustomer(x,biz.slug))&&<p className="owner-demo-consent-hint">Los estados «demo» son simulados y no permiten enviar campañas.</p>}<div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>{customers.map(x=><tr key={x.user_id}><td><strong>{x.full_name||"Sin nombre"}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(x.email)}</code></td><td><b>{formatBalance(x.balance)}</b></td><td>{x.visits}</td><td>{x.marketing_ok?<span className="table-pill">Aceptado</span>:isDemoCustomer(x,biz.slug)?(demoMarketingAccepted(x.user_id)?<span className="table-pill demo-marketing-pill">Aceptado <small>· demo</small></span>:<span className="table-pill inactive">No <small>· demo</small></span>):<span className="table-pill inactive">No</span>}</td><td>{dateShort(x.joined_at)}</td></tr>)}</tbody></table></div>{customers.length===0&&<p className="muted">Comparte tu programa para conseguir tus primeros clientes.</p>}</section>}
    {tab==="locations"&&<div className="business-location-layout">
     <section className="panel-card business-location-intro">
      <div className="panel-icon"><MapPin size={23}/></div><h2>Tu establecimiento</h2>
