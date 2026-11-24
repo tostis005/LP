@@ -9,6 +9,7 @@ import {db} from "@/lib/supabase";
 import {StampGrid} from "@/components/StampMarks";
 import {readableCardText} from "@/lib/customer-card-contrast";
 import {cardBackgroundUrl} from "@/lib/card-images";
+import {logoImageUrl} from "@/lib/asset-images";
 export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
@@ -99,7 +100,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}
   style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(180deg,rgba(0,0,0,.56),rgba(0,0,0,.54) 55%,rgba(0,0,0,.66)),url("+cardBackgroundUrl(business.card_background,720)+")":undefined}}>
   <span className="customer-deck-top">
-   <span className="customer-deck-brand">{business.logo_url?<img src={business.logo_url} alt="" loading="lazy"/>:<span>{initials(business.name)}</span>}</span>
+   <span className="customer-deck-brand">{business.logo_url?<img src={logoImageUrl(business.logo_url,96)} alt="" loading="lazy" decoding="async"/>:<span>{initials(business.name)}</span>}</span>
    <span className="customer-deck-type">{business.category||"Fidelización"}</span>
    <span className="customer-deck-counter">{program?.type==="stamps"&&program.reward_cost>0?Math.min(membership.balance,program.reward_cost)+"/"+program.reward_cost:units(membership.balance,program?.type,business.currency)}</span>
   </span>
@@ -112,7 +113,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20)),url("+cardBackgroundUrl(business.card_background,1200)+")":undefined}}
   type="button" onClick={()=>setOpen(true)} aria-label={"Abrir tarjeta y QR de "+business.name}>
   <div className="lc-card-content">
-   <span className="lc-logo">{business.logo_url?<img src={business.logo_url} alt=""/>:initials(business.name)}</span>
+   <span className="lc-logo">{business.logo_url?<img src={logoImageUrl(business.logo_url,192)} alt="" decoding="async"/>:initials(business.name)}</span>
    <strong className="lc-card-name">{business.name}</strong>
    {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance}
     kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
