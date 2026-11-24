@@ -3,6 +3,7 @@ import {useEffect,useMemo,useState} from "react";
 import {BarChart3,Download,Search,Users} from "lucide-react";
 import {db} from "@/lib/supabase";
 import {units} from "@/lib/format";
+import type {ProgramType} from "@/lib/types";
 export type EmployeeActivity={user_id:string;employee_name:string;operations:number;awarded_units:number;redemptions:number;sales_cents:number;priced_operations:number};
 type Staff={user_id:string;full_name:string;email:string;active:boolean};
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
@@ -16,7 +17,7 @@ function beginning(date:string){return date?new Date(date+"T00:00:00").toISOStri
 const shortDate=(value:string)=>new Date(value).toLocaleDateString("es-MX",{day:"2-digit",month:"short"});
 const fullDate=(value:string)=>new Date(value).toLocaleString("es-MX",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 const money=(value:number,currency:string)=>new Intl.NumberFormat("es-MX",{style:"currency",currency}).format(value/100);
-export function EmployeeChart({rows,days,programType,currency}:{rows:EmployeeActivity[];days:number;programType?:string;currency:string}){
+export function EmployeeChart({rows,days,programType,currency}:{rows:EmployeeActivity[];days:number;programType?:ProgramType;currency:string}){
  const [metric,setMetric]=useState<"awarded_units"|"operations"|"redemptions"|"sales_cents">("awarded_units");
  const unit=programType==="stamps"?"Sellos":programType==="points"?"Puntos":"Saldo";
  const labels={awarded_units:unit,operations:"Compras",redemptions:"Canjes",sales_cents:"Importe"};
