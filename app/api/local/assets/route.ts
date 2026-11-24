@@ -26,19 +26,22 @@ export async function POST(request:Request) {
   if(!expected[file.type]?.includes(ext))throw new ApiError("La extensión no coincide con el tipo de imagen.");
   const image=Buffer.from(await file.arrayBuffer());
   if(!genuine(image,file.type))throw new ApiError("El contenido no corresponde al tipo de imagen indicado.");
-  // Los fondos de tarjeta se guardan ya en formato WEBP y con proporción
-  // de tarjeta bancaria (1.586). Campañas y logos conservan sus archivos.
+  // Convertimos imágenes nuevas al tamaño que necesitan sus componentes.
+  // Los logotipos y sellos conservan la proporción y posible transparencia.
   const isCardBackground=match[2].startsWith("cardbg-");
   const isOfferImage=match[2].startsWith("oferta-");
-  const outputName=(isCardBackground||isOfferImage)?match[2].replace(/\.(png|jpe?g|webp)$/i,".webp"):match[2];
+  const isLogo=match[2].startsWith("logo-");
+  const isStamp=match[2].startsWith("sello-");
+  const outputName=(isCardBackground||isOfferImage||isLogo||isStamp)?match[2].replace(/\.(png|jpe?g|webp)$/i,".webp"):match[2];
   let output:Buffer<ArrayBufferLike>=image;
-  if(isCardBackground||isOfferImage){
+  if(isCardBackground||isOfferImage||isLogo||isStamp){
    try{
     output=await sharp(image,{limitInputPixels:36_000_000,failOn:"error"})
      .rotate()
-     .resize(isCardBackground?1200:1280,isCardBackground?756:900,
+     .resize(isCardBackground?1200:isOfferImage?1280:isLogo?512:192,
+      isCardBackground?756:isOfferImage?900:isLogo?512:192,
       {fit:isCardBackground?"cover":"inside",position:"attention",withoutEnlargement:true})
-     .webp({quality:76,effort:4}).toBuffer();
+     .webp({quality:80,effort:4}).toBuffer();
    }catch{throw new ApiError("No se ha podido procesar la imagen. Prueba con otra foto.");}
   }
   const dir=path.join(process.cwd(),"uploads","business-assets",match[1]);

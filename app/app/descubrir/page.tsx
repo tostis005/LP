@@ -10,6 +10,7 @@ import {db} from "@/lib/supabase";
 import type {Location,Business,Program,Membership} from "@/lib/types";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
 import {cardBackgroundUrl} from "@/lib/card-images";
+import {logoImageUrl} from "@/lib/asset-images";
 import {BUSINESS_CATEGORIES,PROGRAM_TYPES,categoryStampKind} from "@/lib/business-categories";
 import {programPromise} from "@/lib/program-presentation";
 import type {DirectoryPin} from "@/components/DirectoryMap";
@@ -95,7 +96,7 @@ function Discover({account}:{account:Account}){
     <button type="button" className="customer-map-card-close" onClick={()=>setSelectedId(null)} aria-label="Cerrar ficha del negocio"><X size={18}/></button>
     <div className="customer-map-business-heading">
      <div className="customer-map-business-icon" style={{backgroundColor:selected.businesses.accent_color||"#7c2944"}}>
-      {selected.businesses.logo_url?<img src={selected.businesses.logo_url} alt="" loading="lazy"/>:<StampMark kind={selected.businesses.stamp_icon||categoryStampKind(selected.businesses.category)} size={29} color={selected.businesses.stamp_color||"#fff"}/>}
+      {selected.businesses.logo_url?<img src={logoImageUrl(selected.businesses.logo_url,96)} alt="" loading="lazy" decoding="async"/>:<StampMark kind={selected.businesses.stamp_icon||categoryStampKind(selected.businesses.category)} size={29} color={selected.businesses.stamp_color||"#fff"}/>}
      </div>
      <div className="customer-map-business-name"><h2>{selected.businesses.name}</h2><span>{selected.businesses.category||"Negocio local"} · {hasLocation?distance(selected)+" km aprox.":selected.city}</span></div>
      <span className={"customer-map-ownership"+(selectedCard?" owned":"")}>{selectedCard?"La tengo":"Me falta"}</span>
@@ -116,7 +117,7 @@ function Discover({account}:{account:Account}){
     <div className={"directory-card-cover"+(e.businesses.card_background?" has-cover-photo":"")} style={{backgroundColor:e.businesses.accent_color||"#5E1A2B"}}>
      {e.businesses.card_background&&<img className="directory-cover-photo" src={cardBackgroundUrl(e.businesses.card_background,720)} alt="" loading="lazy"/>}
      <div className="directory-cover-top"><span className="directory-cover-category">{e.businesses.category||"Negocio local"}</span>{already&&<span className="joined-badge directory-joined"><Check size={13}/> Ya tienes tarjeta</span>}</div>
-     <div className="directory-cover-brand"><span className="directory-cover-icon">{e.businesses.logo_url?<img src={e.businesses.logo_url} alt={"Logotipo de "+e.businesses.name} loading="lazy"/>:<StampMark kind={e.businesses.stamp_icon||categoryStampKind(e.businesses.category)} size={43} color={e.businesses.stamp_color||"#571c32"}/>}</span></div>
+     <div className="directory-cover-brand"><span className="directory-cover-icon">{e.businesses.logo_url?<img src={logoImageUrl(e.businesses.logo_url,192)} alt={"Logotipo de "+e.businesses.name} loading="lazy" decoding="async"/>:<StampMark kind={e.businesses.stamp_icon||categoryStampKind(e.businesses.category)} size={43} color={e.businesses.stamp_color||"#571c32"}/>}</span></div>
     </div>
     <div className="directory-card-body">
      <div className="directory-card-heading"><strong>{e.businesses.name}</strong></div>

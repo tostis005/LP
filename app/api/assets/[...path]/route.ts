@@ -16,13 +16,16 @@ export async function GET(request:Request,{params}:{params:Promise<{path:string[
   let data:Buffer;
   try{data=await readFile(full)}catch{throw new ApiError("Archivo no encontrado.",404)}
   const width=Number(new URL(request.url).searchParams.get("w")||0);
-  // Las fotos existentes se sirven en tamaño de tarjeta bajo demanda.
-  // Solo se aceptan dos tamaños: el límite evita transformaciones arbitrarias.
+  // Variantes de ancho predefinidas para tarjeta, ofertas, logotipo y sellos.
+  // Los iconos nunca se recortan y las fotos mantienen su tratamiento actual.
   let contentType=mime[ext];
-  if(width===720||width===1200||width===480||width===960){
+  if([96,192,256,512,480,720,960,1200].includes(width)){
    try{
     data=await sharp(data,{limitInputPixels:36_000_000})
-     .rotate().resize(width,width===480||width===960?Math.round(width*.75):Math.round(width/1.586),{fit:width===480||width===960?"inside":"cover",position:"attention",withoutEnlargement:true})
+     .rotate().resize(width,
+      [96,192,256,512].includes(width)?width:width===480||width===960?Math.round(width*.75):Math.round(width/1.586),
+      {fit:[96,192,256,512,480,960].includes(width)?"inside":"cover",
+       position:"attention",withoutEnlargement:true})
      .webp({quality:76,effort:3}).toBuffer();
     contentType="image/webp";
    }catch{throw new ApiError("Imagen no disponible.",404)}
