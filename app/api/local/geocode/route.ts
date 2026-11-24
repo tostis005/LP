@@ -20,7 +20,7 @@ export async function POST(request:Request){
   const now=Date.now();
   if(now-lastLookup<1300)throw new ApiError("Hay muchas búsquedas. Inténtalo de nuevo en unos segundos.",429);
   lastLookup=now;
-  const base=process.env.NEXT_PUBLIC_SITE_URL||"https://169.58.121.198";
+  const base=process.env.NEXT_PUBLIC_SITE_URL||"https://kreyvi.com";
   const u=new URL("https://nominatim.openstreetmap.org/search");
   u.searchParams.set("q",q);u.searchParams.set("format","jsonv2");u.searchParams.set("limit","5");u.searchParams.set("addressdetails","0");
   const r=await fetch(u.toString(),{headers:{
