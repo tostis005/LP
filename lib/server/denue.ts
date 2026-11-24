@@ -63,3 +63,14 @@ export function analyzeDenue(text:string, municipalityFilter="", observe?:(row:O
 export function decodeDenue(buffer:ArrayBuffer){
  try{return new TextDecoder("utf-8",{fatal:true}).decode(buffer);}catch{return new TextDecoder("windows-1252").decode(buffer);}
 }
+
+export function isFoodPilot(code:string){return code.startsWith("7225")||code==="461170"||code==="311520";}
+export function foodPilotImport(text:string,municipalityFilter=""){
+ const missing:Array<Omit<Prospect,"email">&{email:null}>=[];
+ const result=analyzeDenue(text,municipalityFilter,row=>{
+  if(!isFoodPilot(row.activity_code)||row.hasEmail)return;
+  const {hasEmail,hasWebsite,...business}=row;
+  missing.push({...business,email:null});
+ });
+ return {...result,prospects:[...result.prospects.filter(p=>isFoodPilot(p.activity_code)),...missing]};
+}
