@@ -51,7 +51,7 @@ try{
  assert.ok(rewards.filter(x=>['Café latte','Cappuccino','Flat white','Americano'].includes(x.reward_label)).length>=3,"Redemptions use different catalog choices");
  const history=(await q("SELECT * FROM public.business_owner_transactions($1::uuid,NULL,NULL,NULL,NULL,NULL,10,0)",[cafe])).rows;
  assert.equal(history.length,10);
- assert.ok(history.every(x=>/^[^\\s]+(?: [^\\s]\\.)?$/.test(x.customer_name)),"Transaction customer names must be abbreviated");
+ assert.ok(history.every(x=>/^[^\s]+(?: [^\s]\.)?$/.test(x.customer_name)),"Transaction customer names must be abbreviated");
  const masked=(await q("SELECT public.owner_customer_display_name($1) AS n",["Carlos García López · Demo"])).rows[0].n;
  assert.equal(masked,"Carlos G.");
  assert.ok(Number(history[0].total_count)>250,"History queries cover more than the last 250 records");
