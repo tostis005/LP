@@ -335,8 +335,8 @@ export default function BusinessWorkspace({account}:{account:Account}){
    {tab==="overview"&&<div className="owner-start">
      <nav className="owner-start-links owner-start-primary-links" aria-label="Gestiones del negocio">
       <Link href="/negocio/customers"><Users size={18}/> Clientes</Link>
-      <Link href="/negocio/settings"><Settings2 size={18}/> Información del negocio</Link>
-      <Link href="/negocio/locations"><MapPin size={18}/> Dirección y ubicación</Link>
+      <Link href="/negocio/settings" title="Información del negocio"><Settings2 size={18}/> Información</Link>
+      <Link href="/negocio/locations" title="Dirección y ubicación"><MapPin size={18}/> Ubicación</Link>
      </nav>
      <div className="owner-start-hero"><span className="page-eyebrow">MI NEGOCIO</span>
       <h3>{biz.name}</h3>
