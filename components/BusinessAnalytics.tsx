@@ -1,6 +1,6 @@
 "use client";
 import {useState} from "react";
-import {ArrowDownRight,ArrowUpRight,Gift,Users} from "lucide-react";
+import {ArrowDownRight,ArrowUpRight,Gift,Users,UserRoundCheck,Percent} from "lucide-react";
 import {reportDateLabel} from "@/lib/report-date";
 export type MetricRow={metric:string;current_value:number;previous_value:number};
 export type RankingRow={reward_label:string;redemptions:number;retail_cents:number;cost_cents:number;unpriced:number};
@@ -26,12 +26,11 @@ function MiniChart({title,description,rows,field}:{title:string;description:stri
  return <section className="panel-card owner-growth-chart" aria-label={title}>
   <div className="owner-growth-chart-head">
    <div><h3>{title}</h3><p>{description}</p>
-    {chosen&&<div className="owner-growth-picked" role="status" aria-live="polite">
-     <span>{reportDateLabel(chosen.bucket_start)}</span>
-     <strong>{integer(chosenValue)} {field==="new_customers"?"altas":"clientes"}</strong>
-    </div>}
    </div>
    {field==="new_customers"&&<strong>{integer(sum)}</strong>}
+  </div>
+  <div className="owner-growth-picked" role="status" aria-live="polite">
+   {chosen?<><span>{reportDateLabel(chosen.bucket_start)}</span><strong>{integer(chosenValue)} {field==="new_customers"?"altas":"clientes"}</strong></>:<span className="owner-growth-hint">Selecciona una barra para ver el dato</span>}
   </div>
   <div className="owner-growth-bars" aria-label={"Selecciona una barra para ver el valor de "+title.toLowerCase()}>
    {rows.map((r,i)=><div key={r.bucket_start} className="owner-growth-bar-col">
@@ -76,8 +75,10 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
    <MiniChart title="Nuevos clientes" description="Altas por periodo" rows={growth} field="new_customers"/>
    <MiniChart title="Clientes habituales activos" description="Con compras recurrentes" rows={growth} field="habitual_customers"/>
   </div>
-  <div className="owner-data-secondary">
-   <div className="owner-data-stat"><Users size={20}/><div><strong>{integer(repeatCustomers)}</strong><span>Clientes recurrentes históricos: 2 o más visitas desde que se inscribieron ({totalCustomers} tarjetas)</span></div></div>
+  <div className="owner-data-secondary" aria-label="Indicadores históricos de clientes">
+   <div className="owner-data-stat"><Users size={22}/><div><strong>{integer(totalCustomers)}</strong><span>Clientes registrados</span><small>Total histórico de tarjetas</small></div></div>
+   <div className="owner-data-stat"><UserRoundCheck size={22}/><div><strong>{integer(repeatCustomers)}</strong><span>Clientes recurrentes</span><small>2 o más visitas · Histórico</small></div></div>
+   <div className="owner-data-stat"><Percent size={22}/><div><strong>{totalCustomers?new Intl.NumberFormat("es-ES",{style:"percent",maximumFractionDigits:1}).format(repeatCustomers/totalCustomers):"—"}</strong><span>Tasa de recurrencia</span><small>Clientes recurrentes / registrados</small></div></div>
   </div>
   <section className="panel-card owner-ranking"><h3><Gift size={18}/> Recompensas canjeadas</h3>
    <RewardDonut ranking={ranking}/>

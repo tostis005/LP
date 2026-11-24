@@ -989,3 +989,49 @@
  .workspace-business .owner-data-filters select{padding-right:26px;background-position:right 6px center}
  .workspace-business .owner-tx-detail>.button{margin-left:0}
 }
+
+/* Los valores interactivos no modifican la altura ni el tamaño del gráfico. */
+.owner-growth-chart .owner-growth-bar-track,
+.owner-growth-chart .owner-growth-bar-track:hover,
+.owner-growth-chart .owner-growth-bar-track:focus,
+.owner-growth-chart .owner-growth-bar-track:active{
+ box-sizing:border-box;flex:0 0 145px;height:145px;min-height:145px;max-height:145px;
+ padding:0;border:0;transform:none;transition:none
+}
+.owner-growth-chart .owner-growth-bar-track.is-selected{box-shadow:none}
+.owner-growth-chart .owner-growth-bar-track.is-selected>span.signup,
+.owner-growth-chart .owner-growth-bar-track.is-selected>span.habitual{filter:brightness(1.08)}
+.owner-growth-chart .owner-growth-bar-track:focus-visible{outline:2px solid var(--color-brand);outline-offset:1px}
+.owner-growth-picked{
+ box-sizing:border-box;height:26px;min-height:26px;max-height:26px;
+ margin:8px 0 0;display:flex;align-items:center;flex-wrap:nowrap;gap:7px;
+ white-space:nowrap;overflow:hidden
+}
+.owner-growth-hint{font-weight:500;color:var(--color-text-2);font-size:11px;white-space:normal;line-height:1.15}
+.owner-growth-chart .owner-growth-bars{margin-top:10px}
+.owner-customers-panel .owner-growth-chart .owner-growth-bars{margin-top:19px}
+.owner-data-secondary .owner-data-stat{align-items:flex-start;min-width:0}
+.owner-data-stat>svg{margin-top:4px}
+.owner-data-stat>div{gap:4px}
+.owner-data-stat>div>span{font-size:12px;font-weight:750;color:var(--color-text)}
+.owner-data-stat>div>small{font-size:11px;line-height:1.35;color:var(--color-text-2)}
+/* El panel sigue a ancho completo; el anillo y su leyenda forman un bloque centrado. */
+.owner-ranking .owner-reward-donut{
+ width:100%;max-width:650px;margin:12px auto 4px;
+ grid-template-columns:minmax(145px,220px) minmax(0,1fr);
+ gap:24px
+}
+.owner-ranking .owner-reward-donut svg{max-width:220px}
+.owner-ranking .owner-reward-legend{min-width:0;gap:4px}
+.owner-ranking .owner-legend-row{
+ grid-template-columns:12px minmax(0,1fr) minmax(30px,auto) 53px;
+ gap:10px;width:100%;min-width:0;padding:10px 8px;box-sizing:border-box
+}
+.owner-ranking .owner-legend-row>span:nth-child(2){overflow-wrap:anywhere}
+.owner-ranking .owner-legend-row>strong{text-align:right;white-space:nowrap}
+@media(max-width:640px){
+ .owner-ranking .owner-reward-donut{grid-template-columns:1fr;max-width:370px;gap:8px}
+ .owner-ranking .owner-reward-donut svg{max-width:185px}
+ .owner-data-secondary{grid-template-columns:1fr;gap:8px}
+ .owner-data-secondary .owner-data-stat{padding:13px}
+}
