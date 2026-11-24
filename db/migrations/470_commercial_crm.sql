@@ -44,3 +44,14 @@ CREATE POLICY crm_import_admin_only ON public.crm_import_runs FOR ALL TO authent
  USING (public.is_platform_admin()) WITH CHECK (public.is_platform_admin());
 GRANT SELECT, INSERT ON public.crm_import_runs TO authenticated;
 REVOKE ALL ON public.crm_import_runs FROM anon, PUBLIC;
+
+-- Persistent exclusion by address, even if a later import contains another outlet.
+CREATE TABLE public.crm_email_exclusions (
+ email text PRIMARY KEY CHECK (email=lower(email)),
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.crm_email_exclusions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY crm_exclusions_admin_only ON public.crm_email_exclusions FOR ALL TO authenticated
+ USING (public.is_platform_admin()) WITH CHECK (public.is_platform_admin());
+GRANT SELECT,INSERT ON public.crm_email_exclusions TO authenticated;
+REVOKE ALL ON public.crm_email_exclusions FROM anon, PUBLIC;
