@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from "react";
 import {BarChart3,Download,Search,Users} from "lucide-react";
 import {db} from "@/lib/supabase";
-import {units} from "@/lib/format";
+import {units,dateShort,customerDisplayName} from "@/lib/format";
 import type {ProgramType} from "@/lib/types";
 export type EmployeeActivity={user_id:string;employee_name:string;operations:number;awarded_units:number;redemptions:number;sales_cents:number;priced_operations:number};
 type Staff={user_id:string;full_name:string;email:string;active:boolean};
@@ -34,7 +34,7 @@ export function EmployeeChart({rows,days,programType,currency}:{rows:EmployeeAct
 function csvCell(v:unknown){let s=String(v??"");if(/^[\s]*[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"'}
 function downloadCsv(rows:Tx[],currency:string){
  const header=["Fecha","Cliente","Empleado","Operación","Unidades","Ticket","Compra","Recompensa","Estado","Motivo"];
- const data=rows.map(t=>[fullDate(t.created_at),t.customer_name,t.employee_name,txLabel(t),t.amount_delta,t.ticket_ref,t.purchase_cents==null?"":money(t.purchase_cents,currency),t.reward_label,t.reversed?"Revertida":"Registrada",t.reversal_reason]);
+ const data=rows.map(t=>[fullDate(t.created_at),customerDisplayName(t.customer_name),t.employee_name,txLabel(t),t.amount_delta,t.ticket_ref,t.purchase_cents==null?"":money(t.purchase_cents,currency),t.reward_label,t.reversed?"Revertida":"Registrada",t.reversal_reason]);
  const csv="\uFEFF"+[header,...data].map(r=>r.map(csvCell).join(";")).join("\r\n");
  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));const a=document.createElement("a");a.href=url;a.download="transacciones-"+localDate(new Date())+".csv";a.click();URL.revokeObjectURL(url);
 }
@@ -69,12 +69,12 @@ export function TransactionsPanel({businessId,staff,formatBalance,currency}:{bus
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
  return <section className="panel-card owner-transactions"><div className="content-heading"><div><h2>Transacciones</h2><p className="muted">Historial y correcciones</p></div><button type="button" className="button button-outline button-sm" disabled={!total||busy||loading} onClick={()=>void exportAll()}><Download size={16}/> CSV</button></div>
-  <div className="owner-data-filters">
+  <div className="owner-data-filters owner-transaction-filters">
    <label>Desde<input type="date" value={from} onChange={e=>{setPage(0);setFrom(e.target.value)}}/></label>
    <label>Hasta<input type="date" value={to} onChange={e=>{setPage(0);setTo(e.target.value)}}/></label>
    <label>Empleado<select value={employee} onChange={e=>{setPage(0);setEmployee(e.target.value)}}><option value="">Todos</option>{staff.map(s=><option key={s.user_id} value={s.user_id}>{s.full_name||s.email}{s.active?"":" (inactivo)"}</option>)}</select></label>
    <label>Operación<select value={kind} onChange={e=>{setPage(0);setKind(e.target.value)}}><option value="">Todas</option><option value="earn">Compras</option><option value="redeem">Canjes</option><option value="reversal">Correcciones</option></select></label>
-   <label className="owner-filter-search"><span><Search size={15}/> Cliente o ticket</span><input value={search} maxLength={120} placeholder="Buscar..." onChange={e=>setSearch(e.target.value)}/></label>
+   <label className="owner-filter-search"><span><Search size={15}/> Cliente o ticket</span><input value={search} maxLength={120} placeholder="Ej. Carlos G. o ticket" onChange={e=>setSearch(e.target.value)}/></label>
   </div>
   {error&&<div className="alert error" role="alert">{error}</div>}
   <p className="muted" role="status">{loading?"Buscando movimientos...":count(total)+" operaciones encontradas"}</p>
@@ -87,13 +87,17 @@ export function TransactionsPanel({businessId,staff,formatBalance,currency}:{bus
  </section>;
 }
 function TransactionRows({t,expanded,toggle,formatBalance,currency,busy,reverse}:{t:Tx;expanded:boolean;toggle:()=>void;formatBalance:(v:number)=>string;currency:string;busy:boolean;reverse:()=>void}){
- return <><tr><td>{fullDate(t.created_at)}</td><td>{t.customer_name||"—"}</td><td>{t.employee_name||"—"}</td><td>{txLabel(t)}{t.reversed?" · Revertida":""}</td><td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td><td>{t.purchase_cents==null?"—":money(t.purchase_cents,currency)}</td><td><button type="button" className="inline-table-button" aria-expanded={expanded} onClick={toggle}>{expanded?"Cerrar":"Ver"}</button></td></tr>
- {expanded&&<tr><td colSpan={7}><div className="owner-tx-detail"><span>Ticket: {t.ticket_ref||"—"}</span><span>Recompensa: {t.reward_label||"—"}</span>{t.reversal_reason&&<span>Motivo: {t.reversal_reason}</span>}
+ return <><tr><td>{fullDate(t.created_at)}</td><td>{customerDisplayName(t.customer_name)}</td><td>{t.employee_name||"—"}</td><td>{txLabel(t)}{t.reversed?" · Revertida":""}</td><td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td><td>{t.purchase_cents==null?"—":money(t.purchase_cents,currency)}</td><td><button type="button" className="inline-table-button" aria-expanded={expanded} onClick={toggle}>{expanded?"Cerrar":"Ver detalle"}</button></td></tr>
+ {expanded&&<tr><td colSpan={7}><div className="owner-tx-detail">{(t.kind==="earn"||t.ticket_ref)&&<span><small>Ticket</small><strong>{t.ticket_ref||"No registrado"}</strong></span>}
+ {t.kind==="redeem"&&<span><small>Recompensa</small><strong>{t.reward_label||"No especificada"}</strong></span>}
+ {t.kind==="reversal"&&<span><small>Motivo de la corrección</small><strong>{t.reversal_reason||"No registrado"}</strong></span>}
+ {t.reversed&&<span><small>Estado</small><strong>Movimiento revertido</strong></span>}
+ {t.kind!=="reversal"&&!t.reversed&&Date.parse(t.created_at)<Date.now()-72*3600000&&<span><small>Corrección</small><strong>Plazo de 72 horas vencido</strong></span>}
  {t.kind!=="reversal"&&!t.reversed&&<button type="button" className="button button-outline button-sm" disabled={busy||Date.parse(t.created_at)<Date.now()-72*3600000} onClick={reverse}>Revertir movimiento</button>}</div></td></tr>}</>;
 }
 export function CustomerPanel({businessId,customers,formatBalance,privateEmail,demoStatus}:{businessId:string;customers:Customer[];formatBalance:(n:number)=>string;privateEmail:(s:string)=>string;demoStatus:(c:Customer)=>boolean|null}){
  const [days,setDays]=useState(180),[mode,setMode]=useState<"new"|"total">("total"),[activity,setActivity]=useState<CustomerActivity[]>([]),[activityError,setActivityError]=useState(""),[activityReady,setActivityReady]=useState(false);
- const [search,setSearch]=useState(""),[from,setFrom]=useState(""),[to,setTo]=useState(""),[visit,setVisit]=useState(""),[marketing,setMarketing]=useState(""),[page,setPage]=useState(0),[selectedBar,setSelectedBar]=useState<number|null>(null);
+ const [from,setFrom]=useState(""),[to,setTo]=useState(""),[visit,setVisit]=useState(""),[marketing,setMarketing]=useState(""),[page,setPage]=useState(0),[selectedBar,setSelectedBar]=useState<number|null>(null);
  useEffect(()=>{let live=true;setActivityReady(false);db().rpc("business_owner_customer_activity",{p_business:businessId}).then(r=>{if(!live)return;if(r.error)setActivityError(r.error.message);else{setActivity((r.data||[]) as CustomerActivity[]);setActivityError("");setActivityReady(true)}});return()=>{live=false}},[businessId]);
  const visits=useMemo(()=>new Map(activity.map(a=>[a.user_id,a])),[activity]);
  const recentCutoff=new Date();recentCutoff.setDate(recentCutoff.getDate()-30);
@@ -111,31 +115,30 @@ export function CustomerPanel({businessId,customers,formatBalance,privateEmail,d
  const filtered=customers.filter(c=>{
   const joined=Date.parse(c.joined_at);const last=visits.get(c.user_id)?.last_visit;
   const old=last?Date.parse(last)<now-30*86400000:joined<now-30*86400000;
-  const term=search.trim().toLocaleLowerCase();
-  return (!term||c.full_name?.toLocaleLowerCase().includes(term)||privateEmail(c.email).toLocaleLowerCase().includes(term))&&(!from||joined>=Date.parse(beginning(from)!))&&(!to||joined<Date.parse(endExclusive(to)!))&&
-   (!visit||visit==="repeat"&&Number(c.visits)>=2||visit==="inactive"&&activityReady&&old||visit==="active"&&activityReady&&!!last&&!old||visit==="never"&&activityReady&&!last)&&(!marketing||marketing==="yes"&&c.marketing_ok||marketing==="no"&&!c.marketing_ok);
+  const displayedConsent=c.marketing_ok||(demoStatus(c)??false);
+  return (!from||joined>=Date.parse(beginning(from)!))&&(!to||joined<Date.parse(endExclusive(to)!))&&
+   (!visit||visit==="repeat"&&Number(c.visits)>=2||visit==="inactive"&&activityReady&&old||visit==="active"&&activityReady&&!!last&&!old||visit==="never"&&activityReady&&!last)&&(!marketing||marketing==="yes"&&displayedConsent||marketing==="no"&&!displayedConsent);
  }).sort((a,b)=>Date.parse(b.joined_at)-Date.parse(a.joined_at));
  const pageSize=25;const currentPage=Math.min(page,Math.max(0,Math.ceil(filtered.length/pageSize)-1));
  return <div className="owner-customers-panel">
   <section className="panel-card"><div className="content-heading"><div><h2><Users size={20}/> Tu comunidad</h2><p className="muted">Altas y actividad de tus clientes</p></div></div>
-   <div className="owner-customer-kpis">{[{label:"Clientes registrados",value:count(customers.length)},{label:"Altas este mes",value:count(newMonth)},{label:"Recurrentes históricos",value:count(repeat)},{label:"Sin visitas en 30 días",value:activityReady?count(inactive):"—"}].map(k=><div key={k.label}><span>{k.label}</span><strong>{k.value}</strong></div>)}</div>
-   <div className="owner-customer-chart-head"><h3>Evolución de clientes</h3><label>Periodo <select value={days} onChange={e=>{setDays(Number(e.target.value));setSelectedBar(null)}}>{[7,30,90,180].map(d=><option key={d} value={d}>{d} días</option>)}</select></label></div>
+   <div className="owner-kpi-grid owner-customer-kpis">{[{label:"Clientes registrados",value:count(customers.length)},{label:"Altas este mes",value:count(newMonth)},{label:"Recurrentes históricos",value:count(repeat)},{label:"Sin visitas en 30 días",value:activityReady?count(inactive):"—"}].map(k=><article className="owner-kpi" key={k.label}><span>{k.label}</span><strong>{k.value}</strong></article>)}</div>
+   <div className="owner-customer-chart-head"><h3>Evolución de clientes</h3><label className="owner-period-control">Periodo <select value={days} onChange={e=>{setDays(Number(e.target.value));setSelectedBar(null)}}>{[7,30,90,180].map(d=><option key={d} value={d}>{d} días</option>)}</select></label></div>
    <div className="owner-metric-switch"><button type="button" className={mode==="total"?"active":""} aria-pressed={mode==="total"} onClick={()=>{setMode("total");setSelectedBar(null)}}>Acumulados</button><button type="button" className={mode==="new"?"active":""} aria-pressed={mode==="new"} onClick={()=>{setMode("new");setSelectedBar(null)}}>Nuevas altas</button></div>
    <div className="owner-growth-chart"><div className="owner-growth-bars">{chart.map((b,i)=><div className="owner-growth-bar-col" key={i}><button type="button" className={"owner-growth-bar-track"+(selectedBar===i?" is-selected":"")} aria-label={b.label+": "+count(b.value)} aria-pressed={selectedBar===i} onClick={()=>setSelectedBar(i)} onFocus={()=>setSelectedBar(i)} onPointerEnter={()=>setSelectedBar(i)}><span className="signup" style={{height:(b.value?Math.max(6,b.value/max*100):0)+"%"}}/>{selectedBar===i&&<span className="owner-growth-bar-tooltip">{count(b.value)}</span>}</button><small>{b.label}</small></div>)}</div></div>
    <p className="muted">{mode==="total"?"Clientes registrados hasta el final de cada periodo.":"Nuevos clientes inscritos en cada periodo."}</p>
   </section>
   <section className="panel-card"><div className="content-heading"><h3>Listado de clientes</h3><span className="table-pill">{filtered.length} clientes</span></div>
    <div className="owner-data-filters">
-    <label className="owner-filter-search">Buscar cliente<input value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Nombre o email visible"/></label>
     <label>Alta desde<input type="date" value={from} onChange={e=>{setFrom(e.target.value);setPage(0)}}/></label>
     <label>Alta hasta<input type="date" value={to} onChange={e=>{setTo(e.target.value);setPage(0)}}/></label>
     <label>Actividad<select value={visit} onChange={e=>{setVisit(e.target.value);setPage(0)}}><option value="">Todos</option><option value="repeat">2 o más visitas</option><option value="active" disabled={!activityReady}>Visita en 30 días</option><option value="inactive" disabled={!activityReady}>Sin visitas en 30 días</option><option value="never" disabled={!activityReady}>Nunca ha visitado</option></select></label>
-    <label>Marketing real<select value={marketing} onChange={e=>{setMarketing(e.target.value);setPage(0)}}><option value="">Todos</option><option value="yes">Aceptado</option><option value="no">No aceptado</option></select></label>
+    <label>Marketing<select value={marketing} onChange={e=>{setMarketing(e.target.value);setPage(0)}}><option value="">Todos</option><option value="yes">Aceptado</option><option value="no">No aceptado</option></select></label>
    </div>
    {activityError&&<p className="alert error">{activityError}</p>}
-   {customers.some(c=>demoStatus(c)!==null)&&<p className="owner-demo-consent-hint">Los estados «demo» son simulados y no permiten enviar campañas.</p>}
+   {customers.some(c=>demoStatus(c)!==null)&&<p className="owner-demo-consent-hint">En Café Noma, los estados de marketing de los clientes de ejemplo son simulados y no permiten enviar campañas.</p>}
    <div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Última visita</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>
-    {filtered.slice(currentPage*pageSize,(currentPage+1)*pageSize).map(c=>{const demo=demoStatus(c),last=visits.get(c.user_id)?.last_visit;return <tr key={c.user_id}><td><strong>{c.full_name||"Sin nombre"}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(c.email)}</code></td><td><b>{formatBalance(c.balance)}</b></td><td>{c.visits}</td><td>{last?shortDate(last):"—"}</td><td>{c.marketing_ok?<span className="table-pill">Aceptado</span>:demo!==null?<span className={"table-pill "+(demo?"demo-marketing-pill":"inactive")}>{demo?"Aceptado":"No"} <small>· demo</small></span>:<span className="table-pill inactive">No</span>}</td><td>{shortDate(c.joined_at)}</td></tr>})}
+    {filtered.slice(currentPage*pageSize,(currentPage+1)*pageSize).map(c=>{const demo=demoStatus(c),last=visits.get(c.user_id)?.last_visit;return <tr key={c.user_id}><td><strong>{customerDisplayName(c.full_name)}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(c.email)}</code></td><td><b>{formatBalance(c.balance)}</b></td><td>{c.visits}</td><td>{last?dateShort(last):"—"}</td><td>{c.marketing_ok?<span className="table-pill">Aceptado</span>:demo!==null?<span title="Estado simulado de ejemplo; no concede permiso de envío" className={"table-pill "+(demo?"demo-marketing-pill":"inactive")}>{demo?"Aceptado":"No"}</span>:<span className="table-pill inactive">No</span>}</td><td>{dateShort(c.joined_at)}</td></tr>})}
    </tbody></table></div>
    {!filtered.length&&<p className="muted">No hay clientes que coincidan con los filtros.</p>}
    <div className="owner-data-pagination"><button type="button" className="button button-outline button-sm" disabled={currentPage===0} onClick={()=>setPage(currentPage-1)}>Anterior</button><span>Página {currentPage+1} de {Math.max(1,Math.ceil(filtered.length/pageSize))}</span><button type="button" className="button button-outline button-sm" disabled={(currentPage+1)*pageSize>=filtered.length} onClick={()=>setPage(currentPage+1)}>Siguiente</button></div>
