@@ -20,7 +20,7 @@ export async function GET(request:Request){
    const where:string[]=[],args:unknown[]=[];
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
-    const v=p.get(col);if(v)add(col,v.slice(0,120));
+    const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520'))");}else if(v)add(col,v.slice(0,120));
    }
    const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("(name ILIKE $"+args.length+" OR email ILIKE $"+args.length+")");}
    const filter=where.length?" WHERE "+where.join(" AND "):"";
