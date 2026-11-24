@@ -63,6 +63,7 @@ export async function POST(request:Request){
      [JSON.stringify(batch)]);
     changed+=result.rowCount||0;
    }
+   await c.query("UPDATE public.crm_prospects p SET status='do_not_contact',updated_at=now() WHERE p.status<>'do_not_contact' AND EXISTS (SELECT 1 FROM public.crm_email_exclusions e WHERE e.email=lower(p.email))");
    await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[file.name.slice(0,240),JSON.stringify(data.report)]);
    return changed;
   });
@@ -78,7 +79,10 @@ export async function PATCH(request:Request){
   await admin(request,async c=>{
    const r=await c.query("UPDATE public.crm_prospects SET status=$2,notes=$3,updated_at=now() WHERE id=$1::uuid AND (status<>'do_not_contact' OR $2='do_not_contact') RETURNING id",[v.id,v.status,v.notes]);
    if(!r.rowCount)throw new ApiError("Contacto no encontrado o excluido de comunicaciones.",404);
-   if(v.status==="do_not_contact")await c.query("UPDATE public.crm_prospects SET status='do_not_contact',updated_at=now() WHERE lower(email)=(SELECT lower(email) FROM public.crm_prospects WHERE id=$1::uuid)",[v.id]);
+   if(v.status==="do_not_contact"){
+    await c.query("INSERT INTO public.crm_email_exclusions(email) SELECT lower(email) FROM public.crm_prospects WHERE id=$1::uuid ON CONFLICT DO NOTHING",[v.id]);
+    await c.query("UPDATE public.crm_prospects SET status='do_not_contact',updated_at=now() WHERE lower(email)=(SELECT lower(email) FROM public.crm_prospects WHERE id=$1::uuid)",[v.id]);
+   }
   });
   return Response.json({ok:true},{headers});
  }catch(e){return responseError(e);}
