@@ -26,3 +26,12 @@ test("municipality and locality separation, duplicate ID and shared email counts
 });
 test("specific autowash rule precedes wider auto repair category",()=>assert.equal(categoryFor("811192"),"Autolavados"));
 test("unknown headers are rejected",()=>assert.throws(()=>analyzeDenue("name,email\nx,y")));
+
+test("market analysis observes missing addresses without exposing email values",()=>{
+ const seen=[];
+ analyzeDenue(csv,"02003",row=>seen.push(row));
+ assert.equal(seen.length,3);
+ assert.equal(seen.filter(r=>r.hasEmail).length,2);
+ assert.equal(seen.filter(r=>!r.hasEmail).length,1);
+ assert.equal(seen.some(r=>"email" in r),false);
+});
