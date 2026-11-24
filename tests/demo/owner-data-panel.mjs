@@ -1,0 +1,20 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
+const owner=read("components/BusinessWorkspace.tsx"),frame=read("components/AppFrame.tsx"),data=read("components/BusinessAnalytics.tsx"),panels=read("components/OwnerDataPanels.tsx"),sql=read("db/migrations/440_owner_data_panel.sql"),api=read("lib/server/data-api.ts");
+const home=owner.slice(owner.indexOf('{tab==="overview"&&'),owner.indexOf('{tab==="settings"&&'));
+assert.doesNotMatch(home,/negocio\/customers/);
+assert.match(home,/negocio\/settings/);assert.match(home,/negocio\/locations/);
+assert.match(frame,/label:"Datos",icon:<BarChart3/);
+for(const tab of ["reports","transactions","customers"])assert.ok(owner.includes('href="/negocio/'+tab+'"'));
+assert.match(data,/RewardDonut/);assert.match(data,/strokeDasharray/);
+assert.match(panels,/EmployeeChart/);assert.match(panels,/sales_cents/);
+assert.match(panels,/p_offset:page\*pageSize/);assert.match(panels,/manager_reverse_transaction/);
+assert.match(panels,/72\*3600000/);assert.match(panels,/downloadCsv/);
+assert.match(panels,/last_visit/);assert.match(panels,/Nuevas altas/);assert.match(panels,/Acumulados/);
+for(const rpc of ["business_owner_activity","business_owner_transactions","business_owner_customer_activity"]){assert.ok(api.includes(rpc));assert.ok(sql.includes(rpc))}
+assert.match(sql,/is_business_manager\(p_business\)/);
+assert.match(sql,/count\(\*\) OVER\(\)/);assert.match(sql,/LIMIT p_limit OFFSET p_offset/);
+assert.match(sql,/b.slug='interno-cafe-noma'/);assert.match(sql,/FOR i IN 1\.\.6 LOOP/);assert.match(sql,/FOR i IN 1\.\.4 LOOP/);
+assert.doesNotMatch(sql,/INSERT INTO public\.marketing_consents/);
+console.log("OK: three owner data views, real queries, pagination, audit-safe corrections and isolated demo data.");
