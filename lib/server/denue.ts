@@ -29,7 +29,7 @@ const validEmail=(v:string)=>v.length<=254&&/^[^\s@,;<>]+@[a-z0-9](?:[a-z0-9.-]*
 type Counts={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
 type Geo=Counts & {state:string;municipality:string;city:string;state_code:string;municipality_code:string;locality_code:string};
 const blank=():Counts=>({total:0,relevant:0,withEmail:0,missingOrInvalidEmail:0,uniqueEmails:0});
-export function analyzeDenue(text:string, municipalityFilter=""){
+export function analyzeDenue(text:string, municipalityFilter="", observe?:(row:Omit<Prospect,"email">&{hasEmail:boolean;hasWebsite:boolean})=>void){
  const prospects:Prospect[]=[], seen=new Set<string>(), unique=new Set<string>();
  const total=blank(), byCity=new Map<string,Geo>(), bySector=new Map<string,Counts>(), cityEmails=new Map<string,Set<string>>(), sectorEmails=new Map<string,Set<string>>();
  let header:string[]|null=null,duplicates=0,skipped=0;
@@ -48,6 +48,7 @@ export function analyzeDenue(text:string, municipalityFilter=""){
   if(!category)return;
   const s=bySector.get(category)||blank();bySector.set(category,s);
   total.relevant++;g.relevant++;s.total++;s.relevant++;
+  if(observe)observe({source_id:id,name,country_code:"MX",state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,website:get("www"),hasEmail:validEmail(email),hasWebsite:!!get("www")});
   if(!validEmail(email)){total.missingOrInvalidEmail++;g.missingOrInvalidEmail++;s.missingOrInvalidEmail++;return;}
   total.withEmail++;g.withEmail++;s.withEmail++;
   unique.add(email);
