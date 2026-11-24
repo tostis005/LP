@@ -10,7 +10,7 @@ export const LANDING_COPY = {
       eyebrow:"FIDELIZACIÓN PARA NEGOCIOS LOCALES",
       title:"Tarjetas de fidelización", accent:"para tu negocio.",
       description:"Crea tarjetas digitales de sellos, puntos o cashback. Gestiona las recompensas desde tu negocio y permite que tus clientes las consulten en su móvil.",
-      primary:"Quiero conocer KREYVI", secondary:"Descubre cómo funciona",
+      primary:"Quiero saber más", secondary:"Descubre cómo funciona",
       foot:"Tus tarjetas, en el móvil.", footBold:"Sin tarjetas de papel.",
       previewLabel:"Así se ve una tarjeta digital",
       myCard:"Mi tarjeta", hello:"Hola, Martina",
@@ -26,7 +26,7 @@ export const LANDING_COPY = {
       coffee:"Cafeterías", restaurants:"Restaurantes", barbers:"Barberías", shops:"Comercios",
     },
     benefits: {
-      eyebrow:"LAS HERRAMIENTAS QUE NECESITAS", first:"Tú creas las recompensas.", second:"KREYVI lleva el control.",
+      eyebrow:"LAS HERRAMIENTAS QUE NECESITAS", first:"Tú creas las recompensas.", second:"Kreyvi lleva el control.",
       intro:"Desde las tarjetas digitales hasta los avisos a tus clientes: todo desde un mismo lugar.",
       items:[
         {title:"Tarjetas digitales",text:"Tus clientes llevan sus sellos y puntos en el móvil."},
@@ -39,7 +39,7 @@ export const LANDING_COPY = {
       eyebrow:"CÓMO FUNCIONA",
       first:"Configura tu programa", second:"y empieza a utilizarlo.",
       intro:"Tres pasos para poner en marcha tus tarjetas digitales.",
-      cta:"Descubre lo que KREYVI puede hacer por ti",
+      cta:"Descubre cómo empezar",
       items:[
         {title:"Crea tu tarjeta",text:"Elige sellos, puntos o cashback y define el premio."},
         {title:"Registra las visitas",text:"Tu equipo escanea el QR y actualiza el saldo del cliente."},
@@ -62,16 +62,16 @@ export const LANDING_COPY = {
       cta:"Quiero fidelizar a mis clientes",
     },
     final: {
-      eyebrow:"EMPIEZA CON KREYVI",
+      eyebrow:"EMPIEZA AHORA",
       first:"Digitaliza tu programa.",second:"Mantén a tus clientes cerca.",
       description:"Solicita información y descubre cómo utilizar tarjetas digitales y recompensas en tu negocio.",
-      primary:"Solicitar información",secondary:"Acceder a KREYVI",
+      primary:"Solicitar información",secondary:"Acceder a mi cuenta",
     },
     footer: {
       tagline:"Fidelización digital para negocios.",
       description:"Sellos, puntos y recompensas en el móvil.",
       benefits:"Ventajas",how:"Cómo funciona",contact:"Contacto",access:"Acceder",
-      goodbye:"Tarjetas digitales KREYVI.",
+      goodbye:"Tarjetas digitales Kreyvi.",
     },
   },
   en: {
@@ -83,7 +83,7 @@ export const LANDING_COPY = {
       eyebrow:"LOYALTY TOOLS FOR LOCAL BUSINESSES",
       title:"Digital loyalty cards", accent:"for your business.",
       description:"Create digital stamp, points or cashback cards. Manage rewards in your business and let customers check their progress on their phone.",
-      primary:"Discover KREYVI", secondary:"See how it works",
+      primary:"Learn more", secondary:"See how it works",
       foot:"Your cards, on their phone.", footBold:"No paper cards needed.",
       previewLabel:"A digital card in action",
       myCard:"My card", hello:"Hi, Martina",
@@ -99,7 +99,7 @@ export const LANDING_COPY = {
       coffee:"Coffee shops", restaurants:"Restaurants", barbers:"Barbershops", shops:"Local shops",
     },
     benefits: {
-      eyebrow:"ALL YOUR LOYALTY TOOLS", first:"You set the rewards.", second:"KREYVI keeps track.",
+      eyebrow:"ALL YOUR LOYALTY TOOLS", first:"You set the rewards.", second:"Kreyvi keeps track.",
       intro:"From digital cards to customer updates, manage it all in one place.",
       items:[
         {title:"Digital loyalty cards",text:"Customers keep their stamps and points on their phone."},
@@ -112,7 +112,7 @@ export const LANDING_COPY = {
       eyebrow:"HOW IT WORKS",
       first:"Set up your program", second:"and start using it.",
       intro:"Three steps to get started with digital loyalty cards.",
-      cta:"See what KREYVI can do for you",
+      cta:"See how to get started",
       items:[
         {title:"Create your card",text:"Choose stamps, points or cashback and set your rewards."},
         {title:"Record visits",text:"Your team scans the QR code to update the customer's balance."},
@@ -135,16 +135,16 @@ export const LANDING_COPY = {
       cta:"Build lasting customer relationships",
     },
     final: {
-      eyebrow:"GET STARTED WITH KREYVI",
+      eyebrow:"GET STARTED TODAY",
       first:"Go digital.",second:"Stay connected.",
       description:"Get in touch to learn how digital cards and rewards can work for your business.",
-      primary:"Get in touch",secondary:"Log in to KREYVI",
+      primary:"Get in touch",secondary:"Log in to my account",
     },
     footer: {
       tagline:"Digital loyalty for local businesses.",
       description:"Stamps, points and rewards on your phone.",
       benefits:"Benefits",how:"How it works",contact:"Contact",access:"Log in",
-      goodbye:"KREYVI digital loyalty cards.",
+      goodbye:"Kreyvi digital loyalty cards.",
     },
   },
 } as const;

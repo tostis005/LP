@@ -60,7 +60,7 @@ const appEntry=readFileSync(new URL("../../app/mi-loyally/page.tsx",import.meta.
 const manifest=readFileSync(new URL("../../app/manifest.ts",import.meta.url),"utf8");
 const rootLayout=readFileSync(new URL("../../app/layout.tsx",import.meta.url),"utf8");
 
-assert.match(landingUi,/KREYVI en mi móvil/,"Consumer-friendly action in the landing");
+assert.match(landingUi,/Kreyvi en mi móvil/,"Consumer-friendly action in the landing");
 assert.match(landingUi,/<InstallGuide lang=\{lang\}\/>/,"The install section stays on the landing");
 assert.match(headerUi,/"La app"/,"The top navigation links to the app");
 assert.match(installUi,/Tus próximos premios/,"The install section is customer-focused");
@@ -78,4 +78,9 @@ assert.match(manifest,/start_url:"\/mi-loyally"/,"The installed icon opens the c
 assert.match(manifest,/display:"standalone"/,"The app has a standalone window");
 assert.doesNotMatch(rootLayout,/<InstallLoyally\/>/,"Remove the old floating install widget");
 
+assert.match(landingCss,/@media\(max-width:650px\)\{\s*\.loi-site \.loi-feature-grid\{grid-template-columns:minmax\(0,1fr\)/,"Mobile benefits use a compact single column");
+assert.match(landingCss,/\.loi-site \.loi-feature\{display:grid;[^}]*min-height:0/,"Mobile feature height follows content");
+assert.match(landingCss,/\.loi-site \.loi-showcase-caption\{position:relative/,"Preview caption has a separate row");
+assert.match(landingUi,/stampColor="#5E1A2B"/,"Coffee stamps use the wine palette");
+assert.match(landingCss,/\.loi-site \.loi-install-app-stamps span\.filled\{background:var\(--color-bg\);border-color:var\(--color-bg\);color:var\(--color-brand\)/,"Install preview coffee stamps are high contrast");
 console.log("Commercial landing: ES/EN copy parity, filled business icon collection and KREYVI mark verified.");

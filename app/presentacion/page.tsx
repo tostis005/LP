@@ -14,10 +14,10 @@ async function language(searchParams:Props["searchParams"]):Promise<LandingLangu
 export async function generateMetadata({searchParams}:Props):Promise<Metadata>{
  const lang=await language(searchParams);
  return lang==="en"?{
-  title:"KREYVI — Give customers a reason to come back",
+  title:"Kreyvi — Give customers a reason to come back",
   description:"Turn every visit into lasting customer relationships. Loyalty experiences and thoughtful rewards for local businesses.",
  }:{
-  title:"KREYVI — Haz que tus clientes vuelvan",
+  title:"Kreyvi — Haz que tus clientes vuelvan",
   description:"Convierte cada visita en una relación duradera. Fidelización y recompensas cercanas para negocios locales.",
  };
 }

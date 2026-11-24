@@ -397,3 +397,31 @@
   width:25px;height:25px;flex-basis:auto;
  }
 }
+
+/* Home: the preview caption occupies its own row, never the phone. */
+.loi-site .loi-hero-showcase{grid-template-rows:auto auto;align-content:center;row-gap:18px;padding:8px 0 22px}
+.loi-site .loi-showcase-caption{position:relative;inset:auto;z-index:1;justify-self:center;text-align:center;line-height:1.4}
+.loi-site .loi-showcase-phone{transform:none}
+.loi-site .loi-showcase-phone .stamp-grid{grid-template-columns:repeat(var(--stamp-columns),minmax(0,34px))}
+.loi-site .loi-showcase-phone .stamp-slot{max-width:34px}
+.loi-site .loi-showcase-phone .stamp-slot.is-filled{background:var(--color-bg);border-color:var(--color-bg)}
+.loi-site .loi-phone-mini-icon{background:var(--color-brand-100);color:var(--color-brand)}
+.loi-site .loi-phone-greeting>span{color:var(--color-brand)}
+.loi-site .loi-showcase-phone>p{color:var(--color-text-2)}
+.loi-site .loi-install-app-stamps span.filled{background:var(--color-bg);border-color:var(--color-bg);color:var(--color-brand)}
+.loi-site .loi-install-app-stamps .kreyv-icon{width:72%;height:72%;max-width:26px;max-height:26px}
+.loi-site .loi-brand-word{display:inline;white-space:nowrap;color:var(--color-brand);font-weight:800;text-transform:none;letter-spacing:normal}
+.loi-site .loi-brand-word>span{color:var(--color-accent)}
+/* Feature cards size to content on phones, with a compact horizontal layout. */
+@media(max-width:650px){
+ .loi-site .loi-feature-grid{grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
+ .loi-site .loi-feature{display:grid;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto auto;column-gap:14px;row-gap:5px;min-height:0;padding:18px 16px;border-radius:16px}
+ .loi-site .loi-feature .loi-feature-icon{grid-column:1;grid-row:1 / 3;width:44px;height:44px;margin:0;border-radius:12px}
+ .loi-site .loi-feature-icon .kreyv-icon{width:23px;height:23px}
+ .loi-site .loi-feature-index{top:18px;right:16px;font-size:10px}
+ .loi-site .loi-feature h3{grid-column:2;margin:0;padding-right:24px;font-size:15px;line-height:1.35}
+ .loi-site .loi-feature p{grid-column:2;font-size:13px;line-height:1.5;margin:0}
+ .loi-site .loi-showcase-phone .stamp-grid{grid-template-columns:repeat(var(--stamp-columns),minmax(0,29px))}
+ .loi-site .loi-showcase-phone .stamp-slot{max-width:29px}
+ .loi-site .loi-hero-showcase{min-height:0;row-gap:14px}
+}
