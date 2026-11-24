@@ -45,3 +45,9 @@ assert.match(css,/\.workspace-content\{width:100%;max-width:none/);
 assert.match(css,/\.campaign-page-final,\.campaign-editor-full/);
 assert.match(css,/\.directory-results-grid>\.directory-card-premium/);
 console.log("OK: Wallet UI hidden, QR PNG retained, menu sections, full width, employee workflow and voluntary consent.");
+
+for(const screen of [access,entry]){
+ assert.match(screen,/Quiero recibir ofertas y novedades<\/strong><\/span><\/label>/,"Short visible opt-in label");
+ assert.match(screen,/<details className="lp-signup-consent-details"><summary>Más información<\/summary>/,"Channel information available on demand");
+ assert.doesNotMatch(screen,/checked=\{marketingOptIn\}[^>]*\brequired\b/,"Marketing stays optional");
+}

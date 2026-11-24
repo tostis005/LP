@@ -72,3 +72,7 @@
 :is(.public-login,.loyal-app-entry) .lp-signup-consent>span{gap:5px}
 :is(.public-login,.loyal-app-entry) .lp-signup-consent small{font-weight:400;font-size:12px;line-height:1.5;color:var(--color-text-2)}
 :is(.public-login,.loyal-app-entry) .lp-signup-consent input[type=checkbox]{width:18px;height:18px;min-height:18px;padding:0}
+
+:is(.public-login,.loyal-app-entry) .lp-signup-consent-details{margin:-8px 0 0 30px;font-size:12px;line-height:1.5;color:var(--color-text-2)}
+.lp-signup-consent-details summary{cursor:pointer;width:fit-content;text-decoration:underline;text-underline-offset:3px}
+.lp-signup-consent-details p{margin:8px 0 0}
