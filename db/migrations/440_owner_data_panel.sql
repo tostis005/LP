@@ -97,7 +97,7 @@ BEGIN
   IF v_option IS NULL THEN
    v_option:=md5(v_business::text||':noma-dashboard-reward:'||i)::uuid;
    INSERT INTO public.reward_options(id,business_id,label,retail_cents,cost_cents,active,position)
-   VALUES(v_option,v_business,v_rewards[i],0,0,true,i) ON CONFLICT(id) DO NOTHING;
+   VALUES(v_option,v_business,v_rewards[i],NULL,NULL,true,i) ON CONFLICT(id) DO NOTHING;
   END IF;
   v_options:=array_append(v_options,v_option);
  END LOOP;
