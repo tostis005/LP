@@ -83,4 +83,13 @@ assert.match(landingCss,/\.loi-site \.loi-feature\{display:grid;[^}]*min-height:
 assert.match(landingCss,/\.loi-site \.loi-showcase-caption\{position:relative/,"Preview caption has a separate row");
 assert.match(landingUi,/stampColor="#5E1A2B"/,"Coffee stamps use the wine palette");
 assert.match(landingCss,/\.loi-site \.loi-install-app-stamps span\.filled\{background:var\(--color-bg\);border-color:var\(--color-bg\);color:var\(--color-brand\)/,"Install preview coffee stamps are high contrast");
+const brandText=readFileSync(new URL("../../components/BrandText.tsx",import.meta.url),"utf8");
+assert.match(brandText,/className="loi-brand-text"/,"Brand copy has its own inline text wrapper");
+assert.doesNotMatch(landingCss,/\.loi-audience-strip\s+span(?:[:\s{])/,"Category styles must never apply to spans inside body copy");
+assert.match(landingCss,/\.loi-site \.loi-brand-text\{display:inline;white-space:normal;font:inherit/,"Sentences wrap and inherit paragraph typography");
+assert.match(landingCss,/\.loi-site \.loi-brand-word\{display:inline-block;white-space:nowrap/,"Kreyvi stays on a single line");
+assert.match(landingCss,/\.loi-site \.loi-brand-word>span\{display:inline;white-space:nowrap/,"Gold letters stay inline");
+assert.doesNotMatch(landingCss,/\.loi-feature:nth-child\(n\) \.loi-feature-icon/,"Desktop icon width must not override mobile grid tracks");
+assert.match(landingCss,/\.loi-site \.loi-feature\{display:grid;grid-template-columns:44px minmax\(0,1fr\);grid-template-rows:auto auto;column-gap:20px/,"Leave a full 20px between icon background and text");
+assert.match(landingCss,/\.loi-site \.loi-feature \.loi-feature-icon\{grid-column:1;grid-row:1 \/ 3;width:44px;height:44px/,"Mobile icon fits its 44px grid column");
 console.log("Commercial landing: ES/EN copy parity, filled business icon collection and KREYVI mark verified.");
