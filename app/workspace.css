@@ -1188,3 +1188,11 @@
  .qr-modal{max-height:calc(100dvh - 16px);padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
  .qr-modal .button-full:last-of-type{margin-bottom:8px}
 }
+
+/* The administration menu is actual page navigation, not local tabs. */
+.workspace-admin .workspace-section-menu>a{display:flex;gap:10px;align-items:center;text-align:left;border:none;background:transparent;border-radius:11px;padding:12px 10px;color:var(--color-brand-500);font-size:12px;font-weight:750;text-decoration:none}
+.workspace-admin .workspace-section-menu>a.active{background:var(--color-brand-100);color:var(--color-brand)}
+.workspace-admin .workspace-section-menu>a:hover:not(.active){background:var(--color-bg);color:var(--color-brand)}
+.workspace-admin .workspace-section-menu>a svg{flex:none}
+.workspace-admin .workspace-section-menu>a:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
+@media(max-width:760px){.workspace-admin .workspace-section-menu>a{white-space:nowrap;flex:none}}
