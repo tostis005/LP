@@ -85,6 +85,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
  useEffect(()=>{if(adminMode)return;try{const stored=window.sessionStorage.getItem("loyally_selected_business");if(stored&&manageable.some(b=>b.business_id===stored))setSelected(stored);}catch{}},[account.user.id,adminMode]);
  const [biz,setBiz]=useState<Business|null>(null),[prog,setProg]=useState<Program|null>(null),[customers,setCustomers]=useState<Customer[]>([]),[staff,setStaff]=useState<Employee[]>([]),[invites,setInvites]=useState<{id:string;email:string;role:string;created_at:string}[]>([]),[locations,setLocations]=useState<Location[]>([]),[drafts,setDrafts]=useState<Draft[]>([]);
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
+  const [defaultRewardCost,setDefaultRewardCost]=useState("");
   const [periodDays,setPeriodDays]=useState(30),[metrics,setMetrics]=useState<MetricRow[]>([]),[growthSummary,setGrowthSummary]=useState<MetricRow[]>([]),[growth,setGrowth]=useState<GrowthRow[]>([]),[ranking,setRanking]=useState<RankingRow[]>([]),[rewardOptions,setRewardOptions]=useState<RewardOption[]>([]);
  const [activity,setActivity]=useState<EmployeeActivity[]>([]);
  const [inviteEmail,setInviteEmail]=useState(""),[inviteRole,setInviteRole]=useState("employee"),[teamView,setTeamView]=useState<"list"|"invite">("list");
@@ -106,7 +107,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   const empty=Promise.resolve({data:[],error:null});
   const forReport=tab==="reports"&&dataArea==="summary",forTeam=tab==="team",forCard=tab==="card";
   const forCampaign=tab==="marketing",forCustomers=tab==="reports"&&dataArea==="customers",forLocations=tab==="locations";
-  const [b,p,c,s,i,l,t,d,a,m,r,o,g,gs]=await Promise.all([
+  const [b,p,c,s,i,l,t,d,a,m,r,o,g,gs,rc]=await Promise.all([
    db().from("businesses").select("*").eq("id",selected).maybeSingle(),
    db().from("loyalty_programs").select("*").eq("business_id",selected).maybeSingle(),
    forReport||forCustomers||forCard?db().rpc("business_customer_directory",{p_business:selected}):empty,
@@ -120,9 +121,11 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
     forReport?db().rpc("business_reward_ranking",{p_business:selected,p_days:periodDays}):empty,
     forCard?db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true}):empty,
      forReport?db().rpc("business_growth_series",{p_business:selected,p_days:periodDays}):empty,
-     forReport?db().rpc("business_growth_summary",{p_business:selected,p_days:periodDays}):empty
+     forReport?db().rpc("business_growth_summary",{p_business:selected,p_days:periodDays}):empty,
+     forCard?db().rpc("business_default_reward_cost",{p_business:selected}):empty
   ]);
-  setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
+  setDefaultRewardCost(rc.data?.[0]?.cost_cents==null?"":String(Number(rc.data[0].cost_cents)/100));
+   setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
   setStaff((s.data||[]) as Employee[]);setInvites(i.data||[]);setLocations((l.data||[]) as Location[]);
   const firstLocation=(l.data||[])[0] as Location|undefined;
   if(firstLocation){setLocationName(firstLocation.name);setAddress(firstLocation.address);setCity(firstLocation.city);setCountry(firstLocation.country);setLat(String(firstLocation.lat));setLng(String(firstLocation.lng))}
@@ -130,7 +133,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   setActivity((a.data||[]) as EmployeeActivity[]);
    setMetrics((m.data||[]) as MetricRow[]);setGrowth((g.data||[]) as GrowthRow[]);setGrowthSummary((gs.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
   if(adminMode&&!b.data&&!b.error)setError("No se encontró este establecimiento.");
-  const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error;
+  const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error||rc.error;
   if(failure)setError(failure.message);
   if(forCampaign){
   const [pricing,used,pushItems]=await Promise.all([
@@ -171,9 +174,11 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
     type:prog.type,reward_label:prog.reward_label,reward_cost:Number(prog.reward_cost),cashback_bps:Number(prog.cashback_bps),
     points_per_euro:Number(prog.points_per_euro),max_stamps_per_action:Number(prog.max_stamps_per_action),
     max_ticket_cents:Number(prog.max_ticket_cents),min_seconds_between_awards:Number(prog.min_seconds_between_awards),
-    max_daily_awards_per_employee:Number(prog.max_daily_awards_per_employee),require_ticket_reference:prog.require_ticket_reference,updated_at:new Date().toISOString()
+    max_daily_awards_per_employee:Number(prog.max_daily_awards_per_employee),require_ticket_reference:prog.require_ticket_reference,require_purchase_amount:prog.type!=="stamps"||!!prog.require_purchase_amount,updated_at:new Date().toISOString()
    }).eq("id",prog.id);
    if(error||count!==1){setError(error?.message||"No se ha guardado el programa. Revisa tus permisos.");return}
+   const cost=await db().rpc("business_save_default_reward_cost",{p_business:selected,p_cost:defaultRewardCost.trim()===""?null:Math.round(Number(defaultRewardCost)*100)});
+   if(cost.error){setError("Reglas guardadas, pero no se pudo guardar el coste: "+cost.error.message);return}
    success("Reglas guardadas. Los saldos y sellos existentes se mantienen.");await reload();
   }finally{setBusy(false)}
  }
@@ -406,12 +411,14 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
    {prog.type==="stamps"&&<div className="form-two"><label>Sellos necesarios para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label><label>Máx. sellos por operación<input type="number" min={1} max={100} value={prog.max_stamps_per_action} onChange={e=>setProg({...prog,max_stamps_per_action:Number(e.target.value)})}/></label></div>}
    {prog.type==="points"&&<div className="form-two"><label>Puntos por cada unidad monetaria ({currency})<input type="number" min={0.01} max={100} step=".01" value={prog.points_per_euro} onChange={e=>setProg({...prog,points_per_euro:Number(e.target.value)})}/></label><label>Puntos para canjear<input type="number" min={1} value={prog.reward_cost} onChange={e=>setProg({...prog,reward_cost:Number(e.target.value)})}/></label></div>}
    {prog.type==="cashback"&&<label>Porcentaje que vuelve como saldo<input type="number" min={0.01} max={100} step=".01" value={prog.cashback_bps/100} onChange={e=>setProg({...prog,cashback_bps:Math.round(Number(e.target.value)*100)})}/><small>El saldo que gana el cliente se calcula automáticamente en cada compra.</small></label>}
-   <div className="form-two"><label>Máximo importe por ticket ({currency})<input type="number" min={1} step=".01" value={prog.max_ticket_cents/100} onChange={e=>setProg({...prog,max_ticket_cents:Math.round(Number(e.target.value)*100)})}/></label><label>Espera mínima entre compras (segundos)<input type="number" min={0} max={86400} value={prog.min_seconds_between_awards} onChange={e=>setProg({...prog,min_seconds_between_awards:Number(e.target.value)})}/></label></div>
+   <div className="check-control"><input id="require-purchase-amount" type="checkbox" checked={prog.type!=="stamps"||!!prog.require_purchase_amount} disabled={prog.type!=="stamps"} onChange={e=>setProg({...prog,require_purchase_amount:e.target.checked})}/><label htmlFor="require-purchase-amount"><strong>Registrar importe de cada compra</strong><small>{prog.type==="stamps"?"Obligatorio en caja si se activa; habilita los informes económicos.":"Obligatorio para calcular puntos o saldo."}</small></label></div>
+    {prog.type!=="cashback"&&<label>Coste interno de la recompensa principal ({currency}, opcional)<input type="number" min="0" max="1000000" step=".01" value={defaultRewardCost} onChange={e=>setDefaultRewardCost(e.target.value)} placeholder="Sin coste registrado"/><small>Lo que te cuesta entregar el premio. El catálogo permite definir un coste diferente por regalo. Solo visible para responsables.</small></label>}
+    <div className="form-two"><label>Máximo importe por ticket ({currency})<input type="number" min={1} step=".01" value={prog.max_ticket_cents/100} onChange={e=>setProg({...prog,max_ticket_cents:Math.round(Number(e.target.value)*100)})}/></label><label>Espera mínima entre compras (segundos)<input type="number" min={0} max={86400} value={prog.min_seconds_between_awards} onChange={e=>setProg({...prog,min_seconds_between_awards:Number(e.target.value)})}/></label></div>
    <div className="form-two"><label>Máx. compras por empleado al día<input type="number" min={1} max={250} value={prog.max_daily_awards_per_employee} onChange={e=>setProg({...prog,max_daily_awards_per_employee:Number(e.target.value)})}/></label>
    <div className="check-control"><input id="require-ticket" type="checkbox" checked={prog.require_ticket_reference} onChange={e=>setProg({...prog,require_ticket_reference:e.target.checked})}/><label htmlFor="require-ticket"><strong>Exigir referencia de ticket</strong><small>Evita reutilizar el mismo identificador de venta dentro del negocio.</small></label></div></div>
    <div className="info-callout"><ShieldCheck size={18}/> Cada visita queda registrada con la fecha y el empleado que la atendió, para que puedas consultar el historial y corregir errores.</div>
    <button disabled={busy} className="button button-dark">Guardar programa <Check size={17}/></button></div></form>}
-    {tab==="card"&&cardArea==="rewards"&&<RewardCatalog businessId={selected} options={rewardOptions} onSaved={reload}/>}
+    {tab==="card"&&cardArea==="rewards"&&<RewardCatalog businessId={selected} currency={currency} options={rewardOptions} onSaved={reload}/>}
    {tab==="team"&&<div className="team-section">
     {teamView==="list"?<>
      <div className="campaign-page-header team-page-header"><div><span className="page-eyebrow">PERSONAL DEL NEGOCIO</span><h2>Empleados y accesos</h2>
@@ -467,11 +474,11 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
       <Link href={workspaceHref("/negocio/customers")} className={dataArea==="customers"?"active":""} aria-current={dataArea==="customers"?"page":undefined}><Users size={16}/> Clientes</Link>
      </nav>
      {dataArea==="summary"&&<>
-      <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType} maxStampsPerAction={prog.max_stamps_per_action}/>
-      <EmployeeChart rows={activity} days={periodDays} programType={programType} currency={currency} maxStampsPerAction={prog.max_stamps_per_action}/>
+      <BusinessAnalytics currency={currency} showMoney={prog.type!=="stamps"||!!prog.require_purchase_amount} metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType} maxStampsPerAction={prog.max_stamps_per_action}/>
+      <EmployeeChart showMoney={prog.type!=="stamps"||!!prog.require_purchase_amount} rows={activity} days={periodDays} programType={programType} currency={currency} maxStampsPerAction={prog.max_stamps_per_action}/>
      </>}
-     {dataArea==="transactions"&&<TransactionsPanel key={selected} businessId={selected} staff={staff} formatBalance={formatBalance} currency={currency}/>}
-     {dataArea==="customers"&&<CustomerPanel key={selected} businessId={selected} customers={customers} formatBalance={formatBalance} privateEmail={privateEmail}
+     {dataArea==="transactions"&&<TransactionsPanel showMoney={prog.type!=="stamps"||!!prog.require_purchase_amount} key={selected} businessId={selected} staff={staff} formatBalance={formatBalance} currency={currency}/>}
+     {dataArea==="customers"&&<CustomerPanel showMoney={prog.type!=="stamps"||!!prog.require_purchase_amount} currency={currency} key={selected} businessId={selected} customers={customers} formatBalance={formatBalance} privateEmail={privateEmail}
       demoStatus={x=>isDemoCustomer(x,biz.slug)?demoMarketingAccepted(x.user_id):null}/>}
     </div>}
    {tab==="marketing"&&<div className="campaign-page campaign-page-final">

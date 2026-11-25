@@ -13,8 +13,9 @@ const join=read("app/unirse/[slug]/page.tsx");
 const migration=read("db/migrations/210_product_polish.sql");
 const deploy=read(".github/workflows/deploy.yml");
 
-assert.match(reward,/retail_cents:null,cost_cents:null/,"Rewards are named, not valued");
-assert.doesNotMatch(reward,/Precio venta|Precio habitual|Coste real|precio obligatorio/i);
+assert.match(reward,/retail_cents:null,cost_cents:costCents/,"Optional internal cost for catalog rewards");
+assert.match(reward,/cost.trim\(\)===""\?null/,"Blank cost remains unknown");
+assert.doesNotMatch(reward,/Precio venta|Precio habitual|precio obligatorio/i);
 assert.match(reward,/view==="list"/,"Reward catalog returns to list");
 assert.match(reward,/setView\("list"\)/);
 assert.match(analytics,/Clientes recurrentes/);
@@ -42,3 +43,11 @@ assert.match(migration,/DROP NOT NULL/);
 assert.match(migration,/admin_set_business_currency/);
 assert.doesNotMatch(deploy,/provision-showcase-real\.mjs/,"Never recreate fictitious stores in production");
 console.log("OK: real sessions, voluntary opt-in, currency, live QR, map, reward names and repeat-customer reports.");
+
+assert.match(scanner,/card.require_purchase_amount/);
+assert.match(business,/require_purchase_amount:prog.type/);
+assert.match(card,/customer_card_history/);
+assert.match(card,/p_offset:historyPage\*20/);
+assert.match(analytics,/showMoney&&/);
+assert.match(analytics,/Ratio descriptivo, no ROI incremental/);
+assert.match(read("components/OwnerDataPanels.tsx"),/business_customer_financials/);

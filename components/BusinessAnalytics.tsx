@@ -5,7 +5,7 @@ import {reportDateLabel} from "@/lib/report-date";
 export type MetricRow={metric:string;current_value:number;previous_value:number};
 export type RankingRow={reward_label:string;redemptions:number;retail_cents:number;cost_cents:number;unpriced:number};
 export type GrowthRow={bucket_start:string;new_customers:number;habitual_customers:number;awarded_units:number;average_units:number;verified_visits:number};
-type Props={metrics:MetricRow[];summary:MetricRow[];growth:GrowthRow[];ranking:RankingRow[];days:number;
+type Props={currency:string;showMoney:boolean;metrics:MetricRow[];summary:MetricRow[];growth:GrowthRow[];ranking:RankingRow[];days:number;
  onDays:(days:number)=>void;repeatCustomers:number;totalCustomers:number;programType?:string;maxStampsPerAction?:number};
 const integer=(n:number)=>n.toLocaleString("es-MX");
 function Change({value,previous}:{value:number;previous:number}){
@@ -49,11 +49,17 @@ function MiniChart({title,description,rows,field}:{title:string;description:stri
   {!rows.length&&<p className="muted">Todavía no hay datos disponibles.</p>}
  </section>;
 }
-export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,repeatCustomers,totalCustomers,programType,maxStampsPerAction}:Props){
+export function BusinessAnalytics({currency,showMoney,metrics,summary,growth,ranking,days,onDays,repeatCustomers,totalCustomers,programType,maxStampsPerAction}:Props){
  const lookup=(key:string,previous=false)=>Number(summary.find(x=>x.metric===key)?.[previous?"previous_value":"current_value"]||0);
  const legacy=(key:string)=>Number(metrics.find(x=>x.metric===key)?.current_value||0);
  const unit=programType==="stamps"?"sellos":programType==="points"?"puntos":"saldo";
  const singleStamp=programType==="stamps"&&maxStampsPerAction===1;
+ const sales=legacy("sales_cents"),cost=legacy("reward_cost_cents"),visits=legacy("visits"),redeems=legacy("redemptions"),missingSales=legacy("unpriced_purchases"),missingCosts=legacy("unpriced_rewards");
+ const money=(n:number)=>new Intl.NumberFormat("es-MX",{style:"currency",currency}).format(n/100);
+ const complete=visits>0&&missingSales===0&&missingCosts===0;
+ const previous=(key:string)=>Number(metrics.find(m=>m.metric===key)?.previous_value||0);
+ const comparableSales=visits>0&&previous("visits")>0&&missingSales===0&&previous("unpriced_purchases")===0;
+ const comparableCosts=missingCosts===0&&previous("unpriced_rewards")===0;
  const kpis=[
   {key:"new_customers",label:"Nuevas tarjetas",value:integer(lookup("new_customers")),helper:"Clientes que se han inscrito"},
   {key:"habitual_customers",label:"Clientes habituales",value:integer(lookup("habitual_customers")),helper:"Con compras recurrentes en el periodo"},
@@ -73,6 +79,14 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
    <Change value={["visits","redemptions","awarded_units"].includes(card.key)?legacy(card.key):lookup(card.key)} previous={["visits","redemptions","awarded_units"].includes(card.key)?Number(metrics.find(m=>m.metric===card.key)?.previous_value||0):lookup(card.key,true)}/>
    <small>{card.helper}</small>
   </article>)}</div>
+  {showMoney&&<section className="panel-card"><h3>Rendimiento económico</h3><p className="muted">Compras vinculadas a la fidelización · últimos {days} días</p><div className="owner-kpi-grid">
+   <article className="owner-kpi"><span>Importe registrado</span><strong>{visits>missingSales?money(sales):"—"}</strong><small>{integer(visits-missingSales)} de {integer(visits)} compras con importe</small>{comparableSales&&<Change value={sales} previous={previous("sales_cents")}/>}</article>
+   <article className="owner-kpi"><span>Ticket medio registrado</span><strong>{visits>missingSales?money(sales/(visits-missingSales)):"—"}</strong><small>Solo compras con importe</small></article>
+   <article className="owner-kpi"><span>Coste de regalos</span><strong>{redeems===0||redeems>missingCosts?money(cost):"—"}</strong><small>{integer(redeems-missingCosts)} de {integer(redeems)} canjes con coste</small>{comparableCosts&&<Change value={cost} previous={previous("reward_cost_cents")}/>}</article>
+   <article className="owner-kpi"><span>Coste / ventas registradas</span><strong>{complete&&sales>0?(cost/sales*100).toFixed(1)+" %":"—"}</strong><small>Solo con datos completos</small></article>
+   <article className="owner-kpi"><span>Ventas por cada {currency} invertido en premios</span><strong>{complete&&cost>0?(sales/cost).toFixed(2)+"×":"—"}</strong><small>Ratio descriptivo, no ROI incremental</small></article>
+   </div>{(missingSales>0||missingCosts>0)&&<p className="muted">Histórico incompleto: {integer(missingSales)} compras sin importe y {integer(missingCosts)} premios sin coste. No se estiman valores desconocidos.</p>}
+   <p className="muted">No representa facturación total, beneficio ni retorno causal: faltan margen comercial, otros costes y ventas que habrían ocurrido sin el programa.</p></section>}
   <div className="owner-growth-grid">
    <MiniChart title="Nuevos clientes" description="Altas por periodo" rows={growth} field="new_customers"/>
    <MiniChart title="Clientes habituales activos" description="Con compras recurrentes" rows={growth} field="habitual_customers"/>
@@ -84,6 +98,7 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
   </div>
   <section className="panel-card owner-ranking"><h3><Gift size={18}/> Recompensas canjeadas</h3>
    <RewardDonut ranking={ranking}/>
+   {showMoney&&ranking.length>0&&<div className="table-wrap"><table className="data-table"><thead><tr><th>Regalo</th><th>Canjes</th><th>Coste registrado</th></tr></thead><tbody>{ranking.map(r=><tr key={r.reward_label}><td>{r.reward_label}</td><td>{integer(Number(r.redemptions))}</td><td>{Number(r.redemptions)>Number(r.unpriced)?money(Number(r.cost_cents))+(Number(r.unpriced)>0?" (parcial)":""):"—"}</td></tr>)}</tbody></table><small className="muted">Los costes históricos desconocidos no se imputan.</small></div>}
 
   </section>
  </section>;
