@@ -1103,13 +1103,17 @@
 .qr-fullscreen-image,.workspace-customer .qr-fullscreen-image{padding:0;border-radius:5px;overflow:hidden}
 
 
-/* The horizontal scroller clips diffuse shadows at its rectangular edges.
-   Keep the carousel and wrappers transparent, and use only an inset card edge. */
+/* Individual card elevation, with room for shadows inside the horizontal scroller.
+   The wrappers remain transparent; a short, negative-spread shadow avoids a dark band. */
 .workspace-customer .customer-first-layout .card-grid,
 .workspace-customer .customer-first-layout .card-grid .customer-deck-item,
 .workspace-customer .customer-first-layout .card-grid .merchant-card-button{
  background:transparent;box-shadow:none;
 }
+.workspace-customer .customer-first-layout .card-grid{
+ box-sizing:border-box;width:calc(100% + 12px);margin-inline:-6px;
+ padding:8px 8px 22px;scroll-padding-inline:8px;gap:16px;
+}
 .workspace-customer .customer-first-layout .card-grid .stamp-visual-card{
- box-shadow:inset 0 0 0 1px #0000000a;
+ box-shadow:0 2px 5px -2px #3d0f1b1a,0 7px 12px -6px #3d0f1b2b,inset 0 0 0 1px #0000000a;
 }
