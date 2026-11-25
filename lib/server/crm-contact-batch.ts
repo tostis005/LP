@@ -18,7 +18,7 @@ export function parseContactCsv(text:string):Candidate[]{
   if(out.length>=250)throw new ApiError("Máximo 250 contactos por archivo.");
   const get=(k:string)=>(cells[header!.indexOf(k)]||"").trim();
   const name=get("negocio"),city=get("localidad"),email=get("correo_publicado").toLowerCase(),source=get("url_fuente"),address=get("direccion"),sourceId=get("id_denue"),sector=normalize(get("sector"));
-  const category=/helad|neveria/.test(sector)?"Heladerías":/restaurant|cafe|cafeter|comida|gastronom/.test(sector)?"Restaurantes y cafeterías":"";
+  const category=/helad|neveria/.test(sector)?"Heladerías":/restaurant|cafe|cafeter|comida|gastronom|churreria|postres/.test(sector)?"Restaurantes y cafeterías":"";
   if(normalize(get("municipio"))!=="tecate"||normalize(get("estado"))!=="baja california"||!category||!normalize(name)||name.length>240||!normalize(city)||city.length>120||address.length>500||source.length>2048||email.length>254||!/^[^\s@,;<>]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(email)||sourceId&&!/^\d{1,20}$/.test(sourceId))throw new ApiError("Datos inválidos o fuera del piloto en fila "+(out.length+2)+".");
   let url:URL;try{url=new URL(source);}catch{throw new ApiError("Fuente inválida en fila "+(out.length+2)+".");}
   if(!["https:","http:"].includes(url.protocol)||url.username||url.password)throw new ApiError("Fuente inválida.");
