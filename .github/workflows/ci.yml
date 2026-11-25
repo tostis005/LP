@@ -102,6 +102,8 @@ jobs:
         run: node tests/demo/owner-growth-automation.mjs
       - name: Verificar rutas independientes de administración
         run: node --experimental-strip-types tests/demo/admin-routes.mjs
+      - name: Validar altas web y conservación de datos CRM
+        run: node tests/demo/crm-web-prospects.mjs
       - name: Comprobar TypeScript
         run: npm run typecheck
       - name: Construir Next.js
