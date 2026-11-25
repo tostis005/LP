@@ -16,6 +16,10 @@ try{
  assert.ok(users.admin&&users.gestor&&business?.id,"Seeded profiles and business required");
  await client.query("BEGIN");
  await as(users.gestor);
+ const savedProfile=await client.query("UPDATE public.profiles SET birth_date=DATE '1990-05-10',gender=NULL WHERE id=$1 RETURNING birth_date::text,gender",[users.gestor]);
+ assert.equal(savedProfile.rows[0].birth_date,"1990-05-10");assert.equal(savedProfile.rows[0].gender,null);
+ await denied("UPDATE public.profiles SET birth_date=NULL WHERE id=$1",[users.gestor],"Birth date cannot be cleared");
+ await client.query("SAVEPOINT date_check");await assert.rejects(()=>client.query("UPDATE public.profiles SET birth_date=CURRENT_DATE+1 WHERE id=$1",[users.gestor]),e=>e.code==="23514");await client.query("ROLLBACK TO SAVEPOINT date_check");
  await denied("SELECT public.manager_create_branch($1::uuid,'Sucursal no autorizada','sucursal-no-autorizada','gestor@demo.loyally.test')",[business.id],"Manager cannot create a new company");
  await denied("INSERT INTO public.business_locations(business_id,name,address,city,country,lat,lng) VALUES($1,'Segundo local','Segunda dirección 33','Tijuana','México',32.5,-117.01)",[business.id],"Manager cannot add location");
  const blockedDelete=await client.query("DELETE FROM public.business_locations WHERE business_id=$1 RETURNING id",[business.id]);
@@ -36,8 +40,11 @@ try{
  assert.equal(adminMembership.rows[0].count,0,"Admin must not become the owner");
  const allowed=await client.query("SELECT public.is_business_manager($1::uuid) AS manager,public.is_business_staff($1::uuid) AS staff,public.is_business_owner($1::uuid) AS owner",[newId]);
  assert.equal(allowed.rows[0].manager,true);assert.equal(allowed.rows[0].staff,false);assert.equal(allowed.rows[0].owner,false);
- const design=await client.query("UPDATE public.businesses SET accent_color=$2 WHERE id=$1 RETURNING accent_color",[newId,"#123456"]);
- assert.equal(design.rows[0].accent_color,"#123456");
+ const design=await client.query("UPDATE public.businesses SET accent_color=$2,card_logo_scale=160,card_logo_x=15,card_logo_y=-10 WHERE id=$1 RETURNING accent_color,card_logo_scale",[newId,"#123456"]);
+ assert.equal(design.rows[0].accent_color,"#123456");assert.equal(design.rows[0].card_logo_scale,160);
+ const publicDesign=await client.query("SELECT card_logo_scale,card_logo_x,card_logo_y FROM public.public_business_card_assets('sucursal-centro-test')");
+ assert.deepEqual(publicDesign.rows[0],{card_logo_scale:160,card_logo_x:15,card_logo_y:-10});
+ const metrics=await client.query("SELECT metric,current_value FROM public.business_dashboard_metrics($1,30)",[newId]);assert.ok(metrics.rows.some(x=>x.metric==="awarded_units"&&Number(x.current_value)===0));
  const logged=await client.query("SELECT actor_id FROM public.admin_business_actions WHERE business_id=$1 AND entity='businesses' AND operation='UPDATE'",[newId]);
  assert.ok(logged.rows.some(row=>row.actor_id===users.admin),"Administrative edits record the real actor");
  const campaign=await client.query("INSERT INTO public.business_offers(business_id,created_by,title,preview,details) VALUES($1,$2,'Prueba de soporte','Resumen de soporte','Detalle de soporte') RETURNING created_by",[newId,users.admin]);

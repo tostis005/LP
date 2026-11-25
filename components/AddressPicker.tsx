@@ -13,6 +13,7 @@ type Props={
 type Result={lat:number;lng:number;label:string;address?:string;city?:string;country?:string};
 export function AddressPicker({address,city,country,lat,lng,onAddressChange,onCityChange,onCountryChange,onCoordinatesChange}:Props){
  const [loading,setLoading]=useState(false),[error,setError]=useState(""),[results,setResults]=useState<Result[]>([]);
+ const [coordinates,setCoordinates]=useState("");
  const [autocomplete,setAutocomplete]=useState(false),[typing,setTyping]=useState(false),[provider,setProvider]=useState("");
  useEffect(()=>{fetch("/api/local/geocode",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>setAutocomplete(!!d?.autocomplete)).catch(()=>{})},[]);
  useEffect(()=>{if(!autocomplete||!typing||address.trim().length<5)return;const controller=new AbortController();const timer=setTimeout(async()=>{try{const q=[address,city,country].filter(Boolean).join(", ");const r=await fetch("/api/local/geocode",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({q,autocomplete:true}),signal:controller.signal});if(r.ok){const d=await r.json();if(!controller.signal.aborted){setResults(d.results||[]);setProvider(d.provider||"")}}}catch{}},850);return()=>{clearTimeout(timer);controller.abort()}},[address,city,country,typing,autocomplete]);
@@ -24,6 +25,7 @@ export function AddressPicker({address,city,country,lat,lng,onAddressChange,onCi
   onCoordinatesChange(String(Number(next.lat.toFixed(7))),String(Number(next.lng.toFixed(7))));
  }
  function selectResult(r:Result){setTyping(false);if(r.address)onAddressChange(r.address);if(r.city)onCityChange(r.city);if(r.country)onCountryChange(r.country);choose(r);setResults([])}
+ function pastePoint(){const m=coordinates.trim().match(/^(-?\d+(?:\.\d+)?)\s*[,;]\s*(-?\d+(?:\.\d+)?)$/);if(!m||Math.abs(Number(m[1]))>90||Math.abs(Number(m[2]))>180){setError("Copia las coordenadas en formato latitud, longitud (ej. 32.5, -117.01).");return}setError("");setTyping(false);setResults([]);choose({lat:Number(m[1]),lng:Number(m[2])});}
  function clearPoint(){setResults([]);setTyping(true);if(lat||lng)onCoordinatesChange("","");}
  async function search(){setTyping(false);setError("");setResults([]);
   const q=[address,city,country].filter(Boolean).join(", ").trim();
@@ -53,6 +55,7 @@ export function AddressPicker({address,city,country,lat,lng,onAddressChange,onCi
   {error&&<div className="alert error" role="alert">{error}</div>}
   {results.length>0&&<div className="lp-address-results" role="listbox" aria-label="Direcciones encontradas">{results.map((r,i)=><button type="button" role="option" aria-selected={point?.lat===r.lat&&point?.lng===r.lng} key={i} onClick={()=>selectResult(r)}><MapPin size={17}/><span>{r.label}</span></button>)}</div>}
   <div className="address-provider-help"><a href={"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([address,city,country].filter(Boolean).join(", "))} target="_blank" rel="noopener noreferrer">Comprobar dirección en Google Maps</a>{provider==="geoapify"&&<small>Resultados de <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a> y OpenStreetMap</small>}</div>
+  <details className="manual-coordinates"><summary>Introducir coordenadas exactas</summary><label>Latitud, longitud<input value={coordinates} onChange={e=>setCoordinates(e.target.value)} placeholder="32.500000, -117.010000"/></label><button type="button" className="button button-outline button-sm" onClick={pastePoint}>Usar coordenadas</button><small>En Google Maps, mantén pulsado el punto o haz clic derecho y copia las coordenadas.</small></details>
   <AddressMap point={point} onChange={next=>{setTyping(false);setResults([]);choose(next)}}/>
   <div className={"lp-address-map-caption"+(point?" selected":"")}><span><MapPin size={16}/>{point?"Ubicación seleccionada":"Selecciona la ubicación del local"}</span><small>{point?"Puedes mover el pin si la posición no es exacta.":"Busca la dirección, pulsa sobre el mapa o arrastra el pin."}</small>{point&&<Check size={17}/>}</div>
  </div>;

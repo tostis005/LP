@@ -14,13 +14,14 @@ function Profile({account}:{account:Account}){
   return()=>{active=false};
  },[account.user.id]);
  async function save(e:React.FormEvent){e.preventDefault();if(!ready||!birthDate||birthDate<"1900-01-01"||birthDate>new Date().toISOString().slice(0,10)){setError("Indica una fecha de nacimiento válida.");return}setBusy(true);setMsg("");setError("");
-  const {error:e1}=await db().from("profiles").update({full_name:name.trim(),birth_date:birthDate,gender:gender||null}).eq("id",account.user.id);
+  const {error:e1,count}=await db().from("profiles").update({full_name:name.trim(),birth_date:birthDate,gender:gender||null}).eq("id",account.user.id);
+  if(e1||count!==1){setBusy(false);setError(e1?.message||"No se pudieron guardar los datos.");return}
   const phoneChanged=whatsapp.trim()!==(account.user.user_metadata?.whatsapp||"");
   const ePhone=phoneChanged?await db().auth.updateUser({whatsapp:whatsapp.trim()}):null;
   const emailChanged=email.trim().toLowerCase()!==(account.user.email||"").toLowerCase();
   const e3=!ePhone?.error&&emailChanged?await db().auth.updateUser({email:email.trim()}):null;
   setBusy(false);
-  if(e1||e3?.error||ePhone?.error)setError(e1?.message||ePhone?.error?.message||e3?.error?.message||"No se pudieron guardar los datos.");
+  if(e3?.error||ePhone?.error)setError(ePhone?.error?.message||e3?.error?.message||"No se pudieron guardar los datos.");
   else setMsg(emailChanged?"Datos guardados. Confirma el nuevo correo desde el enlace que recibirás.":"Datos guardados correctamente.");
  }
  return <form className="panel-card customer-profile-only" onSubmit={save}>

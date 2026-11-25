@@ -122,3 +122,9 @@ assert.equal(posterAssetUrl("https://kreyvi.com/api/assets/business-assets/id/lo
 const joinUi=readFileSync(new URL("../../app/unirse/[slug]/page.tsx",import.meta.url),"utf8");
 assert.ok(joinUi.indexOf('className="join-action-panel"')<joinUi.indexOf('className="join-info-panel"'));
 assert.match(joinUi,/logoImageUrl\(offer.logo_url,192\)/);
+
+assert.match(posterUi,/QR para mostrador/);
+assert.match(posterUi,/showTitle&&/);
+assert.match(posterUi,/showSubtitle&&/);
+assert.match(posterUi,/showFooter&&/);
+assert.match(posterUi,/Escanea y/);

@@ -24,3 +24,10 @@ assert.match(css,/\.loyally-map-pin\.is-unowned \.loyally-map-symbol svg\{stroke
 assert.doesNotMatch(discover,/El mapa utiliza OpenStreetMap/);
 assert.match(map,/stroke-width="1.8"/);
 console.log("OK: perfil separado, notificaciones únicas, mapa refinado y Wallet oculta.");
+
+assert.match(profile,/type="date" required/);
+assert.match(profile,/birth_date:birthDate,gender:gender\|\|null/);
+assert.match(profile,/Prefiero no indicarlo/);
+assert.match(file("db/migrations/992_profile_logo_and_metrics.sql"),/BEFORE UPDATE OF birth_date/);
+assert.match(file("components/AppFrame.tsx"),/<KreyviLoading\/>/);
+assert.match(file("components/KreyviLoading.tsx"),/kreyvi-loading-orbit/);
