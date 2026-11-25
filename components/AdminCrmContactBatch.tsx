@@ -3,7 +3,7 @@ import {useState} from "react";
 type Decision={row:number;name:string;city:string;email:string;source:string;address:string;action:"update"|"create"|"skip";id:string;reason:string};
 export function AdminCrmContactBatch({onSaved}:{onSaved:()=>void}){
  const [csv,setCsv]=useState(""),[decisions,setDecisions]=useState<Decision[]>([]),[selected,setSelected]=useState<number[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
- async function load(file:File|undefined){setCsv("");setDecisions([]);setSelected([]);setError("");setNotice("");if(!file)return;if(file.size>1024*1024){setError("El archivo supera 1 MB.");return;}try{setCsv(await file.text());}catch{setError("No se pudo leer el archivo.");}}
+ async function load(file:File|undefined){setCsv("");setDecisions([]);setSelected([]);setError("");setNotice("");if(!file)return;if(file.size>4*1024*1024){setError("El archivo supera 4 MB.");return;}try{setCsv(await file.text());}catch{setError("No se pudo leer el archivo.");}}
  async function run(mode:"preview"|"apply"){
   setBusy(true);setError("");setNotice("");
   try{
@@ -14,7 +14,7 @@ export function AdminCrmContactBatch({onSaved}:{onSaved:()=>void}){
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  return <details><summary><strong>Importar contactos investigados (CSV)</strong></summary>
-  <p>Analiza hasta 250 registros de Tecate. Conserva correos existentes, exclusiones y estados comerciales. Las altas nuevas requieren dirección publicada y selección explícita.</p>
+  <p>Analiza hasta 2.000 registros de Tecate. Conserva correos existentes, exclusiones y estados comerciales. Las altas nuevas requieren dirección publicada y selección explícita.</p>
   <p className="muted">Columnas: negocio, sector, estado, municipio, localidad, correo_publicado, url_fuente; opcionales: id_denue, direccion.</p>
   <div className="form-stack"><label>Archivo de contactos<input type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>void load(e.target.files?.[0])}/></label>
   <button className="button button-outline button-sm" disabled={busy||!csv} onClick={()=>void run("preview")}>Analizar coincidencias</button></div>
