@@ -1064,3 +1064,21 @@
 .merchant-card-hitbox:focus-visible{outline:3px solid var(--color-accent-600);outline-offset:3px;border-radius:18px}
 .loyally-modal-card-preview.merchant-card-detail{display:block;aspect-ratio:auto;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible;container-type:inline-size}
 .stamp-visual-rebalanced .merchant-balance{font-size:clamp(18px,6cqw,36px);line-height:1.1;color:inherit;max-width:100%;overflow-wrap:anywhere}
+
+/* Single primary admin navigation; merchant assistance occupies the full workspace. */
+.workspace-admin .workspace-content{max-width:none;width:100%;min-width:0}
+.admin-section-content,.admin-section-content>.workspace-section-body{width:100%;min-width:0}
+.workspace-admin .admin-business-full{grid-template-columns:minmax(0,1fr)}
+.admin-business-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.admin-merchant-context{margin:0 0 20px;padding:18px 20px;border:1px solid var(--color-bg-2);border-radius:16px;background:var(--color-surface,#fff)}
+.admin-merchant-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:10px 0 5px}
+.admin-merchant-heading h2{margin:4px 0;color:var(--color-brand);font-size:clamp(20px,3vw,28px)}
+.admin-merchant-context p{font-size:13px;color:var(--color-text-2);margin:8px 0 14px}
+.admin-merchant-tabs{display:flex;gap:7px;flex-wrap:wrap}
+.admin-merchant-tabs a{display:flex;align-items:center;padding:10px 13px;border-radius:9px;border:1px solid var(--color-bg-2);font-size:13px;font-weight:750;color:var(--color-brand);text-decoration:none}
+.admin-merchant-tabs a.active{background:var(--color-brand);color:#fff;border-color:var(--color-brand)}
+.workspace-admin .business-workspace .workspace-section-layout,.workspace-admin .business-workspace .workspace-section-body{width:100%;max-width:none;min-width:0}
+.workspace-admin .business-workspace .program-form{max-width:none}
+.loyalty-nav-admin{overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
+.loyalty-nav-admin .mobile-bottom-link{flex:1 0 68px;min-width:68px}
+@media(max-width:700px){.admin-merchant-context{padding:13px}.admin-merchant-tabs a{padding:8px 10px;font-size:12px}.admin-merchant-heading h2{font-size:21px}}
