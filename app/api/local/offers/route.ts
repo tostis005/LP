@@ -39,7 +39,7 @@ export async function GET(request:Request){
      "(SELECT count(*)::int FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS charged_channels, "+
      "(SELECT coalesce(sum(x.amount_cents),0)::bigint FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS confirmed_cents, "+
      "(SELECT min(x.currency) FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS confirmed_currency "+
-     "FROM public.business_offers o WHERE o.business_id=$1::uuid AND NOT EXISTS ("+
+     "FROM public.business_offers o WHERE o.business_id=$1::uuid AND o.archived_at IS NULL AND NOT EXISTS ("+
      "SELECT 1 FROM public.automation_rules a WHERE a.offer_id=o.id) ORDER BY o.created_at DESC LIMIT 100",[business])).rows;
    });
    return Response.json({offers},{headers});
@@ -51,7 +51,7 @@ export async function GET(request:Request){
     "r.received_at,r.seen_at,b.name AS business_name,b.logo_url AS business_logo "+
     "FROM public.offer_receipts r JOIN public.business_offers o ON o.id=r.offer_id "+
     "JOIN public.businesses b ON b.id=o.business_id "+
-    "WHERE r.customer_id=$1::uuid "+(id?"AND o.id=$2::uuid ":"")+
+    "WHERE r.customer_id=$1::uuid AND o.archived_at IS NULL "+(id?"AND o.id=$2::uuid ":"")+
     "ORDER BY r.received_at DESC LIMIT 100",id?[actor.id,id]:[actor.id])).rows;
   });
   if(id&&!rows.length)throw new ApiError("Esta oferta no está disponible en tus novedades.",404);
