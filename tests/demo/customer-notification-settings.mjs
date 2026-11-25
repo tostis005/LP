@@ -14,7 +14,8 @@ const wallet=read("components/LoyaltyCard.tsx");
 assert.match(join,/checked=\{marketing\}/,"Registration shows one, explicit marketing opt-in");
 assert.doesNotMatch(join,/checked=\{pushMarketing\}|checked=\{whatsappMarketing\}/,"No redundant registration permissions");
 assert.match(join,/correo electrónico, WhatsApp y notificaciones push/,"Channels are named before consent");
-assert.match(join,/\[marketing,setMarketing\]=useState\(false\)/,"Marketing remains opt-in, not prechecked");
+assert.match(join,/\[marketing,setMarketing\]=useState\(true\)/,"New card notification choice is preselected and editable");
+assert.match(join,/Añadir tarjeta y recibir ofertas/,"Enrollment button explicitly describes the selected offers");
 assert.doesNotMatch(join,/showMarketingPrompt|No recibirás promociones/,"One-step enrollment does not pressure users");
 assert.match(join,/join_program_with_notifications/,"One DB call creates the card and saves all channels");
 assert.match(schema,/INSERT INTO public.marketing_consents[\s\S]*true,true,true/,"All three channel preferences enabled explicitly");
@@ -36,3 +37,12 @@ assert.doesNotMatch(wallet,/className="loyalty-card-preferences"/,"QR modal no l
 assert.match(legacy,/redirect\("\/app\/ajustes"\)/,"Old URLs continue to work");
 assert.match(read("components/PushPreferences.tsx"),/Notification.requestPermission\(\)/,"Operating-system permission remains an explicit user action");
 console.log("OK: single optional registration opt-in, three independent card channels in Ajustes and real push device consent.");
+
+const phoneField=read("components/PhoneCountryField.tsx");
+for(const path of ["app/app/perfil/page.tsx","app/acceder/page.tsx","app/mi-loyally/page.tsx","app/unirse/[slug]/page.tsx"]){assert.match(read(path),/<PhoneCountryField /);}
+assert.match(phoneField,/permission.state!=="granted"/,"Never request a new location permission");
+assert.match(phoneField,/!touched.current&&!latest.current/,"Do not overwrite a manually selected country or saved phone");
+assert.match(phoneField,/autoComplete="tel-national"/);
+assert.match(phoneField,/onChange\(digits\?"\+"\+code\+digits:""\)/,"Keep international format for the API");
+assert.match(read("app/api/local/geocode/route.ts"),/countryOnly===true/);
+assert.match(join,/globalConsent===null\?marketing:globalConsent/,"Preserve existing notification preferences");

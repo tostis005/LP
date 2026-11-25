@@ -13,6 +13,7 @@ import {categoryStampKind} from "@/lib/business-categories";
 import {programPromise,programExplanation} from "@/lib/program-presentation";
 import type {Business,Location,Program} from "@/lib/types";
 import {db,configured} from "@/lib/supabase";
+import {PhoneCountryField} from "@/components/PhoneCountryField";
 const DirectoryMapView=dynamic(()=>import("@/components/DirectoryMap"),{ssr:false,loading:()=> <div className="map-placeholder">Preparando el mapa...</div>});
 type PublicProgram=Pick<Program,"type"|"reward_label"|"reward_cost"|"cashback_bps"|"points_per_euro">;
 type Offer={business_id:string;business_name:string;description:string|null;accent_color:string;reward_label:string;program_type:Program["type"];reward_cost:number;cashback_bps:number;points_per_euro:number;category:string|null;logo_url:string|null;card_text:string|null;card_text_color:string;stamp_color:string;stamp_icon:string;public_listing:boolean;locations_json:Location[]};
@@ -22,7 +23,7 @@ export default function JoinPage(){
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
  const [membershipId,setMembershipId]=useState("");
- const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
+ const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(true),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con KREYVI.");setLoading(false);return}
   const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
@@ -56,7 +57,7 @@ export default function JoinPage(){
   if(isBusinessAccount){setError("Para guardar tarjetas necesitas una cuenta de cliente.");return;}
   if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder?next="+encodeURIComponent("/unirse/"+params.slug+"?alta=1"));return;}
   // Una sola acción inscribe la tarjeta; el consentimiento comercial es voluntario
-  // y está desmarcado de origen. El permiso del sistema push es siempre explícito.
+  // y se puede desactivar antes de añadir la tarjeta. El permiso del sistema push es explícito.
   const accepted=globalConsent===null?marketing:globalConsent;
   if(accepted&&globalConsent===null&&!/^\+[1-9][0-9]{7,14}$/.test((phone||savedPhone).trim())){
    setError("Para recibir avisos por WhatsApp, añade tu número con prefijo internacional.");
@@ -120,13 +121,10 @@ export default function JoinPage(){
          </span>
         </label>
         {marketing&&(!/^\+[1-9][0-9]{7,14}$/.test(savedPhone))&&
-         <label className="join-phone-field">Tu número de WhatsApp (con prefijo del país)
-          <input type="tel" inputMode="tel" required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/>
-          <small>Necesario para habilitar también WhatsApp. Puedes cambiarlo en Mi perfil.</small>
-         </label>}
+         <div className="join-phone-field"><PhoneCountryField label="Tu número de WhatsApp" value={phone} onChange={setPhone} required locate/></div>}
        </>}
        {error&&<div className="alert error" role="alert">{error}</div>}
-       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Añadir mi tarjeta":"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
+       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?(globalConsent===null&&marketing?"Añadir tarjeta y recibir ofertas":"Añadir mi tarjeta"):"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
       </div>}
      </section>
      <section className="join-info-panel">
