@@ -42,7 +42,7 @@ export async function GET(request:Request){
      "FROM public.business_offers o WHERE o.business_id=$1::uuid AND o.archived_at IS NULL AND NOT EXISTS ("+
      "SELECT 1 FROM public.automation_rules a WHERE a.offer_id=o.id) ORDER BY o.created_at DESC LIMIT 100",[business])).rows;
     const hidden=await client.query<{id:string}>(
-     "SELECT c.id FROM public.marketing_campaigns c JOIN public.business_offers o ON o.id=c.offer_id WHERE o.business_id=$1::uuid AND o.archived_at IS NOT NULL UNION SELECT o.push_campaign_id AS id FROM public.business_offers o WHERE o.business_id=$1::uuid AND o.archived_at IS NOT NULL AND o.push_campaign_id IS NOT NULL",[business]);
+     "SELECT c.id FROM public.marketing_campaigns c JOIN public.business_offers o ON o.id=c.offer_id WHERE o.business_id=$1::uuid AND o.archived_at IS NOT NULL UNION SELECT o.push_campaign_id AS id FROM public.business_offers o WHERE o.business_id=$1::uuid AND o.archived_at IS NOT NULL AND o.push_campaign_id IS NOT NULL UNION SELECT h.campaign_id AS id FROM public.demo_hidden_campaigns h WHERE h.business_id=$1::uuid",[business]);
     return {offers,hiddenCampaignIds:hidden.rows.map(row=>row.id)};
    });
    return Response.json({offers,hiddenCampaignIds},{headers});
