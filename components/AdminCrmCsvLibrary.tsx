@@ -3,11 +3,13 @@ import {useEffect,useState} from "react";
 type FileEntry={filename:string;size:number;sha256:string|null;error:string|null;status:"pending"|"updated"|"imported";lastImport:{created_at:string;report:{total:number;updated:number;created:number;skipped:number}}|null};
 type Preview={plan:string;total:number;counts:{update:number;create:number;skip:number};reasons:Record<string,number>;decisions:{row:number;name:string;city:string;email:string;source:string;address:string;action:string;reason:string}[]};
 const endpoint="/api/local/admin/crm/csv-library";
+// Keep previous city files in the repository, but hide them from pending CRM work.
+const archivedCity=(filename:string)=>/(?:^|[-_])(?:tecate|guzman)(?:[-_.]|$)/i.test(filename.normalize("NFD").replace(/[\u0300-\u036f]/g,""))||/^denue-(02003|14023)\.csv$/i.test(filename);
 export function AdminCrmCsvLibrary({onSaved}:{onSaved:()=>void}){
- const [files,setFiles]=useState<FileEntry[]>([]),[focus,setFocus]=useState<FileEntry|null>(null),[preview,setPreview]=useState<Preview|null>(null),[busy,setBusy]=useState(false),[confirmed,setConfirmed]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[loaded,setLoaded]=useState(false);
+ const [files,setFiles]=useState<FileEntry[]>([]),[focus,setFocus]=useState<FileEntry|null>(null),[preview,setPreview]=useState<Preview|null>(null),[busy,setBusy]=useState(false),[confirmed,setConfirmed]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
  async function reload(){
   setError("");setBusy(true);
-  try{const r=await fetch(endpoint,{cache:"no-store"}),j=await r.json();if(!r.ok)throw Error(j.error||"No se pudo cargar la biblioteca.");setFiles(j.files.filter((f:FileEntry)=>f.status!=="imported"));setLoaded(true);}
+  try{const r=await fetch(endpoint,{cache:"no-store"}),j=await r.json();if(!r.ok)throw Error(j.error||"No se pudo cargar la biblioteca.");setFiles(j.files.filter((f:FileEntry)=>f.status!=="imported"&&!archivedCity(f.filename)));}
   catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  useEffect(()=>{void reload();},[]);
@@ -21,11 +23,11 @@ export function AdminCrmCsvLibrary({onSaved}:{onSaved:()=>void}){
    else{setNotice(j.updated+" actualizados · "+j.created+" nuevos · "+j.skipped+" omitidos. No se enviaron correos.");setFocus(null);setPreview(null);setConfirmed(false);onSaved();await reload();}
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
- if(loaded&&!files.length&&!error&&!focus)return null;
+ if(!files.length&&!error&&!focus)return null;
  return <section className="admin-inspector">
   <div className="content-heading"><div><h3>Actualizaciones pendientes</h3><p>Importa solo los archivos nuevos o modificados.</p></div><button type="button" className="button button-outline button-sm" onClick={()=>void reload()} disabled={busy}>Actualizar lista</button></div>
   {error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
-  {loaded&&!files.length&&<p className="muted">No hay actualizaciones pendientes.</p>}
+  
   {!!files.length&&<div className="table-wrap"><table className="data-table"><thead><tr><th>Archivo</th><th>Estado</th><th></th></tr></thead><tbody>
    {files.map(f=><tr key={f.filename}><td>{f.filename}</td><td>{f.error||({pending:"Pendiente",updated:"Nueva versión",imported:"Importado"}[f.status])}</td><td><button type="button" className="button button-dark button-sm" disabled={busy||!f.sha256||f.status==="imported"} onClick={()=>void run(f,"preview")}>{f.status==="imported"?"Importado":"Importar"}</button></td></tr>)}
   </tbody></table></div>}
