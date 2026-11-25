@@ -27,7 +27,7 @@ export async function GET(request:Request){
    }
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
    const review=p.get("review");if(review&&reviewStates.includes(review))add("contact_review",review);
-   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("(name ILIKE $"+args.length+" OR email ILIKE $"+args.length+" OR public_email ILIKE $"+args.length+")");}
+   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("(name ILIKE $"+args.length+" OR email ILIKE $"+args.length+" OR public_email ILIKE $"+args.length+" OR phone ILIKE $"+args.length+" OR address ILIKE $"+args.length+")");}
    const filter=where.length?" WHERE "+where.join(" AND "):"";
    const page=Math.max(0,Math.min(100000,Math.floor(Number(p.get("page"))||0)));
    const count=(await c.query("SELECT count(*)::int AS total,count(DISTINCT lower(COALESCE(email,public_email)))::int AS unique_emails,count(*) FILTER (WHERE email IS NOT NULL OR public_email IS NOT NULL)::int AS with_email,count(*) FILTER (WHERE email IS NULL AND public_email IS NULL)::int AS missing_email,count(*) FILTER (WHERE contact_review<>'pending')::int AS reviewed FROM public.crm_prospects"+filter,args)).rows[0];
@@ -80,10 +80,10 @@ export async function POST(request:Request){
    for(let i=0;i<data.prospects.length;i+=500){
     const batch=data.prospects.slice(i,i+500);
     const result=await c.query(
-     "INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website) "+
-     "SELECT source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website "+
-     "FROM jsonb_to_recordset($1::jsonb) AS x(source_id text,name text,country_code text,state_code text,state text,municipality_code text,municipality text,locality_code text,city text,activity_code text,activity text,category text,email text,website text) "+
-     "ON CONFLICT(source,source_id) DO UPDATE SET name=EXCLUDED.name,country_code=EXCLUDED.country_code,state_code=EXCLUDED.state_code,state=EXCLUDED.state,municipality_code=EXCLUDED.municipality_code,municipality=EXCLUDED.municipality,locality_code=EXCLUDED.locality_code,city=EXCLUDED.city,activity_code=EXCLUDED.activity_code,activity=EXCLUDED.activity,category=EXCLUDED.category,email=COALESCE(crm_prospects.email,EXCLUDED.email),website=EXCLUDED.website,updated_at=now(),status=crm_prospects.status",
+     "INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website,phone,address,latitude,longitude) "+
+     "SELECT source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website,phone,address,latitude,longitude "+
+     "FROM jsonb_to_recordset($1::jsonb) AS x(source_id text,name text,country_code text,state_code text,state text,municipality_code text,municipality text,locality_code text,city text,activity_code text,activity text,category text,email text,website text,phone text,address text,latitude text,longitude text) "+
+     "ON CONFLICT(source,source_id) DO UPDATE SET name=EXCLUDED.name,country_code=EXCLUDED.country_code,state_code=EXCLUDED.state_code,state=EXCLUDED.state,municipality_code=EXCLUDED.municipality_code,municipality=EXCLUDED.municipality,locality_code=EXCLUDED.locality_code,city=EXCLUDED.city,activity_code=EXCLUDED.activity_code,activity=EXCLUDED.activity,category=EXCLUDED.category,phone=COALESCE(NULLIF(EXCLUDED.phone,''),crm_prospects.phone),address=COALESCE(NULLIF(EXCLUDED.address,''),crm_prospects.address),latitude=COALESCE(NULLIF(EXCLUDED.latitude,''),crm_prospects.latitude),longitude=COALESCE(NULLIF(EXCLUDED.longitude,''),crm_prospects.longitude),email=COALESCE(crm_prospects.email,EXCLUDED.email),website=COALESCE(NULLIF(EXCLUDED.website,''),crm_prospects.website),updated_at=now(),status=crm_prospects.status",
      [JSON.stringify(batch)]);
     changed+=result.rowCount||0;
    }
