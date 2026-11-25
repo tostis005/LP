@@ -41,7 +41,7 @@ assert.match(usage,/offer_campaign_charges/);
 assert.match(usage,/Pendiente de facturar/);
 assert.match(data,/offer_campaign_charges/);
 assert.match(admin,/Exportar CSV/);
-assert.match(adminPage,/Facturación campañas/);
+assert.match(read("lib/admin-sections.ts"),/Facturación campañas/);
 assert.match(adminApi,/public\.is_platform_admin\(\)/);
 assert.match(adminApi,/invoiced_at=now\(\)/);
 console.log("OK: campaña unificada, precio por canal, confirmación atómica y registro para factura sin duplicar cargos.");
