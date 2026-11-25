@@ -2,16 +2,18 @@
 import {useEffect,useState} from "react";
 import {Upload,Search} from "lucide-react";
 import {AdminCrmIntegration} from "./AdminCrmIntegration";
+import {AdminCrmNewBusiness} from "./AdminCrmNewBusiness";
 type Prospect={id:string;name:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string};
 type Region={country_code:string;state_code:string;state:string;municipality_code:string;municipality:string;locality_code:string;city:string;total:number};
 type Count={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
 type Report=Count&{duplicates:number;skipped:number;byCity:Array<Count&{state:string;municipality:string;city:string;state_code:string;municipality_code:string;locality_code:string}>;bySector:Array<Count&{category:string}>};
-type Data={prospects:Prospect[];count:{total:number;unique_emails:number;with_email:number;missing_email:number;reviewed:number};regions:Region[];categories:Array<{category:string;total:number}>;imports:Array<{filename:string;created_at:string;report:Report}>;page:number};
+type Data={prospects:Prospect[];count:{total:number;unique_emails:number;with_email:number;missing_email:number;reviewed:number};regions:Region[];categories:Array<{category:string;total:number}>;imports:Array<{filename:string;created_at:string;report:Report&{edition?:string|null}}>;page:number};
 const stages:Record<string,string>={pending_review:"Por revisar",qualified:"Cualificado",contacted:"Contactado",interested:"Interesado",trial:"En prueba",converted:"Cliente",discarded:"Descartado",do_not_contact:"No contactar"};
 const reviewStages:Record<string,string>={pending:"Pendiente",source_found:"Fuente localizada",no_contact_found:"Sin contacto localizado",ambiguous:"Identidad dudosa",not_relevant:"No relevante"};
 export function AdminCrm(){
  const [data,setData]=useState<Data|null>(null),[report,setReport]=useState<Report|null>(null),[file,setFile]=useState<File|null>(null);
  const [review,setReview]=useState(""),[coverage,setCoverage]=useState(""),[country,setCountry]=useState("MX"),[state,setState]=useState("02"),[municipality,setMunicipality]=useState("003"),[city,setCity]=useState(""),[category,setCategory]=useState("pilot_food"),[status,setStatus]=useState(""),[search,setSearch]=useState(""),[page,setPage]=useState(0),[scope,setScope]=useState("02003");
+ const [edition,setEdition]=useState("2026-05");
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
  useEffect(()=>{
   const controller=new AbortController();
@@ -26,7 +28,7 @@ export function AdminCrm(){
   if(!file)return;
   setBusy(true);setError("");setNotice("");
   try{
-   const body=new FormData();body.append("file",file);body.append("mode",mode);body.append("municipality",scope);
+   const body=new FormData();body.append("file",file);body.append("mode",mode);body.append("municipality",scope);body.append("edition",edition);
    const r=await fetch("/api/local/admin/crm",{method:"POST",body}),j=await r.json();
    if(!r.ok)throw new Error(j.error||"No se pudo procesar el archivo.");
    setReport(j.report);
@@ -55,15 +57,17 @@ export function AdminCrm(){
   <div className="content-heading"><div><h2>CRM comercial</h2><p>Prospectos por país, estado, municipio y ciudad. La importación no activa envíos.</p></div></div>
   {error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}
   <div className="inspector-stats"><div><strong>{data?.count.total??"—"}</strong><span>Prospectos filtrados</span></div><div><strong>{data?.count.unique_emails??"—"}</strong><span>Correos distintos</span></div><div><strong>{data?.count.with_email??"—"}</strong><span>Con correo</span></div><div><strong>{data?.count.missing_email??"—"}</strong><span>Sin correo</span></div><div><strong>{data?.count.reviewed??"—"}</strong><span>Revisados</span></div></div>
-  <div className="admin-inspector"><h3>Carga inicial de Tecate</h3><p>Importa directamente desde INEGI los restaurantes, cafeterías y heladerías de Tecate (edición mayo de 2025). Incluye los establecimientos sin correo para revisión; no activa envíos.</p>
+  <div className="admin-inspector"><h3>Directorio de Tecate</h3><p>Importa directamente desde INEGI los restaurantes, cafeterías y heladerías de Tecate (edición mayo de 2025). Incluye los establecimientos sin correo para revisión; no activa envíos. Para actualizar a mayo de 2026 o una edición posterior, utiliza el importador de CSV oficial de abajo.</p>
    <button type="button" className="button button-dark button-sm" disabled={busy} onClick={()=>void importOfficial()}><Upload size={16}/>{busy?"Procesando…":"Cargar contactos de Tecate"}</button>
   </div>
   <AdminCrmIntegration/>
+  <AdminCrmNewBusiness localities={regions.filter(r=>r.country_code==="MX"&&r.state_code==="02"&&r.municipality_code==="003")} onSaved={()=>{setCountry("MX");setState("02");setMunicipality("003");setCity("");setCategory("pilot_food");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);}}/>
   <details><summary><strong><Upload size={16}/> Importar y analizar DENUE</strong></summary>
    <p>Descarga el CSV oficial de INEGI, descomprímelo y selecciona el archivo. Se admite UTF-8 y Windows-1252, hasta 40 MB por archivo. No se publican los contactos en GitHub.</p>
    <a href="https://www.inegi.org.mx/app/descarga/" target="_blank" rel="noreferrer">Descarga oficial del DENUE</a>
    <div className="form-stack">
     <label>Municipio a analizar (clave INEGI de 5 cifras; vacío = todos)<input value={scope} onChange={e=>{setScope(e.target.value);setReport(null)}} placeholder="02003 (Tecate)" maxLength={5}/></label>
+    <label>Edición oficial del archivo<select value={edition} onChange={e=>{setEdition(e.target.value);setReport(null)}}><option value="2026-05">Mayo 2026</option><option value="2025-05">Mayo 2025</option><option value="2026-11">Noviembre 2026 (solo si está publicada)</option><option value="">Otra edición / sin indicar</option></select></label>
     <label>Archivo CSV<input type="file" accept=".csv,text/csv" onChange={e=>{setFile(e.target.files?.[0]||null);setReport(null)}}/></label>
     <button className="button button-outline button-sm" disabled={busy||!file} onClick={()=>upload("preview")}>Analizar sin guardar</button>
     <button className="button button-dark button-sm" disabled={busy||!file||!report||!report.relevant} onClick={()=>upload("import")}>Importar prospectos para revisión</button>
