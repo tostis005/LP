@@ -17,3 +17,8 @@ assert.match(ui,/Confirmar importación/);
 assert.match(ui,/d\.action==="update"/);
 assert.match(read("components/AdminCrm.tsx"),/<AdminCrmContactBatch/);
 console.log("CRM batch import source-level regression checks passed.");
+
+assert.match(logic,/out\.length>=2000/);
+assert.match(logic,/selected\.length>2000/);
+assert.match(ui,/2\.000 registros/);
+assert.match(route,/Buffer\.byteLength\(v\.csv,"utf8"\)>4\*1024\*1024/);
