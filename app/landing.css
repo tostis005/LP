@@ -215,7 +215,7 @@
 .loi-install-qr{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:22px 0 0;margin-top:20px;border-top:1px solid var(--color-bg-2)}
 .loi-install-qr strong{font-size:13px;color:var(--color-brand-900)}
 .loi-install-qr p{font-size:11px;line-height:1.55;color:var(--color-brand-500);max-width:270px;margin:4px 0 0}
-.loi-qr-box{background:#fff;border-radius:12px;border:1px solid var(--color-bg-2);padding:8px;line-height:0;flex:none}
+.loi-qr-box{background:#fff;border-radius:2px;border:0;padding:0;line-height:0;flex:none}
 @media(max-width:1100px){.loi-install-layout{gap:34px}.loi-install-card{padding:22px}}
 @media(max-width:900px){.loi-install-layout{grid-template-columns:1fr}.loi-install-intro{text-align:center}.loi-install-intro>p:not(.loi-install-confirmation),.loi-install-intro .loi-install-note{margin-left:auto;margin-right:auto}.loi-install-confirmation{justify-content:center}}
 @media(max-width:650px){.loi-install-section{padding:64px 0}.loi-install-card{border-radius:20px;padding:17px}.loi-install-steps{grid-template-columns:1fr}.loi-install-intro h2{font-size:clamp(32px,8vw,44px)}.loi-install-intro .loi-install-primary{width:100%}.loi-install-platform{padding:18px}.loi-install-platform ol{gap:10px}.loi-install-platform li p{font-size:12px}.loi-install-qr{padding-top:16px;margin-top:16px}.loi-install-qr .loi-qr-box{display:none}}

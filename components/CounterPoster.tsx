@@ -40,8 +40,7 @@ export function CounterPoster({business}:{business:Business;program:Program}){
     <text x="52.5" y="53" fontSize="7.4" fontWeight="800">acumula.</text></>}
     {showSubtitle&&<text x="52.5" y="61" fontSize="3.6">Consigue tu tarjeta digital gratis.</text>}
    </g>
-   <rect x="22.5" y={showTitle||showSubtitle?68:(height-60)/2} width="60" height="60" rx="4" fill="#fff" stroke={gold} strokeWidth=".65"/>
-   <svg x="26.5" y={showTitle||showSubtitle?72:(height-52)/2} width="52" height="52" viewBox="0 0 360 360"><QRCodeSVG value={url} size={360} level="M" marginSize={4} fgColor="#000000" bgColor="#ffffff"/></svg>
+   <svg x="22.5" y={showTitle||showSubtitle?68:(height-60)/2} width="60" height="60" viewBox="0 0 360 360"><QRCodeSVG value={url} size={360} level="M" marginSize={4} fgColor="#000000" bgColor="#ffffff"/></svg>
    {showFooter&&<g textAnchor="middle" fill={wine}>
     <text x="52.5" y="135" fontSize="4.3" fontWeight="800">Escanea y empieza</text>
     <text x="52.5" y="141" fontSize="2.9">Sin descargar ninguna app · kreyvi.com</text>
