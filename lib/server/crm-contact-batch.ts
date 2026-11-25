@@ -15,7 +15,7 @@ export function parseContactCsv(text:string):Candidate[]{
    if(["negocio","localidad","sector","correo_publicado","url_fuente","municipio","estado"].some(k=>!header!.includes(k)))throw new ApiError("Faltan columnas requeridas del CSV de contactos.");
    return;
   }
-  if(out.length>=250)throw new ApiError("Máximo 250 contactos por archivo.");
+  if(out.length>=2000)throw new ApiError("Máximo 2.000 contactos por archivo.");
   const get=(k:string)=>(cells[header!.indexOf(k)]||"").trim();
   const name=get("negocio"),city=get("localidad"),email=get("correo_publicado").toLowerCase(),source=get("url_fuente"),address=get("direccion"),sourceId=get("id_denue"),sector=normalize(get("sector"));
   const category=/helad|neveria/.test(sector)?"Heladerías":/restaurant|cafe|cafeter|comida|gastronom|churreria|postres/.test(sector)?"Restaurantes y cafeterías":"";
@@ -58,7 +58,7 @@ export async function contactBatch(c:PoolClient,candidates:Candidate[],selected:
  const apply=selected!==undefined;
  const approvals=new Map<number,{action:string;id:string}>();
  if(apply){
-  if(!Array.isArray(selected)||!selected.length||selected.length>250)throw new ApiError("Selecciona fichas de la vista previa.");
+  if(!Array.isArray(selected)||!selected.length||selected.length>2000)throw new ApiError("Selecciona fichas de la vista previa.");
   for(const s of selected){if(!s||!Number.isInteger(s.row)||!["create","update"].includes(s.action)||typeof s.id!=="string"||approvals.has(s.row))throw new ApiError("Selección inválida.");approvals.set(s.row,{action:s.action,id:s.id});}
   await c.query("SELECT pg_advisory_xact_lock(hashtext('kreyvi-crm-web-business'))");
   await c.query("SELECT pg_advisory_xact_lock(hashtext('kreyvi-denue-import'))");
