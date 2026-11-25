@@ -128,6 +128,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   else {setLocationName("");setAddress("");setLat("");setLng("")}
   setActivity((a.data||[]) as EmployeeActivity[]);
    setMetrics((m.data||[]) as MetricRow[]);setGrowth((g.data||[]) as GrowthRow[]);setGrowthSummary((gs.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
+  if(adminMode&&!b.data&&!b.error)setError("No se encontró este establecimiento.");
   const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error;
   if(failure)setError(failure.message);
   if(forCampaign){
@@ -145,7 +146,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   if(pushItems.error)setError(pushItems.error.message);
   }
   setLoading(false);
- },[selected,periodDays,marketingChannel,tab,dataArea]);
+ },[selected,periodDays,marketingChannel,tab,dataArea,adminMode]);
  useEffect(()=>{reload()},[reload]);
  function success(s:string){setNotice(s);setError("");showActionToast(s)}
  async function saveBusiness(fields:Partial<Business>){
@@ -311,7 +312,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
  const currency=displayCurrency(biz?.currency);
  const formatBalance=(n:number)=>units(n,programType,currency);
  return <div className="business-workspace">
-  {adminMode&&<section className="admin-merchant-context"><Link className="inline-table-button" href="/admin/negocios">← Todos los negocios</Link><div className="admin-merchant-heading"><div><span className="eyebrow">GESTIÓN ADMINISTRATIVA DEL ESTABLECIMIENTO</span><h2>{biz?.name||"Cargando negocio…"}</h2></div><span className="table-pill">Actúas como administrador</span></div><p>Los cambios afectan a este establecimiento. Las campañas usan sus condiciones, destinatarios autorizados y tarifas.</p><nav className="admin-merchant-tabs" aria-label="Gestión del establecimiento">{(Object.entries(adminBusinessSections) as [AdminBusinessSection,string][]).filter(([key])=>key!=="customers"&&key!=="transactions").map(([key,label])=><Link key={key} href={adminBusinessHref(selected,key)} aria-current={key===tab||key==="tarjeta"&&tab==="card"?"page":undefined} className={key===tab||key==="tarjeta"&&tab==="card"?"active":""}>{label}</Link>)}</nav></section>}
+  {adminMode&&<section className="admin-merchant-context"><Link className="inline-table-button" href="/admin/negocios">← Todos los negocios</Link><div className="admin-merchant-heading"><div><span className="eyebrow">GESTIÓN ADMINISTRATIVA DEL ESTABLECIMIENTO</span><h2>{biz?.name||(loading?"Cargando negocio…":"Establecimiento")}</h2></div><span className="table-pill">Actúas como administrador</span></div><p>Los cambios afectan a este establecimiento. Las campañas usan sus condiciones, destinatarios autorizados y tarifas.</p><nav className="admin-merchant-tabs" aria-label="Gestión del establecimiento">{(Object.entries(adminBusinessSections) as [AdminBusinessSection,string][]).filter(([key])=>key!=="customers"&&key!=="transactions").map(([key,label])=><Link key={key} href={adminBusinessHref(selected,key)} aria-current={key===tab||key==="tarjeta"&&tab==="card"?"page":undefined} className={key===tab||key==="tarjeta"&&tab==="card"?"active":""}>{label}</Link>)}</nav></section>}
   {!adminMode&&manageable.length>0&&<div className="business-selector"><span>Estás gestionando</span><select value={selected} onChange={e=>{setSelected(e.target.value);window.sessionStorage.setItem("loyally_selected_business",e.target.value);openSection("overview");setNotice("")}}>{manageable.map(b=><option key={b.business_id} value={b.business_id}>{b.businesses?.name||b.business_id}</option>)}</select><ChevronDown size={16}/></div>}
   {!selected?<div className="empty-state"><Store size={33}/><h3>Todavía no gestionas ningún negocio</h3><p>Solicita acceso a tu establecimiento para comenzar.</p></div>:<>
    <div className="workspace-section-layout">

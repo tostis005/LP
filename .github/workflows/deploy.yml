@@ -60,6 +60,8 @@ jobs:
         run: node tests/demo/owner-final-card-flows.mjs
       - name: Comprobar tarjeta visual, QR y datos interactivos del negocio
         run: node tests/demo/owner-card-chart-priority.mjs
+      - name: Verificar navegación y asistencia administrativa
+        run: node --experimental-strip-types tests/demo/admin-routes.mjs
       - name: Validar formularios anchos, accesos, fotos pequeñas y estado demo
         run: node tests/demo/owner-desktop-images-marketing.mjs
       - name: Validar panel de Datos del propietario
