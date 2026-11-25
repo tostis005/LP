@@ -8,6 +8,7 @@ import {StampCard} from "@/components/StampCard";
 
 import {safeJoinTarget,PUBLIC_SITE_URL} from "@/lib/public-url";
 import {configured,db} from "@/lib/supabase";
+import {PhoneCountryField} from "@/components/PhoneCountryField";
 
 export default function Login(){
  const router=useRouter();
@@ -17,6 +18,7 @@ export default function Login(){
  const [loginTarget,setLoginTarget]=useState("/entrar");
  useEffect(()=>{
   const candidate=new URLSearchParams(window.location.search).get("next")||"";
+  if(safeJoinTarget(candidate))setMarketingOptIn(true);
   if(safeJoinTarget(candidate)||/^\/app\/novedades\/[a-f0-9-]{36}$/i.test(candidate))setLoginTarget(candidate);
  },[]);
  async function submit(e:React.FormEvent){
@@ -64,12 +66,12 @@ export default function Login(){
      {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y novedades</strong></span></label>}
      {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&"No te pierdas las ofertas y promociones de los locales participantes. "}Puedes cambiar tus preferencias en Ajustes cuando quieras.</p>}
      {mode==="signup"&&<details className="lp-signup-consent-details"><summary>Más información</summary><p>Si marcas la casilla, Kreyvi y los negocios de tus tarjetas podrán enviarte ofertas y novedades por email, WhatsApp y notificaciones. Es opcional y puedes retirar tu consentimiento en Ajustes.</p></details>}
-     {mode==="signup"&&marketingOptIn&&<label>Tu número de WhatsApp<input type="tel" inputMode="tel" required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>Para recibir las ofertas que has elegido. Incluye el prefijo internacional.</small></label>}
+     {mode==="signup"&&marketingOptIn&&<PhoneCountryField label="Tu número de WhatsApp" value={whatsapp} onChange={setWhatsapp} required/>}
      
      {mode==="login"&&<button className="inline-action forgot-action" type="button" onClick={()=>switchMode("forgot")}>¿Olvidaste la contraseña?</button>}
      {error&&<div className="alert error" role="alert">{error}</div>}
      {message&&<div className="alert success"><CheckCircle2 size={18}/>{message}</div>}
-     <button type="submit" disabled={busy} className="button button-dark button-full">{busy?"Procesando...":mode==="login"?"Iniciar sesión":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"} <ArrowRight size={18}/></button>
+     <button type="submit" disabled={busy} className="button button-dark button-full">{busy?"Procesando...":mode==="login"?"Iniciar sesión":mode==="signup"?(marketingOptIn?"Crear cuenta y recibir ofertas":"Crear mi cuenta"):"Enviar instrucciones"} <ArrowRight size={18}/></button>
     </form>
     <div className="auth-account-switch">{mode==="login"?<>¿Todavía no tienes cuenta? <button onClick={()=>switchMode("signup")}>Regístrate</button></>:<>¿Ya tienes cuenta? <button onClick={()=>switchMode("login")}>Iniciar sesión</button></>}</div>
 
