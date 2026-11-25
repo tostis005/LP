@@ -15,7 +15,7 @@ function available(channel:Channel){
 async function snapshot(actor:NonNullable<Awaited<ReturnType<typeof actorFromRequest>>>,id:string){
  return asActor(actor,async client=>{
   const o=await client.query<{id:string;business_id:string;push_campaign_id:string|null}>(
-   "SELECT id,business_id,push_campaign_id FROM public.business_offers WHERE id=$1::uuid",[id]);
+   "SELECT id,business_id,push_campaign_id FROM public.business_offers WHERE id=$1::uuid AND archived_at IS NULL",[id]);
   if(!o.rows[0])throw new ApiError("Campaña no encontrada.",404);
   const owner=await client.query<{allowed:boolean}>("SELECT public.is_business_manager($1::uuid) AS allowed",[o.rows[0].business_id]);
   if(!owner.rows[0]?.allowed)throw new ApiError("No autorizado.",403);
