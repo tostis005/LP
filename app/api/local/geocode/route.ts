@@ -12,7 +12,20 @@ export async function POST(request:Request){
   if(!user)throw new ApiError("Inicia sesión para buscar direcciones.",401);
   const raw=await request.text();
   if(raw.length>600)throw new ApiError("La dirección es demasiado larga.",413);
-  const input=JSON.parse(raw) as {q?:string};
+  const input=JSON.parse(raw) as {q?:string;countryOnly?:boolean;lat?:number;lng?:number};
+  if(input.countryOnly===true){
+   const lat=input.lat,lng=input.lng;
+   if(typeof lat!=="number"||typeof lng!=="number"||!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)throw new ApiError("Ubicación inválida.");
+   const now=Date.now();if(now-lastLookup<1300)throw new ApiError("Inténtalo de nuevo en unos segundos.",429);lastLookup=now;
+   const base=process.env.NEXT_PUBLIC_SITE_URL||"https://kreyvi.com";
+   const url=new URL("https://nominatim.openstreetmap.org/reverse");
+   url.searchParams.set("lat",String(Math.round(lat*10)/10));url.searchParams.set("lon",String(Math.round(lng*10)/10));url.searchParams.set("format","jsonv2");url.searchParams.set("zoom","3");url.searchParams.set("addressdetails","1");
+   const response=await fetch(url,{headers:{"User-Agent":"Kreyvi/1.0 (country-detection; "+base+")","Referer":base},signal:AbortSignal.timeout(5000),cache:"no-store"});
+   if(!response.ok)throw new ApiError("No se pudo detectar el país.",503);
+   const data=await response.json() as {address?:{country_code?:string}};
+   const country=String(data.address?.country_code||"").toUpperCase();
+   return Response.json({country:/^[A-Z]{2}$/.test(country)?country:null},{headers:{"Cache-Control":"private, no-store"}});
+  }
   const q=String(input.q||"").trim().replace(/\s+/g," ");
   if(q.length<7||q.length>220)throw new ApiError("Introduce una dirección válida.");
   const key=q.toLowerCase(),cached=cache.get(key);
