@@ -9,8 +9,8 @@ async function api(query="",body?:object){
  const j=await r.json();if(!r.ok)throw new Error(j.error||"No se pudo acceder al buzón.");return j;
 }
 const date=(s:string)=>new Date(s).toLocaleString("es-MX");
-export function AdminCrmMailbox(){
- const [open,setOpen]=useState(false),[data,setData]=useState<Data|null>(null),[error,setError]=useState(""),[notice,setNotice]=useState(""),[busy,setBusy]=useState(false);
+export function AdminCrmMailbox({initiallyOpen=false}:{initiallyOpen?:boolean}){
+ const [open,setOpen]=useState(initiallyOpen),[data,setData]=useState<Data|null>(null),[error,setError]=useState(""),[notice,setNotice]=useState(""),[busy,setBusy]=useState(false);
  const [folder,setFolder]=useState("INBOX"),[unreadOnly,setUnreadOnly]=useState(false),[pendingOnly,setPendingOnly]=useState(false);
  const [token,setToken]=useState(""),[refresh,setRefresh]=useState(""),[config,setConfig]=useState(false);
  const [detail,setDetail]=useState<Detail|null>(null),[reply,setReply]=useState(""),[cursor,setCursor]=useState("");
