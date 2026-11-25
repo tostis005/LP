@@ -3,6 +3,7 @@ import {useEffect,useState} from "react";
 import {CheckCircle2,UserRound,LogOut} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {db} from "@/lib/supabase";
+import {PhoneCountryField} from "@/components/PhoneCountryField";
 function Profile({account}:{account:Account}){
  const [name,setName]=useState(""),[email,setEmail]=useState(account.user.email||"");
  const [whatsapp,setWhatsapp]=useState(account.user.user_metadata?.whatsapp||"");
@@ -27,7 +28,7 @@ function Profile({account}:{account:Account}){
   <div className="form-stack">
    <label>Nombre completo<input value={name} onChange={e=>setName(e.target.value)} placeholder="Tu nombre" required/></label>
    <label>Correo electrónico<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>
-   <label>WhatsApp (opcional)<input type="tel" inputMode="tel" value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>Incluye el prefijo del país para recibir mensajes.</small></label>
+   <PhoneCountryField value={whatsapp} onChange={setWhatsapp} locate/>
    {msg&&<div className="alert success"><CheckCircle2 size={17}/>{msg}</div>}
    {error&&<div className="alert error">{error}</div>}
    <button disabled={busy} type="submit" className="button button-dark">{busy?"Guardando...":"Guardar cambios"}</button>
