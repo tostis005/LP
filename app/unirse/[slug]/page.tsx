@@ -7,7 +7,8 @@ import {useParams,useRouter} from "next/navigation";
 import {ArrowUpRight,Gift,Heart,MapPin,Check,ArrowLeft,BellRing} from "lucide-react";
 import {Brand} from "@/components/Brand";
 import {logoImageUrl} from "@/lib/asset-images";
-import {StampCard} from "@/components/StampCard";
+import {MerchantCard} from "@/components/StampCard";
+import {publicJoinUrl} from "@/lib/public-url";
 import {StampMark} from "@/components/StampMarks";
 import {categoryStampKind} from "@/lib/business-categories";
 import {programPromise,programExplanation} from "@/lib/program-presentation";
@@ -134,8 +135,8 @@ export default function JoinPage(){
       <h2>Así funciona su programa</h2>
       {offer.description&&<p className="join-business-description">{offer.description}</p>}
       <p>{programExplanation(offerProgram)}</p>
-      {offerProgram?.type==="stamps"&&program&&<div className="join-card-preview">
-       <StampCard name={offer.business_name} color={business?.accent_color||offer.accent_color} reward={program.reward_label} total={Math.max(2,program.reward_cost)} earned={0} logoUrl={business?.logo_url} backgroundUrl={business?.card_background} imageUrl={business?.stamp_image_url} icon={business?.stamp_icon||categoryStampKind(category)} message={business?.card_text||"GRACIAS POR VOLVER"} textColor={business?.card_text_color} stampColor={business?.stamp_color}/>
+      {business&&program&&<div className="join-card-preview">
+       <MerchantCard business={business} program={program} balance={0} qrValue={publicJoinUrl(params.slug)}/>
        <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
       </div>}
 
