@@ -1,5 +1,5 @@
-import {randomUUID} from "node:crypto";
-import {actorFromRequest,asActor,checkOrigin,responseError,ApiError,type Actor} from "@/lib/server/db";
+import {randomUUID,createHmac,timingSafeEqual} from "node:crypto";
+import {actorFromRequest,asActor,authPool,checkOrigin,responseError,ApiError,type Actor} from "@/lib/server/db";
 import {callMailbox,mailboxCall,seal,unseal} from "@/lib/server/crm-mailbox";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -11,6 +11,17 @@ async function admin(request:Request){
  const actor=await actorFromRequest(request);if(!actor)throw new ApiError("Inicia sesión.",401);
  await asActor(actor,async c=>{if(!(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed)throw new ApiError("Solo administración.",403);});
  return actor;
+}
+async function workerActor(request:Request,raw:string):Promise<Actor|null>{
+ const timestamp=request.headers.get("x-crm-worker-time")||"",signature=request.headers.get("x-crm-worker-signature")||"";
+ const secret=process.env.AUTH_PGPASSWORD;
+ if(!secret||!/^\d{13}$/.test(timestamp)||Math.abs(Date.now()-Number(timestamp))>60000||! /^[a-f0-9]{64}$/.test(signature))throw new ApiError("No autorizado.",401);
+ const expected=createHmac("sha256",secret).update("crm-mail-sync-v1:"+timestamp+":"+raw).digest();
+ if(!timingSafeEqual(expected,Buffer.from(signature,"hex")))throw new ApiError("No autorizado.",401);
+ const user=(await authPool.query("SELECT id,email,raw_user_meta_data FROM auth.users WHERE id=public.crm_mail_sync_actor() AND email_confirmed_at IS NOT NULL")).rows[0];
+ if(!user)return null;
+ const actor:Actor={id:user.id,email:user.email,user_metadata:user.raw_user_meta_data||{}};
+ return await asActor(actor,async c=>(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed?actor:null);
 }
 function str(v:unknown,max:number){return typeof v==="string"?v.trim().slice(0,max):"";}
 function addr(v:unknown){const a=str(v,254).toLowerCase();return /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(a)?a:"";}
@@ -110,9 +121,16 @@ export async function GET(request:Request){
 }
 export async function POST(request:Request){
  try{
-  checkOrigin(request);const actor=await admin(request),raw=await request.text();if(raw.length>10000)throw new ApiError("Solicitud demasiado larga.",413);const v=JSON.parse(raw);
+  const raw=await request.text();if(raw.length>10000)throw new ApiError("Solicitud demasiado larga.",413);const v=JSON.parse(raw);
+  if(request.headers.has("x-crm-worker-signature")){
+   if(v.action!=="sync"||(v.source!=="inbox"&&v.source!=="logs"))throw new ApiError("Acción no permitida.",403);
+   const actor=await workerActor(request,raw);
+   return json(actor?await sync(actor,v.source):{skipped:true});
+  }
+  checkOrigin(request);const actor=await admin(request);
   if(v.action==="sync"){
    if(v.source!=="inbox"&&v.source!=="logs")throw new ApiError("Origen inválido.");
+   await asActor(actor,async c=>{await c.query("UPDATE public.crm_mailbox SET sync_actor=$1::uuid WHERE id=true AND sync_actor IS NULL",[actor.id]);});
    return json(await sync(actor,v.source));
   }
   if(v.action==="configure"){
@@ -127,6 +145,7 @@ export async function POST(request:Request){
     await c.query("SELECT pg_advisory_xact_lock(hashtext('crm-sendcorex-mailbox'))");
     if(token){await c.query("INSERT INTO public.crm_mailbox(id,email,secret,logs_secret) VALUES(true,$1,$2,$3) ON CONFLICT(id) DO UPDATE SET email=EXCLUDED.email,secret=EXCLUDED.secret,logs_secret=CASE WHEN crm_mailbox.email=EXCLUDED.email THEN COALESCE(EXCLUDED.logs_secret,crm_mailbox.logs_secret) ELSE EXCLUDED.logs_secret END,updated_at=now()",[email,seal({token,refresh,expiresAt:identity?.token?.expires_at}),key?seal({token:key,refresh:""}):null]);}
     else{const result=await c.query("UPDATE public.crm_mailbox SET logs_secret=$1 WHERE id=true AND email=$2",[seal({token:key,refresh:""}),email]);if(!result.rowCount)throw new ApiError("El buzón cambió. Vuelve a conectar.");}
+    await c.query("UPDATE public.crm_mailbox SET sync_actor=$1::uuid WHERE id=true",[actor.id]);
     await c.query("UPDATE public.crm_mail_sync SET last_error=NULL,started_at=NULL WHERE mailbox=$1 AND lease IS NULL",[email]);
    });
    return json({ok:true});
