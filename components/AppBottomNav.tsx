@@ -4,6 +4,7 @@ import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
 import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound,BellRing,Brush} from "lucide-react";
 import {db} from "@/lib/supabase";
+import {adminNavigation,adminActiveHref} from "@/lib/admin-sections";
 import {KreyvIcon} from "@/components/KreyvIcon";
 import {CustomerInboxNavCount} from "@/components/CustomerInboxBell";
 
@@ -13,7 +14,7 @@ const tabs={
  customer:[{href:"/app",label:"Tarjetas",icon:"mis-tarjetas"},{href:"/app/descubrir",label:"Descubrir",icon:"buscar"},{href:"/app/novedades",label:"Avisos",icon:"campanas"},{href:"/app/ajustes",label:"Ajustes",icon:"ajustes"},{href:"/app/perfil",label:"Mi perfil",icon:"perfil"}],
  business:[{href:"/negocio",label:"Mi negocio",icon:"inicio"},{href:"/negocio/tarjeta",label:"Tarjeta",icon:"mi-tarjeta"},{href:"/negocio/team",label:"Empleados",icon:"perfil"},{href:"/negocio/reports",label:"Datos",icon:"recompensa"},{href:"/negocio/marketing",label:"Campañas",icon:"campanas"}],
  staff:[{href:"/empleado",label:"Escanear",icon:"qr"}],
- admin:[{href:"/admin",label:"Panel",icon:"ajustes"}]
+ admin:adminNavigation.map(item=>({href:item.href,label:item.short,icon:item.icon}))
 } as const;
 function roleFromRoute(path:string):Role|null{
  if(path.startsWith("/admin"))return "admin";
@@ -57,7 +58,7 @@ export function AppBottomNav(){
  }
  return <nav className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de KREYVI">
   {items.map(item=>{
-   const active=item.href==="/negocio"?["/negocio","/negocio/overview","/negocio/settings","/negocio/locations","/negocio/poster"].includes(pathname):item.href==="/negocio/reports"?["/negocio/reports","/negocio/transactions","/negocio/customers"].includes(pathname):pathname===item.href;
+   const active=role==="admin"?adminActiveHref(pathname)===item.href:item.href==="/negocio"?["/negocio","/negocio/overview","/negocio/settings","/negocio/locations","/negocio/poster"].includes(pathname):item.href==="/negocio/reports"?["/negocio/reports","/negocio/transactions","/negocio/customers"].includes(pathname):pathname===item.href;
    return <Link key={item.href} href={item.href} aria-current={active?"page":undefined} className={"mobile-bottom-link"+(active?" active":"")}>{item.href==="/negocio/reports"?<BarChart3 size={20}/>:<KreyvIcon name={item.icon} size={20}/> }<span>{item.label}</span>{role==="customer"&&item.href==="/app/novedades"&&<CustomerInboxNavCount/>}</Link>;
   })}
   {(role==="staff"||role==="admin")&&<button type="button" className="mobile-bottom-link" onClick={logout}><LogOut size={20}/><span>Salir</span></button>}

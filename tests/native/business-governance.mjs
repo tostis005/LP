@@ -32,6 +32,18 @@ try{
  const created=await client.query("SELECT public.admin_provision_business($1,$2,$3,$4::uuid,$5::uuid,$6::integer) id",
   ["Sucursal Centro","sucursal-centro-test","gestor@demo.loyally.test",business.id,business.id,1290]);
  const newId=created.rows[0].id;
+ const adminMembership=await client.query("SELECT count(*)::int AS count FROM public.business_members WHERE business_id=$1 AND user_id=$2",[newId,users.admin]);
+ assert.equal(adminMembership.rows[0].count,0,"Admin must not become the owner");
+ const allowed=await client.query("SELECT public.is_business_manager($1::uuid) AS manager,public.is_business_staff($1::uuid) AS staff,public.is_business_owner($1::uuid) AS owner",[newId]);
+ assert.equal(allowed.rows[0].manager,true);assert.equal(allowed.rows[0].staff,false);assert.equal(allowed.rows[0].owner,false);
+ const design=await client.query("UPDATE public.businesses SET accent_color=$2 WHERE id=$1 RETURNING accent_color",[newId,"#123456"]);
+ assert.equal(design.rows[0].accent_color,"#123456");
+ const logged=await client.query("SELECT actor_id FROM public.admin_business_actions WHERE business_id=$1 AND entity='businesses' AND operation='UPDATE'",[newId]);
+ assert.ok(logged.rows.some(row=>row.actor_id===users.admin),"Administrative edits record the real actor");
+ const campaign=await client.query("INSERT INTO public.business_offers(business_id,created_by,title,preview,details) VALUES($1,$2,'Prueba de soporte','Resumen de soporte','Detalle de soporte') RETURNING created_by",[newId,users.admin]);
+ assert.equal(campaign.rows[0].created_by,users.admin);
+ const asset=await client.query("SELECT public.register_business_asset($1::uuid,'logo-admin-test.webp') AS path",[newId]);
+ assert.equal(asset.rows[0].path,newId+"/logo-admin-test.webp");
  const [linked,reference,cloned,contract]=await Promise.all([
   client.query("SELECT parent_business_id FROM public.businesses WHERE id=$1",[newId]),
   client.query("SELECT type,reward_label,reward_cost FROM public.loyalty_programs WHERE business_id=$1",[business.id]),
@@ -48,6 +60,11 @@ try{
  await client.query("SELECT public.admin_set_business_contract($1::uuid,$2::integer)",[newId,990]);
  const changed=await client.query("SELECT agreed_monthly_cents FROM public.business_billing WHERE business_id=$1",[newId]);
  assert.equal(Number(changed.rows[0]?.agreed_monthly_cents),990,"Admin can grant a volume discount");
+ await as(users.gestor);
+ const deniedScope=await client.query("SELECT public.is_business_manager($1::uuid) AS allowed",[newId]);
+ assert.equal(deniedScope.rows[0].allowed,false,"Pending invitation does not authorize an unrelated merchant");
+ const hiddenAudit=await client.query("SELECT count(*)::int AS count FROM public.admin_business_actions WHERE business_id=$1",[newId]);
+ assert.equal(hiddenAudit.rows[0].count,0,"Audit is private to platform admins");
  await client.query("ROLLBACK");
  console.log("OK: only platform admins create stores/branches, each site has independent price and one address, managers edit their address.");
 }catch(e){await client.query("ROLLBACK").catch(()=>{});throw e;}finally{client.release();await pool.end();}

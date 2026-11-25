@@ -27,7 +27,7 @@ const base=read("app/globals.css");
 const secondary=read("app/brand-wine.css");
 const designer=read("components/BusinessWorkspace.tsx");
 const demo=read("lib/demo-local.ts");
-const clientCard=read("components/LoyaltyCard.tsx");
+const clientCard=read("components/StampCard.tsx");
 const login=read("app/acceder/page.tsx");
 const tableDefault=read("db/migrations/130_brand_defaults.sql");
 assert.match(base,/--brand-wine:var\(--color-brand\)/,"Global brand colors must be centralized");

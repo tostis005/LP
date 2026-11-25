@@ -13,6 +13,7 @@ import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {MerchantCard} from "@/components/StampCard";
 import {CounterPoster} from "@/components/CounterPoster";
+import {adminBusinessHref,adminBusinessSections,managedBusinessHref,type AdminBusinessSection} from "@/lib/admin-sections";
 import {publicJoinUrl} from "@/lib/public-url";
 import {logoImageUrl} from "@/lib/asset-images";
 import {BUSINESS_CATEGORIES} from "@/lib/business-categories";
@@ -61,11 +62,13 @@ function privateEmail(value:string){
 
 const COLOR_PRESETS=["#571c32","#351623","#8b3c58","#a7637c","#7760a5","#c9784f","#273550","#a14460","#1d1d1d","#367666","#a35f75","#2c73ac","#dfac5c","#b33c3c","#134e4a","#6d28d9","#f97316","#0f172a","#edf4e9","#f4e8db","#f9cadf","#ffffff","#000000"];
 const STAMP_COLOR_PRESETS=["#571c32","#8b3c58","#0f172a","#2563eb","#b91c1c","#c2410c","#7c3aed","#0f766e","#a16207","#db2777","#ffffff"];
-export default function BusinessWorkspace({account}:{account:Account}){
+export default function BusinessWorkspace({account,adminBusinessId}:{account:Account;adminBusinessId?:string}){
  const router=useRouter(),pathname=usePathname();
+ const adminMode=account.admin&&!!adminBusinessId;
+ const workspaceHref=(href:string)=>managedBusinessHref(adminMode?adminBusinessId:undefined,href);
  const manageable=account.businesses.filter(b=>b.active===true&&(b.role==="owner"||b.role==="manager"));
- const [selected,setSelected]=useState(manageable[0]?.business_id||"");
- const section=pathname.split("/")[2];
+ const [selected,setSelected]=useState(adminMode?adminBusinessId!:manageable[0]?.business_id||"");
+ const section=pathname.split("/")[adminMode?4:2];
  // La ruta pública se llama /negocio/tarjeta, pero el identificador interno es card.
  // Antes caía en Inicio y mostraba sus accesos directos en lugar del editor de tarjeta.
  const tab:Tab=section==="tarjeta"||section==="designer"||section==="program"?"card":tabs.find(t=>t.id===(section==="customers"||section==="transactions"?"reports":section))?.id||"overview";
@@ -74,11 +77,11 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const [cardArea,setCardArea]=useState<CardArea>(section==="program"?"rules":"design");
  function openSection(next:Tab){
   if(next==="designer"||next==="program"||next==="card"){
-   setCardArea(next==="program"?"rules":"design");router.push("/negocio/tarjeta");
-  }else router.push(next==="overview"?"/negocio":"/negocio/"+next);
+   setCardArea(next==="program"?"rules":"design");router.push(workspaceHref("/negocio/tarjeta"));
+  }else router.push(workspaceHref(next==="overview"?"/negocio":"/negocio/"+next));
   setError("");setNotice("");
  }
- useEffect(()=>{try{const stored=window.sessionStorage.getItem("loyally_selected_business");if(stored&&manageable.some(b=>b.business_id===stored))setSelected(stored);}catch{}},[account.user.id]);
+ useEffect(()=>{if(adminMode)return;try{const stored=window.sessionStorage.getItem("loyally_selected_business");if(stored&&manageable.some(b=>b.business_id===stored))setSelected(stored);}catch{}},[account.user.id,adminMode]);
  const [biz,setBiz]=useState<Business|null>(null),[prog,setProg]=useState<Program|null>(null),[customers,setCustomers]=useState<Customer[]>([]),[staff,setStaff]=useState<Employee[]>([]),[invites,setInvites]=useState<{id:string;email:string;role:string;created_at:string}[]>([]),[locations,setLocations]=useState<Location[]>([]),[drafts,setDrafts]=useState<Draft[]>([]);
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
   const [periodDays,setPeriodDays]=useState(30),[metrics,setMetrics]=useState<MetricRow[]>([]),[growthSummary,setGrowthSummary]=useState<MetricRow[]>([]),[growth,setGrowth]=useState<GrowthRow[]>([]),[ranking,setRanking]=useState<RankingRow[]>([]),[rewardOptions,setRewardOptions]=useState<RewardOption[]>([]);
@@ -125,6 +128,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   else {setLocationName("");setAddress("");setLat("");setLng("")}
   setActivity((a.data||[]) as EmployeeActivity[]);
    setMetrics((m.data||[]) as MetricRow[]);setGrowth((g.data||[]) as GrowthRow[]);setGrowthSummary((gs.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
+  if(adminMode&&!b.data&&!b.error)setError("No se encontró este establecimiento.");
   const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error;
   if(failure)setError(failure.message);
   if(forCampaign){
@@ -142,7 +146,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
   if(pushItems.error)setError(pushItems.error.message);
   }
   setLoading(false);
- },[selected,periodDays,marketingChannel,tab,dataArea]);
+ },[selected,periodDays,marketingChannel,tab,dataArea,adminMode]);
  useEffect(()=>{reload()},[reload]);
  function success(s:string){setNotice(s);setError("");showActionToast(s)}
  async function saveBusiness(fields:Partial<Business>){
@@ -308,12 +312,13 @@ export default function BusinessWorkspace({account}:{account:Account}){
  const currency=displayCurrency(biz?.currency);
  const formatBalance=(n:number)=>units(n,programType,currency);
  return <div className="business-workspace">
-  {manageable.length>0&&<div className="business-selector"><span>Estás gestionando</span><select value={selected} onChange={e=>{setSelected(e.target.value);window.sessionStorage.setItem("loyally_selected_business",e.target.value);openSection("overview");setNotice("")}}>{manageable.map(b=><option key={b.business_id} value={b.business_id}>{b.businesses?.name||b.business_id}</option>)}</select><ChevronDown size={16}/></div>}
+  {adminMode&&<section className="admin-merchant-context"><Link className="inline-table-button" href="/admin/negocios">← Todos los negocios</Link><div className="admin-merchant-heading"><div><span className="eyebrow">GESTIÓN ADMINISTRATIVA DEL ESTABLECIMIENTO</span><h2>{biz?.name||(loading?"Cargando negocio…":"Establecimiento")}</h2></div><span className="table-pill">Actúas como administrador</span></div><p>Los cambios afectan a este establecimiento. Las campañas usan sus condiciones, destinatarios autorizados y tarifas.</p><nav className="admin-merchant-tabs" aria-label="Gestión del establecimiento">{(Object.entries(adminBusinessSections) as [AdminBusinessSection,string][]).filter(([key])=>key!=="customers"&&key!=="transactions").map(([key,label])=><Link key={key} href={adminBusinessHref(selected,key)} aria-current={key===tab||key==="tarjeta"&&tab==="card"?"page":undefined} className={key===tab||key==="tarjeta"&&tab==="card"?"active":""}>{label}</Link>)}</nav></section>}
+  {!adminMode&&manageable.length>0&&<div className="business-selector"><span>Estás gestionando</span><select value={selected} onChange={e=>{setSelected(e.target.value);window.sessionStorage.setItem("loyally_selected_business",e.target.value);openSection("overview");setNotice("")}}>{manageable.map(b=><option key={b.business_id} value={b.business_id}>{b.businesses?.name||b.business_id}</option>)}</select><ChevronDown size={16}/></div>}
   {!selected?<div className="empty-state"><Store size={33}/><h3>Todavía no gestionas ningún negocio</h3><p>Solicita acceso a tu establecimiento para comenzar.</p></div>:<>
    <div className="workspace-section-layout">
     <header className="business-section-heading">
      <div><span className="page-eyebrow">GESTIÓN</span><h2>{inBusinessHome?"Mi negocio":tabs.find(t=>t.id===tab)?.label||"Resumen"}</h2></div>
-     {tab==="card"&&<Link className="button button-outline button-sm" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Vista previa <ArrowUpRight size={16}/></Link>}
+     {tab==="card"&&<Link className="button button-outline button-sm" href={workspaceHref("/negocio/vista-previa?business="+encodeURIComponent(selected))}>Vista previa <ArrowUpRight size={16}/></Link>}
     </header>
     
     <div className="workspace-section-body">
@@ -330,12 +335,12 @@ export default function BusinessWorkspace({account}:{account:Account}){
      <div className="owner-start-hero"><h3>{biz.name}</h3>
       <p>{prog.type==="stamps"?"Programa de sellos":prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"} · {prog.reward_label}</p>
      </div>
-     <nav className="owner-start-links owner-start-primary-links owner-start-with-poster" aria-label="Configuración del negocio">
-      <Link href="/negocio" className={tab==="overview"?"active":""} aria-current={tab==="overview"?"page":undefined}><CreditCard size={18}/> Tarjeta actual</Link>
-      <Link href="/negocio/settings" title="Información del negocio" className={tab==="settings"?"active":""} aria-current={tab==="settings"?"page":undefined}><Settings2 size={18}/> Información</Link>
-      <Link href="/negocio/locations" title="Dirección y ubicación" className={tab==="locations"?"active":""} aria-current={tab==="locations"?"page":undefined}><MapPin size={18}/> Ubicación</Link>
-      <Link href="/negocio/poster" className={tab==="poster"?"active":""} aria-current={tab==="poster"?"page":undefined}><FileText size={18}/> Cartel para mostrador</Link>
-     </nav>
+     {!adminMode&&<nav className="owner-start-links owner-start-primary-links owner-start-with-poster" aria-label="Configuración del negocio">
+      <Link href={workspaceHref("/negocio")} className={tab==="overview"?"active":""} aria-current={tab==="overview"?"page":undefined}><CreditCard size={18}/> Tarjeta actual</Link>
+      <Link href={workspaceHref("/negocio/settings")} title="Información del negocio" className={tab==="settings"?"active":""} aria-current={tab==="settings"?"page":undefined}><Settings2 size={18}/> Información</Link>
+      <Link href={workspaceHref("/negocio/locations")} title="Dirección y ubicación" className={tab==="locations"?"active":""} aria-current={tab==="locations"?"page":undefined}><MapPin size={18}/> Ubicación</Link>
+      <Link href={workspaceHref("/negocio/poster")} className={tab==="poster"?"active":""} aria-current={tab==="poster"?"page":undefined}><FileText size={18}/> Cartel para mostrador</Link>
+     </nav>}
     </div>}
    {tab==="poster"&&<CounterPoster key={biz.id} business={biz} program={prog}/>}
    {tab==="overview"&&<div className="owner-start">
@@ -391,7 +396,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
      <MerchantCard business={biz} program={prog} balance={prog.type==="stamps"?Math.min(previewEarned,prog.reward_cost):prog.type==="points"?120:15000} qrValue={publicJoinUrl(biz.slug)}/>
      {prog.type==="stamps"&&<label className="lp-preview-range">Sellos en la vista previa: <strong>{Math.min(previewEarned,prog.reward_cost)} de {prog.reward_cost}</strong><input type="range" min={0} max={prog.reward_cost} value={Math.min(previewEarned,prog.reward_cost)} onChange={e=>setPreviewEarned(Number(e.target.value))}/></label>}
      <p className="tiny-note">Comparte el enlace de inscripción. Cada cliente tendrá su propio QR para registrar visitas.</p>
-     <a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Previsualizar mi tarjeta <ArrowUpRight size={17}/></a>
+     <a className="button button-outline button-full" href={workspaceHref("/negocio/vista-previa?business="+encodeURIComponent(selected))}>Previsualizar mi tarjeta <ArrowUpRight size={17}/></a>
     </section>
    </div>}
    {tab==="card"&&cardArea==="rules"&&<form className="panel-card program-form" onSubmit={saveProgram}><div className="panel-icon"><Gift size={22}/></div><h2>Funcionamiento y límites</h2><p className="muted">La modalidad no se puede cambiar si ya hay tarjetas inscritas.</p><div className="program-type-grid">{([{id:"stamps",label:"Sellos",desc:"Cada compra suma sellos",icon:<Ticket/>},{id:"points",label:"Puntos",desc:"Puntos por importe gastado",icon:<StarIcon/>},{id:"cashback",label:"Saldo a favor",desc:"Recupera parte de tus compras",icon:<Wallet/>}] as const).map(x=><button type="button" key={x.id} className={"program-type"+(prog.type===x.id?" selected":"")} disabled={customers.length>0&&prog.type!==x.id} onClick={()=>setProg({...prog,type:x.id})}><span>{x.icon}</span><strong>{x.label}</strong><small>{x.desc}</small></button>)}</div><div className="form-stack">
@@ -429,7 +434,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
       <div className="panel-icon"><Users size={23}/></div>
       <div className="form-stack"><label>Correo electrónico del empleado<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="empleado@negocio.com" required/></label>
        <label>Tipo de acceso<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="employee">Empleado: escanear y canjear</option>
-        {account.businesses.find(x=>x.business_id===selected)?.role==="owner"&&<option value="manager">Responsable: gestionar negocio</option>}
+        {(adminMode||account.businesses.find(x=>x.business_id===selected)?.role==="owner")&&<option value="manager">Responsable: gestionar negocio</option>}
        </select></label>
        <button type="submit" className="button button-dark" disabled={busy}>{busy?"Guardando...":"Crear invitación"} <Plus size={17}/></button>
       </div>
@@ -455,9 +460,9 @@ export default function BusinessWorkspace({account}:{account:Account}){
    </div>}
     {tab==="reports"&&<div className="owner-reports-stack">
      <nav className="business-card-tabs owner-data-tabs" aria-label="Datos del negocio">
-      <Link href="/negocio/reports" className={dataArea==="summary"?"active":""} aria-current={dataArea==="summary"?"page":undefined}><BarChart3 size={16}/> Resumen</Link>
-      <Link href="/negocio/transactions" className={dataArea==="transactions"?"active":""} aria-current={dataArea==="transactions"?"page":undefined}><FileText size={16}/> Transacciones</Link>
-      <Link href="/negocio/customers" className={dataArea==="customers"?"active":""} aria-current={dataArea==="customers"?"page":undefined}><Users size={16}/> Clientes</Link>
+      <Link href={workspaceHref("/negocio/reports")} className={dataArea==="summary"?"active":""} aria-current={dataArea==="summary"?"page":undefined}><BarChart3 size={16}/> Resumen</Link>
+      <Link href={workspaceHref("/negocio/transactions")} className={dataArea==="transactions"?"active":""} aria-current={dataArea==="transactions"?"page":undefined}><FileText size={16}/> Transacciones</Link>
+      <Link href={workspaceHref("/negocio/customers")} className={dataArea==="customers"?"active":""} aria-current={dataArea==="customers"?"page":undefined}><Users size={16}/> Clientes</Link>
      </nav>
      {dataArea==="summary"&&<>
       <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType}/>

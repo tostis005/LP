@@ -102,7 +102,7 @@ assert.match(landingCss,/\.loi-site \.loi-showcase-phone\{\s*display:flex;flex-d
 
 const posterUi=readFileSync(new URL("../../components/CounterPoster.tsx",import.meta.url),"utf8");
 const ownerUi=readFileSync(new URL("../../components/BusinessWorkspace.tsx",import.meta.url),"utf8");
-assert.match(ownerUi,/href="\/negocio\/poster"/,"Poster is available in My business");
+assert.match(ownerUi,/workspaceHref\("\/negocio\/poster"\)/,"Poster is available in My business");
 assert.match(posterUi,/width="52" height="52" viewBox="0 0 360 360"/,"Large QR for print");
 assert.match(posterUi,/marginSize=\{4\}/,"QR quiet zone");
 assert.doesNotMatch(posterUi,/business\.card_background|business\.stamp_image_url|program\.reward_label|business\.logo_url/,"Universal poster is independent of the business design");

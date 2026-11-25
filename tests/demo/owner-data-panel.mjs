@@ -6,7 +6,7 @@ const home=owner.slice(owner.indexOf('{inBusinessHome&&'),owner.indexOf('{tab===
 assert.doesNotMatch(home,/negocio\/customers/);
 assert.match(home,/negocio\/settings/);assert.match(home,/negocio\/locations/);
 assert.match(frame,/label:"Datos",icon:<BarChart3/);
-for(const tab of ["reports","transactions","customers"])assert.ok(owner.includes('href="/negocio/'+tab+'"'));
+for(const tab of ["reports","transactions","customers"])assert.ok(owner.includes('workspaceHref("/negocio/'+tab+'")'));
 assert.match(data,/RewardDonut/);assert.match(data,/strokeDasharray/);
 assert.match(panels,/EmployeeChart/);assert.match(panels,/sales_cents/);
 assert.match(panels,/p_offset:page\*pageSize/);assert.match(panels,/manager_reverse_transaction/);

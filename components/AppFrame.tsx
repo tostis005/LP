@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@/lib/supabase";
 import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, BellRing, Mail, Users, ChevronRight, Brush, Gift, MapPin, Store } from "lucide-react";
 import { Brand } from "@/components/Brand";
+import {adminNavigation,adminActiveHref} from "@/lib/admin-sections";
 import {KreyvIcon} from "@/components/KreyvIcon";
 import {CustomerInboxBell} from "@/components/CustomerInboxBell";
 import { configured, db } from "@/lib/supabase";
@@ -22,11 +23,11 @@ const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
   {href:"/negocio/marketing",label:"Campañas",icon:<KreyvIcon name="campanas" size={18}/>}
  ],
  staff:[{href:"/empleado",label:"Escanear tarjetas",icon:<KreyvIcon name="qr" size={18}/>}],
- admin:[{href:"/admin",label:"Administración",icon:<KreyvIcon name="ajustes" size={18}/>}]
+ admin:adminNavigation.map(item=>({href:item.href,label:item.label,icon:<KreyvIcon name={item.icon} size={18}/>}))
 };
 export function AppFrame({ area, title, subtitle, children }: {area:Area;title:string;subtitle:string;children:(a:Account)=>ReactNode}) {
  const router=useRouter(), pathname=usePathname();
- const activePath=area==="admin"&&pathname.startsWith("/admin/")?"/admin":area==="business"&&["/negocio/customers","/negocio/transactions"].includes(pathname)?"/negocio/reports":area==="business"&&["/negocio/settings","/negocio/locations","/negocio/overview","/negocio/poster"].includes(pathname)?"/negocio":pathname;
+ const activePath=area==="admin"?adminActiveHref(pathname):area==="business"&&["/negocio/customers","/negocio/transactions"].includes(pathname)?"/negocio/reports":area==="business"&&["/negocio/settings","/negocio/locations","/negocio/overview","/negocio/poster"].includes(pathname)?"/negocio":pathname;
  const [user,setUser]=useState<User|null>(null),[roles,setRoles]=useState<BusinessRole[]>([]),[admin,setAdmin]=useState(false);
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[version,setVersion]=useState(0);
  useEffect(()=>{let live=true;

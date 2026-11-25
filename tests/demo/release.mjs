@@ -18,13 +18,13 @@ assert.match(business,/const tab:Tab=section==="tarjeta"\|\|section==="designer"
 assert.doesNotMatch(business,/workspace-section-menu/);
 assert.match(preview,/managerIds.includes\(id\)/);
 assert.match(preview,/program.type==="stamps"/,"Stamp preview must not be used for cashback or points");
-assert.match(preview,/business-preview-nonstamp/,"Points and cashback have dedicated designs");
+assert.match(preview,/<MerchantCard business=\{business\}/,"All programs use the shared card");
 assert.match(preview,/!business\.public_listing|business\.public_listing&&business\.active/);
 assert.match(join,/isBusinessAccount/);
 assert.match(map,/pinIcon\(Boolean\(l\.hasCard\),l\.id===selectedId\)/,"The map uses filled/outlined stars based on actual customer memberships and selection");
-assert.match(mapList,/e\.businesses\.stamp_icon\|\|categoryStampKind/);
+assert.match(mapList,/<MerchantCard business=\{e.businesses\}/);
 assert.match(icons,/STAMP_DRAWINGS/);
-assert.match(wallet,/is-very-dense/);
+assert.match(wallet,/<MerchantCard business=\{business\}/);
 assert.doesNotMatch(wallet,/WalletActions cardId=/,"Wallet buttons hidden until the integration is launched");
 assert.match(read("components/WalletActions.tsx"),/\/api\/local\/wallet/);
 assert.match(walletServer,/createPrivateKey/);
