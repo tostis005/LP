@@ -4,13 +4,9 @@ import Link from "next/link";
 import {QRCodeSVG} from "qrcode.react";
 import {Download, Maximize2, QrCode, X} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
-import {dateShort,initials,units} from "@/lib/format";
+import {dateShort,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
-import {StampCard} from "@/components/StampCard";
-import {StampGrid} from "@/components/StampMarks";
-import {readableCardText} from "@/lib/customer-card-contrast";
-import {cardBackgroundUrl} from "@/lib/card-images";
-import {logoImageUrl} from "@/lib/asset-images";
+import {MerchantCard} from "@/components/StampCard";
 export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
@@ -90,57 +86,19 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    window.setTimeout(()=>URL.revokeObjectURL(downloadUrl),1500);
   }catch{setConsentError("No se pudo guardar la imagen. Puedes seguir utilizando el QR desde la app.");}
  }
- const color=business.accent_color||"#571c32";
- const cardInk=readableCardText(color,business.card_text_color,!!business.card_background);
- const previewInk=cardInk;
  const origin="https://kreyvi.com";
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
- const stampVisual=program?.type==="stamps"?<StampCard name={business.name} color={color} reward={program.reward_label} total={program.reward_cost} earned={membership.balance} icon={business.stamp_icon} imageUrl={business.stamp_image_url} logoUrl={business.logo_url} backgroundUrl={business.card_background} message={business.card_text} textColor={business.card_text_color} stampColor={business.stamp_color} qrValue={qrUrl}/>:null;
+ const cardVisual=<MerchantCard business={business} program={program} balance={membership.balance} qrValue={qrUrl}/>;
  return <>{!modalOnly&&<div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>
- {stampVisual?<button type="button" className="merchant-card-button" onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}>{stampVisual}</button>:compact?<button type="button" className="customer-deck-card"
-  onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}
-  style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20)),url("+cardBackgroundUrl(business.card_background,720)+")":undefined}}>
-  <span className="customer-deck-top">
-   <span className="customer-deck-brand">{business.logo_url?<img src={logoImageUrl(business.logo_url,96)} alt="" loading="lazy" decoding="async"/>:<span>{initials(business.name)}</span>}</span>
-   <span className="customer-deck-type">{business.category||"Fidelización"}</span>
-   <span className="customer-deck-counter">{program?.type==="stamps"&&program.reward_cost>0?Math.min(membership.balance,program.reward_cost)+"/"+program.reward_cost:units(membership.balance,program?.type,business.currency)}</span>
-  </span>
-  <span className="customer-deck-name">{business.name}</span>
-  <span className="customer-deck-reward">{program?.reward_label||"Tu próxima recompensa"}</span>
-  {program?.type==="stamps"&&program.reward_cost>0&&program.reward_cost<=12&&<span className="customer-deck-stamps" aria-hidden="true">{Array.from({length:program.reward_cost},(_,index)=><i key={index} className={index<membership.balance?"earned":""}/>)}</span>}
-  {program?.type==="stamps"&&program.reward_cost>0&&<span className="customer-deck-progress"><span style={{width:Math.min(100,Math.max(0,membership.balance/program.reward_cost*100))+"%"}}/></span>}
-  <span className="customer-deck-bottom">{program?.type==="stamps"&&program.reward_cost>membership.balance?"Te faltan "+(program.reward_cost-membership.balance)+" sellos":"Ver tarjeta y QR"} <QrCode size={18}/></span>
- </button>:<button className={"loyalty-card loyalty-card-rebalanced"+(program?.type==="stamps"?" stamp-card-real":"")+(program?.type==="stamps"&&program.reward_cost>=21?" is-very-dense":program?.type==="stamps"&&program.reward_cost>12?" is-dense":"")}
-  style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20)),url("+cardBackgroundUrl(business.card_background,1200)+")":undefined}}
-  type="button" onClick={()=>setOpen(true)} aria-label={"Abrir tarjeta y QR de "+business.name}>
-  <div className="lc-card-content">
-   <span className="lc-logo">{business.logo_url?<img src={logoImageUrl(business.logo_url,192)} alt="" decoding="async"/>:initials(business.name)}</span>
-   <strong className="lc-card-name">{business.name}</strong>
-   {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance}
-    kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
-   <span className="lc-card-message">{business.card_text||"TARJETA DE FIDELIZACIÓN"}</span>
-   <span className="lc-card-balance">{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</span>
-   <span className="lc-card-reward">{program?.reward_label||"Tu próxima recompensa"}</span>
-  </div>
-  <div className="lc-card-aside">
-   <span className="lc-chip">KREYVI</span>
-   <span className="lc-qr-large"><QRCodeSVG value={qrUrl} size={240} level="M" includeMargin/></span>
-  </div>
- </button>}
+ <div className="merchant-card-button">{cardVisual}<button type="button" className="merchant-card-hitbox" onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}/></div>
  {!compact&&<button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><QrCode size={17}/> Ver tarjeta y QR</button>}
  {offersCount>0&&<Link className="kreyv-loyalty-offers" href={"/app/novedades?business="+business.id}>Ver ofertas de este negocio ({offersCount})</Link>}
  </div>}
  {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={closeCard}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
  <button className="modal-close" aria-label="Cerrar" onClick={closeCard}><X size={20}/></button>
  <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
- {stampVisual||<div className="loyally-modal-card-preview" style={{backgroundColor:color,color:previewInk,backgroundSize:"cover",backgroundPosition:"center",backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20)),url("+cardBackgroundUrl(business.card_background,1200)+")":undefined}}>
-  <div className="loyally-modal-card-top"><span>{business.name}</span><span>KREYVI</span></div>
-  <strong>{program?.reward_label||"Mis recompensas"}</strong>
-  {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance}
-   kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
-  <small>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</small>
- </div>}
+ <div className="loyally-modal-card-preview merchant-card-detail">{cardVisual}</div>
  <div className="customer-card-detail-stats">
   <div><small>Premio</small><strong>{program?.reward_label||"Recompensa"}</strong></div>
   <div><small>Saldo</small><strong>{units(membership.balance,program?.type,business.currency)}</strong></div>
