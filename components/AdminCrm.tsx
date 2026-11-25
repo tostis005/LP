@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
-import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X} from "lucide-react";
+import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X,Building2,Mail,FolderUp,CheckCircle2,RefreshCw} from "lucide-react";
 import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
 import {AdminCrmMailbox} from "./AdminCrmMailbox";
 type Prospect={id:string;name:string;phone:string;address:string;website:string;latitude:string;longitude:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string};
@@ -12,27 +12,46 @@ const stages:Record<string,string>={pending_review:"Sin contactar",qualified:"Si
 const reviewStages:Record<string,string>={pending:"Pendiente",source_found:"Fuente localizada",no_contact_found:"Sin contacto localizado",ambiguous:"Identidad dudosa",not_relevant:"No relevante"};
 export function AdminCrm(){
  const [data,setData]=useState<Data|null>(null);
+ const [tab,setTab]=useState<"directory"|"mail"|"imports">("directory");
+ const [options,setOptions]=useState<{regions:Region[];categories:Data["categories"]}>({regions:[],categories:[]});
+ const [optionsError,setOptionsError]=useState("");
+ const [optionsLoading,setOptionsLoading]=useState(true);
+
+
  const [review,setReview]=useState(""),[coverage,setCoverage]=useState(""),[country,setCountry]=useState("MX"),[state,setState]=useState(""),[municipality,setMunicipality]=useState(""),[city,setCity]=useState(""),[category,setCategory]=useState(""),[status,setStatus]=useState(""),[search,setSearch]=useState(""),[page,setPage]=useState(0);
  const [pageSize,setPageSize]=useState(50),[sort,setSort]=useState("name"),[direction,setDirection]=useState<"asc"|"desc">("asc");
  const [columnFilters,setColumnFilters]=useState<Record<string,string>>({}),[loading,setLoading]=useState(true),[jump,setJump]=useState("");
- const requestVersion=useRef(0);
+ const requestVersion=useRef(0),lastRevision=useRef(-1),lastText=useRef("");
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
  useEffect(()=>{
+  const controller=new AbortController();setOptionsLoading(true);
+  fetch("/api/local/admin/crm?view=options",{signal:controller.signal,cache:"no-store"}).then(async r=>{
+   const j=await r.json();if(!r.ok)throw new Error(j.error||"No se pudieron cargar los filtros.");
+   if(!controller.signal.aborted){setOptions(j);setOptionsError("");}
+  }).catch(e=>{if(!controller.signal.aborted)setOptionsError(e.message);}).finally(()=>{if(!controller.signal.aborted)setOptionsLoading(false);});
+  return()=>controller.abort();
+ },[revision]);
+ useEffect(()=>{
+  if(tab!=="directory")return;
   const controller=new AbortController(),version=++requestVersion.current;
   setLoading(true);setError("");
-  const params=new URLSearchParams({country_code:country,state_code:state,municipality_code:municipality,locality_code:city,category,status,coverage,review,q:search,page:String(page),page_size:String(pageSize),sort,direction,...columnFilters});
+  const refresh=lastRevision.current!==revision;
+  const textKey=JSON.stringify([search,columnFilters]);
+  const delay=lastText.current!==textKey&&lastRevision.current!==-1?160:0;lastText.current=textKey;
+  const params=new URLSearchParams({compact:"1",...(refresh?{refresh:"1"}:{}),country_code:country,state_code:state,municipality_code:municipality,locality_code:city,category,status,coverage,review,q:search,page:String(page),page_size:String(pageSize),sort,direction,...columnFilters});
   // Coalesce rapid typing/filter changes and cancel outdated requests.
   const timer=setTimeout(()=>{
    fetch("/api/local/admin/crm?"+params,{signal:controller.signal,cache:"no-store"}).then(async r=>{
     const j=await r.json();if(!r.ok)throw new Error(j.error||"No se pudo cargar el listado.");
     if(controller.signal.aborted||version!==requestVersion.current)return;
-    setData(j);if(j.page!==page)setPage(j.page);
+    lastRevision.current=revision;setData(j);if(j.page!==page)setPage(j.page);
    }).catch(e=>{if(!controller.signal.aborted&&version===requestVersion.current)setError(e.message);})
    .finally(()=>{if(!controller.signal.aborted&&version===requestVersion.current)setLoading(false);});
-  },180);
+  },delay);
   return()=>{clearTimeout(timer);controller.abort();};
- },[country,state,municipality,city,category,status,coverage,review,search,page,pageSize,sort,direction,columnFilters,revision]);
- const regions=data?.regions||[],states=[...new Map(regions.filter(r=>!country||r.country_code===country).map(r=>[r.state_code,r.state])).entries()];
+ },[country,state,municipality,city,category,status,coverage,review,search,page,pageSize,sort,direction,columnFilters,revision,tab]);
+ useEffect(()=>{if(!focus)return;const handler=(e:KeyboardEvent)=>{if(e.key==="Escape"&&!busy)setFocus(null);};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler);},[focus,busy]);
+ const regions=options.regions,states=[...new Map(regions.filter(r=>!country||r.country_code===country).map(r=>[r.state_code,r.state])).entries()];
  const municipalities=[...new Map(regions.filter(r=>r.state_code===state).map(r=>[r.municipality_code,r.municipality])).entries()];
  async function importOfficial(code:string,name:string){
   setBusy(true);setError("");setNotice("Descargando y procesando el directorio oficial del INEGI…");
@@ -62,13 +81,41 @@ export function AdminCrm(){
  const textColumns=new Set(["name","activity","email","phone","address","website"]);
  const hasFilters=Boolean(search||state||municipality||city||category||coverage||review||status||Object.keys(columnFilters).length);
  const pendingCities=[{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
- return <div className="panel-card">
-  <div className="content-heading"><div><h2>CRM comercial</h2><p>Busca negocios, registra el contacto y guarda notas.</p></div></div>
-  {error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}
-  {data&&pendingCities.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong><small>DENUE · incluye negocios sin correo</small></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}
-  <AdminCrmMailbox/>
-  <AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/>
+ return <div className="panel-card crm-workspace">
+  <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
+  <div className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
+   {([{id:"directory",label:"Negocios",icon:Building2},{id:"mail",label:"Correo comercial",icon:Mail},{id:"imports",label:"Importaciones",icon:FolderUp}] as const).map(t=><button key={t.id} type="button" role="tab" aria-selected={tab===t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}><t.icon size={18}/>{t.label}</button>)}
+  </div>
+  {tab==="directory"&&<>{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}{optionsError&&<div role="alert" className="alert error">{optionsError}</div>}
+  <div className="crm-metrics" aria-label="Resumen de los resultados filtrados">
+   {([{label:"Negocios",n:data?.count.total,icon:Building2},{label:"Con correo",n:data?.count.with_email,icon:Mail},{label:"Correos únicos",n:data?.count.unique_emails,icon:Mail},{label:"Revisados",n:data?.count.reviewed,icon:CheckCircle2}] as const).map(m=><div className="crm-metric" key={m.label}><span><m.icon size={16}/>{m.label}</span><strong>{m.n===undefined?"—":format(m.n)}</strong></div>)}
+  </div></>}
+  {tab==="mail"&&<AdminCrmMailbox initiallyOpen/>}
+  {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{pendingCities.length>0&&options.regions.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/></section>}
   <style>{`
+   .crm-workspace{min-width:0}
+   .crm-hero{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:4px 0 16px}
+   .crm-hero h2{margin:4px 0;font-size:1.65rem;letter-spacing:-.035em}
+   .crm-hero p{margin:4px 0;color:var(--muted,#64748b);font-size:.9rem}
+   .crm-eyebrow{font-size:.68rem;font-weight:700;letter-spacing:.13em;color:var(--muted,#64748b)}
+   .crm-tabs{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--border,#e2e8f0);margin-bottom:20px}
+   .crm-tabs button{display:flex;align-items:center;gap:8px;white-space:nowrap;padding:12px 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:inherit;cursor:pointer;font:inherit;font-weight:600;font-size:.86rem;opacity:.72}
+   .crm-tabs button.active{border-bottom-color:currentColor;opacity:1}
+   .crm-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 20px}
+   .crm-metric{border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:14px;min-width:0;background:var(--card,#fff)}
+   .crm-metric span{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--muted,#64748b)}
+   .crm-metric strong{display:block;font-size:1.55rem;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin-top:8px}
+   .crm-workspace .crm-list-filters{border:1px solid var(--border,#e2e8f0);padding:14px;border-radius:12px;gap:12px;margin-bottom:18px}
+   .crm-workspace .crm-table-shell{border:1px solid var(--border,#e2e8f0);border-radius:12px;overflow:hidden}
+   .crm-workspace .crm-table-shell td{padding:12px 10px;font-size:.82rem}
+   .crm-workspace .crm-table-shell tbody tr:hover{background:rgba(125,125,125,.07)}
+   .crm-workspace .crm-table-shell th{padding:12px 10px}
+   .crm-stage{display:inline-block;border:1px solid var(--border,#d5d5d5);border-radius:999px;padding:4px 8px;white-space:nowrap;font-size:.73rem;font-weight:600}
+   .crm-stage[data-stage="interested"],.crm-stage[data-stage="converted"]{color:#15803d;background:rgba(22,163,74,.08)}
+   .crm-stage[data-stage="do_not_contact"],.crm-stage[data-stage="discarded"]{color:#b91c1c;background:rgba(220,38,38,.08)}
+   .crm-inspector-wrap{position:fixed;inset:0;z-index:70;background:#0005;display:flex;justify-content:flex-end}
+   .crm-inspector-wrap .admin-inspector{background:var(--card,#fff);width:min(100%,520px);height:100%;margin:0;border-radius:0;padding:24px;overflow:auto;box-shadow:-12px 0 30px #0002}
+   @media(max-width:700px){.crm-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.crm-metric{padding:12px}.crm-metric strong{font-size:1.3rem}.crm-hero h2{font-size:1.35rem}.crm-tabs button{padding:10px}.crm-workspace .crm-list-filters{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px}}
    @keyframes crm-list-spin{to{transform:rotate(360deg)}}
    .crm-list-spinner{animation:crm-list-spin .8s linear infinite;flex-shrink:0}
    .crm-list-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;align-items:end;margin:16px 0}
@@ -88,12 +135,12 @@ export function AdminCrm(){
    .crm-pagination-group select,.crm-pagination-group input{max-width:100px}
    .crm-pagination-group button{display:inline-flex;align-items:center;gap:4px;min-width:32px;justify-content:center}
   `}</style>
-  <div className="crm-list-filters">
+  {tab==="directory"&&<>{optionsLoading&&<small role="status" className="muted">Cargando opciones de filtros…</small>}<div className="crm-list-filters">
    <label>Buscar<div className="search-box small-search"><Search size={17}/><input aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Negocio, correo, teléfono…"/></div></label>
    <label>Estado<select value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label>Municipio<select value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label>Localidad<select value={city} disabled={!municipality} onChange={e=>{setCity(e.target.value);setPage(0)}}><option value="">Todas</option>{localities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
-   <label>Sector<select value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración, cafeterías y heladerías</option>{data?.categories.map(c=><option key={c.category}>{c.category}</option>)}</select></label>
+   <label>Sector<select value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración, cafeterías y heladerías</option>{options.categories.map(c=><option key={c.category}>{c.category}</option>)}</select></label>
    <label>Correo<select value={coverage} onChange={e=>{setCoverage(e.target.value);setPage(0)}}><option value="">Todos</option><option value="available">Con correo publicado</option><option value="missing">Sin correo localizado</option><option value="web">Con fuente externa registrada</option></select></label>
    <label>Teléfono<select value={columnFilters.has_phone||""} onChange={e=>filterColumn("has_phone",e.target.value)}><option value="">Todos</option><option value="yes">Con teléfono</option><option value="no">Sin teléfono</option></select></label>
    <label>Web<select value={columnFilters.has_website||""} onChange={e=>filterColumn("has_website",e.target.value)}><option value="">Todas</option><option value="yes">Con web</option><option value="no">Sin web</option></select></label>
@@ -112,13 +159,13 @@ export function AdminCrm(){
     {key==="state"&&<select className="crm-column-filter" aria-label="Filtrar estado geográfico" value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select>}
     {key==="municipality"&&<select className="crm-column-filter" aria-label="Filtrar municipio" value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select>}
     {key==="city"&&<select className="crm-column-filter" aria-label="Filtrar localidad" value={city} disabled={!municipality} onChange={e=>{setCity(e.target.value);setPage(0)}}><option value="">Todas</option>{localities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select>}
-    {key==="category"&&<select className="crm-column-filter" aria-label="Filtrar sector" value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración y heladerías</option>{data?.categories.map(c=><option key={c.category}>{c.category}</option>)}</select>}
+    {key==="category"&&<select className="crm-column-filter" aria-label="Filtrar sector" value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración y heladerías</option>{options.categories.map(c=><option key={c.category}>{c.category}</option>)}</select>}
     {key==="status"&&<select className="crm-column-filter" aria-label="Filtrar estado comercial" value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select>}
     {key==="review"&&<select className="crm-column-filter" aria-label="Filtrar revisión" value={review} onChange={e=>{setReview(e.target.value);setPage(0)}}><option value="">Todas</option>{Object.entries(reviewStages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select>}
    </th>)}<th scope="col">Ficha</th></tr></thead>
    <tbody style={{opacity:loading?0.45:1}}>{data?.prospects.map(p=><tr key={p.id}>
     <td><strong>{p.name}</strong></td><td>{p.state}</td><td>{p.municipality}</td><td>{p.city}</td><td>{p.category}</td><td>{p.activity||"—"}</td>
-    <td>{p.public_email||p.email||"Sin correo"}{p.public_email&&<small>Fuente externa</small>}</td><td>{p.phone||"—"}</td><td>{p.address||"—"}</td><td>{p.website||"—"}</td><td>{stages[p.status]||p.status}</td><td>{reviewStages[p.contact_review]||p.contact_review||"—"}</td>
+    <td>{p.public_email||p.email||"Sin correo"}{p.public_email&&<small>Fuente externa</small>}</td><td>{p.phone||"—"}</td><td>{p.address||"—"}</td><td>{p.website||"—"}</td><td><span className="crm-stage" data-stage={p.status}>{stages[p.status]||p.status}</span></td><td>{reviewStages[p.contact_review]||p.contact_review||"—"}</td>
     <td><button type="button" className="inline-table-button" disabled={loading} onClick={()=>setFocus({...p})}>Abrir</button></td>
    </tr>)}</tbody></table></div>
    {loading&&<div className="crm-table-loading" role="status"><span><Loader2 className="crm-list-spinner" size={20}/>{data?"Actualizando resultados…":"Cargando negocios…"}</span></div>}
@@ -139,7 +186,7 @@ export function AdminCrm(){
     <button type="submit" className="button button-outline button-sm" disabled={loading||!jump||Number(jump)<1||Number(jump)>totalPages}>Ir</button>
    </form>
   </div>
-  {focus&&<div className="admin-inspector"><div className="inspector-head"><div><strong>{focus.name}</strong><small>{focus.email} · {focus.activity}</small></div><button className="inline-table-button" onClick={()=>setFocus(null)}>Cerrar</button></div><div className="form-stack">
+  {focus&&<div className="crm-inspector-wrap" onClick={e=>{if(e.target===e.currentTarget&&!busy)setFocus(null);}}><div className="admin-inspector" role="dialog" aria-modal="true" aria-label="Ficha del negocio"><div className="inspector-head"><div><strong>{focus.name}</strong><small>{focus.email} · {focus.activity}</small></div><button className="inline-table-button" onClick={()=>setFocus(null)}>Cerrar</button></div><div className="form-stack">
    <label>Estado<select disabled={focus.status==="do_not_contact"} value={focus.status} onChange={e=>setFocus({...focus,status:e.target.value})}>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
    <p>{focus.address||focus.city}</p>{(focus.latitude||focus.longitude)&&<p>Coordenadas: {focus.latitude||"—"}, {focus.longitude||"—"}</p>}<p>Teléfono: {focus.phone||"Sin localizar"} · Correo: {focus.public_email||focus.email||"Sin localizar"}</p>{focus.website&&<p>Web: {focus.website}</p>}
    <details><summary>Datos de contacto y fuente</summary><label>Correo comercial publicado en otra fuente<input type="email" value={focus.public_email||""} onChange={e=>setFocus({...focus,public_email:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
@@ -152,6 +199,7 @@ export function AdminCrm(){
    </details>
    <label>Notas<textarea maxLength={2000} value={focus.notes} onChange={e=>setFocus({...focus,notes:e.target.value})}/></label>
    <button className="button button-dark button-sm" disabled={busy} onClick={save}>Guardar ficha</button>
-  </div></div>}
+  </div></div></div>}
+ </>}
  </div>;
 }

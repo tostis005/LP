@@ -17,6 +17,12 @@ const sortColumns:Record<string,string>={
  review:"contact_review"
 };
 const pageSizes=[25,50,100,200];
+// Only authorized platform administrators can read this shared directory.
+// Cache compact aggregate data, not prospect rows. Expire quickly to pick up external imports.
+type Aggregate={total:number;unique_emails:number;with_email:number;missing_email:number;reviewed:number};
+const countCache=new Map<string,{expires:number;data:Aggregate}>();
+function clearCounts(){countCache.clear();}
+
 async function admin<T>(request:Request,fn:(c:PoolClient,actor:Actor)=>Promise<T>){
  const actor=await actorFromRequest(request);
  if(!actor)throw new ApiError("Inicia sesión.",401);
@@ -29,6 +35,11 @@ export async function GET(request:Request){
  try{
   const result=await admin(request,async c=>{
    const p=new URL(request.url).searchParams;
+   if(p.get("view")==="options"){
+    const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
+    const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
+    return {regions,categories};
+   }
    const where:string[]=[],args:unknown[]=[];
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
@@ -54,10 +65,19 @@ export async function GET(request:Request){
    const requestedSort=p.get("sort")||"name";
    const sort=Object.prototype.hasOwnProperty.call(sortColumns,requestedSort)?sortColumns[requestedSort]:sortColumns.name;
    const direction=p.get("direction")==="desc"?"DESC":"ASC";
-   const count=(await c.query("SELECT count(*)::int AS total,count(DISTINCT lower(COALESCE(email,public_email)))::int AS unique_emails,count(*) FILTER (WHERE email IS NOT NULL OR public_email IS NOT NULL)::int AS with_email,count(*) FILTER (WHERE email IS NULL AND public_email IS NULL)::int AS missing_email,count(*) FILTER (WHERE contact_review<>'pending')::int AS reviewed FROM public.crm_prospects"+filter,args)).rows[0];
+   const cacheKey=JSON.stringify([filter,args]),cached=countCache.get(cacheKey);
+   let count:Aggregate;
+   if(cached&&cached.expires>Date.now()&&p.get("refresh")!=="1")count=cached.data;
+   else{
+    count=(await c.query("SELECT count(*)::int AS total,count(DISTINCT lower(COALESCE(email,public_email)))::int AS unique_emails,count(*) FILTER (WHERE email IS NOT NULL OR public_email IS NOT NULL)::int AS with_email,count(*) FILTER (WHERE email IS NULL AND public_email IS NULL)::int AS missing_email,count(*) FILTER (WHERE contact_review<>'pending')::int AS reviewed FROM public.crm_prospects"+filter,args)).rows[0];
+    if(countCache.size>=128)countCache.clear();
+    countCache.set(cacheKey,{expires:Date.now()+15000,data:count});
+   }
    const totalPages=Math.max(1,Math.ceil(count.total/pageSize));
    const page=Math.min(requestedPage,totalPages-1);
    const prospects=(await c.query("SELECT * FROM public.crm_prospects"+filter+" ORDER BY "+sort+" "+direction+" NULLS LAST,id ASC LIMIT $"+(args.length+1)+" OFFSET $"+(args.length+2),[...args,pageSize,page*pageSize])).rows;
+   // Legacy callers still receive options; the CRM requests them independently.
+   if(p.get("compact")==="1")return {prospects,count,page,pageSize,totalPages};
    const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
    const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
    const imports=(await c.query("SELECT filename,created_at,report FROM public.crm_import_runs WHERE source='DENUE' ORDER BY created_at DESC LIMIT 5")).rows;
@@ -117,6 +137,7 @@ export async function POST(request:Request){
    await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[filename,JSON.stringify({...data.report,edition:edition||null,scope:municipality,pilotFood:municipality==="02003"})]);
    return changed;
   });
+  clearCounts();
   return Response.json({report:data.report,imported},{headers});
  }catch(e){return responseError(e);}
 }
@@ -153,6 +174,7 @@ export async function PATCH(request:Request){
    }
    await c.query("UPDATE public.crm_prospects p SET status='do_not_contact',updated_at=now() WHERE p.status<>'do_not_contact' AND EXISTS (SELECT 1 FROM public.crm_email_exclusions e WHERE e.email IN (lower(p.email),lower(p.public_email)))");
   });
+  clearCounts();
   return Response.json({ok:true},{headers});
  }catch(e){return responseError(e);}
 }

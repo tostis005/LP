@@ -1,0 +1,20 @@
+-- Optimize existing PostgreSQL directory without copying or replacing prospect data.
+CREATE INDEX IF NOT EXISTS crm_prospects_country_name_idx ON public.crm_prospects(country_code,lower(name),id);
+CREATE INDEX IF NOT EXISTS crm_prospects_region_name_idx ON public.crm_prospects(country_code,state_code,municipality_code,lower(name),id);
+CREATE INDEX IF NOT EXISTS crm_prospects_category_name_idx ON public.crm_prospects(country_code,category,lower(name),id);
+CREATE INDEX IF NOT EXISTS crm_prospects_status_name_idx ON public.crm_prospects(country_code,status,lower(name),id);
+CREATE INDEX IF NOT EXISTS crm_prospects_review_name_idx ON public.crm_prospects(country_code,contact_review,lower(name),id);
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS crm_prospects_name_trgm_idx ON public.crm_prospects USING gin(name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_email_trgm_idx ON public.crm_prospects USING gin(email gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_public_email_trgm_idx ON public.crm_prospects USING gin(public_email gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_preferred_email_trgm_idx ON public.crm_prospects USING gin((COALESCE(NULLIF(public_email,''),email)) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_phone_trgm_idx ON public.crm_prospects USING gin(phone gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_address_trgm_idx ON public.crm_prospects USING gin(address gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_website_trgm_idx ON public.crm_prospects USING gin(website gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_city_trgm_idx ON public.crm_prospects USING gin(city gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_municipality_trgm_idx ON public.crm_prospects USING gin(municipality gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_state_trgm_idx ON public.crm_prospects USING gin(state gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_category_trgm_idx ON public.crm_prospects USING gin(category gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS crm_prospects_activity_trgm_idx ON public.crm_prospects USING gin(activity gin_trgm_ops);
+ANALYZE public.crm_prospects;
