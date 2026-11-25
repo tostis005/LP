@@ -15,6 +15,7 @@ export function AdminCrm(){
  const [tab,setTab]=useState<"directory"|"mail"|"imports">("directory");
  const [options,setOptions]=useState<{regions:Region[];categories:Data["categories"]}>({regions:[],categories:[]});
  const [optionsError,setOptionsError]=useState("");
+ const [optionsLoading,setOptionsLoading]=useState(true);
 
 
  const [review,setReview]=useState(""),[coverage,setCoverage]=useState(""),[country,setCountry]=useState("MX"),[state,setState]=useState(""),[municipality,setMunicipality]=useState(""),[city,setCity]=useState(""),[category,setCategory]=useState(""),[status,setStatus]=useState(""),[search,setSearch]=useState(""),[page,setPage]=useState(0);
@@ -23,11 +24,11 @@ export function AdminCrm(){
  const requestVersion=useRef(0),lastRevision=useRef(-1),lastText=useRef("");
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
  useEffect(()=>{
-  const controller=new AbortController();
+  const controller=new AbortController();setOptionsLoading(true);
   fetch("/api/local/admin/crm?view=options",{signal:controller.signal,cache:"no-store"}).then(async r=>{
    const j=await r.json();if(!r.ok)throw new Error(j.error||"No se pudieron cargar los filtros.");
    if(!controller.signal.aborted){setOptions(j);setOptionsError("");}
-  }).catch(e=>{if(!controller.signal.aborted)setOptionsError(e.message);});
+  }).catch(e=>{if(!controller.signal.aborted)setOptionsError(e.message);}).finally(()=>{if(!controller.signal.aborted)setOptionsLoading(false);});
   return()=>controller.abort();
  },[revision]);
  useEffect(()=>{
@@ -49,6 +50,7 @@ export function AdminCrm(){
   },delay);
   return()=>{clearTimeout(timer);controller.abort();};
  },[country,state,municipality,city,category,status,coverage,review,search,page,pageSize,sort,direction,columnFilters,revision,tab]);
+ useEffect(()=>{if(!focus)return;const handler=(e:KeyboardEvent)=>{if(e.key==="Escape"&&!busy)setFocus(null);};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler);},[focus,busy]);
  const regions=options.regions,states=[...new Map(regions.filter(r=>!country||r.country_code===country).map(r=>[r.state_code,r.state])).entries()];
  const municipalities=[...new Map(regions.filter(r=>r.state_code===state).map(r=>[r.municipality_code,r.municipality])).entries()];
  async function importOfficial(code:string,name:string){
@@ -80,7 +82,7 @@ export function AdminCrm(){
  const hasFilters=Boolean(search||state||municipality||city||category||coverage||review||status||Object.keys(columnFilters).length);
  const pendingCities=[{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
  return <div className="panel-card crm-workspace">
-  <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div><button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading&&tab==="directory"}><RefreshCw size={15}/> Actualizar negocios</button></div>
+  <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
   <div className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
    {([{id:"directory",label:"Negocios",icon:Building2},{id:"mail",label:"Correo comercial",icon:Mail},{id:"imports",label:"Importaciones",icon:FolderUp}] as const).map(t=><button key={t.id} type="button" role="tab" aria-selected={tab===t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}><t.icon size={18}/>{t.label}</button>)}
   </div>
@@ -88,7 +90,7 @@ export function AdminCrm(){
   <div className="crm-metrics" aria-label="Resumen de los resultados filtrados">
    {([{label:"Negocios",n:data?.count.total,icon:Building2},{label:"Con correo",n:data?.count.with_email,icon:Mail},{label:"Correos únicos",n:data?.count.unique_emails,icon:Mail},{label:"Revisados",n:data?.count.reviewed,icon:CheckCircle2}] as const).map(m=><div className="crm-metric" key={m.label}><span><m.icon size={16}/>{m.label}</span><strong>{m.n===undefined?"—":format(m.n)}</strong></div>)}
   </div></>}
-  {tab==="mail"&&<AdminCrmMailbox/>}
+  {tab==="mail"&&<AdminCrmMailbox initiallyOpen/>}
   {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{pendingCities.length>0&&options.regions.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/></section>}
   <style>{`
    .crm-workspace{min-width:0}
@@ -133,7 +135,7 @@ export function AdminCrm(){
    .crm-pagination-group select,.crm-pagination-group input{max-width:100px}
    .crm-pagination-group button{display:inline-flex;align-items:center;gap:4px;min-width:32px;justify-content:center}
   `}</style>
-  {tab==="directory"&&<><div className="crm-list-filters">
+  {tab==="directory"&&<>{optionsLoading&&<small role="status" className="muted">Cargando opciones de filtros…</small>}<div className="crm-list-filters">
    <label>Buscar<div className="search-box small-search"><Search size={17}/><input aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Negocio, correo, teléfono…"/></div></label>
    <label>Estado<select value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label>Municipio<select value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
