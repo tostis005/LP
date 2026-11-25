@@ -66,16 +66,17 @@ export function PhoneCountryField({value,onChange,required=false,label="WhatsApp
  },[locate]);
  function changeCountry(next:string){
   touched.current=true;setCountry(next);
-  if(national)onChange("+"+dialing[next]+national.slice(0,15-dialing[next].length));
+  if(national)onChange("+"+dialing[next]+national);
  }
  function changeNumber(raw:string){
   touched.current=true;
   if(raw.trim().startsWith("+")){
    const full="+"+raw.replace(/\D/g,"");
+   if(!Object.keys(groups).some(c=>full.startsWith("+"+c)))return;
    const next=regionForPhone(full,country);
-   setCountry(next);onChange(full.slice(0,16));return;
+   setCountry(next);onChange(full);return;
   }
-  const digits=raw.replace(/\D/g,"").slice(0,15-code.length);
+  const digits=raw.replace(/\D/g,"");
   onChange(digits?"+"+code+digits:"");
  }
  return <div style={{display:"grid",gap:8}}>
