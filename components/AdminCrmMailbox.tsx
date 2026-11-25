@@ -14,6 +14,7 @@ export function AdminCrmMailbox(){
  const [folder,setFolder]=useState("INBOX"),[unreadOnly,setUnreadOnly]=useState(false),[pendingOnly,setPendingOnly]=useState(false);
  const [token,setToken]=useState(""),[refresh,setRefresh]=useState(""),[config,setConfig]=useState(false);
  const [detail,setDetail]=useState<Detail|null>(null),[reply,setReply]=useState(""),[cursor,setCursor]=useState("");
+ const [compose,setCompose]=useState(false),[to,setTo]=useState(""),[subject,setSubject]=useState(""),[body,setBody]=useState(""),[permitted,setPermitted]=useState(false),[attempt,setAttempt]=useState("");
  const version=useRef(0),working=useRef(false);
  const load=useCallback(async(next="",silent=false)=>{
   if(working.current&&silent)return;
@@ -53,6 +54,14 @@ export function AdminCrmMailbox(){
    const d=await api("?"+new URLSearchParams({thread:detail!.thread.thread_id}));setDetail(d);await load(cursor);
   });
  }
+ async function sendNew(){if(!to.trim()||!subject.trim()||!body.trim()||!permitted)return;
+  await act(async()=>{
+   const id=attempt||crypto.randomUUID();setAttempt(id);
+   const result=await api("",{action:"send",id,to,subject,text:body,permitted});
+   if(!result.queued)throw new Error("No se confirmó el envío. Comprueba Enviados antes de repetir.");
+   setCompose(false);setTo("");setSubject("");setBody("");setPermitted(false);setAttempt("");setNotice("Correo en cola de envío.");await load();
+  });
+ }
  const threads=(data?.threads||[]).filter(t=>!pendingOnly||t.from_email.toLowerCase()!==data?.email?.toLowerCase());
  return <section className="admin-inspector" style={{margin:"12px 0"}}>
   <div className="content-heading"><div><strong>Correo comercial · Sendcorex</strong>{data?.connected&&<small>{data.email}{data.unread? " · "+data.unread+" sin leer":""}</small>}</div>
@@ -70,9 +79,20 @@ export function AdminCrmMailbox(){
     <button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>{setFolder("INBOX");setDetail(null);}}>Entrada ({data.unread||0})</button>
     <button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>{setFolder("Sent");setDetail(null);setUnreadOnly(false);setPendingOnly(false);}}>Enviados</button>
     <button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void load()}>Actualizar</button>
+    <button type="button" className="button button-dark button-sm" disabled={busy} onClick={()=>setCompose(!compose)}>Redactar</button>
     <button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>setConfig(true)}>Reconectar</button>
     {folder==="INBOX"&&<><label><input type="checkbox" checked={unreadOnly} onChange={e=>setUnreadOnly(e.target.checked)}/> Sin leer</label><label><input type="checkbox" checked={pendingOnly} onChange={e=>setPendingOnly(e.target.checked)}/> Último mensaje recibido</label></>}
    </div>
+   {compose&&<form className="form-stack" onSubmit={e=>{e.preventDefault();void sendNew();}}>
+    <label>Para<input type="email" required maxLength={254} disabled={busy||!!attempt} value={to} onChange={e=>setTo(e.target.value)}/></label>
+    <label>Asunto<input required maxLength={240} disabled={busy||!!attempt} value={subject} onChange={e=>setSubject(e.target.value)}/></label>
+    <label>Mensaje<textarea required rows={6} maxLength={15000} disabled={busy||!!attempt} value={body} onChange={e=>setBody(e.target.value)}/></label>
+    <label><input type="checkbox" checked={permitted} disabled={busy||!!attempt} onChange={e=>setPermitted(e.target.checked)}/> Confirmo que puedo contactar con este destinatario, que el origen no es una lista prohibida por Sendcorex y que se respetan las bajas.</label>
+    <small>Un destinatario por envío. Máximo 30 intentos de correo nuevo en 24 horas. Se incluirá la opción de baja.</small>
+    <button type="submit" className="button button-dark button-sm" disabled={busy||!permitted||!!attempt}>Enviar correo</button>
+    {attempt&&<p role="status">Ya se intentó enviar este mensaje. Comprueba Enviados antes de redactarlo nuevamente.</p>}
+    <button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>{setCompose(false);setAttempt("");setPermitted(false);}}>Cerrar redacción</button>
+   </form>}
    {busy&&<p role="status">Cargando correo…</p>}
    <div style={{display:"grid",gap:6}}>{threads.map(t=><button key={t.thread_id} type="button" className="button button-outline" style={{display:"block",textAlign:"left",whiteSpace:"normal",height:"auto"}} disabled={busy} onClick={()=>void select(t)}>
     <span style={{fontWeight:t.has_unread?700:400}}>{t.has_unread?"● ":""}{t.from_name||t.from_email} · {t.subject||"(Sin asunto)"}</span><small style={{display:"block"}}>{date(t.last_message_at)} · {t.preview}</small>
