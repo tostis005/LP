@@ -114,7 +114,7 @@ export async function GET(request:Request){
     return {messages:messages.slice(0,25),more:messages.length>25};
    }
    const m=(await c.query("SELECT email,logs_secret IS NOT NULL AS logs_connected FROM public.crm_mailbox WHERE id=true")).rows[0];
-   const states=m?(await c.query("SELECT source,last_finished,window_end,last_error FROM public.crm_mail_sync WHERE mailbox=$1",[m.email])).rows:[];
+   const states=m?(await c.query("SELECT source,last_finished,window_end,last_error,started_at FROM public.crm_mail_sync WHERE mailbox=$1 ORDER BY source",[m.email])).rows:[];
    return {connected:!!m,email:m?.email,logsConnected:m?.logs_connected,states};
   }));
  }catch(e){return responseError(e);}
