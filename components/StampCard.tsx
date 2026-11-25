@@ -28,7 +28,8 @@ export function StampCard({name,color,reward,total,earned,icon,imageUrl,logoUrl,
   </div>
   <div className="stamp-visual-side">
    <span className="stamp-visual-pill">{locale==="en"?"REWARDS CLUB":"CLUB DE RECOMPENSAS"}</span>
-   {qrValue&&<div className="stamp-qr-white" aria-label="Código QR de la tarjeta"><QRCodeSVG value={qrValue} size={240} marginSize={4} minVersion={6} level="M"/></div>}
+   {/* Compact card preview; the dedicated customer scan view preserves the full four-module quiet zone. */}
+   {qrValue&&<div className="stamp-qr-white" aria-label="Código QR de la tarjeta"><QRCodeSVG value={qrValue} size={240} marginSize={2} level="M"/></div>}
   </div>
  </div>;
 }

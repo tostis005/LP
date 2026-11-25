@@ -109,13 +109,15 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   <p>También puedes guardar el QR como imagen.</p>
  </div>
  <button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("card")} aria-label={"Ampliar QR de "+business.name}>
-  <span className="qr-box" data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={200} level="M" marginSize={4}/></span>
+  <span className="qr-box"><QRCodeSVG value={qrUrl} size={200} level="M" marginSize={2}/></span>
   <span className="qr-enlarge-hint"><Maximize2 size={16}/> Toca el QR para ampliarlo</span>
  </button>
+ {/* The export uses a separate standards-compliant QR, not the compact preview. */}
+ <span hidden data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={582} level="M" marginSize={4}/></span>
  <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Guardar imagen con QR</button>
  <p className="tiny-note">{program?.type==="cashback"?"Puedes utilizar tu saldo en el establecimiento.":program?.reward_label||"Tu recompensa te espera."}</p>
  {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("reward")} aria-label="Ampliar QR del premio">
-  <span className="qr-box"><QRCodeSVG value={rewardQrUrl} size={180} level="M" marginSize={4}/></span>
+  <span className="qr-box"><QRCodeSVG value={rewardQrUrl} size={180} level="M" marginSize={2}/></span>
   <span className="qr-enlarge-hint"><Maximize2 size={16}/> Ampliar QR del premio</span>
  </button></div>}
  {visits.length>0&&<section className="customer-card-visits"><h3>Tus visitas</h3>

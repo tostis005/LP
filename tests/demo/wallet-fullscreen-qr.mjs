@@ -34,3 +34,7 @@ console.log("OK: card modal sits above fixed navigation and its final actions st
 
 assert.match(card,/marginSize=\{4\}/,"QRs retain the four-module quiet zone");
 assert.match(card,/ctx.drawImage\(image,249,438,582,582\)/,"Export does not add a second white frame");
+
+assert.match(card,/size=\{200\} level="M" marginSize=\{2\}/,"Compact on-screen preview");
+assert.match(card,/hidden data-card-qr=\{membership.id\}><QRCodeSVG[^>]+marginSize=\{4\}/,"Full quiet zone in exported QR");
+assert.match(card,/size=\{480\} level="M" marginSize=\{4\}/,"Full quiet zone in dedicated scan view");

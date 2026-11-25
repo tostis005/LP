@@ -87,7 +87,7 @@ export function InstallGuide({lang="es"}:{lang?:LandingLanguage}){
     <div className="loi-install-app-nav"><span><KreyvIcon name="mis-tarjetas" size={17}/>{t.badges[0]}</span><span><KreyvIcon name="premios" size={17}/>{t.badges[2]}</span><span><KreyvIcon name="sellos" size={17}/>{t.badges[1]}</span></div>
     <div className="loi-install-qr">
      <div><strong>{t.qrTitle}</strong><p><BrandText value={t.qrText}/></p></div>
-     {origin&&<div className="loi-qr-box" aria-label="Código para abrir Kreyvi en el móvil"><QRCodeSVG value={origin+"/mi-loyally?instalar=1"} size={84} fgColor="#5E1A2B" bgColor="#ffffff"/></div>}
+     {origin&&<div className="loi-qr-box" aria-label="Código para abrir Kreyvi en el móvil"><QRCodeSVG value={origin+"/mi-loyally?instalar=1"} size={84} marginSize={4} fgColor="#5E1A2B" bgColor="#ffffff"/></div>}
     </div>
    </div>
   </div>

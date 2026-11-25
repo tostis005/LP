@@ -485,7 +485,7 @@
  font-size:clamp(9px,1.1vw,12px);white-space:nowrap;
  overflow:hidden;text-overflow:ellipsis
 }
-.stamp-visual-card .stamp-qr-white{padding:2px;border-radius:7px}
+.stamp-visual-card .stamp-qr-white{padding:0;border-radius:2px}
 .stamp-visual-card .stamp-qr-white svg{width:clamp(38px,5vw,62px);height:auto}
 
 /* En Mis tarjetas la tarjeta no cambia de formato al cambiar de pantalla. */
@@ -687,9 +687,9 @@
 .loyalty-card-rebalanced .lc-qr-large{
  box-sizing:border-box;display:grid;place-items:center;
  width:100%;max-width:195px;aspect-ratio:1;
- padding:clamp(4px,1cqw,8px);
- background:#fff;border-radius:clamp(9px,2cqw,15px);
- box-shadow:0 3px 14px #0002;
+ padding:0;
+ background:#fff;border-radius:2px;
+ box-shadow:none;
  min-width:0;flex:none;
 }
 .stamp-visual-rebalanced .stamp-qr-white svg,
@@ -1053,7 +1053,7 @@
 /* A single merchant card design; no extra framing in the customer deck. */
 .merchant-card-button{display:block;width:100%;padding:0;border:0;background:none;color:inherit;text-align:left;cursor:pointer;container-type:inline-size}
 .merchant-card-button:focus-visible{outline:3px solid var(--color-accent-600);outline-offset:3px;border-radius:18px}
-.stamp-visual-rebalanced .stamp-qr-white{padding:0;border-radius:3px;overflow:hidden;box-shadow:none}
+.stamp-visual-rebalanced .stamp-qr-white{padding:0;border-radius:2px;overflow:hidden;box-shadow:none}
 
 .directory-merchant-card{position:relative;width:100%;container-type:inline-size;padding:0}
 .directory-merchant-owned{display:flex;align-items:center;gap:5px;color:var(--color-brand);font-size:11px;font-weight:700;padding:5px 12px}
@@ -1097,7 +1097,7 @@
 
 .manual-coordinates{padding:9px 12px;border:1px solid var(--color-bg-2);border-radius:10px;display:grid;gap:8px}.manual-coordinates[open]>summary{margin-bottom:8px}.manual-coordinates summary{cursor:pointer;font-size:13px;font-weight:700}.manual-coordinates input{width:100%;margin-bottom:8px}.manual-coordinates small{display:block;margin-top:6px}.address-provider-help{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;font-size:12px}.address-provider-help a{text-decoration:underline}.kreyvi-loading-brand img{aspect-ratio:auto}
 
-/* QRCodeSVG provides the required four-module quiet zone itself. No extra white frame. */
-.qr-modal .qr-box,.workspace-customer .qr-modal .qr-box,.qr-modal .reward-claim-panel .qr-box{padding:0;border:0;border-radius:5px;box-shadow:none;overflow:hidden}
+/* No extra white frame: previews have two modules; dedicated scanning and export have four. */
+.qr-modal .qr-box,.workspace-customer .qr-modal .qr-box,.qr-modal .reward-claim-panel .qr-box{padding:0;border:0;border-radius:2px;box-shadow:none;overflow:hidden}
 .qr-modal .qr-box svg,.qr-modal .reward-claim-panel .qr-box svg{display:block;width:100%;max-width:none;height:auto}
 .qr-fullscreen-image,.workspace-customer .qr-fullscreen-image{padding:0;border-radius:5px;overflow:hidden}
