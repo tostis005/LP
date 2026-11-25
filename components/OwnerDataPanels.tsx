@@ -17,16 +17,18 @@ function beginning(date:string){return date?new Date(date+"T00:00:00").toISOStri
 const shortDate=(value:string)=>new Date(value).toLocaleDateString("es-MX",{day:"2-digit",month:"short"});
 const fullDate=(value:string)=>new Date(value).toLocaleString("es-MX",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 const money=(value:number,currency:string)=>new Intl.NumberFormat("es-MX",{style:"currency",currency}).format(value/100);
-export function EmployeeChart({rows,days,programType,currency}:{rows:EmployeeActivity[];days:number;programType?:ProgramType;currency:string}){
- const [metric,setMetric]=useState<"awarded_units"|"operations"|"redemptions"|"sales_cents">("awarded_units");
+export function EmployeeChart({rows,days,programType,currency,maxStampsPerAction}:{rows:EmployeeActivity[];days:number;programType?:ProgramType;currency:string;maxStampsPerAction?:number}){
+ const [chosenMetric,setMetric]=useState<"awarded_units"|"operations"|"redemptions"|"sales_cents">("awarded_units");
  const unit=programType==="stamps"?"Sellos":programType==="points"?"Puntos":"Saldo";
- const labels={awarded_units:unit,operations:"Compras",redemptions:"Canjes",sales_cents:"Importe"};
+ const singleStamp=programType==="stamps"&&maxStampsPerAction===1;
+ const metric=singleStamp&&chosenMetric==="operations"?"awarded_units":chosenMetric;
+ const labels={awarded_units:unit,operations:"Ventas",redemptions:"Canjes",sales_cents:"Importe"};
  const format=(value:number)=>metric==="awarded_units"?units(value,programType,currency):metric==="sales_cents"?money(value,currency):count(value);
  const sorted=[...rows].sort((a,b)=>Number(b[metric])-Number(a[metric]));
  const max=Math.max(1,...sorted.map(r=>Number(r[metric]||0)));
  const total=sorted.reduce((n,r)=>n+Number(r[metric]||0),0);
  return <section className="panel-card owner-employee-chart"><div className="content-heading"><div><h3><BarChart3 size={18}/> Actividad por empleado</h3><p className="muted">Últimos {days} días</p></div><strong>{format(total)}</strong></div>
-  <div className="owner-metric-switch" role="group" aria-label="Indicador de empleados">{(Object.keys(labels) as (keyof typeof labels)[]).map(k=><button key={k} type="button" className={metric===k?"active":""} aria-pressed={metric===k} onClick={()=>setMetric(k)}>{labels[k]}</button>)}</div>
+  <div className="owner-metric-switch" role="group" aria-label="Indicador de empleados">{(Object.keys(labels) as (keyof typeof labels)[]).filter(k=>!singleStamp||k!=="operations").map(k=><button key={k} type="button" className={metric===k?"active":""} aria-pressed={metric===k} onClick={()=>setMetric(k)}>{labels[k]}</button>)}</div>
   {sorted.length?<div className="owner-employee-bars">{sorted.map(r=><div key={r.user_id} className="owner-employee-bar"><span>{r.employee_name}</span><div className="owner-horizontal-track" role="img" aria-label={r.employee_name+": "+format(Number(r[metric]||0))}><span style={{width:(Number(r[metric]||0)/max*100)+"%"}}/></div><strong>{format(Number(r[metric]||0))}</strong></div>)}</div>:<p className="muted">Todavía no hay actividad registrada.</p>}
   {metric==="sales_cents"&&<p className="muted">Importe de compras registradas con precio. No equivale a toda la facturación del negocio.</p>}
  </section>;

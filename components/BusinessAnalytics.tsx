@@ -6,7 +6,7 @@ export type MetricRow={metric:string;current_value:number;previous_value:number}
 export type RankingRow={reward_label:string;redemptions:number;retail_cents:number;cost_cents:number;unpriced:number};
 export type GrowthRow={bucket_start:string;new_customers:number;habitual_customers:number;awarded_units:number;average_units:number;verified_visits:number};
 type Props={metrics:MetricRow[];summary:MetricRow[];growth:GrowthRow[];ranking:RankingRow[];days:number;
- onDays:(days:number)=>void;repeatCustomers:number;totalCustomers:number;programType?:string};
+ onDays:(days:number)=>void;repeatCustomers:number;totalCustomers:number;programType?:string;maxStampsPerAction?:number};
 const integer=(n:number)=>n.toLocaleString("es-MX");
 function Change({value,previous}:{value:number;previous:number}){
  if(previous===0)return <small className="owner-kpi-delta neutral">{value===0?"Sin variación":"Sin periodo anterior"}</small>;
@@ -49,18 +49,20 @@ function MiniChart({title,description,rows,field}:{title:string;description:stri
   {!rows.length&&<p className="muted">Todavía no hay datos disponibles.</p>}
  </section>;
 }
-export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,repeatCustomers,totalCustomers,programType}:Props){
+export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,repeatCustomers,totalCustomers,programType,maxStampsPerAction}:Props){
  const lookup=(key:string,previous=false)=>Number(summary.find(x=>x.metric===key)?.[previous?"previous_value":"current_value"]||0);
  const legacy=(key:string)=>Number(metrics.find(x=>x.metric===key)?.current_value||0);
  const unit=programType==="stamps"?"sellos":programType==="points"?"puntos":"saldo";
+ const singleStamp=programType==="stamps"&&maxStampsPerAction===1;
  const kpis=[
   {key:"new_customers",label:"Nuevas tarjetas",value:integer(lookup("new_customers")),helper:"Clientes que se han inscrito"},
   {key:"habitual_customers",label:"Clientes habituales",value:integer(lookup("habitual_customers")),helper:"Con compras recurrentes en el periodo"},
-  {key:"visits",label:"Compras registradas",value:integer(legacy("visits")),helper:"Compras verificadas"},
+  ...(programType==="stamps"?[{key:"awarded_units",label:"Sellos",value:integer(legacy("awarded_units")),helper:"Sellos de compras no revertidas"}]:[]),
+  ...(!singleStamp?[{key:"visits",label:"Ventas",value:integer(legacy("visits")),helper:"Compras verificadas"}]:[]),
   {key:"redemptions",label:"Recompensas canjeadas",value:integer(legacy("redemptions")),helper:"Canjes no revertidos"},
   {key:"avg_units_habitual",label:unit==="sellos"?"Sellos por habitual":"Unidades por habitual",value:lookup("avg_units_habitual").toFixed(2),helper:"Media ganada por cliente habitual en el periodo"},
-  {key:"avg_visits_habitual",label:"Visitas por habitual",value:lookup("avg_visits_habitual").toFixed(2),helper:"Compras medias registradas por cliente habitual"}
- ];
+  {key:"avg_visits_habitual",label:"Ventas por habitual",value:lookup("avg_visits_habitual").toFixed(2),helper:"Compras medias registradas por cliente habitual"}
+ ].filter(card=>!singleStamp||card.key!=="avg_visits_habitual");
  return <section className="owner-data-dashboard">
   <div className="owner-data-heading">
    <div><span className="page-eyebrow">INFORMES</span><h2>Evolución del negocio</h2></div>
@@ -68,7 +70,7 @@ export function BusinessAnalytics({metrics,summary,growth,ranking,days,onDays,re
   </div>
   <div className="owner-kpi-grid">{kpis.map(card=><article key={card.key} className="owner-kpi">
    <span>{card.label}</span><strong>{card.value}</strong>
-   <Change value={card.key==="visits"||card.key==="redemptions"?legacy(card.key):lookup(card.key)} previous={card.key==="visits"||card.key==="redemptions"?Number(metrics.find(m=>m.metric===card.key)?.previous_value||0):lookup(card.key,true)}/>
+   <Change value={["visits","redemptions","awarded_units"].includes(card.key)?legacy(card.key):lookup(card.key)} previous={["visits","redemptions","awarded_units"].includes(card.key)?Number(metrics.find(m=>m.metric===card.key)?.previous_value||0):lookup(card.key,true)}/>
    <small>{card.helper}</small>
   </article>)}</div>
   <div className="owner-growth-grid">
