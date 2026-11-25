@@ -6,6 +6,7 @@ import {Download, Maximize2, QrCode, X} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
 import {dateShort,initials,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
+import {StampCard} from "@/components/StampCard";
 import {StampGrid} from "@/components/StampMarks";
 import {readableCardText} from "@/lib/customer-card-contrast";
 import {cardBackgroundUrl} from "@/lib/card-images";
@@ -91,14 +92,15 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  }
  const color=business.accent_color||"#571c32";
  const cardInk=readableCardText(color,business.card_text_color,!!business.card_background);
- const previewInk=readableCardText(color,business.card_text_color);
+ const previewInk=cardInk;
  const origin="https://kreyvi.com";
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
+ const stampVisual=program?.type==="stamps"?<StampCard name={business.name} color={color} reward={program.reward_label} total={program.reward_cost} earned={membership.balance} icon={business.stamp_icon} imageUrl={business.stamp_image_url} logoUrl={business.logo_url} backgroundUrl={business.card_background} message={business.card_text} textColor={business.card_text_color} stampColor={business.stamp_color} qrValue={qrUrl}/>:null;
  return <>{!modalOnly&&<div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>
- {compact?<button type="button" className="customer-deck-card"
+ {stampVisual?<button type="button" className="merchant-card-button" onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}>{stampVisual}</button>:compact?<button type="button" className="customer-deck-card"
   onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}
-  style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(180deg,rgba(0,0,0,.56),rgba(0,0,0,.54) 55%,rgba(0,0,0,.66)),url("+cardBackgroundUrl(business.card_background,720)+")":undefined}}>
+  style={{backgroundColor:color,color:cardInk,backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20)),url("+cardBackgroundUrl(business.card_background,720)+")":undefined}}>
   <span className="customer-deck-top">
    <span className="customer-deck-brand">{business.logo_url?<img src={logoImageUrl(business.logo_url,96)} alt="" loading="lazy" decoding="async"/>:<span>{initials(business.name)}</span>}</span>
    <span className="customer-deck-type">{business.category||"Fidelización"}</span>
@@ -132,13 +134,13 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={closeCard}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
  <button className="modal-close" aria-label="Cerrar" onClick={closeCard}><X size={20}/></button>
  <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
- <div className="loyally-modal-card-preview" style={{backgroundColor:color,color:previewInk}}>
+ {stampVisual||<div className="loyally-modal-card-preview" style={{backgroundColor:color,color:previewInk,backgroundSize:"cover",backgroundPosition:"center",backgroundImage:business.card_background?"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20)),url("+cardBackgroundUrl(business.card_background,1200)+")":undefined}}>
   <div className="loyally-modal-card-top"><span>{business.name}</span><span>KREYVI</span></div>
   <strong>{program?.reward_label||"Mis recompensas"}</strong>
   {program?.type==="stamps"&&<StampGrid total={program.reward_cost} earned={membership.balance}
    kind={business.stamp_icon} imageUrl={business.stamp_image_url} color={business.stamp_color} className="lc-stamp-grid"/>}
   <small>{units(membership.balance,program?.type,business.currency)}{program?.type==="stamps"?" de "+program.reward_cost+" sellos":""}</small>
- </div>
+ </div>}
  <div className="customer-card-detail-stats">
   <div><small>Premio</small><strong>{program?.reward_label||"Recompensa"}</strong></div>
   <div><small>Saldo</small><strong>{units(membership.balance,program?.type,business.currency)}</strong></div>
