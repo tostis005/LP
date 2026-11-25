@@ -4,6 +4,7 @@ import {StampGrid} from "@/components/StampMarks";
 import {cardBackgroundUrl} from "@/lib/card-images";
 import {logoImageUrl} from "@/lib/asset-images";
 import {units} from "@/lib/format";
+import {BRAND_NAME,BRAND_THEME} from "@/lib/brand";
 import type {Business,Program} from "@/lib/types";
 
 type StampCardProps={
@@ -27,7 +28,9 @@ export function StampCard({name,color,reward,total,earned,icon,imageUrl,logoUrl,
    </div>
   </div>
   <div className="stamp-visual-side">
-   <span className="stamp-visual-pill">{locale==="en"?"REWARDS CLUB":"CLUB DE RECOMPENSAS"}</span>
+   <span className="stamp-visual-pill stamp-visual-brand" style={{backgroundColor:"rgba(255,255,255,.88)",border:"1px solid rgba(255,255,255,.64)",boxShadow:"0 1px 5px rgba(0,0,0,.10)",display:"inline-flex",alignItems:"center",justifyContent:"center",boxSizing:"border-box",maxWidth:"100%",padding:"5px 9px"}}>
+    <img src={BRAND_THEME==="tinta-maiz"?"/brand/kreyv-pegada-tinta-maiz-claro.svg":"/brand/kreyv-pegada-vino-mostaza-claro.svg"} alt={BRAND_NAME} width={86} height={22} style={{display:"block",width:"86px",maxWidth:"100%",height:"auto",objectFit:"contain"}}/>
+   </span>
    {/* Compact card preview; the dedicated customer scan view preserves the full four-module quiet zone. */}
    {qrValue&&<div className="stamp-qr-white" aria-label="Código QR de la tarjeta"><QRCodeSVG value={qrValue} size={240} marginSize={2} level="M"/></div>}
   </div>
