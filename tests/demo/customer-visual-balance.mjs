@@ -40,3 +40,8 @@ const nav=read("components/AppBottomNav.tsx");
 for(const name of ["Tarjetas","Descubrir","Avisos","Ajustes","Mi perfil"])assert.match(nav,new RegExp('label:"'+name+'"'));
 assert.doesNotMatch(nav,/label:"Mi QR"/);
 console.log("OK: branded light surfaces, readable text, map, cards, QR and unchanged navigation.");
+
+assert.match(css,/\.workspace-customer:has\(\.customer-first-layout\)\{[\s\S]*?var\(--color-surface\)/,"My cards uses its own light background");
+assert.match(css,/\.customer-first-layout \.customer-spotlight\{[\s\S]*?var\(--color-surface\)/,"Reward highlight has a light surface");
+assert.match(css,/\.customer-first-layout \.customer-spotlight h3\{color:var\(--color-brand-900\)\}/,"Dark readable reward heading");
+assert.match(css,/\.customer-first-layout \.customer-spotlight-foot a\{background:var\(--color-brand\);color:var\(--color-on-brand\)/,"High contrast reward action");
