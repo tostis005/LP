@@ -1,11 +1,11 @@
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS birth_date date CHECK(birth_date >= DATE '1900-01-01' AND birth_date <= CURRENT_DATE);
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS gender text CHECK(gender IN ('man','woman','other'));
 -- Existing accounts are not assigned invented dates. Saving the profile requires a valid date.
-CREATE OR REPLACE FUNCTION public.require_profile_birth_date() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $
+CREATE OR REPLACE FUNCTION public.require_profile_birth_date() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $profile$
 BEGIN
  IF NEW.birth_date IS NULL THEN RAISE EXCEPTION 'Indica tu fecha de nacimiento'; END IF;
  RETURN NEW;
-END $;
+END $profile$;
 DROP TRIGGER IF EXISTS profile_birth_date_required ON public.profiles;
 CREATE TRIGGER profile_birth_date_required BEFORE UPDATE OF birth_date ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.require_profile_birth_date();
 ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS card_logo_scale integer NOT NULL DEFAULT 100 CHECK(card_logo_scale BETWEEN 50 AND 220);
