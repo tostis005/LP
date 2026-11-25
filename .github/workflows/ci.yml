@@ -100,6 +100,8 @@ jobs:
         run: node tests/demo/owner-growth-automation.mjs
       - name: Validar roles, crecimiento y flujos automáticos
         run: node tests/demo/owner-growth-automation.mjs
+      - name: Verificar rutas independientes de administración
+        run: node --experimental-strip-types tests/demo/admin-routes.mjs
       - name: Comprobar TypeScript
         run: npm run typecheck
       - name: Construir Next.js

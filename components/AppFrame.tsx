@@ -26,7 +26,7 @@ const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
 };
 export function AppFrame({ area, title, subtitle, children }: {area:Area;title:string;subtitle:string;children:(a:Account)=>ReactNode}) {
  const router=useRouter(), pathname=usePathname();
- const activePath=area==="business"&&["/negocio/customers","/negocio/transactions"].includes(pathname)?"/negocio/reports":area==="business"&&["/negocio/settings","/negocio/locations","/negocio/overview","/negocio/poster"].includes(pathname)?"/negocio":pathname;
+ const activePath=area==="admin"&&pathname.startsWith("/admin/")?"/admin":area==="business"&&["/negocio/customers","/negocio/transactions"].includes(pathname)?"/negocio/reports":area==="business"&&["/negocio/settings","/negocio/locations","/negocio/overview","/negocio/poster"].includes(pathname)?"/negocio":pathname;
  const [user,setUser]=useState<User|null>(null),[roles,setRoles]=useState<BusinessRole[]>([]),[admin,setAdmin]=useState(false);
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[version,setVersion]=useState(0);
  useEffect(()=>{let live=true;
