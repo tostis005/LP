@@ -4,7 +4,7 @@ import {crmOAuth,validateAuthorization,requireCrmAdmin,issueCrmCode} from "@/lib
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
-const headers={"Cache-Control":"no-store","Content-Type":"text/html; charset=utf-8","Referrer-Policy":"no-referrer","X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY","Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"};
+const headers={"Cache-Control":"no-store","Content-Type":"text/html; charset=utf-8","Referrer-Policy":"no-referrer","X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY","Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'; form-action 'self' https://chatgpt.com; base-uri 'none'; frame-ancestors 'none'"};
 const escape=(s:string)=>s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
 function page(body:string,status=200){
  return new Response('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Autorizar CRM KREYVI</title><style>body{font-family:system-ui,sans-serif;max-width:540px;margin:48px auto;padding:0 20px;color:#30252a}h1{font-size:26px}button{padding:12px 18px;border-radius:8px;border:1px solid #6b2237;margin:5px;background:white;color:#6b2237}button[value=allow]{background:#6b2237;color:white}p{line-height:1.6}</style></head><body>'+body+'</body></html>',{status,headers});
