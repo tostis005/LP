@@ -36,3 +36,27 @@ assert.match(files,/20\*1024\*1024/);
 assert.match(libraryUi,/Confirmar importación/);
 assert.match(read("Dockerfile"),/\/app\/crm-imports \.\/crm-imports/);
 assert.match(read("components/AdminCrm.tsx"),/<AdminCrmCsvLibrary/);
+
+const ts=(await import("typescript")).default;
+const requireModule=(await import("node:module")).createRequire(import.meta.url);
+const {runInNewContext}=await import("node:vm");
+function load(src,deps={}){
+ const exports={};
+ const js=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ runInNewContext(js,{exports,require:(id)=>id in deps?deps[id]:requireModule(id)});
+ return exports;
+}
+const denue=load(read("lib/server/denue.ts"));
+const {parseContactCsv,decideContacts}=load(logic,{"./denue":denue,"./db":{ApiError:class extends Error{}}});
+const head="negocio,sector,estado,municipio,localidad,correo_publicado,url_fuente,direccion,id_denue\n";
+const row=(i,city="León",municipality="León")=>"Café ficticio "+i+",Cafetería,Guanajuato,"+municipality+","+city+",contacto"+i+"@example.com,https://example.com/"+i+",Calle de prueba "+i+",\n";
+const candidates=parseContactCsv(head+Array.from({length:2501},(_,i)=>row(i)).join(""));
+assert.equal(candidates.length,2501);
+assert.throws(()=>parseContactCsv(head+row(1)+row(2,"Irapuato","Irapuato")),/un municipio/);
+const existing=[{id:"test-0",source:"DENUE",source_id:"1",name:"Café ficticio 0",city:"León",locality_code:"0001",state:"Guanajuato",municipality:"León",status:"pending_review",email:null,public_email:null}];
+const decisions=decideContacts(candidates,existing,new Map(),new Set(["contacto2@example.com"]));
+assert.equal(decisions[0].action,"update");
+assert.equal(decisions[1].action,"create");
+assert.equal(decisions[2].action,"skip");
+assert.equal(decisions.filter(x=>x.action==="create").length,2499);
+console.log("CSV library: parsed and classified 2,501 synthetic contacts; mixed municipalities rejected.");
