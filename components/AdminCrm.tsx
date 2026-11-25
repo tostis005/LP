@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import {Upload,Search} from "lucide-react";
+import {AdminCrmIntegration} from "./AdminCrmIntegration";
 type Prospect={id:string;name:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string};
 type Region={country_code:string;state_code:string;state:string;municipality_code:string;municipality:string;locality_code:string;city:string;total:number};
 type Count={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
@@ -57,6 +58,7 @@ export function AdminCrm(){
   <div className="admin-inspector"><h3>Carga inicial de Tecate</h3><p>Importa directamente desde INEGI los restaurantes, cafeterías y heladerías de Tecate (edición mayo de 2025). Incluye los establecimientos sin correo para revisión; no activa envíos.</p>
    <button type="button" className="button button-dark button-sm" disabled={busy} onClick={()=>void importOfficial()}><Upload size={16}/>{busy?"Procesando…":"Cargar contactos de Tecate"}</button>
   </div>
+  <AdminCrmIntegration/>
   <details><summary><strong><Upload size={16}/> Importar y analizar DENUE</strong></summary>
    <p>Descarga el CSV oficial de INEGI, descomprímelo y selecciona el archivo. Se admite UTF-8 y Windows-1252, hasta 40 MB por archivo. No se publican los contactos en GitHub.</p>
    <a href="https://www.inegi.org.mx/app/descarga/" target="_blank" rel="noreferrer">Descarga oficial del DENUE</a>
