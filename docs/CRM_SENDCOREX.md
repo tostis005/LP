@@ -1,0 +1,8 @@
+# Buzón comercial Sendcorex
+En Administración → CRM → Correo comercial, abre la bandeja y conecta un buzón de un dominio separado de kreyvi.com.
+1. Comprueba DNS (SPF, DKIM, DMARC y MX según Sendcorex) y acceso al Webmail.
+2. En https://webmail.sendcorex.com abre Configuración del buzón, genera un token de lectura y escritura; si el proveedor ofrece un refresh token, copia también ese valor. La clave general de Developer no sustituye al token del buzón.
+3. Pega las credenciales directamente en el CRM sobre HTTPS. No las subas a GitHub ni las compartas por chat. Se cifran con AES-256-GCM usando SENDCOREX_ENCRYPTION_KEY (si está presente) o AUTH_PGPASSWORD; si cambia esa clave hay que reconectar el buzón.
+4. Verifica la dirección mostrada, y que un correo de prueba legítimo llega a Entrada. Ábrelo, comprueba el contador y responde. Enviados muestra los mensajes encolados, no confirma entrega.
+5. Redactar admite solo un destinatario, con revisión expresa de permiso y procedencia, exclusiones del CRM y opción de baja del proveedor. Máximo 30 intentos de correo nuevo por 24 horas desde el CRM; no se reintentan automáticamente envíos ambiguos. Los límites del proveedor también aplican. No enviar listas extraídas por scraping ni otras listas prohibidas.
+La bandeja se refresca cada cinco minutos mientras está abierta. El filtro Último mensaje recibido es una aproximación de conversaciones por contestar, no un estado de gestión persistente. Se muestran cuerpos de texto sin HTML activo, ni imágenes remotas; los adjuntos se consultan en Webmail. No hay campañas automáticas, webhooks ni envíos por lotes en esta versión.
