@@ -1,8 +1,10 @@
 import {actorFromRequest,asActor,checkOrigin,responseError,ApiError,type Actor} from "@/lib/server/db";
 import {foodPilotImport,decodeDenue} from "@/lib/server/denue";
+import {downloadTecateCsv,officialTecateFilename} from "@/lib/server/denue-download";
 import type {PoolClient} from "pg";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
+let officialImportRunning=false;
 const headers={"Cache-Control":"no-store"};
 const statuses=["pending_review","qualified","contacted","interested","trial","converted","discarded","do_not_contact"];
 const reviewStates=["pending","source_found","no_contact_found","ambiguous","not_relevant"];
@@ -45,16 +47,30 @@ export async function POST(request:Request){
   await admin(request,async()=>true);
   if(Number(request.headers.get("content-length")||0)>42*1024*1024)throw new ApiError("El archivo supera 40 MB.",413);
   const form=await request.formData(),file=form.get("file"),mode=form.get("mode");
-  if(!(file instanceof File)||!file.name.toLowerCase().endsWith(".csv"))throw new ApiError("Selecciona el CSV oficial descomprimido del DENUE.");
-  if(file.size>40*1024*1024)throw new ApiError("Divide el CSV en archivos de hasta 40 MB, conservando la cabecera.",413);
-  const municipality=String(form.get("municipality")||"");
+  const official=mode==="official";
+  const municipality=official?"02003":String(form.get("municipality")||"");
   if(municipality&&!/^\d{5}$/.test(municipality))throw new ApiError("Clave municipal inválida.");
-  if(mode!=="preview"&&mode!=="import")throw new ApiError("Modo inválido.");
-  let data:ReturnType<typeof foodPilotImport>;
-  try{data=foodPilotImport(decodeDenue(await file.arrayBuffer()),municipality);}catch(e){throw new ApiError(e instanceof Error?e.message:"CSV inválido.");}
+  if(mode!=="preview"&&mode!=="import"&&!official)throw new ApiError("Modo inválido.");
+  let data:ReturnType<typeof foodPilotImport>,filename:string;
+  if(official){
+   const existing=await admin(request,async c=>(await c.query("SELECT report FROM public.crm_import_runs WHERE filename=$1 ORDER BY created_at DESC LIMIT 1",[officialTecateFilename])).rows[0]);
+   if(existing)return Response.json({report:existing.report,imported:0,alreadyImported:true},{headers});
+   if(officialImportRunning)throw new ApiError("La importación oficial ya está en curso.",409);
+   officialImportRunning=true;
+   try{data=foodPilotImport(await downloadTecateCsv(),municipality);}finally{officialImportRunning=false;}
+   filename=officialTecateFilename;
+   if(data.prospects.length===0)throw new ApiError("El archivo oficial no contiene prospectos de Tecate.",502);
+  }else{
+   if(!(file instanceof File)||!file.name.toLowerCase().endsWith(".csv"))throw new ApiError("Selecciona el CSV oficial descomprimido del DENUE.");
+   if(file.size>40*1024*1024)throw new ApiError("Divide el CSV en archivos de hasta 40 MB, conservando la cabecera.",413);
+   filename=file.name.slice(0,240);
+   try{data=foodPilotImport(decodeDenue(await file.arrayBuffer()),municipality);}catch(e){throw new ApiError(e instanceof Error?e.message:"CSV inválido.");}
+  }
   if(mode==="preview")return Response.json({report:data.report},{headers});
   if(data.report.total===0)throw new ApiError("El archivo no contiene establecimientos válidos para el filtro.");
   const imported=await admin(request,async c=>{
+   await c.query("SELECT pg_advisory_xact_lock(hashtext('kreyvi-denue-import'))");
+   if(official&&(await c.query("SELECT 1 FROM public.crm_import_runs WHERE filename=$1",[filename])).rowCount)return 0;
    let changed=0;
    for(let i=0;i<data.prospects.length;i+=500){
     const batch=data.prospects.slice(i,i+500);
@@ -67,7 +83,7 @@ export async function POST(request:Request){
     changed+=result.rowCount||0;
    }
    await c.query("UPDATE public.crm_prospects p SET status='do_not_contact',updated_at=now() WHERE p.status<>'do_not_contact' AND EXISTS (SELECT 1 FROM public.crm_email_exclusions e WHERE e.email IN (lower(p.email),lower(p.public_email)))");
-   await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[file.name.slice(0,240),JSON.stringify(data.report)]);
+   await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[filename,JSON.stringify(official?{...data.report,edition:"2025-05",scope:"02003",pilotFood:true}:data.report)]);
    return changed;
   });
   return Response.json({report:data.report,imported},{headers});
