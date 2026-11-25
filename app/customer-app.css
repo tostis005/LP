@@ -722,3 +722,25 @@ body:has(.workspace-customer){background:var(--color-bg)}
 /* El detalle de tarjeta abierto en Descubrir tapa los controles del mapa. */
 .workspace-customer .qr-modal-backdrop{z-index:2200!important}
 .workspace-customer .qr-fullscreen-overlay{z-index:2300!important}
+
+
+/* Mis tarjetas: fondo marfil luminoso y acentos de marca muy suaves.
+   No modifica los fondos de las tarjetas ni la apariencia de otras pantallas. */
+.workspace-customer:has(.customer-first-layout){
+ background:radial-gradient(ellipse 100% 360px at 0% 0%,color-mix(in srgb,var(--color-accent-100) 48%,transparent),transparent),
+ linear-gradient(180deg,color-mix(in srgb,var(--color-surface) 72%,var(--color-bg)) 0,var(--color-bg) 460px,var(--color-bg));
+}
+.workspace-customer:has(.customer-first-layout) .workspace-main{background:transparent}
+.customer-first-layout .customer-spotlight{
+ background:radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--color-accent-100) 75%,transparent),transparent 70%),linear-gradient(145deg,var(--color-surface),color-mix(in srgb,var(--color-brand-100) 32%,var(--color-surface)));
+ color:var(--color-brand-900);border:1px solid var(--color-bg-2);
+ box-shadow:0 7px 24px color-mix(in srgb,var(--color-brand) 7%,transparent);
+ padding:20px;min-height:0;gap:10px;margin-bottom:26px;
+}
+.customer-first-layout .customer-spotlight-head span{color:var(--color-brand-500)}
+.customer-first-layout .customer-spotlight-head svg{color:var(--color-accent-600);background:var(--color-accent-100);width:38px;height:38px;padding:9px;border-radius:12px;flex:none}
+.customer-first-layout .customer-spotlight h3{color:var(--color-brand-900)}
+.customer-first-layout .customer-spotlight p,.customer-first-layout .customer-spotlight-foot{color:var(--color-text-2)}
+.customer-first-layout .customer-spotlight-foot a{background:var(--color-brand);color:var(--color-on-brand);min-height:44px}
+.customer-first-layout .customer-spotlight-foot a:hover{background:var(--color-brand-900)}
+.customer-first-layout .customer-spotlight-foot a:focus-visible{outline:3px solid var(--color-accent-600);outline-offset:3px}
