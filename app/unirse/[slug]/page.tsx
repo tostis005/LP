@@ -1,4 +1,5 @@
 "use client";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import {useEffect,useState,useRef} from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -36,7 +37,7 @@ export default function JoinPage(){
    id:found.business_id,name:found.business_name,slug:params.slug,description:found.description,
    category:found.category,accent_color:found.accent_color,logo_url:found.logo_url,
    card_text:found.card_text,card_text_color:found.card_text_color,stamp_color:found.stamp_color,
-   stamp_icon:found.stamp_icon,stamp_image_url:assets.data?.[0]?.stamp_image_url||null,card_background:assets.data?.[0]?.card_background||null,
+   stamp_icon:found.stamp_icon,stamp_image_url:assets.data?.[0]?.stamp_image_url||null,card_background:assets.data?.[0]?.card_background||null,card_logo_scale:assets.data?.[0]?.card_logo_scale??100,card_logo_x:assets.data?.[0]?.card_logo_x??0,card_logo_y:assets.data?.[0]?.card_logo_y??0,
    public_listing:found.public_listing,active:true
   });
   setProgram({type:found.program_type,reward_label:found.reward_label,reward_cost:found.reward_cost,cashback_bps:found.cashback_bps,points_per_euro:found.points_per_euro});
@@ -96,7 +97,7 @@ export default function JoinPage(){
  const hasLocation=locations.length>0;
  return <div className="join-page join-page-rich">
   <div className="join-top"><Brand/><Link href="/app/descubrir" className="text-link"><ArrowLeft size={16}/> Explorar negocios</Link></div>
-  {loading?<div className="join-box"><div className="loading-screen">Descubriendo este negocio...</div></div>:!offer?<div className="join-box"><div className="empty-state"><h2>Este enlace no está disponible</h2><p>{error}</p></div></div>:
+  {loading?<div className="join-box"><KreyviLoading compact label="Descubriendo este negocio"/></div>:!offer?<div className="join-box"><div className="empty-state"><h2>Este enlace no está disponible</h2><p>{error}</p></div></div>:
    <main className="join-detail">
     <div className="join-detail-main">
      <div className="join-business-hero">

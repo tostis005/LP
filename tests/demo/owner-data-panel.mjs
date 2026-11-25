@@ -41,3 +41,11 @@ assert.match(data,/repeatCustomers\/totalCustomers/);
 assert.equal((data.match(/className="owner-data-stat"/g)||[]).length,3);
 assert.match(css,/\.owner-ranking \.owner-reward-donut\{\s*width:100%;max-width:650px;margin:12px auto 4px/);
 console.log("OK: three owner data views, real queries, pagination, audit-safe corrections and isolated demo data.");
+
+assert.match(data,/maxStampsPerAction===1/);
+assert.match(data,/!singleStamp\?\[\{key:"visits"/);
+assert.match(panels,/!singleStamp\|\|k!=="operations"/);
+assert.match(owner,/card_logo_scale:biz.card_logo_scale/);
+assert.match(read("components/StampCard.tsx"),/logoScale=100/);
+assert.match(read("app/api/local/geocode/route.ts"),/GEOAPIFY_API_KEY/);
+assert.match(read("components/AddressPicker.tsx"),/Introducir coordenadas exactas/);

@@ -1,4 +1,5 @@
 "use client";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {AddressPicker} from "@/components/AddressPicker";
@@ -27,7 +28,7 @@ type Tab="poster"|"overview"|"card"|"settings"|"designer"|"program"|"team"|"cust
 type CardArea="design"|"rules"|"rewards";
 const tabs:{id:Tab;label:string;icon:React.ReactNode}[]=[
  {id:"overview",label:"Mi negocio",icon:<House size={17}/>},
- {id:"poster",label:"Cartel para mostrador",icon:<FileText size={17}/>},
+ {id:"poster",label:"QR para mostrador",icon:<FileText size={17}/>},
  {id:"card",label:"Tarjeta",icon:<CreditCard size={17}/>},
  {id:"settings",label:"Negocio",icon:<Store size={17}/>},
  {id:"designer",label:"Diseñar mi tarjeta",icon:<Brush size={17}/>},
@@ -181,7 +182,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   setBusy(true);setError("");setNotice("");
   try{
    const {error,count}=await db().from("businesses").update({
-    accent_color:biz.accent_color,card_text:biz.card_text,
+    accent_color:biz.accent_color,card_text:biz.card_text,card_logo_scale:biz.card_logo_scale??100,card_logo_x:biz.card_logo_x??0,card_logo_y:biz.card_logo_y??0,
     card_text_color:biz.card_text_color||"#ffffff",stamp_color:biz.stamp_color||"#571c32",
     stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
    }).eq("id",selected);
@@ -323,7 +324,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
     
     <div className="workspace-section-body">
    {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success"><Check size={17}/>{notice}</div>}
-   {loading&&(!biz||biz.id!==selected)?<div className="soft-panel">Cargando negocio...</div>:biz&&biz.id===selected&&prog&&<>
+   {loading&&(!biz||biz.id!==selected)?<KreyviLoading compact label="Cargando negocio"/>:biz&&biz.id===selected&&prog&&<>
    {tab==="card"&&<div className="owner-card-intro"><div><h3>Configuración de la tarjeta</h3><p>Diseño, funcionamiento y recompensas.</p></div><span className="owner-card-mode">{prog.type==="stamps"?"Tarjeta de sellos":prog.type==="points"?"Tarjeta de puntos":"Tarjeta de cashback"}</span></div>}
     {tab==="card"&&<nav className="business-card-tabs" aria-label="Configurar mi tarjeta">
     <button type="button" className={cardArea==="design"?"active":""} aria-pressed={cardArea==="design"} onClick={()=>setCardArea("design")}><Brush size={16}/> 1. Diseño</button>
@@ -339,7 +340,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
       <Link href={workspaceHref("/negocio")} className={tab==="overview"?"active":""} aria-current={tab==="overview"?"page":undefined}><CreditCard size={18}/> Tarjeta actual</Link>
       <Link href={workspaceHref("/negocio/settings")} title="Información del negocio" className={tab==="settings"?"active":""} aria-current={tab==="settings"?"page":undefined}><Settings2 size={18}/> Información</Link>
       <Link href={workspaceHref("/negocio/locations")} title="Dirección y ubicación" className={tab==="locations"?"active":""} aria-current={tab==="locations"?"page":undefined}><MapPin size={18}/> Ubicación</Link>
-      <Link href={workspaceHref("/negocio/poster")} className={tab==="poster"?"active":""} aria-current={tab==="poster"?"page":undefined}><FileText size={18}/> Cartel para mostrador</Link>
+      <Link href={workspaceHref("/negocio/poster")} className={tab==="poster"?"active":""} aria-current={tab==="poster"?"page":undefined}><FileText size={18}/> QR para mostrador</Link>
      </nav>}
     </div>}
    {tab==="poster"&&<CounterPoster key={biz.id} business={biz} program={prog}/>}
@@ -364,6 +365,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
         <small>JPG, PNG o WEBP hasta 5 MB. Se guarda al subirlo.</small>
        </div>
       </div>
+      {biz.logo_url&&<div className="logo-adjust-controls"><strong>Ajustar logotipo</strong><label>Tamaño · {biz.card_logo_scale??100}%<input type="range" min={50} max={220} value={biz.card_logo_scale??100} onChange={e=>setBiz({...biz,card_logo_scale:Number(e.target.value)})}/></label><label>Posición horizontal<input type="range" min={-50} max={50} value={biz.card_logo_x??0} onChange={e=>setBiz({...biz,card_logo_x:Number(e.target.value)})}/></label><label>Posición vertical<input type="range" min={-50} max={50} value={biz.card_logo_y??0} onChange={e=>setBiz({...biz,card_logo_y:Number(e.target.value)})}/></label><button type="button" className="button button-outline button-sm" onClick={()=>setBiz({...biz,card_logo_scale:100,card_logo_x:0,card_logo_y:0})}>Restablecer ajuste</button><small>Comprueba el resultado en la vista previa y guarda el diseño.</small></div>}
       <label>Mensaje en la tarjeta<input value={biz.card_text||""} maxLength={60} placeholder="GRACIAS POR VOLVER" onChange={e=>setBiz({...biz,card_text:e.target.value})}/></label>
 
       <label className="color-input-label">Fondo de la tarjeta <span><input aria-label="Elegir color de fondo" type="color" value={biz.accent_color} onChange={e=>setBiz({...biz,accent_color:e.target.value})}/><code>{biz.accent_color}</code></span></label>
@@ -465,8 +467,8 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
       <Link href={workspaceHref("/negocio/customers")} className={dataArea==="customers"?"active":""} aria-current={dataArea==="customers"?"page":undefined}><Users size={16}/> Clientes</Link>
      </nav>
      {dataArea==="summary"&&<>
-      <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType}/>
-      <EmployeeChart rows={activity} days={periodDays} programType={programType} currency={currency}/>
+      <BusinessAnalytics metrics={metrics} growth={growth} summary={growthSummary} ranking={ranking} days={periodDays} onDays={setPeriodDays} repeatCustomers={repeatCount} totalCustomers={customers.length} programType={programType} maxStampsPerAction={prog.max_stamps_per_action}/>
+      <EmployeeChart rows={activity} days={periodDays} programType={programType} currency={currency} maxStampsPerAction={prog.max_stamps_per_action}/>
      </>}
      {dataArea==="transactions"&&<TransactionsPanel key={selected} businessId={selected} staff={staff} formatBalance={formatBalance} currency={currency}/>}
      {dataArea==="customers"&&<CustomerPanel key={selected} businessId={selected} customers={customers} formatBalance={formatBalance} privateEmail={privateEmail}

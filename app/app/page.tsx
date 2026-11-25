@@ -1,4 +1,5 @@
 "use client";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import {useCallback,useEffect,useState} from "react";
 import Link from "next/link";
 import {ArrowUpRight,Compass,Gift,Plus} from "lucide-react";
@@ -94,7 +95,7 @@ function CustomerHome({account}:{account:Account}){
   </section>}
   <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza para verlas</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
   {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button></div>}
-  {loading?<div className="soft-panel">Cargando tarjetas...</div>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid" role="region" aria-label="Tus tarjetas, desliza horizontalmente para verlas" tabIndex={0}>{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0} compact/>)}</div>}
+  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid" role="region" aria-label="Tus tarjetas, desliza horizontalmente para verlas" tabIndex={0}>{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0} compact/>)}</div>}
 
   {movements.length>0&&<section className="customer-activity-section" aria-label="Últimos movimientos">
    <h2>Actividad reciente</h2>

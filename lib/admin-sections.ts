@@ -19,7 +19,7 @@ export function adminActiveHref(path:string){
  const section=path.split("/")[2]||"negocios";
  return isAdminSection(section)?"/admin/"+section:adminDefaultHref;
 }
-export const adminBusinessSections = {overview:"Tarjeta actual",tarjeta:"Diseñar tarjeta",poster:"Cartel",marketing:"Campañas",team:"Empleados",settings:"Información",locations:"Ubicación",reports:"Datos",customers:"Clientes",transactions:"Transacciones"} as const;
+export const adminBusinessSections = {overview:"Tarjeta actual",tarjeta:"Diseñar tarjeta",poster:"QR para mostrador",marketing:"Campañas",team:"Empleados",settings:"Información",locations:"Ubicación",reports:"Datos",customers:"Clientes",transactions:"Transacciones"} as const;
 export type AdminBusinessSection=keyof typeof adminBusinessSections;
 export function isAdminBusinessSection(section:string):section is AdminBusinessSection{return Object.prototype.hasOwnProperty.call(adminBusinessSections,section)}
 export function adminBusinessHref(id:string,section:AdminBusinessSection="overview"){return "/admin/negocios/"+encodeURIComponent(id)+"/"+section}
