@@ -23,6 +23,7 @@ export default function MiLoyally(){
  const [platform,setPlatform]=useState<Platform>("other");
  const [standalone,setStandalone]=useState(false);
  const [ready,setReady]=useState(false);
+ const [signedIn,setSignedIn]=useState(false);
  const [showInstall,setShowInstall]=useState(false);
  const [installPrompt,setInstallPrompt]=useState<InstallPrompt|null>(null);
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[whatsapp,setWhatsapp]=useState("");
@@ -35,7 +36,8 @@ export default function MiLoyally(){
   const device=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)
    ?"ios":/Android/i.test(ua)?"android":"other";
   setPlatform(device);
-  setShowInstall(!appMode&&new URLSearchParams(window.location.search).has("instalar"));
+  const installing=!appMode&&new URLSearchParams(window.location.search).has("instalar");
+  setShowInstall(installing);
   if(new URLSearchParams(window.location.search).has("auth_error"))setError("No hemos podido conectar con tu cuenta. Prueba de nuevo.");
   function capture(e:Event){e.preventDefault();setInstallPrompt(e as InstallPrompt);}
   function installed(){setStandalone(true);setShowInstall(false);setInstallPrompt(null);}
@@ -44,7 +46,11 @@ export default function MiLoyally(){
   let active=true;
   db().auth.getUser().then(({data})=>{
    if(!active)return;
-   if(data.user){router.replace("/app");return;}
+   if(data.user){
+    setSignedIn(true);
+    // Installation is public, even with an existing business/admin session.
+    if(!installing){router.replace("/entrar");return;}
+   }
    setReady(true);
   }).catch(()=>{if(active)setReady(true);});
   return()=>{active=false;window.removeEventListener("beforeinstallprompt",capture);window.removeEventListener("appinstalled",installed);};
@@ -77,12 +83,12 @@ export default function MiLoyally(){
      options:{data:{full_name:name.trim(),whatsapp:whatsapp.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn},emailRedirectTo:"https://kreyvi.com/auth/callback"}
     });
     if(error)throw error;
-    if(data.session)router.replace("/app");
+    if(data.session)router.replace("/entrar");
     else setMessage("¡Ya casi está! Revisa tu correo y confirma tu cuenta.");
    }else{
     const {error}=await db().auth.signInWithPassword({email,password});
     if(error)throw error;
-    router.replace("/app");
+    router.replace("/entrar");
    }
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
@@ -109,7 +115,8 @@ export default function MiLoyally(){
    <section className="loyal-app-auth" aria-labelledby="loyal-app-auth-title">
     <h2 id="loyal-app-auth-title">{intro}</h2>
     <p>{mode==="signup"?"Tus tarjetas estarán juntas desde el primer día.":mode==="forgot"?"Te ayudamos a volver a entrar.":"Entra para ver tus tarjetas y tus recompensas."}</p>
-    <SocialAuthButtons next="/app"/>
+    {signedIn?<><p>Ya tienes una sesión iniciada. Puedes instalar Kreyvi y abrir tu espacio cuando quieras.</p><Link className="loyal-app-submit" href="/entrar">Entrar en mi espacio <ArrowRight size={18}/></Link></>:<>
+    <SocialAuthButtons next="/entrar"/>
     <form onSubmit={signIn} className="loyal-app-form">
      {mode==="signup"&&<label>Tu nombre<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder="¿Cómo te llamas?"/></label>}
      <label>Correo electrónico<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
@@ -124,6 +131,7 @@ export default function MiLoyally(){
      <button type="submit" className="loyal-app-submit" disabled={busy||!ready}>{busy?"Un momento...":mode==="login"?"Entrar en Kreyvi":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"}<ArrowRight size={18}/></button>
     </form>
     {mode==="login"?<div className="loyal-app-links"><button type="button" onClick={()=>{setMode("signup");setError("");setMessage("");}}>Quiero crear una cuenta</button><button type="button" onClick={()=>{setMode("forgot");setError("");setMessage("");}}>Olvidé mi contraseña</button></div>:<button type="button" className="loyal-app-back" onClick={()=>{setMode("login");setError("");setMessage("");}}><ChevronLeft size={16}/> Ya tengo cuenta</button>}
+    </>}
    </section>
    {!standalone&&<footer className="loyal-app-footer"><span>Hecho para volver ♡</span><Link href="/">Conocer Kreyvi</Link></footer>}
   </div>
@@ -135,11 +143,11 @@ export default function MiLoyally(){
     <p>Así podrás abrir tus tarjetas desde el icono de Kreyvi, sin la barra del navegador.</p>
     {platform==="ios"?<>
      <ol className="loyal-app-sheet-steps">
-      <li><span>1</span><p>Abre esta pantalla en <strong>Safari</strong>.</p></li>
-      <li><span>2</span><p>Toca <Share2 size={15} aria-hidden="true"/> <strong>Compartir</strong> y después <strong>Agregar a Inicio</strong>.</p></li>
-      <li><span>3</span><p>Activa <strong>«Abrir como app web»</strong> y toca <strong>Agregar</strong>.</p></li>
+      <li><span>1</span><p>Abre esta pantalla en <strong>Safari</strong>. Si llegaste desde WhatsApp, Instagram u otra app, abre el enlace en Safari.</p></li>
+      <li><span>2</span><p>Toca <Share2 size={15} aria-hidden="true"/> <strong>Compartir</strong> (o el menú de página de Safari) y después <strong>Añadir a pantalla de inicio</strong>.</p></li>
+      <li><span>3</span><p>Si aparece, activa <strong>«Abrir como app web»</strong> y toca <strong>Añadir</strong>.</p></li>
      </ol>
-     <p className="loyal-app-sheet-hint">Después, abre Kreyvi desde el nuevo icono.</p>
+     <p className="loyal-app-sheet-hint">Si no aparece la opción, busca «Editar acciones» al final del menú Compartir. Después, abre Kreyvi desde el nuevo icono.</p>
     </>:platform==="android"?<>
      <ol className="loyal-app-sheet-steps">
       <li><span>1</span><p>Abre esta pantalla en <strong>Chrome</strong>.</p></li>
