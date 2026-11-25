@@ -34,7 +34,7 @@ export async function GET(request:Request){
    const prospects=(await c.query("SELECT * FROM public.crm_prospects"+filter+" ORDER BY name,id LIMIT 50 OFFSET $"+(args.length+1),[...args,page*50])).rows;
    const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
    const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
-   const imports=(await c.query("SELECT filename,created_at,report FROM public.crm_import_runs ORDER BY created_at DESC LIMIT 5")).rows;
+   const imports=(await c.query("SELECT filename,created_at,report FROM public.crm_import_runs WHERE source='DENUE' ORDER BY created_at DESC LIMIT 5")).rows;
    return {prospects,count,regions,categories,imports,page};
   });
   return Response.json(result,{headers});

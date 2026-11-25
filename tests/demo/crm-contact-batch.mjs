@@ -1,0 +1,24 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=p=>readFileSync(p,"utf8");
+const route=read("app/api/local/admin/crm/contact-batch/route.ts"),logic=read("lib/server/crm-contact-batch.ts"),ui=read("components/AdminCrmContactBatch.tsx");
+assert.match(route,/checkOrigin\(request\)/);
+assert.match(route,/actorFromRequest\(request\)/);
+assert.match(route,/is_platform_admin\(\)/);
+assert.match(route,/v\.mode==="apply"\?v\.selected:undefined/);
+assert.match(logic,/if\(!apply\)return \{decisions\}/);
+assert.match(logic,/pg_advisory_xact_lock/);
+assert.match(logic,/email IS NULL AND public_email IS NULL/);
+assert.match(logic,/excluded\.has\(v\.email\)/);
+assert.match(logic,/matches\.length>1/);
+assert.match(logic,/d\.action!==a\.action\|\|d\.id!==a\.id/);
+assert.match(logic,/if\(!v\.address\)return skip/);
+assert.match(ui,/Confirmar importación/);
+assert.match(ui,/d\.action==="update"/);
+assert.match(read("components/AdminCrm.tsx"),/<AdminCrmContactBatch/);
+console.log("CRM batch import source-level regression checks passed.");
+
+assert.match(logic,/out\.length>=2000/);
+assert.match(logic,/selected\.length>2000/);
+assert.match(ui,/2\.000 registros/);
+assert.match(route,/Buffer\.byteLength\(v\.csv,"utf8"\)>4\*1024\*1024/);

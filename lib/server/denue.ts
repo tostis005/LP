@@ -12,7 +12,7 @@ export const categories: ReadonlyArray<[string,string]> = [
  ["461110","Abarrotes"],["465111","Cosmética"],["466312","Floristerías"]
 ];
 export function categoryFor(code:string){return categories.find(([prefix])=>code.startsWith(prefix))?.[1]||"";}
-function rows(text:string,consume:(row:string[])=>void){
+export function rows(text:string,consume:(row:string[])=>void){
  let row:string[]=[],cell="",quoted=false;
  for(let i=0;i<text.length;i++){
   const c=text[i];
