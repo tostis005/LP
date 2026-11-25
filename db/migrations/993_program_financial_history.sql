@@ -17,7 +17,7 @@ BEGIN
  IF v_last IS NOT NULL AND v_last>now()-make_interval(secs=>v_p.min_seconds_between_awards)
  THEN RAISE EXCEPTION 'Espera antes de registrar otra compra en esta tarjeta'; END IF;
  IF (v_p.require_purchase_amount OR v_p.type<>'stamps') AND coalesce(p_purchase_cents,0)<1 THEN RAISE EXCEPTION 'Indica el importe de la compra'; END IF;
- IF p_purchase_cents<0 OR p_purchase_cents>v_p.max_ticket_cents
+ IF coalesce(p_purchase_cents,0)<0 OR p_purchase_cents>v_p.max_ticket_cents
  THEN RAISE EXCEPTION 'Importe de compra fuera del límite'; END IF;
  IF v_p.require_ticket_reference AND nullif(btrim(coalesce(p_ticket_ref,'')),'') IS NULL
  THEN RAISE EXCEPTION 'Indica la referencia del ticket'; END IF;
@@ -26,7 +26,7 @@ BEGIN
       AND created_at >= date_trunc('day',now()))>=v_p.max_daily_awards_per_employee
  THEN RAISE EXCEPTION 'Límite diario de operaciones alcanzado'; END IF;
  IF v_p.type='stamps' THEN
-  IF p_stamps<1 OR p_stamps>v_p.max_stamps_per_action THEN RAISE EXCEPTION 'Sellos fuera del límite'; END IF;
+  IF p_stamps IS NULL OR p_stamps<1 OR p_stamps>v_p.max_stamps_per_action THEN RAISE EXCEPTION 'Sellos fuera del límite'; END IF;
   v_delta:=p_stamps;
  ELSE
   IF p_purchase_cents<1 THEN RAISE EXCEPTION 'Indica un importe positivo'; END IF;
@@ -117,3 +117,25 @@ END $fin$;
 REVOKE ALL ON FUNCTION public.business_default_reward_cost(uuid),public.business_save_default_reward_cost(uuid,integer),public.customer_card_history(uuid,integer,integer),public.business_customer_financials(uuid) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.business_default_reward_cost(uuid),public.business_save_default_reward_cost(uuid,integer),public.customer_card_history(uuid,integer,integer),public.business_customer_financials(uuid) TO authenticated,lp_api;
 CREATE INDEX IF NOT EXISTS loyalty_transactions_member_history_idx ON public.loyalty_transactions(membership_id,created_at DESC,id DESC);
+
+-- Ranking completeness concerns internal cost, not optional retail valuation.
+CREATE OR REPLACE FUNCTION public.business_reward_ranking(p_business uuid,p_days integer)
+RETURNS TABLE(reward_label text,redemptions bigint,retail_cents bigint,cost_cents bigint,unpriced bigint)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $$
+BEGIN
+ IF p_days NOT BETWEEN 1 AND 365 OR
+ NOT(public.is_business_manager(p_business) OR public.is_platform_admin())
+ THEN RAISE EXCEPTION 'No autorizado'; END IF;
+ RETURN QUERY
+ SELECT r.reward_label,count(*)::bigint,
+  coalesce(sum(r.retail_cents),0)::bigint,
+  coalesce(sum(r.cost_cents),0)::bigint,
+  count(*) FILTER(WHERE r.cost_cents IS NULL)::bigint
+ FROM public.reward_redemptions r
+ WHERE r.business_id=p_business AND r.redeemed_at>=now()-make_interval(days=>p_days)
+ AND NOT EXISTS(SELECT 1 FROM public.loyalty_transactions x WHERE x.reversal_of=r.transaction_id)
+ GROUP BY r.reward_label ORDER BY count(*) DESC,r.reward_label LIMIT 30;
+END $$;
+REVOKE ALL ON FUNCTION public.business_reward_ranking(uuid,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.business_reward_ranking(uuid,integer) TO authenticated;
+

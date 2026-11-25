@@ -95,7 +95,7 @@ export function BusinessAnalytics({currency,showMoney,metrics,summary,growth,ran
   </div>
   <section className="panel-card owner-ranking"><h3><Gift size={18}/> Recompensas canjeadas</h3>
    <RewardDonut ranking={ranking}/>
-   {showMoney&&ranking.length>0&&<div className="table-wrap"><table className="data-table"><thead><tr><th>Regalo</th><th>Canjes</th><th>Coste registrado</th></tr></thead><tbody>{ranking.map(r=><tr key={r.reward_label}><td>{r.reward_label}</td><td>{integer(Number(r.redemptions))}</td><td>{Number(r.cost_cents)>0?money(Number(r.cost_cents)):"—"}</td></tr>)}</tbody></table><small className="muted">Los costes históricos desconocidos no se imputan.</small></div>}
+   {showMoney&&ranking.length>0&&<div className="table-wrap"><table className="data-table"><thead><tr><th>Regalo</th><th>Canjes</th><th>Coste registrado</th></tr></thead><tbody>{ranking.map(r=><tr key={r.reward_label}><td>{r.reward_label}</td><td>{integer(Number(r.redemptions))}</td><td>{Number(r.redemptions)>Number(r.unpriced)?money(Number(r.cost_cents))+(Number(r.unpriced)>0?" (parcial)":""):"—"}</td></tr>)}</tbody></table><small className="muted">Los costes históricos desconocidos no se imputan.</small></div>}
 
   </section>
  </section>;

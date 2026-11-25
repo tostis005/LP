@@ -9,7 +9,7 @@ const mutatingRpcs=new Set([
  "staff_redeem_voucher","staff_award_card","staff_redeem_card","business_upsert_consent",
  "business_upsert_whatsapp_consent","platform_upsert_consent","admin_create_business",
  "admin_provision_business","admin_set_business_location","admin_set_business_contract","admin_set_business_currency",
- "manager_reverse_transaction","business_save_push_campaign","business_queue_push_campaign","admin_convert_lead"
+ "manager_reverse_transaction","business_save_default_reward_cost","business_save_push_campaign","business_queue_push_campaign","admin_convert_lead"
 ]);
 type Result<T=any>={data:T;error:Error|null;count?:number};
 type Filter={op:"eq"|"is"|"in";field:string;value:unknown};
