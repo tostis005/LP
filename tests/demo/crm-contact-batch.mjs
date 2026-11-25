@@ -43,7 +43,7 @@ const {runInNewContext}=await import("node:vm");
 function load(src,deps={}){
  const exports={};
  const js=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- runInNewContext(js,{exports,require:(id)=>id in deps?deps[id]:requireModule(id)});
+ runInNewContext(js,{exports,URL,require:(id)=>id in deps?deps[id]:requireModule(id)});
  return exports;
 }
 const denue=load(read("lib/server/denue.ts"));
