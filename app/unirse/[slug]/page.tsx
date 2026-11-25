@@ -25,7 +25,7 @@ export default function JoinPage(){
  const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con KREYVI.");setLoading(false);return}
-  const [o,u]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser()]);
+  const [o,u,assets]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser(),db().rpc("public_business_card_assets",{p_slug:params.slug})]);
   if(!alive)return;
   setSigned(!!u.data.user);
   if(u.data.user){const existing=u.data.user.user_metadata?.whatsapp||"";setPhone(existing);setSavedPhone(existing)}
@@ -35,7 +35,7 @@ export default function JoinPage(){
    id:found.business_id,name:found.business_name,slug:params.slug,description:found.description,
    category:found.category,accent_color:found.accent_color,logo_url:found.logo_url,
    card_text:found.card_text,card_text_color:found.card_text_color,stamp_color:found.stamp_color,
-   stamp_icon:found.stamp_icon,stamp_image_url:null,card_background:null,
+   stamp_icon:found.stamp_icon,stamp_image_url:assets.data?.[0]?.stamp_image_url||null,card_background:assets.data?.[0]?.card_background||null,
    public_listing:found.public_listing,active:true
   });
   setProgram({type:found.program_type,reward_label:found.reward_label,reward_cost:found.reward_cost,cashback_bps:found.cashback_bps,points_per_euro:found.points_per_euro});
@@ -135,7 +135,7 @@ export default function JoinPage(){
       {offer.description&&<p className="join-business-description">{offer.description}</p>}
       <p>{programExplanation(offerProgram)}</p>
       {offerProgram?.type==="stamps"&&program&&<div className="join-card-preview">
-       <StampCard name={offer.business_name} color={business?.accent_color||offer.accent_color} reward={program.reward_label} total={Math.max(2,program.reward_cost)} earned={0} logoUrl={business?.logo_url} icon={business?.stamp_icon||categoryStampKind(category)} message={business?.card_text||"GRACIAS POR VOLVER"} textColor={business?.card_text_color} stampColor={business?.stamp_color}/>
+       <StampCard name={offer.business_name} color={business?.accent_color||offer.accent_color} reward={program.reward_label} total={Math.max(2,program.reward_cost)} earned={0} logoUrl={business?.logo_url} backgroundUrl={business?.card_background} imageUrl={business?.stamp_image_url} icon={business?.stamp_icon||categoryStampKind(category)} message={business?.card_text||"GRACIAS POR VOLVER"} textColor={business?.card_text_color} stampColor={business?.stamp_color}/>
        <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
       </div>}
 
