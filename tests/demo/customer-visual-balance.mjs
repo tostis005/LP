@@ -45,3 +45,7 @@ assert.match(css,/\.workspace-customer:has\(\.customer-first-layout\)\{[\s\S]*?v
 assert.match(css,/\.customer-first-layout \.customer-spotlight\{[\s\S]*?var\(--color-surface\)/,"Reward highlight has a light surface");
 assert.match(css,/\.customer-first-layout \.customer-spotlight h3\{color:var\(--color-brand-900\)\}/,"Dark readable reward heading");
 assert.match(css,/\.customer-first-layout \.customer-spotlight-foot a\{background:var\(--color-brand\);color:var\(--color-on-brand\)/,"High contrast reward action");
+
+const roleCss=read("app/role-app.css");
+assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid \.merchant-card-button\{\s*background:transparent;box-shadow:none;/,"Transparent carousel wrappers");
+assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid \.stamp-visual-card\{\s*box-shadow:inset 0 0 0 1px #0000000a;/,"No external card shadow clipped by horizontal scrolling");
