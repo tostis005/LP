@@ -23,7 +23,7 @@ export async function GET(request:Request){
    const where:string[]=[],args:unknown[]=[];
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
-    const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520'))");}else if(v)add(col,v.slice(0,120));
+    const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR (source='WEB' AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
    }
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
    const review=p.get("review");if(review&&reviewStates.includes(review))add("contact_review",review);
@@ -48,6 +48,8 @@ export async function POST(request:Request){
   if(Number(request.headers.get("content-length")||0)>42*1024*1024)throw new ApiError("El archivo supera 40 MB.",413);
   const form=await request.formData(),file=form.get("file"),mode=form.get("mode");
   const official=mode==="official";
+  const edition=official?"2025-05":String(form.get("edition")||"");
+  if(edition&&!/^20\d{2}-(05|11)$/.test(edition))throw new ApiError("Edición DENUE inválida.");
   const municipality=official?"02003":String(form.get("municipality")||"");
   if(municipality&&!/^\d{5}$/.test(municipality))throw new ApiError("Clave municipal inválida.");
   if(mode!=="preview"&&mode!=="import"&&!official)throw new ApiError("Modo inválido.");
@@ -78,12 +80,12 @@ export async function POST(request:Request){
      "INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website) "+
      "SELECT source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website "+
      "FROM jsonb_to_recordset($1::jsonb) AS x(source_id text,name text,country_code text,state_code text,state text,municipality_code text,municipality text,locality_code text,city text,activity_code text,activity text,category text,email text,website text) "+
-     "ON CONFLICT(source,source_id) DO UPDATE SET name=EXCLUDED.name,country_code=EXCLUDED.country_code,state_code=EXCLUDED.state_code,state=EXCLUDED.state,municipality_code=EXCLUDED.municipality_code,municipality=EXCLUDED.municipality,locality_code=EXCLUDED.locality_code,city=EXCLUDED.city,activity_code=EXCLUDED.activity_code,activity=EXCLUDED.activity,category=EXCLUDED.category,email=COALESCE(EXCLUDED.email,crm_prospects.email),website=EXCLUDED.website,updated_at=now(),status=CASE WHEN EXCLUDED.email IS NOT NULL AND crm_prospects.email IS DISTINCT FROM EXCLUDED.email AND crm_prospects.status NOT IN ('do_not_contact','converted','discarded') THEN 'pending_review' ELSE crm_prospects.status END",
+     "ON CONFLICT(source,source_id) DO UPDATE SET name=EXCLUDED.name,country_code=EXCLUDED.country_code,state_code=EXCLUDED.state_code,state=EXCLUDED.state,municipality_code=EXCLUDED.municipality_code,municipality=EXCLUDED.municipality,locality_code=EXCLUDED.locality_code,city=EXCLUDED.city,activity_code=EXCLUDED.activity_code,activity=EXCLUDED.activity,category=EXCLUDED.category,email=COALESCE(crm_prospects.email,EXCLUDED.email),website=EXCLUDED.website,updated_at=now(),status=crm_prospects.status",
      [JSON.stringify(batch)]);
     changed+=result.rowCount||0;
    }
    await c.query("UPDATE public.crm_prospects p SET status='do_not_contact',updated_at=now() WHERE p.status<>'do_not_contact' AND EXISTS (SELECT 1 FROM public.crm_email_exclusions e WHERE e.email IN (lower(p.email),lower(p.public_email)))");
-   await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[filename,JSON.stringify(official?{...data.report,edition:"2025-05",scope:"02003",pilotFood:true}:data.report)]);
+   await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[filename,JSON.stringify({...data.report,edition:edition||null,scope:municipality,pilotFood:true})]);
    return changed;
   });
   return Response.json({report:data.report,imported},{headers});
