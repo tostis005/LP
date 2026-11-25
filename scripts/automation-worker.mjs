@@ -1,6 +1,7 @@
 // Procesador privado de avisos automáticos. Solo emite recibos en la
 // bandeja de KREYV cuando la persona sigue teniendo consentimiento vigente.
 import pg from "pg";
+import {createHmac} from "node:crypto";
 const required=["PGHOST","PGDATABASE","PGUSER","PGPASSWORD"];
 for(const k of required)if(!process.env[k])throw Error("Falta la configuración de automatizaciones: "+k);
 if(process.env.PGUSER!=="lp_auth")throw Error("Este proceso debe usar únicamente el rol lp_auth");
@@ -24,11 +25,22 @@ async function cycle(){
  }
  if(sent||skipped)console.log("Automatizaciones: avisos internos entregados",sent,"omitidos",skipped);
 }
+async function mailCycle(){
+ // Use the private Docker network; never send the database password itself.
+ const results=await Promise.allSettled(["inbox","logs"].map(async source=>{
+  const body=JSON.stringify({action:"sync",source}),time=String(Date.now());
+  const signature=createHmac("sha256",process.env.PGPASSWORD).update("crm-mail-sync-v1:"+time+":"+body).digest("hex");
+  const response=await fetch("http://web:3000/api/local/admin/crm/history",{method:"POST",headers:{"Content-Type":"application/json","x-crm-worker-time":time,"x-crm-worker-signature":signature},body,redirect:"error",signal:AbortSignal.timeout(70000)});
+  if(!response.ok)throw Error("CRM sync HTTP "+response.status);
+  const data=await response.json();if(data.error)throw Error("CRM sync provider");
+  if(data.synced)console.log("CRM: sincronización",source,data.synced);
+ }));
+ if(results.some(r=>r.status==="rejected"))console.warn("CRM: sincronización no disponible; se reintentará en el siguiente ciclo.");
+}
 try{
  console.log("Procesador de avisos de KREYV activo");
  while(running){
-  try{await cycle();}
-  catch(error){console.error("No se ha podido procesar el lote de automatizaciones",error?.code||"error");}
+  await Promise.allSettled([cycle().catch(error=>{console.error("No se ha podido procesar el lote de automatizaciones",error?.code||"error");}),mailCycle()]);
   if(running)await pause(60_000);
  }
 }finally{await pool.end();}
