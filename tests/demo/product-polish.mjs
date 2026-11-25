@@ -4,7 +4,7 @@ const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const reward=read("components/RewardCatalog.tsx");
 const analytics=read("components/BusinessAnalytics.tsx");
 const business=read("components/BusinessWorkspace.tsx");
-const admin=read("app/admin/page.tsx");
+const admin=read("components/AdminWorkspace.tsx");
 const scanner=read("app/empleado/page.tsx");
 const card=read("components/LoyaltyCard.tsx");
 const login=read("app/acceder/page.tsx");

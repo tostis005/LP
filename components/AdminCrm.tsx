@@ -32,6 +32,16 @@ export function AdminCrm(){
    if(mode==="import"){setNotice(j.imported+" registros incorporados o actualizados. No se ha enviado ningún correo.");setPage(0);setRevision(x=>x+1);}
   }catch(e){setError(e instanceof Error?e.message:"Error de importación.");}finally{setBusy(false);}
  }
+ async function importOfficial(){
+  setBusy(true);setError("");setNotice("Descargando y procesando el directorio oficial del INEGI…");
+  try{
+   const body=new FormData();body.append("mode","official");
+   const r=await fetch("/api/local/admin/crm",{method:"POST",body}),j=await r.json();
+   if(!r.ok)throw new Error(j.error||"No se pudo importar Tecate.");
+   setReport(j.report);setCountry("MX");setState("02");setMunicipality("003");setCity("");setCategory("pilot_food");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);
+   setNotice(j.alreadyImported?"La importación oficial de Tecate ya está registrada.":"Tecate: "+j.report.relevant+" negocios del sector y "+j.report.withEmail+" con correo DENUE. No se ha enviado ningún correo.");
+  }catch(e){setNotice("");setError(e instanceof Error?e.message:"Error de importación oficial.");}finally{setBusy(false);}
+ }
  async function save(){
   if(!focus)return;setBusy(true);setError("");setNotice("");
   try{
@@ -44,6 +54,9 @@ export function AdminCrm(){
   <div className="content-heading"><div><h2>CRM comercial</h2><p>Prospectos por país, estado, municipio y ciudad. La importación no activa envíos.</p></div></div>
   {error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}
   <div className="inspector-stats"><div><strong>{data?.count.total??"—"}</strong><span>Prospectos filtrados</span></div><div><strong>{data?.count.unique_emails??"—"}</strong><span>Correos distintos</span></div><div><strong>{data?.count.with_email??"—"}</strong><span>Con correo</span></div><div><strong>{data?.count.missing_email??"—"}</strong><span>Sin correo</span></div><div><strong>{data?.count.reviewed??"—"}</strong><span>Revisados</span></div></div>
+  <div className="admin-inspector"><h3>Carga inicial de Tecate</h3><p>Importa directamente desde INEGI los restaurantes, cafeterías y heladerías de Tecate (edición mayo de 2025). Incluye los establecimientos sin correo para revisión; no activa envíos.</p>
+   <button type="button" className="button button-dark button-sm" disabled={busy} onClick={()=>void importOfficial()}><Upload size={16}/>{busy?"Procesando…":"Cargar contactos de Tecate"}</button>
+  </div>
   <details><summary><strong><Upload size={16}/> Importar y analizar DENUE</strong></summary>
    <p>Descarga el CSV oficial de INEGI, descomprímelo y selecciona el archivo. Se admite UTF-8 y Windows-1252, hasta 40 MB por archivo. No se publican los contactos en GitHub.</p>
    <a href="https://www.inegi.org.mx/app/descarga/" target="_blank" rel="noreferrer">Descarga oficial del DENUE</a>

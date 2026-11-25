@@ -45,7 +45,7 @@ assert.match(sender,/LP_ENABLE_WHATSAPP_SEND/);
 assert.match(sender,/campaignEmailHtml/);
 const card=read("components/StampCard.tsx");
 assert.match(card,/is-very-dense/);
-const pricing=read("app/admin/page.tsx");
+const pricing=read("components/AdminWorkspace.tsx");
 assert.match(pricing,/whatsapp_price_cents/);
 assert.match(read("db/migrations/140_role_privacy_join.sql"),/Para guardar tarjetas necesitas una cuenta de cliente independiente/);
 assert.match(read("db/migrations/150_marketing_channels.sql"),/whatsapp_opted_in/);
