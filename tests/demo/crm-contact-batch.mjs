@@ -15,7 +15,7 @@ assert.match(logic,/d\.action!==a\.action\|\|d\.id!==a\.id/);
 assert.match(logic,/if\(!v\.address\)return skip/);
 assert.match(ui,/Confirmar importación/);
 assert.match(ui,/d\.action==="update"/);
-assert.match(read("components/AdminCrm.tsx"),/<AdminCrmContactBatch/);
+assert.doesNotMatch(read("components/AdminCrm.tsx"),/<AdminCrmContactBatch/); // advanced batch UI removed from main screen
 console.log("CRM batch import source-level regression checks passed.");
 
 assert.doesNotMatch(logic,/out\.length>=2000/);
@@ -60,3 +60,15 @@ assert.equal(decisions[1].action,"create");
 assert.equal(decisions[2].action,"skip");
 assert.equal(decisions.filter(x=>x.action==="create").length,2499);
 console.log("CSV library: parsed and classified 2,501 synthetic contacts; mixed municipalities rejected.");
+
+const census=denue.compatibleDenueImport("id,nom_estab,codigo_act,nombre_act,cve_ent,entidad,cve_mun,municipio,cve_loc,localidad,correoelec,www,telefono,nom_vial,numero_ext,latitud,longitud\n1,Café prueba,722515,Café,22,Querétaro,014,Querétaro,0001,Santiago de Querétaro,,example.com,4421234567,Reforma,12,20.5,-100.4\n2,Barbería prueba,812110,Barbería,22,Querétaro,014,Querétaro,0001,Santiago de Querétaro,,,,,,,\n3,Fábrica,333111,Industria,22,Querétaro,014,Querétaro,0001,Santiago de Querétaro,,,,,,,\n4,Otro café,722515,Café,21,Puebla,114,Puebla,0001,Heroica Puebla de Zaragoza,,,,,,,","22014");
+assert.equal(census.prospects.length,2);
+assert.equal(census.prospects[0].email,null);
+assert.equal(census.prospects[0].phone,"4421234567");
+assert.equal(census.prospects[0].address,"Reforma 12");
+assert.equal(census.prospects[0].latitude,"20.5");
+assert.match(library,/compatibleDenueImport/);
+assert.match(library,/ON CONFLICT\(source,source_id\)/);
+assert.match(library,/email=COALESCE\(EXCLUDED.email,crm_prospects.email\)/);
+assert.match(libraryUi,/f.status!=="imported"/);
+console.log("CRM census: geographic isolation, all compatible sectors, contact fields and hidden imported CSVs.");
