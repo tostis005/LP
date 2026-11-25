@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const shell=read("components/AppFrame.tsx"),login=read("app/acceder/page.tsx"),nav=read("components/AppBottomNav.tsx");
-const business=read("components/BusinessWorkspace.tsx"),admin=read("app/admin/page.tsx"),explore=read("app/app/descubrir/page.tsx");
+const business=read("components/BusinessWorkspace.tsx"),admin=read("components/AdminWorkspace.tsx"),explore=read("app/app/descubrir/page.tsx");
 const store=read("lib/demo-local.ts"),db=read("db/migrations/160_admin_business_provisioning.sql"),contacts=read("db/migrations/170_contact_mask_x.sql");
 assert.doesNotMatch(shell,/MODO PRUEBA|Reiniciar datos|Cambiar perfil|sidebar-help|demo-workspace-banner/,"Customer-facing frame cannot show demo chrome");
 assert.doesNotMatch(login,/O ENTRA CON UN PERFIL DE PRUEBA|auth-demo-note|perfiles de demostración/);
