@@ -1,7 +1,7 @@
 "use client";
 import {useCallback,useEffect,useState,useRef} from "react";
-import {Mail,RefreshCw,ArrowUpRight,ArrowDownLeft,Clock,CheckCircle2} from "lucide-react";
-type SyncState={source:string;last_finished:string|null;window_end:string|null;last_error:string|null};
+import {Mail,RefreshCw,ArrowUpRight,ArrowDownLeft} from "lucide-react";
+type SyncState={source:string;last_finished:string|null;window_end:string|null;last_error:string|null;started_at:string|null};
 type Status={connected:boolean;email?:string;logsConnected?:boolean;states?:SyncState[]};
 type Message={source:string;external_id:string;correspondent:string;direction:string;occurred_at:string;subject:string;body_text:string;delivery_status:string};
 async function request(query="",body?:object){
@@ -12,8 +12,12 @@ const fmt=(d:string)=>new Date(d).toLocaleString("es-MX",{dateStyle:"medium",tim
 const labels:Record<string,string>={received:"Recibido",delivered:"Aceptado por destinatario",bounced:"Rebotado",spam:"Rechazado por spam",rate_limited:"Límite de envío",not_sent:"No enviado",unknown:"Estado desconocido"};
 export function useCrmMailSync(onChange:()=>void){
  const [status,setStatus]=useState<Status|null>(null),[error,setError]=useState(""),[syncing,setSyncing]=useState(false);
- const busy=useRef(false),callback=useRef(onChange);callback.current=onChange;
- const refresh=useCallback(async()=>{const d=await request();setStatus(d);return d as Status;},[]);
+ const busy=useRef(false),callback=useRef(onChange),fingerprint=useRef("");callback.current=onChange;
+ const refresh=useCallback(async()=>{const d=await request() as Status;setStatus(d);
+  const next=JSON.stringify((d.states||[]).map(s=>[s.source,s.started_at,s.last_finished,s.window_end]));
+  if(fingerprint.current&&fingerprint.current!==next)callback.current();fingerprint.current=next;
+  return d;
+ },[]);
  const run=useCallback(async()=>{
   if(busy.current)return;busy.current=true;setSyncing(true);
   try{
@@ -25,7 +29,7 @@ export function useCrmMailSync(onChange:()=>void){
   }catch(e){setError(e instanceof Error?e.message:"Error de sincronización.");}
   finally{busy.current=false;setSyncing(false);}
  },[refresh]);
- useEffect(()=>{void run();const timer=setInterval(()=>{if(!document.hidden)void run();},60000);return()=>clearInterval(timer);},[run]);
+ useEffect(()=>{void run();const timer=setInterval(()=>{if(!document.hidden&&!busy.current)void refresh().catch(e=>setError(e.message));},60000);return()=>clearInterval(timer);},[run,refresh]);
  return {status,error,syncing,run,refresh};
 }
 export function CrmMailSettings({sync}:{sync:ReturnType<typeof useCrmMailSync>}){
@@ -41,7 +45,7 @@ export function CrmMailSettings({sync}:{sync:ReturnType<typeof useCrmMailSync>})
     <label>Refresh token<input type="password" autoComplete="off" value={refresh} onChange={e=>setRefresh(e.target.value)}/></label>
     <label>API key de envíos (logs:read)<input type="password" autoComplete="off" value={key} onChange={e=>setKey(e.target.value)}/></label>
     <button className="button button-dark button-sm" type="submit" disabled={busy||(!token&&!key)||!!token&&!refresh}>{busy?"Verificando…":"Guardar conexión"}</button>
-   </form></details><small className="muted">Los datos se consultan localmente. La sincronización comprueba cambios cada cinco minutos con el CRM abierto; la primera importación avanza por páginas.</small>
+   </form></details><small className="muted">Los datos se consultan localmente. El trabajador de Contabo sincroniza cada cinco minutos incluso con el CRM cerrado; la primera importación avanza por páginas. Los registros de envío anteriores a la retención de Sendcorex no se pueden recuperar.</small>
  </section>;
 }
 export function CrmContactHistory({id,revision}:{id:string;revision:number}){
