@@ -11,9 +11,12 @@ process.env.AUTH_PGUSER="lp_auth";
 process.env.AUTH_PGPASSWORD=process.env.AUTH_DB_PASSWORD;
 const oauth=require("../../.crm-connector-test/crm-oauth.js");
 const research=require("../../.crm-connector-test/crm-research.js");
-const {apiPool,authPool,ApiError,hashToken}=require("../../.crm-connector-test/db.js");
+const {apiPool,authPool,ApiError,hashToken,asActor}=require("../../.crm-connector-test/db.js");
 const root=new pg.Pool({host:process.env.PGHOST,port:Number(process.env.PGPORT||5432),database:"lp_test",user:process.env.POSTGRES_USER,password:process.env.POSTGRES_PASSWORD});
 const ids=[],sourceIds=[];
+const batch=require("../../.crm-connector-test/crm-contact-batch.js");
+const libraryFilename="test-city-"+randomUUID()+".csv";
+const newName="Cafetería nueva "+randomUUID();
 const tag=randomUUID().slice(0,8);
 let blockedEmail;
 try{
@@ -63,6 +66,31 @@ try{
  assert.deepEqual(row,{email:null,public_email:"info@example.org",contact_review:"source_found"});
  const after=await oauth.withCrmBearer(request,c=>research.researchQueue(c,""));
  assert.ok(!after.rows.some(r=>r.source_id===valid));
+ // Real PostgreSQL exercise of the manually authorized city library, using synthetic contacts only.
+ const oldName="Cafetería existente "+tag,otherCity="Municipio prueba "+tag,oldId=String(BigInt("0x"+randomBytes(6).toString("hex")));
+ sourceIds.push(oldId);
+ await root.query("INSERT INTO public.crm_prospects(source_id,name,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email) VALUES($1,$2,'11','Guanajuato','020',$3,'0001',$3,'722515','Cafetería','Restaurantes y cafeterías',NULL)",[oldId,oldName,otherCity]);
+ const oldEmail="update-"+tag+"@example.com",newEmail="new-"+tag+"@example.com";
+ const csv="negocio,sector,estado,municipio,localidad,correo_publicado,url_fuente,direccion,id_denue\n"+[oldName,"Cafetería","Guanajuato",otherCity,otherCity,oldEmail,"https://example.com/old","Dirección prueba",oldId].join(",")+"\n"+[newName,"Cafetería","Guanajuato",otherCity,otherCity,newEmail,"https://example.com/new","Dirección prueba",""].join(",")+"\n";
+ const candidates=batch.parseContactCsv(csv),library={filename:libraryFilename,sha256:"a".repeat(64)};
+ await assert.rejects(()=>asActor(other,c=>batch.contactBatch(c,candidates,undefined,library)));
+ const preview=await asActor(admin,c=>batch.contactBatch(c,candidates,undefined,library));
+ assert.deepEqual(preview.decisions.map(d=>d.action),["update","create"]);
+ assert.equal((await root.query("SELECT public_email FROM public.crm_prospects WHERE source_id=$1",[oldId])).rows[0].public_email,null);
+ await assert.rejects(()=>asActor(admin,c=>batch.contactBatch(c,candidates,"all",{...library,plan:"b".repeat(64)})),/base cambió/);
+ const imported=await asActor(admin,c=>batch.contactBatch(c,candidates,"all",{...library,plan:preview.plan}));
+ assert.equal(imported.updated,1);assert.equal(imported.created,1);
+ assert.equal((await root.query("SELECT public_email FROM public.crm_prospects WHERE source_id=$1",[oldId])).rows[0].public_email,oldEmail);
+ assert.equal((await root.query("SELECT public_email FROM public.crm_prospects WHERE source='WEB' AND name=$1",[newName])).rows[0].public_email,newEmail);
+ const history=(await root.query("SELECT report FROM public.crm_import_runs WHERE filename=$1",[libraryFilename])).rows[0].report;
+ assert.equal(history.sha256,library.sha256);assert.equal(history.created,1);assert.equal(history.updated,1);
+ await assert.rejects(()=>asActor(admin,c=>batch.contactBatch(c,candidates,"all",{...library,plan:preview.plan})),/ya se ha importado/);
+ const nextVersion={...library,sha256:"c".repeat(64)};
+ const nextPreview=await asActor(admin,c=>batch.contactBatch(c,candidates,undefined,nextVersion));
+ assert.deepEqual(nextPreview.decisions.map(d=>d.action),["skip","skip"]);
+ const nextImport=await asActor(admin,c=>batch.contactBatch(c,candidates,"all",{...nextVersion,plan:nextPreview.plan}));
+ assert.equal(nextImport.created,0);assert.equal(nextImport.updated,0);assert.equal(nextImport.skipped,2);
+ console.log("CRM city CSV: manual preview, transactional create/update, non-admin denial, stale plan, version history and idempotency verified.");
  await root.query("DELETE FROM public.platform_admins WHERE user_id=$1",[admin.id]);
  await assert.rejects(()=>oauth.withCrmBearer(request,async()=>true),e=>e.status===403);
  await root.query("INSERT INTO public.platform_admins(user_id) VALUES($1)",[admin.id]);
@@ -74,6 +102,8 @@ try{
  await assert.rejects(()=>oauth.withCrmBearer(new Request(oauth.crmOAuth.resource,{headers:{Authorization:"Bearer "+secondGrant.access_token}}),async()=>true),e=>e.status===401);
  console.log("CRM OAuth: PKCE, one-time exchange, hash storage, role changes, expiry, revocation, scope, exclusions and contact preservation verified.");
 }finally{
+ await root.query("DELETE FROM public.crm_import_runs WHERE filename=$1",[libraryFilename]);
+ await root.query("DELETE FROM public.crm_prospects WHERE source='WEB' AND name=$1",[newName]);
  if(sourceIds.length)await root.query("DELETE FROM public.crm_prospects WHERE source_id=ANY($1::text[])",[sourceIds]);
  if(blockedEmail)await root.query("DELETE FROM public.crm_email_exclusions WHERE email=$1",[blockedEmail]);
  if(ids.length){await root.query("DELETE FROM public.platform_admins WHERE user_id=ANY($1::uuid[])",[ids]);await root.query("DELETE FROM auth.users WHERE id=ANY($1::uuid[])",[ids]);}

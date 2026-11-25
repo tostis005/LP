@@ -6,7 +6,7 @@ assert.match(route,/checkOrigin\(request\)/);
 assert.match(route,/actorFromRequest\(request\)/);
 assert.match(route,/is_platform_admin\(\)/);
 assert.match(route,/v\.mode==="apply"\?v\.selected:undefined/);
-assert.match(logic,/if\(!apply\)return \{decisions\}/);
+assert.match(logic,/if\(!apply\)return \{decisions,plan\}/);
 assert.match(logic,/pg_advisory_xact_lock/);
 assert.match(logic,/email IS NULL AND public_email IS NULL/);
 assert.match(logic,/excluded\.has\(v\.email\)/);
@@ -18,7 +18,45 @@ assert.match(ui,/d\.action==="update"/);
 assert.match(read("components/AdminCrm.tsx"),/<AdminCrmContactBatch/);
 console.log("CRM batch import source-level regression checks passed.");
 
-assert.match(logic,/out\.length>=2000/);
-assert.match(logic,/selected\.length>2000/);
-assert.match(ui,/2\.000 registros/);
+assert.doesNotMatch(logic,/out\.length>=2000/);
+assert.doesNotMatch(logic,/selected\.length>2000/);
+assert.match(ui,/sin límite fijo de filas/);
 assert.match(route,/Buffer\.byteLength\(v\.csv,"utf8"\)>4\*1024\*1024/);
+
+const library=read("app/api/local/admin/crm/csv-library/route.ts"),libraryUi=read("components/AdminCrmCsvLibrary.tsx"),files=read("lib/server/crm-csv-library.ts");
+assert.match(library,/checkOrigin\(request\)/);
+assert.match(library,/is_platform_admin\(\)/);
+assert.match(library,/v\.confirm!==true/);
+assert.match(library,/file\.sha256!==v\.sha256/);
+assert.match(logic,/plan!==library!\.plan/);
+assert.match(logic,/report->>'sha256'=\$2/);
+assert.match(logic,/geoKeys\.size!==1/);
+assert.match(files,/isSymbolicLink\(\)/);
+assert.match(files,/20\*1024\*1024/);
+assert.match(libraryUi,/Confirmar importación/);
+assert.match(read("Dockerfile"),/\/app\/crm-imports \.\/crm-imports/);
+assert.match(read("components/AdminCrm.tsx"),/<AdminCrmCsvLibrary/);
+
+const ts=(await import("typescript")).default;
+const requireModule=(await import("node:module")).createRequire(import.meta.url);
+const {runInNewContext}=await import("node:vm");
+function load(src,deps={}){
+ const exports={};
+ const js=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ runInNewContext(js,{exports,URL,require:(id)=>id in deps?deps[id]:requireModule(id)});
+ return exports;
+}
+const denue=load(read("lib/server/denue.ts"));
+const {parseContactCsv,decideContacts}=load(logic,{"./denue":denue,"./db":{ApiError:class extends Error{}}});
+const head="negocio,sector,estado,municipio,localidad,correo_publicado,url_fuente,direccion,id_denue\n";
+const row=(i,city="León",municipality="León")=>"Café ficticio "+i+",Cafetería,Guanajuato,"+municipality+","+city+",contacto"+i+"@example.com,https://example.com/"+i+",Calle de prueba "+i+",\n";
+const candidates=parseContactCsv(head+Array.from({length:2501},(_,i)=>row(i)).join(""));
+assert.equal(candidates.length,2501);
+assert.throws(()=>parseContactCsv(head+row(1)+row(2,"Irapuato","Irapuato")),/un municipio/);
+const existing=[{id:"test-0",source:"DENUE",source_id:"1",name:"Café ficticio 0",city:"León",locality_code:"0001",state:"Guanajuato",municipality:"León",status:"pending_review",email:null,public_email:null}];
+const decisions=decideContacts(candidates,existing,new Map(),new Set(["contacto2@example.com"]));
+assert.equal(decisions[0].action,"update");
+assert.equal(decisions[1].action,"create");
+assert.equal(decisions[2].action,"skip");
+assert.equal(decisions.filter(x=>x.action==="create").length,2499);
+console.log("CSV library: parsed and classified 2,501 synthetic contacts; mixed municipalities rejected.");

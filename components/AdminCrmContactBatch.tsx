@@ -14,7 +14,7 @@ export function AdminCrmContactBatch({onSaved}:{onSaved:()=>void}){
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  return <details><summary><strong>Importar contactos investigados (CSV)</strong></summary>
-  <p>Analiza hasta 2.000 registros de Tecate. Conserva correos existentes, exclusiones y estados comerciales. Las altas nuevas requieren dirección publicada y selección explícita.</p>
+  <p>Analiza un CSV por municipio de México, sin límite fijo de filas (hasta 4 MB por carga manual). Conserva correos existentes, exclusiones y estados comerciales. Las altas nuevas requieren dirección publicada y selección explícita.</p>
   <p className="muted">Columnas: negocio, sector, estado, municipio, localidad, correo_publicado, url_fuente; opcionales: id_denue, direccion.</p>
   <div className="form-stack"><label>Archivo de contactos<input type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>void load(e.target.files?.[0])}/></label>
   <button className="button button-outline button-sm" disabled={busy||!csv} onClick={()=>void run("preview")}>Analizar coincidencias</button></div>

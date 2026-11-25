@@ -4,6 +4,7 @@ import {Upload,Search} from "lucide-react";
 import {AdminCrmIntegration} from "./AdminCrmIntegration";
 import {AdminCrmNewBusiness} from "./AdminCrmNewBusiness";
 import {AdminCrmContactBatch} from "./AdminCrmContactBatch";
+import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
 type Prospect={id:string;name:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string};
 type Region={country_code:string;state_code:string;state:string;municipality_code:string;municipality:string;locality_code:string;city:string;total:number};
 type Count={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
@@ -62,6 +63,7 @@ export function AdminCrm(){
    <button type="button" className="button button-dark button-sm" disabled={busy} onClick={()=>void importOfficial()}><Upload size={16}/>{busy?"Procesando…":"Cargar contactos de Tecate"}</button>
   </div>
   <AdminCrmIntegration/>
+  <AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/>
   <AdminCrmContactBatch onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/>
   <AdminCrmNewBusiness localities={regions.filter(r=>r.country_code==="MX"&&r.state_code==="02"&&r.municipality_code==="003")} onSaved={()=>{setCountry("MX");setState("02");setMunicipality("003");setCity("");setCategory("pilot_food");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);}}/>
   <details><summary><strong><Upload size={16}/> Importar y analizar DENUE</strong></summary>

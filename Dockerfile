@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
+COPY --from=builder --chown=node:node /app/crm-imports ./crm-imports
 RUN mkdir -p /app/uploads && chown node:node /app/uploads
 USER node
 EXPOSE 3000
