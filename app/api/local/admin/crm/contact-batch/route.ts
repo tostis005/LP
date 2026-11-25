@@ -10,9 +10,9 @@ export async function POST(request:Request){
   return await asActor(actor,async c=>{
    if(!(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed)throw new ApiError("Solo administración.",403);
    const raw=await request.text();
-   if(raw.length>1024*1024)throw new ApiError("El archivo supera 1 MB.",413);
+   if(raw.length>6*1024*1024)throw new ApiError("Solicitud superior a 6 MB.",413);
    const v=JSON.parse(raw);
-   if(!v||typeof v.csv!=="string"||!["preview","apply"].includes(v.mode)||v.mode==="apply"&&!Array.isArray(v.selected))throw new ApiError("Solicitud inválida.");
+   if(!v||typeof v.csv!=="string"||Buffer.byteLength(v.csv,"utf8")>4*1024*1024||!["preview","apply"].includes(v.mode)||v.mode==="apply"&&!Array.isArray(v.selected))throw new ApiError("Solicitud inválida.");
    const data=await contactBatch(c,parseContactCsv(v.csv),v.mode==="apply"?v.selected:undefined);
    return Response.json(data,{headers:{"Cache-Control":"no-store"}});
   });
