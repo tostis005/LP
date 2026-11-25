@@ -101,7 +101,7 @@ export function AdminCrm(){
   </div>
   <div className="crm-list-header">
    <span className="muted" aria-live="polite">{data?format(total):"—"} negocios · {data?format(data.count.with_email):"—"} con correo · {data?format(data.count.unique_emails):"—"} correos únicos{hasFilters?" · filtros activos":""}</span>
-   <label className="crm-pagination-group">Resultados por página <select aria-label="Resultados por página" value={pageSize} onChange={e=>{setPageSize(Number(e.target.value));setPage(0);setJump("")}}>{[25,50,100,200].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
+   
   </div>
   <div className="crm-table-shell" aria-busy={loading}>
    <div className="table-wrap"><table className="data-table"><thead><tr>{columns.map(([key,label])=><th key={key} scope="col" aria-sort={sort===key?(direction==="asc"?"ascending":"descending"):"none"}>
@@ -123,6 +123,7 @@ export function AdminCrm(){
    {!loading&&data&&!data.prospects.length&&<p className="muted" role="status">No hay prospectos con estos filtros. {hasFilters&&<button type="button" className="inline-table-button" onClick={clearFilters}>Limpiar filtros</button>}</p>}
   </div>
   <div className="crm-pagination">
+   <label className="crm-pagination-group">Resultados por página <select aria-label="Resultados por página" value={pageSize} onChange={e=>{setPageSize(Number(e.target.value));setPage(0);setJump("")}}>{[25,50,100,200].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
    <span className="muted">{total?format(shownPage*shownSize+1)+"–"+format(Math.min(total,(shownPage+1)*shownSize)):"0"} de {format(total)} resultados</span>
    <div className="crm-pagination-group">
     <button type="button" className="button button-outline button-sm" aria-label="Primera página" title="Primera página" disabled={loading||page===0} onClick={()=>goPage(0)}><ChevronsLeft size={16}/></button>
