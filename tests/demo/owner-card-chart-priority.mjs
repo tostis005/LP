@@ -21,7 +21,7 @@ const message=preview.indexOf('className="stamp-visual-message"');
 assert.ok(logo>=0&&logo<name&&name<stamps&&stamps<message,
  "Merchant logo precedes name, stamps follow, and custom message comes after the stamps");
 assert.match(preview,/className="stamp-qr-white"/);
-assert.match(preview,/size=\{240\} includeMargin/,"Card QR has adequate resolution and a scanner-friendly quiet zone");
+assert.match(preview,/size=\{240\} marginSize=\{4\} minVersion=\{6\}/,"Card QR has adequate resolution and a scanner-friendly quiet zone");
 assert.match(css,/\.stamp-visual-card\.stamp-visual-rebalanced[\s\S]*?aspect-ratio:1\.586/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-business-logo[\s\S]*?14\.5cqw/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-grid[\s\S]*?10cqw/);

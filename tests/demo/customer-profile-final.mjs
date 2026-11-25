@@ -30,4 +30,6 @@ assert.match(profile,/birth_date:birthDate,gender:gender\|\|null/);
 assert.match(profile,/Prefiero no indicarlo/);
 assert.match(file("db/migrations/992_profile_logo_and_metrics.sql"),/BEFORE UPDATE OF birth_date/);
 assert.match(file("components/AppFrame.tsx"),/<KreyviLoading\/>/);
-assert.match(file("components/KreyviLoading.tsx"),/kreyvi-loading-orbit/);
+assert.match(file("components/KreyviLoading.tsx"),/aria-label=\{label\}/);
+assert.doesNotMatch(file("components/KreyviLoading.tsx"),/kreyvi-loading-label|>\{label\}</);
+assert.match(file("app/role-app.css"),/kreyvi-logo-breathe/);
