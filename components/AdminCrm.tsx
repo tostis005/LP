@@ -106,13 +106,24 @@ export function AdminCrm(){
    .crm-metric{border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:14px;min-width:0;background:var(--card,#fff)}
    .crm-metric span{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--muted,#64748b)}
    .crm-metric strong{display:block;font-size:1.55rem;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin-top:8px}
-   .crm-filter-box{background:var(--color-brand-100,#f8eef1);border:1px solid var(--color-bg-2,#e8dce1);border-radius:16px;padding:16px 18px;margin:16px 0 18px}
-   .crm-filter-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--color-brand-900,#57233d);font-size:.85rem;font-weight:700}
-   .crm-workspace .crm-list-filters{padding:0;gap:12px;margin:12px 0 0;grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}
-   .crm-workspace .crm-list-filters label{font-weight:700;color:var(--color-brand-900,#57233d);min-width:0}
-   .crm-workspace .crm-list-filters select,.crm-workspace .crm-list-filters .search-box{background:#fff;border:1px solid #d8c6cf;border-radius:9px;min-height:40px;width:100%;min-width:0;color:#38232e}
-   .crm-workspace .crm-list-filters select:focus,.crm-workspace .crm-column-filter:focus{outline:2px solid var(--color-brand-300,#ba849c);outline-offset:1px}
-   .crm-workspace .crm-list-filters label:first-child{grid-column:span 2}
+   .crm-filter-box{container-type:inline-size;min-width:0;max-width:100%;background:var(--color-brand-100,#f8eef1);border:1px solid var(--color-bg-2,#e8dce1);border-radius:16px;padding:16px 18px;margin:16px 0 18px}
+   .crm-filter-heading{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;color:var(--color-brand-900,#57233d);font-size:.85rem;font-weight:700}
+   .crm-filter-heading>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+   .crm-filter-heading .crm-filter-state{font-size:.75rem;font-weight:600;opacity:.8}
+   .crm-filter-heading .button{height:34px;min-height:34px;padding:0 12px;border-radius:8px;font-size:.75rem;gap:6px;flex-shrink:0;transform:none}
+   .crm-workspace .crm-list-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px;align-items:start;padding:0;margin:0}
+   .crm-workspace .crm-filter-search{margin:14px 0 16px}
+   .crm-workspace .crm-filter-field{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:18px 42px;gap:6px;min-width:0;max-width:100%;margin:0;font-size:.8rem;font-weight:700;color:var(--color-brand-900,#57233d);line-height:18px}
+   .crm-workspace .crm-filter-field>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+   .crm-workspace .crm-filter-field select,.crm-workspace .crm-filter-input{display:block;background:#fff;border:1px solid #d8c6cf;border-radius:9px;height:42px;min-height:42px;max-height:42px;width:100%;min-width:0;max-width:100%;margin:0;padding:0 10px;font-size:.82rem;font-weight:500;line-height:normal;color:#38232e;box-shadow:none}
+   .crm-workspace .crm-filter-field select{padding-right:26px;text-overflow:ellipsis}
+   .crm-workspace .crm-filter-field select:disabled{opacity:.55;background:#f6f2f4;cursor:not-allowed}
+   .crm-workspace .crm-filter-search-control{position:relative;display:flex;align-items:center;min-width:0;width:100%}
+   .crm-workspace .crm-filter-search-control svg{position:absolute;left:12px;pointer-events:none;color:var(--color-brand,#783752)}
+   .crm-workspace .crm-filter-search-control .crm-filter-input{padding-left:38px}
+   .crm-workspace .crm-filter-field select:focus,.crm-workspace .crm-filter-input:focus,.crm-workspace .crm-column-filter:focus{outline:2px solid var(--color-brand-300,#ba849c);outline-offset:1px}
+   @container (max-width:620px){.crm-workspace .crm-list-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+   @container (max-width:340px){.crm-workspace .crm-list-filters{grid-template-columns:minmax(0,1fr)}}
    .crm-workspace .crm-table-shell .data-table thead th{background:var(--color-brand-900,#57233d);color:#fff;border-color:#ffffff20;vertical-align:top}
    .crm-workspace .crm-table-shell .data-table thead th[aria-sort="ascending"],.crm-workspace .crm-table-shell .data-table thead th[aria-sort="descending"]{background:var(--color-brand,#783752)}
    .crm-workspace .crm-table-shell .data-table thead th button{color:#fff}
@@ -134,7 +145,7 @@ export function AdminCrm(){
    .crm-history-item p{margin:12px 0 0;font-size:.85rem}
    .crm-history-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;flex-shrink:0;background:var(--color-brand-100,#f8eef1);color:var(--color-brand-900,#57233d)}
    .crm-history-icon.inbound{background:#e7f4e9;color:#166534}
-   @media(max-width:700px){.crm-filter-box{padding:12px}.crm-workspace .crm-list-filters label:first-child{grid-column:1/-1}}
+   @media(max-width:700px){.crm-filter-box{padding:12px}}
    .crm-workspace .crm-table-shell{border:1px solid var(--border,#e2e8f0);border-radius:12px;overflow:hidden}
    .crm-workspace .crm-table-shell td{padding:12px 10px;font-size:.82rem}
    .crm-workspace .crm-table-shell tbody tr:hover{background:rgba(125,125,125,.07)}
@@ -144,11 +155,9 @@ export function AdminCrm(){
    .crm-stage[data-stage="do_not_contact"],.crm-stage[data-stage="discarded"]{color:#b91c1c;background:rgba(220,38,38,.08)}
    .crm-inspector-wrap{position:fixed;inset:0;z-index:70;background:#0005;display:flex;justify-content:flex-end}
    .crm-inspector-wrap .admin-inspector{background:var(--card,#fff);width:min(100%,520px);height:100%;margin:0;border-radius:0;padding:24px;overflow:auto;box-shadow:-12px 0 30px #0002}
-   @media(max-width:700px){.crm-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.crm-metric{padding:12px}.crm-metric strong{font-size:1.3rem}.crm-hero h2{font-size:1.35rem}.crm-tabs button{padding:10px}.crm-workspace .crm-list-filters{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px}}
+   @media(max-width:700px){.crm-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.crm-metric{padding:12px}.crm-metric strong{font-size:1.3rem}.crm-hero h2{font-size:1.35rem}.crm-tabs button{padding:10px}}
    @keyframes crm-list-spin{to{transform:rotate(360deg)}}
    .crm-list-spinner{animation:crm-list-spin .8s linear infinite;flex-shrink:0}
-   .crm-list-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;align-items:end;margin:16px 0}
-   .crm-list-filters label{display:flex;flex-direction:column;gap:5px;font-size:.85rem}
    .crm-list-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0}
    .crm-table-shell{position:relative;min-height:100px}
    .crm-table-shell .table-wrap{max-height:65vh;overflow:auto}
@@ -164,18 +173,16 @@ export function AdminCrm(){
    .crm-pagination-group select,.crm-pagination-group input{max-width:100px}
    .crm-pagination-group button{display:inline-flex;align-items:center;gap:4px;min-width:32px;justify-content:center}
   `}</style>
-  {tab==="directory"&&<>{optionsLoading&&<small role="status" className="muted">Cargando opciones de filtros…</small>}<div className="crm-filter-box"><div className="crm-filter-heading"><span>Filtrar negocios</span><span>{hasFilters?"Filtros activos":"Todos los negocios"}</span></div><div className="crm-list-filters">
-   <label>Buscar<div className="search-box small-search"><Search size={17}/><input aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Negocio, correo, teléfono…"/></div></label>
-   <label>Estado<select value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
-   <label>Municipio<select value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
-   <label>Localidad<select value={city} disabled={!municipality} onChange={e=>{setCity(e.target.value);setPage(0)}}><option value="">Todas</option>{localities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
-   <label>Sector<select value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración, cafeterías y heladerías</option>{options.categories.map(c=><option key={c.category}>{c.category}</option>)}</select></label>
-   <label>Correo<select value={coverage} onChange={e=>{setCoverage(e.target.value);setPage(0)}}><option value="">Todos</option><option value="available">Con correo publicado</option><option value="missing">Sin correo localizado</option><option value="web">Con fuente externa registrada</option></select></label>
-   <label>Teléfono<select value={columnFilters.has_phone||""} onChange={e=>filterColumn("has_phone",e.target.value)}><option value="">Todos</option><option value="yes">Con teléfono</option><option value="no">Sin teléfono</option></select></label>
-   <label>Web<select value={columnFilters.has_website||""} onChange={e=>filterColumn("has_website",e.target.value)}><option value="">Todas</option><option value="yes">Con web</option><option value="no">Sin web</option></select></label>
-   <label>Estado comercial<select value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
-   <label>Revisión<select value={review} onChange={e=>{setReview(e.target.value);setPage(0)}}><option value="">Todas</option>{Object.entries(reviewStages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
-   <button type="button" className="button button-outline button-sm" onClick={clearFilters}><X size={15}/> Limpiar filtros</button>
+  {tab==="directory"&&<>{optionsLoading&&<small role="status" className="muted">Cargando opciones de filtros…</small>}<div className="crm-filter-box"><div className="crm-filter-heading"><div><strong>Filtrar negocios</strong><span className="crm-filter-state">{hasFilters?"Filtros activos":"Todos los negocios"}</span></div><button type="button" className="button button-outline button-sm" onClick={clearFilters}><X size={15}/> Limpiar filtros</button></div><div className="crm-filter-search"><label className="crm-filter-field"><span>Buscar</span><span className="crm-filter-search-control"><Search size={17}/><input className="crm-filter-input" aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Negocio, correo, teléfono…"/></span></label></div><div className="crm-list-filters">
+   <label className="crm-filter-field"><span>Estado</span><select value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
+   <label className="crm-filter-field"><span>Municipio</span><select value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
+   <label className="crm-filter-field"><span>Localidad</span><select value={city} disabled={!municipality} onChange={e=>{setCity(e.target.value);setPage(0)}}><option value="">Todas</option>{localities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
+   <label className="crm-filter-field"><span>Sector</span><select value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración, cafeterías y heladerías</option>{options.categories.map(c=><option key={c.category}>{c.category}</option>)}</select></label>
+   <label className="crm-filter-field"><span>Correo</span><select value={coverage} onChange={e=>{setCoverage(e.target.value);setPage(0)}}><option value="">Todos</option><option value="available">Con correo publicado</option><option value="missing">Sin correo localizado</option><option value="web">Con fuente externa registrada</option></select></label>
+   <label className="crm-filter-field"><span>Teléfono</span><select value={columnFilters.has_phone||""} onChange={e=>filterColumn("has_phone",e.target.value)}><option value="">Todos</option><option value="yes">Con teléfono</option><option value="no">Sin teléfono</option></select></label>
+   <label className="crm-filter-field"><span>Web</span><select value={columnFilters.has_website||""} onChange={e=>filterColumn("has_website",e.target.value)}><option value="">Todas</option><option value="yes">Con web</option><option value="no">Sin web</option></select></label>
+   <label className="crm-filter-field"><span>Estado comercial</span><select value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
+   <label className="crm-filter-field"><span>Revisión</span><select value={review} onChange={e=>{setReview(e.target.value);setPage(0)}}><option value="">Todas</option>{Object.entries(reviewStages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
   </div></div>
   <div className="crm-list-header">
    <span className="muted" aria-live="polite">{data?format(total):"—"} negocios · {data?format(data.count.with_email):"—"} con correo · {data?format(data.count.unique_emails):"—"} correos únicos{hasFilters?" · filtros activos":""}</span>
