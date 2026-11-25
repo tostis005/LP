@@ -31,3 +31,6 @@ assert.match(style,/\.qr-modal-backdrop\{z-index:500/,"Card modal must always re
 assert.match(style,/\.qr-modal\{padding-bottom:calc\(42px \+ env\(safe-area-inset-bottom,0px\)\)/,"Modal must have room to reach the last action");
 assert.doesNotMatch(card,/KREYVI active la emisión de tarjetas/,"Wallet configuration notice must not appear in the UI");
 console.log("OK: card modal sits above fixed navigation and its final actions stay scrollable.");
+
+assert.match(card,/marginSize=\{4\}/,"QRs retain the four-module quiet zone");
+assert.match(card,/ctx.drawImage\(image,249,438,582,582\)/,"Export does not add a second white frame");
