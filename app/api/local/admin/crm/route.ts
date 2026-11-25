@@ -8,6 +8,15 @@ let officialImportRunning=false;
 const headers={"Cache-Control":"no-store"};
 const statuses=["pending_review","qualified","contacted","interested","trial","converted","discarded","do_not_contact"];
 const reviewStates=["pending","source_found","no_contact_found","ambiguous","not_relevant"];
+// Public sort keys are mapped to fixed SQL expressions; no request text is interpolated.
+const sortColumns:Record<string,string>={
+ name:"lower(name)",state:"lower(state)",municipality:"lower(municipality)",city:"lower(city)",
+ category:"lower(category)",activity:"lower(activity)",email:"lower(COALESCE(NULLIF(public_email,''),NULLIF(email,'')))",
+ phone:"NULLIF(phone,'')",address:"lower(NULLIF(address,''))",website:"lower(NULLIF(website,''))",
+ status:"CASE status WHEN 'pending_review' THEN 'Sin contactar' WHEN 'qualified' THEN 'Sin contactar revisado' WHEN 'contacted' THEN 'Contactado' WHEN 'interested' THEN 'Interesado' WHEN 'trial' THEN 'En prueba' WHEN 'converted' THEN 'Cliente' WHEN 'discarded' THEN 'No interesado' WHEN 'do_not_contact' THEN 'No contactar' ELSE status END",
+ review:"contact_review"
+};
+const pageSizes=[25,50,100,200];
 async function admin<T>(request:Request,fn:(c:PoolClient,actor:Actor)=>Promise<T>){
  const actor=await actorFromRequest(request);
  if(!actor)throw new ApiError("Inicia sesión.",401);
@@ -27,15 +36,32 @@ export async function GET(request:Request){
    }
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
    const review=p.get("review");if(review&&reviewStates.includes(review))add("contact_review",review);
-   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("(name ILIKE $"+args.length+" OR email ILIKE $"+args.length+" OR public_email ILIKE $"+args.length+" OR phone ILIKE $"+args.length+" OR address ILIKE $"+args.length+")");}
+   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","city","municipality","state","category","activity"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
+   const textFilters:Record<string,string>={name:"name",email:"COALESCE(NULLIF(public_email,''),email)",phone:"phone",address:"address",website:"website",activity:"activity"};
+   for(const [key,expression] of Object.entries(textFilters)){
+    const value=p.get("filter_"+key)?.trim().slice(0,120);
+    if(value){args.push("%"+value+"%");where.push(expression+" ILIKE $"+args.length);}
+   }
+   const presence:Record<string,string>={phone:"phone",website:"website"};
+   for(const [key,column] of Object.entries(presence)){
+    const value=p.get("has_"+key);
+    if(value==="yes")where.push("NULLIF("+column+",'') IS NOT NULL");
+    if(value==="no")where.push("NULLIF("+column+",'') IS NULL");
+   }
    const filter=where.length?" WHERE "+where.join(" AND "):"";
-   const page=Math.max(0,Math.min(100000,Math.floor(Number(p.get("page"))||0)));
+   const requestedPage=Math.max(0,Math.min(100000,Math.floor(Number(p.get("page"))||0)));
+   const requestedSize=Number(p.get("page_size")),pageSize=pageSizes.includes(requestedSize)?requestedSize:50;
+   const requestedSort=p.get("sort")||"name";
+   const sort=Object.prototype.hasOwnProperty.call(sortColumns,requestedSort)?sortColumns[requestedSort]:sortColumns.name;
+   const direction=p.get("direction")==="desc"?"DESC":"ASC";
    const count=(await c.query("SELECT count(*)::int AS total,count(DISTINCT lower(COALESCE(email,public_email)))::int AS unique_emails,count(*) FILTER (WHERE email IS NOT NULL OR public_email IS NOT NULL)::int AS with_email,count(*) FILTER (WHERE email IS NULL AND public_email IS NULL)::int AS missing_email,count(*) FILTER (WHERE contact_review<>'pending')::int AS reviewed FROM public.crm_prospects"+filter,args)).rows[0];
-   const prospects=(await c.query("SELECT * FROM public.crm_prospects"+filter+" ORDER BY name,id LIMIT 50 OFFSET $"+(args.length+1),[...args,page*50])).rows;
+   const totalPages=Math.max(1,Math.ceil(count.total/pageSize));
+   const page=Math.min(requestedPage,totalPages-1);
+   const prospects=(await c.query("SELECT * FROM public.crm_prospects"+filter+" ORDER BY "+sort+" "+direction+" NULLS LAST,id ASC LIMIT $"+(args.length+1)+" OFFSET $"+(args.length+2),[...args,pageSize,page*pageSize])).rows;
    const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
    const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
    const imports=(await c.query("SELECT filename,created_at,report FROM public.crm_import_runs WHERE source='DENUE' ORDER BY created_at DESC LIMIT 5")).rows;
-   return {prospects,count,regions,categories,imports,page};
+   return {prospects,count,regions,categories,imports,page,pageSize,totalPages};
   });
   return Response.json(result,{headers});
  }catch(e){return responseError(e);}
