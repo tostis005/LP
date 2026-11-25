@@ -103,10 +103,9 @@ assert.match(landingCss,/\.loi-site \.loi-showcase-phone\{\s*display:flex;flex-d
 const posterUi=readFileSync(new URL("../../components/CounterPoster.tsx",import.meta.url),"utf8");
 const ownerUi=readFileSync(new URL("../../components/BusinessWorkspace.tsx",import.meta.url),"utf8");
 assert.match(ownerUi,/href="\/negocio\/poster"/,"Poster is available in My business");
-assert.match(posterUi,/width="36" height="36" viewBox="0 0 360 360"/,"QR square with 36mm print width at A6");
+assert.match(posterUi,/width="52" height="52" viewBox="0 0 360 360"/,"Large QR for print");
 assert.match(posterUi,/marginSize=\{4\}/,"QR quiet zone");
-assert.match(posterUi,/business\.card_background/);
-assert.match(posterUi,/business\.stamp_image_url/);
+assert.doesNotMatch(posterUi,/business\.card_background|business\.stamp_image_url|program\.reward_label|business\.logo_url/,"Universal poster is independent of the business design");
 assert.match(posterUi,/publicJoinUrl\(business.slug\)/);
 const loadTs=(path)=>{const module={exports:{}};runInNewContext(ts.transpileModule(readFileSync(new URL("../../"+path,import.meta.url),"utf8"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText,{module,exports:module.exports,URL,URLSearchParams,Blob,TextEncoder,Uint8Array});return module.exports};
 const {POSTER_SIZES,posterPdf,PRINT_DPI}=loadTs("lib/counter-poster-export.ts");
@@ -119,10 +118,6 @@ for(const value of ["https://evil.example","//evil.example","/unirse/../admin","
 
 const {CARD_RATIO,posterAssetUrl}=loadTs("lib/counter-poster-export.ts");
 assert.ok(Math.abs(CARD_RATIO-1.586)<.001);
-assert.match(posterUi,/cardHeight=cardWidth\/CARD_RATIO/);
-assert.match(posterUi,/width=\{cardWidth\} height=\{cardHeight\}/);
-assert.match(posterUi,/posterAssetUrl\(business.card_background,480\)/);
-assert.match(posterUi,/data-print-href=\{posterAssetUrl\(business.card_background,printWidth\)\}/);
 assert.equal(posterAssetUrl("https://kreyvi.com/api/assets/business-assets/id/logo.webp?w=512",96),"/api/assets/business-assets/id/logo.webp?w=96");
 const joinUi=readFileSync(new URL("../../app/unirse/[slug]/page.tsx",import.meta.url),"utf8");
 assert.ok(joinUi.indexOf('className="join-action-panel"')<joinUi.indexOf('className="join-info-panel"'));
