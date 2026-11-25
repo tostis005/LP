@@ -8,7 +8,7 @@ export type EmployeeActivity={user_id:string;employee_name:string;operations:num
 type Staff={user_id:string;full_name:string;email:string;active:boolean};
 type Customer={user_id:string;full_name:string;email:string;balance:number;total_earned:number;visits:number;marketing_ok:boolean;joined_at:string};
 type CustomerActivity={user_id:string;last_visit:string|null;period_visits:number};
-type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;employee_id:string|null;employee_name:string|null;customer_name:string|null;reversal_of:string|null;reversal_reason:string|null;reversed:boolean;reward_label:string|null;total_count:number};
+type Tx={id:string;kind:"earn"|"redeem"|"reversal";amount_delta:number;purchase_cents:number|null;ticket_ref:string|null;created_at:string;employee_id:string|null;employee_name:string|null;customer_name:string|null;reversal_of:string|null;reversal_reason:string|null;reversed:boolean;reward_label:string|null;reward_cost_cents:number|null;total_count:number};
 const count=(v:number)=>Number(v||0).toLocaleString("es-MX");
 const localDate=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
 function previousDate(days:number){const d=new Date();d.setDate(d.getDate()-days+1);return localDate(d)}
@@ -35,9 +35,9 @@ export function EmployeeChart({rows,days,programType,currency,maxStampsPerAction
 }
 function csvCell(v:unknown){let s=String(v??"");if(/^[\s]*[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"'}
 function downloadCsv(rows:Tx[],currency:string,showMoney:boolean){
- const header=["Fecha","Cliente","Empleado","Operación","Unidades","Ticket","Compra","Recompensa","Estado","Motivo"];
- const data=rows.map(t=>[fullDate(t.created_at),customerDisplayName(t.customer_name),t.employee_name,txLabel(t),t.amount_delta,t.ticket_ref,t.purchase_cents==null?"":money(t.purchase_cents,currency),t.reward_label,t.reversed?"Revertida":"Registrada",t.reversal_reason]);
- const csv="\uFEFF"+[header,...data].map(r=>(showMoney?r:r.filter((_,i)=>i!==6)).map(csvCell).join(";")).join("\r\n");
+ const header=["Fecha","Cliente","Empleado","Operación","Unidades","Ticket","Compra","Recompensa","Coste del regalo","Estado","Motivo"];
+ const data=rows.map(t=>[fullDate(t.created_at),customerDisplayName(t.customer_name),t.employee_name,txLabel(t),t.amount_delta,t.ticket_ref,t.purchase_cents==null?"":money(t.purchase_cents,currency),t.reward_label,t.reward_cost_cents==null?"":money(t.reward_cost_cents,currency),t.reversed?"Revertida":"Registrada",t.reversal_reason]);
+ const csv="\uFEFF"+[header,...data].map(r=>(showMoney?r:r.filter((_,i)=>i!==6&&i!==8)).map(csvCell).join(";")).join("\r\n");
  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));const a=document.createElement("a");a.href=url;a.download="transacciones-"+localDate(new Date())+".csv";a.click();URL.revokeObjectURL(url);
 }
 const txLabel=(t:Tx)=>t.kind==="earn"?"Compra":t.kind==="redeem"?"Canje":"Corrección";
@@ -92,6 +92,7 @@ function TransactionRows({t,expanded,toggle,formatBalance,currency,busy,reverse,
  return <><tr><td>{fullDate(t.created_at)}</td><td>{customerDisplayName(t.customer_name)}</td><td>{t.employee_name||"—"}</td><td>{txLabel(t)}{t.reversed?" · Revertida":""}</td><td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td>{showMoney&&<td>{t.purchase_cents==null?"—":money(t.purchase_cents,currency)}</td>}<td><button type="button" className="inline-table-button" aria-expanded={expanded} onClick={toggle}>{expanded?"Cerrar":"Ver detalle"}</button></td></tr>
  {expanded&&<tr><td colSpan={showMoney?7:6}><div className="owner-tx-detail">{(t.kind==="earn"||t.ticket_ref)&&<span><small>Ticket</small><strong>{t.ticket_ref||"No registrado"}</strong></span>}
  {t.kind==="redeem"&&<span><small>Recompensa</small><strong>{t.reward_label||"No especificada"}</strong></span>}
+ {showMoney&&t.kind==="redeem"&&<span><small>Coste interno histórico</small><strong>{t.reward_cost_cents==null?"No registrado":money(t.reward_cost_cents,currency)}</strong></span>}
  {t.kind==="reversal"&&<span><small>Motivo de la corrección</small><strong>{t.reversal_reason||"No registrado"}</strong></span>}
  {t.reversed&&<span><small>Estado</small><strong>Movimiento revertido</strong></span>}
  {t.kind!=="reversal"&&!t.reversed&&Date.parse(t.created_at)<Date.now()-72*3600000&&<span><small>Corrección</small><strong>Plazo de 72 horas vencido</strong></span>}

@@ -74,6 +74,9 @@ try{
  await db.query("SET LOCAL ROLE authenticated");
  const metrics=(await db.query("SELECT * FROM public.business_dashboard_metrics($1,30)",[biz.id])).rows;
  assert.equal(Number(metrics.find(r=>r.metric==="reward_cost_cents").current_value),350);
+ const tx=(await db.query("SELECT * FROM public.business_owner_transactions($1,NULL,NULL,NULL,NULL,NULL,20,0)",[biz.id])).rows;
+ assert.equal(tx.filter(r=>r.kind==="redeem").reduce((s,r)=>s+Number(r.reward_cost_cents),0),350);
+
  await db.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[users["cliente@loyally.local"]]);
  const history=(await db.query("SELECT * FROM public.customer_card_history($1,20,0)",[card.id])).rows;
  assert.equal(history.length,4);
@@ -85,6 +88,7 @@ try{
  await db.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[users["gestor@loyally.local"]]);
  await db.query("UPDATE public.loyalty_programs SET require_purchase_amount=false WHERE business_id=$1",[biz.id]);
  assert.equal((await db.query("SELECT * FROM public.business_customer_financials($1)",[biz.id])).rowCount,0,"Disable monetary customer reports");
+ assert.ok((await db.query("SELECT * FROM public.business_owner_transactions($1,NULL,NULL,NULL,NULL,NULL,20,0)",[biz.id])).rows.every(r=>r.purchase_cents===null&&r.reward_cost_cents===null),"Disabled monetary reports hide amounts on the server");
 
  await db.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[users["admin@loyally.local"]]);
  await db.query("SAVEPOINT protected_money");
