@@ -207,7 +207,7 @@ jobs:
         run: npm run db:migrate
       - name: Probar autorización y aislamiento del conector CRM en PostgreSQL
         run: |
-          npx tsc --target ES2022 --module commonjs --esModuleInterop --skipLibCheck --strict --rootDir lib/server --outDir .crm-connector-test lib/server/crm-oauth.ts lib/server/crm-research.ts
+          npx tsc --target ES2022 --module commonjs --esModuleInterop --skipLibCheck --strict --rootDir lib/server --outDir .crm-connector-test lib/server/crm-oauth.ts lib/server/crm-research.ts lib/server/crm-contact-batch.ts
           node tests/native/crm-connector.mjs
           rm -rf .crm-connector-test
       - name: Verificar aislamiento de roles
