@@ -1049,3 +1049,8 @@
 .counter-poster-controls label{margin-top:4px}
 .counter-poster-preview{padding:20px}
 @media(max-width:800px){.counter-poster-preview{padding:12px}.counter-poster-actions>.button{flex:1 1 135px}}
+
+/* A single merchant card design; no extra framing in the customer deck. */
+.merchant-card-button{display:block;width:100%;padding:0;border:0;background:none;color:inherit;text-align:left;cursor:pointer;container-type:inline-size}
+.merchant-card-button:focus-visible{outline:3px solid var(--color-accent-600);outline-offset:3px;border-radius:18px}
+.stamp-visual-rebalanced .stamp-qr-white{padding:0;border-radius:5px;overflow:hidden;box-shadow:none}
