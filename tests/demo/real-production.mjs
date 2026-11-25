@@ -3,7 +3,7 @@ import {readFileSync} from "node:fs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const data=read("lib/supabase.ts"),login=read("app/acceder/page.tsx"),staff=read("app/empleado/page.tsx");
 const customer=read("components/LoyaltyCard.tsx"),business=read("components/BusinessWorkspace.tsx");
-const admin=read("app/admin/page.tsx"),address=read("components/AddressPicker.tsx"),map=read("components/AddressMap.tsx");
+const admin=read("components/AdminWorkspace.tsx"),address=read("components/AddressPicker.tsx"),map=read("components/AddressMap.tsx");
 assert.match(data,/export function db\(\)\{return localDb\}/,"All product pages must use PostgreSQL");
 assert.doesNotMatch(data,/demoRole|demoDb/,"No localStorage role-based database");
 assert.doesNotMatch(login,/enterDemo|sandboxPassword|NEXT_PUBLIC_LP_SANDBOX_PASSWORD/);
