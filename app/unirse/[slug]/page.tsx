@@ -1,4 +1,5 @@
 "use client";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import {useEffect,useState,useRef} from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -96,7 +97,7 @@ export default function JoinPage(){
  const hasLocation=locations.length>0;
  return <div className="join-page join-page-rich">
   <div className="join-top"><Brand/><Link href="/app/descubrir" className="text-link"><ArrowLeft size={16}/> Explorar negocios</Link></div>
-  {loading?<div className="join-box"><div className="loading-screen">Descubriendo este negocio...</div></div>:!offer?<div className="join-box"><div className="empty-state"><h2>Este enlace no está disponible</h2><p>{error}</p></div></div>:
+  {loading?<div className="join-box"><KreyviLoading compact label="Descubriendo este negocio"/></div>:!offer?<div className="join-box"><div className="empty-state"><h2>Este enlace no está disponible</h2><p>{error}</p></div></div>:
    <main className="join-detail">
     <div className="join-detail-main">
      <div className="join-business-hero">

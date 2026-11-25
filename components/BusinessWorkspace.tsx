@@ -1,4 +1,5 @@
 "use client";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {AddressPicker} from "@/components/AddressPicker";
@@ -323,7 +324,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
     
     <div className="workspace-section-body">
    {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success"><Check size={17}/>{notice}</div>}
-   {loading&&(!biz||biz.id!==selected)?<div className="soft-panel">Cargando negocio...</div>:biz&&biz.id===selected&&prog&&<>
+   {loading&&(!biz||biz.id!==selected)?<KreyviLoading compact label="Cargando negocio"/>:biz&&biz.id===selected&&prog&&<>
    {tab==="card"&&<div className="owner-card-intro"><div><h3>Configuración de la tarjeta</h3><p>Diseño, funcionamiento y recompensas.</p></div><span className="owner-card-mode">{prog.type==="stamps"?"Tarjeta de sellos":prog.type==="points"?"Tarjeta de puntos":"Tarjeta de cashback"}</span></div>}
     {tab==="card"&&<nav className="business-card-tabs" aria-label="Configurar mi tarjeta">
     <button type="button" className={cardArea==="design"?"active":""} aria-pressed={cardArea==="design"} onClick={()=>setCardArea("design")}><Brush size={16}/> 1. Diseño</button>

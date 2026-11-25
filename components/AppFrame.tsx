@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@/lib/supabase";
 import { BarChart3, Compass, CreditCard, LayoutDashboard, LogOut, ScanLine, Settings2, Shield, UserRound, BellRing, Mail, Users, ChevronRight, Brush, Gift, MapPin, Store } from "lucide-react";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import { Brand } from "@/components/Brand";
 import {adminNavigation,adminActiveHref} from "@/lib/admin-sections";
 import {KreyvIcon} from "@/components/KreyvIcon";
@@ -51,9 +52,9 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en KREYVI?"))return;await db().auth.signOut();router.replace("/acceder")}
  const hasBusiness=roles.some(x=>x.role==="owner"||x.role==="manager");
  const allowed=area==="customer"?!admin&&roles.length===0:area==="admin"?admin:area==="business"?hasBusiness:roles.some(x=>x.role==="employee");
- if(loading)return <div className="loading-screen"><div className="spinner"/> Preparando tu espacio...</div>;
+ if(loading)return <KreyviLoading/>;
  if(error)return <div className="empty-page"><h2>No hemos podido abrir tu espacio</h2><p>{error}</p><Link className="button button-dark" href="/acceder">Volver al acceso</Link></div>;
- if(!user)return <div className="loading-screen">Redirigiendo al acceso...</div>;
+ if(!user)return <KreyviLoading label="Abriendo el acceso"/>;
  if(!allowed)return <div className="empty-page"><h2>Esta zona es privada</h2><p>No tienes permisos para acceder a esta sección.</p><Link className="button button-dark" href={admin?"/admin":roles.some(x=>x.role!=="employee")?"/negocio":roles.length?"/empleado":"/app"}>Volver a mi espacio</Link></div>;
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
  return <div className={"workspace workspace-"+area}>
@@ -69,7 +70,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  <button type="button" className="mobile-logout" onClick={logout} aria-label="Cerrar sesión"><LogOut size={20}/></button></div></header>
    <div className="workspace-content">{area==="business"&&pathname.startsWith("/negocio/")&&<nav className="workspace-breadcrumbs" aria-label="Ruta de navegación">
      <Link href="/negocio">Mi negocio</Link><ChevronRight size={14}/>
-     <span aria-current="page">{pathname==="/negocio/settings"?"Información":pathname==="/negocio/locations"?"Ubicación":pathname==="/negocio/poster"?"Cartel para mostrador":pathname==="/negocio/customers"?"Datos · Clientes":pathname==="/negocio/transactions"?"Datos · Transacciones":menus.business.find(i=>i.href===activePath)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
+     <span aria-current="page">{pathname==="/negocio/settings"?"Información":pathname==="/negocio/locations"?"Ubicación":pathname==="/negocio/poster"?"QR para mostrador":pathname==="/negocio/customers"?"Datos · Clientes":pathname==="/negocio/transactions"?"Datos · Transacciones":menus.business.find(i=>i.href===activePath)?.label|| (pathname==="/negocio/vista-previa"?"Vista previa":"Mi negocio")}</span>
     </nav>}
 <div className="workspace-title"><div><h1>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div></div>{children(account)}</div>
 

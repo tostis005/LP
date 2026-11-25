@@ -1,4 +1,5 @@
 "use client";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {ArrowLeft,ArrowUpRight,Check,Copy,Eye,Gift,LockKeyhole,Share2} from "lucide-react";
@@ -36,7 +37,7 @@ function Preview({account}:{account:Account}){
    await navigator.clipboard.writeText(url);setCopied(true);
   }catch{window.prompt("Copia el enlace para compartirlo con tus clientes:",url);}
  }
- if(loading)return <div className="loading-screen">Preparando la tarjeta...</div>;
+ if(loading)return <KreyviLoading compact label="Preparando la tarjeta"/>;
  if(error||!business||!program)return <div className="empty-state"><LockKeyhole size={29}/><h3>No se pudo abrir la vista previa</h3><p>{error}</p><Link href="/negocio" className="button button-dark">Volver al negocio</Link></div>;
  const published=business.public_listing&&business.active;
  return <div className="business-preview-page">
