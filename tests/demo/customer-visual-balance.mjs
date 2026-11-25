@@ -48,5 +48,5 @@ assert.match(css,/\.customer-first-layout \.customer-spotlight-foot a\{backgroun
 
 const roleCss=read("app/role-app.css");
 assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid \.merchant-card-button\{\s*background:transparent;box-shadow:none;/,"Transparent carousel wrappers");
-assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid\{\s*box-sizing:border-box;width:calc\(100% \+ 12px\);margin-inline:-6px;\s*padding:8px 8px 22px;scroll-padding-inline:8px;/,"Space around the scrolling cards preserves individual shadows");
-assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid \.stamp-visual-card\{\s*box-shadow:0 2px 5px -2px #3d0f1b1a,0 7px 12px -6px #3d0f1b2b,inset 0 0 0 1px #0000000a;/,"Soft local elevation instead of a diffuse shadow band");
+assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid\{\s*box-sizing:border-box;width:calc\(100% \+ 24px\);margin-inline:-12px;\s*padding:12px 14px 36px;scroll-padding-inline:14px;/,"Space around the scrolling cards preserves individual shadows");
+assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid \.stamp-visual-card\{\s*box-shadow:0 4px 7px -3px #3d0f1b55,0 15px 22px -9px #3d0f1b66,inset 0 1px 0 #ffffff30,inset 0 0 0 1px #00000012;/,"Visible layered local elevation instead of a diffuse shadow band");
