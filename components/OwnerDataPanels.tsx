@@ -17,31 +17,31 @@ function beginning(date:string){return date?new Date(date+"T00:00:00").toISOStri
 const shortDate=(value:string)=>new Date(value).toLocaleDateString("es-MX",{day:"2-digit",month:"short"});
 const fullDate=(value:string)=>new Date(value).toLocaleString("es-MX",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 const money=(value:number,currency:string)=>new Intl.NumberFormat("es-MX",{style:"currency",currency}).format(value/100);
-export function EmployeeChart({rows,days,programType,currency,maxStampsPerAction}:{rows:EmployeeActivity[];days:number;programType?:ProgramType;currency:string;maxStampsPerAction?:number}){
+export function EmployeeChart({rows,days,programType,currency,maxStampsPerAction,showMoney}:{showMoney:boolean;rows:EmployeeActivity[];days:number;programType?:ProgramType;currency:string;maxStampsPerAction?:number}){
  const [chosenMetric,setMetric]=useState<"awarded_units"|"operations"|"redemptions"|"sales_cents">("awarded_units");
  const unit=programType==="stamps"?"Sellos":programType==="points"?"Puntos":"Saldo";
  const singleStamp=programType==="stamps"&&maxStampsPerAction===1;
- const metric=singleStamp&&chosenMetric==="operations"?"awarded_units":chosenMetric;
+ const metric=(!showMoney&&chosenMetric==="sales_cents")||(singleStamp&&chosenMetric==="operations")?"awarded_units":chosenMetric;
  const labels={awarded_units:unit,operations:"Ventas",redemptions:"Canjes",sales_cents:"Importe"};
  const format=(value:number)=>metric==="awarded_units"?units(value,programType,currency):metric==="sales_cents"?money(value,currency):count(value);
  const sorted=[...rows].sort((a,b)=>Number(b[metric])-Number(a[metric]));
  const max=Math.max(1,...sorted.map(r=>Number(r[metric]||0)));
  const total=sorted.reduce((n,r)=>n+Number(r[metric]||0),0);
  return <section className="panel-card owner-employee-chart"><div className="content-heading"><div><h3><BarChart3 size={18}/> Actividad por empleado</h3><p className="muted">Últimos {days} días</p></div><strong>{format(total)}</strong></div>
-  <div className="owner-metric-switch" role="group" aria-label="Indicador de empleados">{(Object.keys(labels) as (keyof typeof labels)[]).filter(k=>!singleStamp||k!=="operations").map(k=><button key={k} type="button" className={metric===k?"active":""} aria-pressed={metric===k} onClick={()=>setMetric(k)}>{labels[k]}</button>)}</div>
+  <div className="owner-metric-switch" role="group" aria-label="Indicador de empleados">{(Object.keys(labels) as (keyof typeof labels)[]).filter(k=>(showMoney||k!=="sales_cents")&&(!singleStamp||k!=="operations")).map(k=><button key={k} type="button" className={metric===k?"active":""} aria-pressed={metric===k} onClick={()=>setMetric(k)}>{labels[k]}</button>)}</div>
   {sorted.length?<div className="owner-employee-bars">{sorted.map(r=><div key={r.user_id} className="owner-employee-bar"><span>{r.employee_name}</span><div className="owner-horizontal-track" role="img" aria-label={r.employee_name+": "+format(Number(r[metric]||0))}><span style={{width:(Number(r[metric]||0)/max*100)+"%"}}/></div><strong>{format(Number(r[metric]||0))}</strong></div>)}</div>:<p className="muted">Todavía no hay actividad registrada.</p>}
   {metric==="sales_cents"&&<p className="muted">Importe de compras registradas con precio. No equivale a toda la facturación del negocio.</p>}
  </section>;
 }
 function csvCell(v:unknown){let s=String(v??"");if(/^[\s]*[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"'}
-function downloadCsv(rows:Tx[],currency:string){
+function downloadCsv(rows:Tx[],currency:string,showMoney:boolean){
  const header=["Fecha","Cliente","Empleado","Operación","Unidades","Ticket","Compra","Recompensa","Estado","Motivo"];
  const data=rows.map(t=>[fullDate(t.created_at),customerDisplayName(t.customer_name),t.employee_name,txLabel(t),t.amount_delta,t.ticket_ref,t.purchase_cents==null?"":money(t.purchase_cents,currency),t.reward_label,t.reversed?"Revertida":"Registrada",t.reversal_reason]);
- const csv="\uFEFF"+[header,...data].map(r=>r.map(csvCell).join(";")).join("\r\n");
+ const csv="\uFEFF"+[header,...data].map(r=>(showMoney?r:r.filter((_,i)=>i!==6)).map(csvCell).join(";")).join("\r\n");
  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));const a=document.createElement("a");a.href=url;a.download="transacciones-"+localDate(new Date())+".csv";a.click();URL.revokeObjectURL(url);
 }
 const txLabel=(t:Tx)=>t.kind==="earn"?"Compra":t.kind==="redeem"?"Canje":"Corrección";
-export function TransactionsPanel({businessId,staff,formatBalance,currency}:{businessId:string;staff:Staff[];formatBalance:(v:number)=>string;currency:string}){
+export function TransactionsPanel({businessId,staff,formatBalance,currency,showMoney}:{showMoney:boolean;businessId:string;staff:Staff[];formatBalance:(v:number)=>string;currency:string}){
  const [from,setFrom]=useState(previousDate(30)),[to,setTo]=useState(localDate(new Date())),[employee,setEmployee]=useState(""),[kind,setKind]=useState(""),[search,setSearch]=useState(""),[query,setQuery]=useState("");
  const [page,setPage]=useState(0),[rows,setRows]=useState<Tx[]>([]),[total,setTotal]=useState(0),[loading,setLoading]=useState(true),[error,setError]=useState(""),[revision,setRevision]=useState(0),[busy,setBusy]=useState(false),[expanded,setExpanded]=useState<string|null>(null);
  const pageSize=50;
@@ -67,7 +67,7 @@ export function TransactionsPanel({businessId,staff,formatBalance,currency}:{bus
  async function exportAll(){
   if(!total||busy||loading)return;setBusy(true);setError("");
   try{const all:Tx[]=[];for(let offset=0;offset<Math.min(total,20000);offset+=250){const result=await db().rpc("business_owner_transactions",{...args,p_limit:250,p_offset:offset});if(result.error)throw result.error;const batch=(result.data||[]) as Tx[];all.push(...batch);if(batch.length<250)break}
-   downloadCsv(all,currency);if(total>20000)setError("Se exportaron las primeras 20.000 operaciones. Acota las fechas para descargar el resto.");
+   downloadCsv(all,currency,showMoney);if(total>20000)setError("Se exportaron las primeras 20.000 operaciones. Acota las fechas para descargar el resto.");
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
  return <section className="panel-card owner-transactions"><div className="content-heading"><div><h2>Transacciones</h2><p className="muted">Historial y correcciones</p></div><button type="button" className="button button-outline button-sm" disabled={!total||busy||loading} onClick={()=>void exportAll()}><Download size={16}/> CSV</button></div>
@@ -80,24 +80,28 @@ export function TransactionsPanel({businessId,staff,formatBalance,currency}:{bus
   </div>
   {error&&<div className="alert error" role="alert">{error}</div>}
   <p className="muted" role="status">{loading?"Buscando movimientos...":count(total)+" operaciones encontradas"}</p>
-  {!loading&&rows.length>0&&<div className="table-wrap"><table className="data-table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Empleado</th><th>Operación</th><th>Unidades</th><th>Compra</th><th>Detalle</th></tr></thead><tbody>
-   {rows.map(t=><TransactionRows key={t.id} t={t} expanded={expanded===t.id} toggle={()=>setExpanded(expanded===t.id?null:t.id)} formatBalance={formatBalance} currency={currency} busy={busy} reverse={()=>void reverse(t)}/>)}
+  {!loading&&rows.length>0&&<div className="table-wrap"><table className="data-table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Empleado</th><th>Operación</th><th>Unidades</th>{showMoney&&<th>Compra</th>}<th>Detalle</th></tr></thead><tbody>
+   {rows.map(t=><TransactionRows key={t.id} t={t} showMoney={showMoney} expanded={expanded===t.id} toggle={()=>setExpanded(expanded===t.id?null:t.id)} formatBalance={formatBalance} currency={currency} busy={busy} reverse={()=>void reverse(t)}/>)}
   </tbody></table></div>}
   {!loading&&!rows.length&&!error&&<p className="muted">No hay movimientos que coincidan con los filtros.</p>}
   <div className="owner-data-pagination"><button type="button" className="button button-outline button-sm" disabled={page===0||loading} onClick={()=>setPage(p=>p-1)}>Anterior</button><span>Página {page+1} de {Math.max(1,Math.ceil(total/pageSize))}</span><button type="button" className="button button-outline button-sm" disabled={loading||(page+1)*pageSize>=total} onClick={()=>setPage(p=>p+1)}>Siguiente</button></div>
   <p className="muted">Las operaciones de las últimas 72 horas pueden revertirse si el saldo lo permite. Los registros originales se conservan.</p>
  </section>;
 }
-function TransactionRows({t,expanded,toggle,formatBalance,currency,busy,reverse}:{t:Tx;expanded:boolean;toggle:()=>void;formatBalance:(v:number)=>string;currency:string;busy:boolean;reverse:()=>void}){
- return <><tr><td>{fullDate(t.created_at)}</td><td>{customerDisplayName(t.customer_name)}</td><td>{t.employee_name||"—"}</td><td>{txLabel(t)}{t.reversed?" · Revertida":""}</td><td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td><td>{t.purchase_cents==null?"—":money(t.purchase_cents,currency)}</td><td><button type="button" className="inline-table-button" aria-expanded={expanded} onClick={toggle}>{expanded?"Cerrar":"Ver detalle"}</button></td></tr>
- {expanded&&<tr><td colSpan={7}><div className="owner-tx-detail">{(t.kind==="earn"||t.ticket_ref)&&<span><small>Ticket</small><strong>{t.ticket_ref||"No registrado"}</strong></span>}
+function TransactionRows({t,expanded,toggle,formatBalance,currency,busy,reverse,showMoney}:{showMoney:boolean;t:Tx;expanded:boolean;toggle:()=>void;formatBalance:(v:number)=>string;currency:string;busy:boolean;reverse:()=>void}){
+ return <><tr><td>{fullDate(t.created_at)}</td><td>{customerDisplayName(t.customer_name)}</td><td>{t.employee_name||"—"}</td><td>{txLabel(t)}{t.reversed?" · Revertida":""}</td><td><b>{t.amount_delta>0?"+":""}{formatBalance(t.amount_delta)}</b></td>{showMoney&&<td>{t.purchase_cents==null?"—":money(t.purchase_cents,currency)}</td>}<td><button type="button" className="inline-table-button" aria-expanded={expanded} onClick={toggle}>{expanded?"Cerrar":"Ver detalle"}</button></td></tr>
+ {expanded&&<tr><td colSpan={showMoney?7:6}><div className="owner-tx-detail">{(t.kind==="earn"||t.ticket_ref)&&<span><small>Ticket</small><strong>{t.ticket_ref||"No registrado"}</strong></span>}
  {t.kind==="redeem"&&<span><small>Recompensa</small><strong>{t.reward_label||"No especificada"}</strong></span>}
  {t.kind==="reversal"&&<span><small>Motivo de la corrección</small><strong>{t.reversal_reason||"No registrado"}</strong></span>}
  {t.reversed&&<span><small>Estado</small><strong>Movimiento revertido</strong></span>}
  {t.kind!=="reversal"&&!t.reversed&&Date.parse(t.created_at)<Date.now()-72*3600000&&<span><small>Corrección</small><strong>Plazo de 72 horas vencido</strong></span>}
  {t.kind!=="reversal"&&!t.reversed&&<button type="button" className="button button-outline button-sm" disabled={busy||Date.parse(t.created_at)<Date.now()-72*3600000} onClick={reverse}>Revertir movimiento</button>}</div></td></tr>}</>;
 }
-export function CustomerPanel({businessId,customers,formatBalance,privateEmail,demoStatus}:{businessId:string;customers:Customer[];formatBalance:(n:number)=>string;privateEmail:(s:string)=>string;demoStatus:(c:Customer)=>boolean|null}){
+export function CustomerPanel({businessId,customers,formatBalance,privateEmail,demoStatus,showMoney,currency}:{showMoney:boolean;currency:string;businessId:string;customers:Customer[];formatBalance:(n:number)=>string;privateEmail:(s:string)=>string;demoStatus:(c:Customer)=>boolean|null}){
+ type Finance={user_id:string;sales_cents:number;priced_purchases:number;unpriced_purchases:number;reward_cost_cents:number;priced_rewards:number;unpriced_rewards:number};
+ const [finance,setFinance]=useState<Finance[]>([]),[financeError,setFinanceError]=useState("");
+ useEffect(()=>{let live=true;setFinance([]);setFinanceError("");if(showMoney)db().rpc("business_customer_financials",{p_business:businessId}).then(r=>{if(live){if(r.error)setFinanceError(r.error.message);else setFinance((r.data||[]) as Finance[])}});return()=>{live=false}},[showMoney,businessId]);
+ const byUser=new Map(finance.map(r=>[r.user_id,r]));
  const [days,setDays]=useState(180),[mode,setMode]=useState<"new"|"total">("total"),[activity,setActivity]=useState<CustomerActivity[]>([]),[activityError,setActivityError]=useState(""),[activityReady,setActivityReady]=useState(false);
  const [from,setFrom]=useState(""),[to,setTo]=useState(""),[visit,setVisit]=useState(""),[marketing,setMarketing]=useState(""),[page,setPage]=useState(0),[selectedBar,setSelectedBar]=useState<number|null>(null);
  useEffect(()=>{let live=true;setActivityReady(false);db().rpc("business_owner_customer_activity",{p_business:businessId}).then(r=>{if(!live)return;if(r.error)setActivityError(r.error.message);else{setActivity((r.data||[]) as CustomerActivity[]);setActivityError("");setActivityReady(true)}});return()=>{live=false}},[businessId]);
@@ -137,10 +141,10 @@ export function CustomerPanel({businessId,customers,formatBalance,privateEmail,d
     <label>Actividad<select value={visit} onChange={e=>{setVisit(e.target.value);setPage(0)}}><option value="">Todos</option><option value="repeat">2 o más visitas</option><option value="active" disabled={!activityReady}>Visita en 30 días</option><option value="inactive" disabled={!activityReady}>Sin visitas en 30 días</option><option value="never" disabled={!activityReady}>Nunca ha visitado</option></select></label>
     <label>Marketing<select value={marketing} onChange={e=>{setMarketing(e.target.value);setPage(0)}}><option value="">Todos</option><option value="yes">Aceptado</option><option value="no">No aceptado</option></select></label>
    </div>
-   {activityError&&<p className="alert error">{activityError}</p>}
+   {activityError&&<p className="alert error">{activityError}</p>}{financeError&&<p className="alert error">{financeError}</p>}{showMoney&&<p className="muted">Importes y costes históricos por cliente. El ratio ventas/coste solo se calcula con datos completos y no mide ROI incremental.</p>}
    {customers.some(c=>demoStatus(c)!==null)&&<p className="owner-demo-consent-hint">En Café Noma, los estados de marketing de los clientes de ejemplo son simulados y no permiten enviar campañas.</p>}
-   <div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Última visita</th><th>Marketing</th><th>Alta</th></tr></thead><tbody>
-    {filtered.slice(currentPage*pageSize,(currentPage+1)*pageSize).map(c=>{const demo=demoStatus(c),last=visits.get(c.user_id)?.last_visit;return <tr key={c.user_id}><td><strong>{customerDisplayName(c.full_name)}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(c.email)}</code></td><td><b>{formatBalance(c.balance)}</b></td><td>{c.visits}</td><td>{last?dateShort(last):"—"}</td><td>{c.marketing_ok?<span className="table-pill">Aceptado</span>:demo!==null?<span title="Estado simulado de ejemplo; no concede permiso de envío" className={"table-pill "+(demo?"demo-marketing-pill":"inactive")}>{demo?"Aceptado":"No"}</span>:<span className="table-pill inactive">No</span>}</td><td>{dateShort(c.joined_at)}</td></tr>})}
+   <div className="table-wrap"><table className="data-table"><thead><tr><th>Cliente</th><th>Email</th><th>Saldo</th><th>Visitas</th><th>Última visita</th><th>Marketing</th><th>Alta</th>{showMoney&&<><th>Compras registradas (histórico)</th><th>Coste de premios (histórico)</th><th>Ventas / coste</th></>}</tr></thead><tbody>
+    {filtered.slice(currentPage*pageSize,(currentPage+1)*pageSize).map(c=>{const demo=demoStatus(c),last=visits.get(c.user_id)?.last_visit,fin=byUser.get(c.user_id);return <tr key={c.user_id}><td><strong>{customerDisplayName(c.full_name)}</strong></td><td><code className="customer-obfuscated-email">{privateEmail(c.email)}</code></td><td><b>{formatBalance(c.balance)}</b></td><td>{c.visits}</td><td>{last?dateShort(last):"—"}</td><td>{c.marketing_ok?<span className="table-pill">Aceptado</span>:demo!==null?<span title="Estado simulado de ejemplo; no concede permiso de envío" className={"table-pill "+(demo?"demo-marketing-pill":"inactive")}>{demo?"Aceptado":"No"}</span>:<span className="table-pill inactive">No</span>}</td><td>{dateShort(c.joined_at)}</td>{showMoney&&<><td>{fin&&Number(fin.priced_purchases)>0?money(Number(fin.sales_cents),currency):"—"}{fin&&Number(fin.unpriced_purchases)>0&&<small> · {fin.unpriced_purchases} sin importe</small>}</td><td>{fin&&(Number(fin.priced_rewards)>0||Number(fin.unpriced_rewards)===0)?money(Number(fin.reward_cost_cents),currency):"—"}{fin&&Number(fin.unpriced_rewards)>0&&<small> · {fin.unpriced_rewards} sin coste</small>}</td><td>{fin&&Number(fin.unpriced_purchases)===0&&Number(fin.unpriced_rewards)===0&&Number(fin.reward_cost_cents)>0?(Number(fin.sales_cents)/Number(fin.reward_cost_cents)).toFixed(2)+"×":"—"}</td></>}</tr>})}
    </tbody></table></div>
    {!filtered.length&&<p className="muted">No hay clientes que coincidan con los filtros.</p>}
    <div className="owner-data-pagination"><button type="button" className="button button-outline button-sm" disabled={currentPage===0} onClick={()=>setPage(currentPage-1)}>Anterior</button><span>Página {currentPage+1} de {Math.max(1,Math.ceil(filtered.length/pageSize))}</span><button type="button" className="button button-outline button-sm" disabled={(currentPage+1)*pageSize>=filtered.length} onClick={()=>setPage(currentPage+1)}>Siguiente</button></div>

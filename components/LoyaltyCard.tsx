@@ -4,23 +4,24 @@ import Link from "next/link";
 import {QRCodeSVG} from "qrcode.react";
 import {Download, Maximize2, QrCode, X} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
-import {dateShort,units} from "@/lib/format";
+import {money,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {MerchantCard} from "@/components/StampCard";
 export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
- const [visits,setVisits]=useState<{id:string;kind:string;amount_delta:number;created_at:string}[]>([]);
+ type HistoryRow={id:string;kind:string;amount_delta:number;created_at:string;reversed:boolean;reward_label:string|null;purchase_cents:number|null};
+ const [visits,setVisits]=useState<HistoryRow[]>([]),[historyPage,setHistoryPage]=useState(0),[historyMore,setHistoryMore]=useState(false),[historyError,setHistoryError]=useState(""),[historyLoading,setHistoryLoading]=useState(false);
  const qrCloseRef=useRef<HTMLButtonElement>(null);
  useEffect(()=>{
   if(!open)return;
   let live=true;
-  db().from("loyalty_transactions").select("id,kind,amount_delta,created_at")
-   .eq("membership_id",membership.id).order("created_at",{ascending:false}).limit(8)
-   .then(({data})=>{if(live)setVisits((data||[]) as {id:string;kind:string;amount_delta:number;created_at:string}[])})
-   .catch(()=>{if(live)setVisits([])});
+  setHistoryLoading(true);setHistoryError("");
+  db().rpc("customer_card_history",{p_membership:membership.id,p_limit:21,p_offset:historyPage*20})
+   .then(({data,error})=>{if(!live)return;if(error){setHistoryError(error.message);setVisits([]);setHistoryMore(false)}else{const rows=(data||[]) as HistoryRow[];setVisits(rows.slice(0,20));setHistoryMore(rows.length>20)}setHistoryLoading(false)})
+   .catch(()=>{if(live){setHistoryError("No se pudo cargar el historial.");setHistoryLoading(false)}});
   return()=>{live=false};
- },[open,membership.id]);
+ },[open,membership.id,historyPage]);
 
  useEffect(()=>{
   // Solo se abre la tarjeta cuya membresía pertenece al usuario y aparece en su listado.
@@ -45,7 +46,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   return()=>{document.body.style.overflow=previousOverflow;window.removeEventListener("keydown",onEscape)};
  },[expandedQr]);
  function closeCard(){
-  setExpandedQr(null);setOpen(false);onClose?.();
+  setExpandedQr(null);setHistoryPage(0);setOpen(false);onClose?.();
   const url=new URL(window.location.href);
   if(url.pathname==="/app"&&url.searchParams.get("card")===membership.id){
    url.searchParams.delete("card");
@@ -120,12 +121,13 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   <span className="qr-box"><QRCodeSVG value={rewardQrUrl} size={180} level="M" marginSize={2}/></span>
   <span className="qr-enlarge-hint"><Maximize2 size={16}/> Ampliar QR del premio</span>
  </button></div>}
- {visits.length>0&&<section className="customer-card-visits"><h3>Tus visitas</h3>
-  <div>{visits.map(visit=><div key={visit.id} className="customer-card-visit">
-   <span>{visit.kind==="earn"?"Sello o saldo añadido":visit.kind==="redeem"?"Recompensa canjeada":"Movimiento"}</span>
-   <span>{dateShort(visit.created_at)}</span>
-  </div>)}</div>
- </section>}
+ <section className="customer-card-visits"><h3>Historial de movimientos</h3>
+  {historyLoading?<p role="status">Cargando historial…</p>:historyError?<p role="alert">{historyError}</p>:visits.length===0?<p className="muted">Aún no hay movimientos.</p>:<div>{visits.map(visit=><div key={visit.id} className="customer-card-visit">
+   <span><strong>{visit.kind==="earn"?"Compra registrada":visit.kind==="redeem"?"Recompensa canjeada":"Corrección"}{visit.reversed?" · Revertida":""}</strong><br/>{visit.amount_delta>0?"+":""}{units(visit.amount_delta,program?.type,business.currency)}{visit.reward_label?" · "+visit.reward_label:""}{visit.purchase_cents!=null?" · "+money(visit.purchase_cents,business.currency):""}</span>
+   <span>{new Date(visit.created_at).toLocaleString("es-ES",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}</span>
+  </div>)}</div>}
+  {(historyPage>0||historyMore)&&<div className="owner-data-pagination"><button type="button" className="button button-outline button-sm" disabled={historyPage===0||historyLoading} onClick={()=>setHistoryPage(n=>n-1)}>Anterior</button><span>Página {historyPage+1}</span><button type="button" className="button button-outline button-sm" disabled={!historyMore||historyLoading} onClick={()=>setHistoryPage(n=>n+1)}>Siguiente</button></div>}
+ </section>
  <Link className="button button-outline button-full" href={"/app/ajustes?business="+encodeURIComponent(business.id)} onClick={closeCard}>Gestionar notificaciones de esta tarjeta</Link>
  {consentError&&<div className="alert error">{consentError}</div>}
  </div></div>}

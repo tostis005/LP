@@ -126,6 +126,10 @@ type Spec={args:Arg[];returns:"scalar"|"table"};
 const rpcMap:Record<string,Spec>={
  public_business_card_assets:{args:[["p_slug","text"]],returns:"table"},
  available_rewards:{args:[["p_business","uuid"]],returns:"table"},
+ business_default_reward_cost:{args:[["p_business","uuid"]],returns:"table"},
+ business_save_default_reward_cost:{args:[["p_business","uuid"],["p_cost","integer"]],returns:"scalar"},
+ customer_card_history:{args:[["p_membership","uuid"],["p_limit","integer"],["p_offset","integer"]],returns:"table"},
+ business_customer_financials:{args:[["p_business","uuid"]],returns:"table"},
  business_dashboard_metrics:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  business_growth_series:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},
  business_growth_summary:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},

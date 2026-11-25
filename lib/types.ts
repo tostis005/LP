@@ -8,7 +8,7 @@ export type Program = {
   id: string; business_id: string; type: ProgramType; reward_label: string;
   reward_cost: number; cashback_bps: number; points_per_euro: number;
   max_stamps_per_action: number; max_ticket_cents: number; min_seconds_between_awards: number;
-  max_daily_awards_per_employee: number; require_ticket_reference: boolean;
+  max_daily_awards_per_employee: number; require_ticket_reference: boolean; require_purchase_amount?: boolean;
 };
 export type Membership = { id: string; customer_id: string; business_id: string; card_token: string;
   balance: number; total_earned: number; created_at: string; businesses?: Business; };
