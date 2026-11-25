@@ -11,7 +11,7 @@ import {displayCurrency} from "@/lib/currency";
 import {db} from "@/lib/supabase";
 import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
-import {StampCard} from "@/components/StampCard";
+import {MerchantCard} from "@/components/StampCard";
 import {CounterPoster} from "@/components/CounterPoster";
 import {publicJoinUrl} from "@/lib/public-url";
 import {logoImageUrl} from "@/lib/asset-images";
@@ -344,14 +344,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
        <button type="button" className="button button-outline button-sm" onClick={()=>openSection("card")}>Editar tarjeta <ArrowUpRight size={16}/></button>
       </div>
       <div className="owner-start-card-preview">
-       {prog.type==="stamps"?<StampCard name={biz.name} color={biz.accent_color} textColor={biz.card_text_color}
-        stampColor={biz.stamp_color} reward={prog.reward_label} total={prog.reward_cost}
-        earned={Math.min(previewEarned,prog.reward_cost)} icon={biz.stamp_icon} imageUrl={biz.stamp_image_url}
-        logoUrl={biz.logo_url} backgroundUrl={biz.card_background} message={biz.card_text}
-        qrValue={publicJoinUrl(biz.slug)}/>:
-        <div className="lp-other-program-preview" style={{backgroundColor:biz.accent_color,color:biz.card_text_color||"#ffffff"}}>
-         <strong>{biz.name}</strong><span>{prog.type==="points"?"Puntos":"Saldo a favor"}</span><p>{prog.reward_label}</p>
-        </div>}
+       <MerchantCard business={biz} program={prog} balance={prog.type==="stamps"?Math.min(previewEarned,prog.reward_cost):prog.type==="points"?120:15000} qrValue={publicJoinUrl(biz.slug)}/>
       </div>
      </section>
     </div>}
@@ -395,7 +388,7 @@ export default function BusinessWorkspace({account}:{account:Account}){
     </section>
     <section className="panel-card designer-preview-wrap lp-designer-live">
      <span className="eyebrow">VISTA PREVIA EN DIRECTO</span>
-     {prog.type==="stamps"?<StampCard name={biz.name} color={biz.accent_color} textColor={biz.card_text_color} stampColor={biz.stamp_color} reward={prog.reward_label} total={prog.type==="stamps"?prog.reward_cost:8} earned={Math.min(previewEarned,prog.type==="stamps"?prog.reward_cost:8)} icon={biz.stamp_icon} imageUrl={biz.stamp_image_url} logoUrl={biz.logo_url} backgroundUrl={biz.card_background} message={biz.card_text} qrValue={publicJoinUrl(biz.slug)}/>:<div className="lp-other-program-preview" style={{backgroundColor:biz.accent_color,color:biz.card_text_color||"#ffffff"}}><span>{biz.card_text||"GRACIAS POR VOLVER"}</span><h3>{biz.name}</h3><strong>{prog.type==="points"?"Programa de puntos":"Programa de saldo a favor"}</strong><p>{prog.reward_label}</p></div>}
+     <MerchantCard business={biz} program={prog} balance={prog.type==="stamps"?Math.min(previewEarned,prog.reward_cost):prog.type==="points"?120:15000} qrValue={publicJoinUrl(biz.slug)}/>
      {prog.type==="stamps"&&<label className="lp-preview-range">Sellos en la vista previa: <strong>{Math.min(previewEarned,prog.reward_cost)} de {prog.reward_cost}</strong><input type="range" min={0} max={prog.reward_cost} value={Math.min(previewEarned,prog.reward_cost)} onChange={e=>setPreviewEarned(Number(e.target.value))}/></label>}
      <p className="tiny-note">Comparte el enlace de inscripción. Cada cliente tendrá su propio QR para registrar visitas.</p>
      <a className="button button-outline button-full" href={"/negocio/vista-previa?business="+encodeURIComponent(selected)}>Previsualizar mi tarjeta <ArrowUpRight size={17}/></a>

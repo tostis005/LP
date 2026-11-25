@@ -42,7 +42,7 @@ export function BusinessOffersPanel({businessId,onCreated,onCampaignsLoaded}:{
  const refresh=useCallback(async()=>{
   const r=await request("/api/local/offers?business="+encodeURIComponent(businessId));
   const next=(r.offers||[]) as Offer[];setOffers(next);
-  onCampaignsLoaded(next.flatMap(o=>(o.campaigns||[]).map(c=>c.id)),next.length);
+  onCampaignsLoaded([...next.flatMap(o=>(o.campaigns||[]).map(c=>c.id)),...((r.hiddenCampaignIds||[]) as string[])],next.length);
   return next;
  },[businessId,onCampaignsLoaded]);
  const loadPricing=useCallback(async()=>{

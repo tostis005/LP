@@ -24,10 +24,10 @@ export async function GET(request:Request){
   const url=new URL(request.url),business=url.searchParams.get("business"),id=url.searchParams.get("id");
   if(business){
    if(!uuid.test(business))throw new ApiError("Negocio inválido.");
-   const offers=await asActor(actor,async client=>{
+   const {offers,hiddenCampaignIds}=await asActor(actor,async client=>{
     const ok=await client.query<{allowed:boolean}>("SELECT (public.is_business_manager($1::uuid) OR public.is_platform_admin()) AS allowed",[business]);
     if(!ok.rows[0]?.allowed)throw new ApiError("No autorizado.",403);
-    return (await client.query(
+    const offers=(await client.query(
      "SELECT o.id,o.title,o.preview,o.details,o.terms,o.image_url,o.kind,to_char(o.valid_from,'YYYY-MM-DD') AS valid_from,to_char(o.valid_until,'YYYY-MM-DD') AS valid_until,o.created_at,o.push_campaign_id, "+
      "(SELECT count(*)::int FROM public.offer_receipts r WHERE r.offer_id=o.id) AS delivered, "+
      "(SELECT coalesce(json_agg(json_build_object('id',q.id,'channel',q.channel,'status',q.status,"+
@@ -39,10 +39,13 @@ export async function GET(request:Request){
      "(SELECT count(*)::int FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS charged_channels, "+
      "(SELECT coalesce(sum(x.amount_cents),0)::bigint FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS confirmed_cents, "+
      "(SELECT min(x.currency) FROM public.offer_campaign_charges x WHERE x.offer_id=o.id) AS confirmed_currency "+
-     "FROM public.business_offers o WHERE o.business_id=$1::uuid AND NOT EXISTS ("+
+     "FROM public.business_offers o WHERE o.business_id=$1::uuid AND o.archived_at IS NULL AND NOT EXISTS ("+
      "SELECT 1 FROM public.automation_rules a WHERE a.offer_id=o.id) ORDER BY o.created_at DESC LIMIT 100",[business])).rows;
+    const hidden=await client.query<{id:string}>(
+     "SELECT c.id FROM public.marketing_campaigns c JOIN public.business_offers o ON o.id=c.offer_id WHERE o.business_id=$1::uuid AND o.archived_at IS NOT NULL UNION SELECT o.push_campaign_id AS id FROM public.business_offers o WHERE o.business_id=$1::uuid AND o.archived_at IS NOT NULL AND o.push_campaign_id IS NOT NULL UNION SELECT h.campaign_id AS id FROM public.demo_hidden_campaigns h WHERE h.business_id=$1::uuid",[business]);
+    return {offers,hiddenCampaignIds:hidden.rows.map(row=>row.id)};
    });
-   return Response.json({offers},{headers});
+   return Response.json({offers,hiddenCampaignIds},{headers});
   }
   if(id&&!uuid.test(id))throw new ApiError("Oferta inválida.");
   const rows=await asActor(actor,async client=>{
@@ -51,7 +54,7 @@ export async function GET(request:Request){
     "r.received_at,r.seen_at,b.name AS business_name,b.logo_url AS business_logo "+
     "FROM public.offer_receipts r JOIN public.business_offers o ON o.id=r.offer_id "+
     "JOIN public.businesses b ON b.id=o.business_id "+
-    "WHERE r.customer_id=$1::uuid "+(id?"AND o.id=$2::uuid ":"")+
+    "WHERE r.customer_id=$1::uuid AND o.archived_at IS NULL "+(id?"AND o.id=$2::uuid ":"")+
     "ORDER BY r.received_at DESC LIMIT 100",id?[actor.id,id]:[actor.id])).rows;
   });
   if(id&&!rows.length)throw new ApiError("Esta oferta no está disponible en tus novedades.",404);

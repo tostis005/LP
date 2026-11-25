@@ -37,8 +37,9 @@ assert.match(upload,/\.webp\(\{quality:80,effort:4\}\)/);
 assert.match(owner,/field==="logo_url"\?"logo-":"sello-"/);
 assert.match(serve,/\[96,192,256,512,480,720,960,1200\]\.includes\(width\)/);
 assert.match(serve,/\[96,192,256,512,480,960\]\.includes\(width\)\?"inside":"cover"/);
-for(const src of [owner,stamp,loyalty,discovery,marks,preview])
+for(const src of [owner,stamp,discovery,marks])
  assert.match(src,/logoImageUrl|stampImageUrl/,"All small customer and merchant visual assets must load a responsive variant");
+for(const src of [loyalty,preview,discovery])assert.match(src,/<MerchantCard /,"Customer and owner previews must use shared responsive assets");
 
 const compiled=ts.transpileModule(read("lib/asset-images.ts"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const module={exports:{}};

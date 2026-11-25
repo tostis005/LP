@@ -26,10 +26,10 @@ assert.match(css,/\.stamp-visual-card\.stamp-visual-rebalanced[\s\S]*?aspect-rat
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-business-logo[\s\S]*?14\.5cqw/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-grid[\s\S]*?10cqw/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-qr-white[\s\S]*?max-width:195px/);
-assert.match(customer,/className=\{"loyalty-card loyalty-card-rebalanced"/);
-assert.match(customer,/className="lc-card-name"/);
-assert.match(customer,/className="lc-card-message"/);
-assert.match(customer,/className="lc-qr-large"/);
+assert.match(customer,/<MerchantCard business=\{business\} program=\{program\} balance=\{membership.balance\} qrValue=\{qrUrl\}/);
+assert.match(customer,/merchant-card-detail">\{cardVisual\}/);
+assert.match(owner,/<MerchantCard business=\{biz\} program=\{prog\}/);
+assert.match(css,/\.stamp-visual-rebalanced \.stamp-qr-white\{padding:0/);
 
 assert.match(chart,/onClick=\{\(\)=>setSelectedIndex\(i\)\}/,"Touching a bar must select it");
 assert.match(chart,/onPointerEnter=\{\(\)=>setSelectedIndex\(i\)\}/,"Hovering a bar must select it");

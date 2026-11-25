@@ -8,8 +8,9 @@ import {AppFrame,type Account} from "@/components/AppFrame";
 import {StampMark} from "@/components/StampMarks";
 import {db} from "@/lib/supabase";
 import type {Location,Business,Program,Membership} from "@/lib/types";
+import {MerchantCard} from "@/components/StampCard";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
-import {cardBackgroundUrl} from "@/lib/card-images";
+import {publicJoinUrl} from "@/lib/public-url";
 import {logoImageUrl} from "@/lib/asset-images";
 import {BUSINESS_CATEGORIES,PROGRAM_TYPES,categoryStampKind} from "@/lib/business-categories";
 import {programPromise} from "@/lib/program-presentation";
@@ -114,11 +115,7 @@ function Discover({account}:{account:Account}){
   <div className="directory-results-grid">
    {filtered.length===0?<div className="empty-state compact"><Compass size={29}/><h3>Sin resultados</h3><p>Prueba con otro tipo de negocio o elimina algún filtro.</p></div>:
    filtered.map(e=>{const program=programByBusiness.get(e.business_id),cardId=myCards[e.business_id],already=!!cardId;return <article key={e.id} className="directory-card directory-card-rich directory-card-premium">
-    <div className={"directory-card-cover"+(e.businesses.card_background?" has-cover-photo":"")} style={{backgroundColor:e.businesses.accent_color||"#5E1A2B"}}>
-     {e.businesses.card_background&&<img className="directory-cover-photo" src={cardBackgroundUrl(e.businesses.card_background,720)} alt="" loading="lazy"/>}
-     <div className="directory-cover-top"><span className="directory-cover-category">{e.businesses.category||"Negocio local"}</span>{already&&<span className="joined-badge directory-joined"><Check size={13}/> Ya tienes tarjeta</span>}</div>
-     <div className="directory-cover-brand"><span className="directory-cover-icon">{e.businesses.logo_url?<img src={logoImageUrl(e.businesses.logo_url,192)} alt={"Logotipo de "+e.businesses.name} loading="lazy" decoding="async"/>:<StampMark kind={e.businesses.stamp_icon||categoryStampKind(e.businesses.category)} size={43} color={e.businesses.stamp_color||"#571c32"}/>}</span></div>
-    </div>
+    <div className="directory-merchant-card"><MerchantCard business={e.businesses} program={program} balance={cardId?membersById[cardId]?.balance||0:0} qrValue={cardId&&membersById[cardId]?.card_token?"https://kreyvi.com/t/"+membersById[cardId].card_token:publicJoinUrl(e.businesses.slug)}/>{already&&<span className="directory-merchant-owned"><Check size={13}/> Ya tienes tarjeta</span>}</div>
     <div className="directory-card-body">
      <div className="directory-card-heading"><strong>{e.businesses.name}</strong></div>
      {e.businesses.description&&<p className="directory-business-description">{e.businesses.description}</p>}

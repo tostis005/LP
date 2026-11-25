@@ -1049,3 +1049,18 @@
 .counter-poster-controls label{margin-top:4px}
 .counter-poster-preview{padding:20px}
 @media(max-width:800px){.counter-poster-preview{padding:12px}.counter-poster-actions>.button{flex:1 1 135px}}
+
+/* A single merchant card design; no extra framing in the customer deck. */
+.merchant-card-button{display:block;width:100%;padding:0;border:0;background:none;color:inherit;text-align:left;cursor:pointer;container-type:inline-size}
+.merchant-card-button:focus-visible{outline:3px solid var(--color-accent-600);outline-offset:3px;border-radius:18px}
+.stamp-visual-rebalanced .stamp-qr-white{padding:0;border-radius:5px;overflow:hidden;box-shadow:none}
+
+.directory-merchant-card{position:relative;width:100%;container-type:inline-size;padding:0}
+.directory-merchant-owned{display:flex;align-items:center;gap:5px;color:var(--color-brand);font-size:11px;font-weight:700;padding:5px 12px}
+
+/* Same card, no wrapper tint, extra padding or separate framing. */
+.merchant-card-button{position:relative;display:block;container-type:inline-size;width:100%;padding:0}
+.merchant-card-hitbox{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:inherit;background:transparent;cursor:pointer}
+.merchant-card-hitbox:focus-visible{outline:3px solid var(--color-accent-600);outline-offset:3px;border-radius:18px}
+.loyally-modal-card-preview.merchant-card-detail{display:block;aspect-ratio:auto;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible;container-type:inline-size}
+.stamp-visual-rebalanced .merchant-balance{font-size:clamp(18px,6cqw,36px);line-height:1.1;color:inherit;max-width:100%;overflow-wrap:anywhere}
