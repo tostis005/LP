@@ -1,6 +1,6 @@
 import {actorFromRequest,asActor,checkOrigin,responseError,ApiError,type Actor} from "@/lib/server/db";
 import {foodPilotImport,decodeDenue} from "@/lib/server/denue";
-import {downloadTecateCsv,officialTecateFilename} from "@/lib/server/denue-download";
+import {downloadOfficialCsv,officialCities} from "@/lib/server/denue-download";
 import type {PoolClient} from "pg";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -48,20 +48,22 @@ export async function POST(request:Request){
   if(Number(request.headers.get("content-length")||0)>42*1024*1024)throw new ApiError("El archivo supera 40 MB.",413);
   const form=await request.formData(),file=form.get("file"),mode=form.get("mode");
   const official=mode==="official";
-  const edition=official?"2025-05":String(form.get("edition")||"");
+  const municipality=official?String(form.get("municipality")||"02003"):String(form.get("municipality")||"");
+  const officialCity=official?officialCities[municipality]:undefined;
+  if(official&&!officialCity)throw new ApiError("Municipio no disponible para carga directa.");
+  const edition=official?officialCity!.edition:String(form.get("edition")||"");
   if(edition&&!/^20\d{2}-(05|11)$/.test(edition))throw new ApiError("Edición DENUE inválida.");
-  const municipality=official?"02003":String(form.get("municipality")||"");
   if(municipality&&!/^\d{5}$/.test(municipality))throw new ApiError("Clave municipal inválida.");
   if(mode!=="preview"&&mode!=="import"&&!official)throw new ApiError("Modo inválido.");
   let data:ReturnType<typeof foodPilotImport>,filename:string;
   if(official){
-   const existing=await admin(request,async c=>(await c.query("SELECT report FROM public.crm_import_runs WHERE filename=$1 ORDER BY created_at DESC LIMIT 1",[officialTecateFilename])).rows[0]);
+   const existing=await admin(request,async c=>(await c.query("SELECT report FROM public.crm_import_runs WHERE filename=$1 ORDER BY created_at DESC LIMIT 1",[officialCity!.filename])).rows[0]);
    if(existing)return Response.json({report:existing.report,imported:0,alreadyImported:true},{headers});
    if(officialImportRunning)throw new ApiError("La importación oficial ya está en curso.",409);
    officialImportRunning=true;
-   try{data=foodPilotImport(await downloadTecateCsv(),municipality);}finally{officialImportRunning=false;}
-   filename=officialTecateFilename;
-   if(data.prospects.length===0)throw new ApiError("El archivo oficial no contiene prospectos de Tecate.",502);
+   try{data=foodPilotImport(await downloadOfficialCsv(municipality),municipality);}finally{officialImportRunning=false;}
+   filename=officialCity!.filename;
+   if(data.prospects.length===0)throw new ApiError("El archivo oficial no contiene prospectos del municipio.",502);
   }else{
    if(!(file instanceof File)||!file.name.toLowerCase().endsWith(".csv"))throw new ApiError("Selecciona el CSV oficial descomprimido del DENUE.");
    if(file.size>40*1024*1024)throw new ApiError("Divide el CSV en archivos de hasta 40 MB, conservando la cabecera.",413);
