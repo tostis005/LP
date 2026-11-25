@@ -22,3 +22,11 @@ CREATE POLICY crm_mail_history_admin ON public.crm_mail_history FOR ALL TO authe
 CREATE POLICY crm_mail_sync_admin ON public.crm_mail_sync FOR ALL TO authenticated USING(public.is_platform_admin()) WITH CHECK(public.is_platform_admin());
 REVOKE ALL ON public.crm_mail_history,public.crm_mail_sync FROM anon,PUBLIC;
 GRANT SELECT,INSERT,UPDATE,DELETE ON public.crm_mail_history,public.crm_mail_sync TO authenticated;
+
+-- Only the internal automation worker can resolve the authorizing administrator.
+ALTER TABLE public.crm_mailbox ADD COLUMN IF NOT EXISTS sync_actor uuid REFERENCES auth.users(id) ON DELETE SET NULL;
+CREATE FUNCTION public.crm_mail_sync_actor() RETURNS uuid
+ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,public
+ AS $$ SELECT sync_actor FROM public.crm_mailbox WHERE id=true $$;
+REVOKE ALL ON FUNCTION public.crm_mail_sync_actor() FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.crm_mail_sync_actor() TO lp_auth;
