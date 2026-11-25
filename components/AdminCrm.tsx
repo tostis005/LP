@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from "react";
 import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X} from "lucide-react";
 import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
+import {AdminCrmMailbox} from "./AdminCrmMailbox";
 type Prospect={id:string;name:string;phone:string;address:string;website:string;latitude:string;longitude:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string};
 type Region={country_code:string;state_code:string;state:string;municipality_code:string;municipality:string;locality_code:string;city:string;total:number};
 type Count={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
@@ -65,6 +66,7 @@ export function AdminCrm(){
   <div className="content-heading"><div><h2>CRM comercial</h2><p>Busca negocios, registra el contacto y guarda notas.</p></div></div>
   {error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}
   {data&&pendingCities.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong><small>DENUE · incluye negocios sin correo</small></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}
+  <AdminCrmMailbox/>
   <AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/>
   <style>{`
    @keyframes crm-list-spin{to{transform:rotate(360deg)}}
