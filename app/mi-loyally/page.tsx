@@ -6,6 +6,7 @@ import {useRouter} from "next/navigation";
 import Link from "next/link";
 import {ArrowRight,Check,ChevronLeft,Gift,Heart,LockKeyhole,Share2,Smartphone,Sparkles,Ticket,X} from "lucide-react";
 import {db} from "@/lib/supabase";
+import {PhoneCountryField} from "@/components/PhoneCountryField";
 import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import "./mi-loyally.css";
 
@@ -117,7 +118,7 @@ export default function MiLoyally(){
      {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y novedades</strong></span></label>}
      {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&"No te pierdas las ofertas y promociones de los locales participantes. "}Puedes cambiar tus preferencias en Ajustes cuando quieras.</p>}
      {mode==="signup"&&<details className="lp-signup-consent-details"><summary>Más información</summary><p>Si marcas la casilla, Kreyvi y los negocios de tus tarjetas podrán enviarte ofertas y novedades por email, WhatsApp y notificaciones. Es opcional y puedes retirar tu consentimiento en Ajustes.</p></details>}
-     {mode==="signup"&&marketingOptIn&&<label>Tu número de WhatsApp<input type="tel" inputMode="tel" required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>Para recibir las ofertas que has elegido. Incluye el prefijo internacional.</small></label>}
+     {mode==="signup"&&marketingOptIn&&<PhoneCountryField label="Tu número de WhatsApp" value={whatsapp} onChange={setWhatsapp} required/>}
      
      {error&&<p role="alert" className="loyal-app-error">{error}</p>}
      {message&&<p role="status" className="loyal-app-success">{message}</p>}
