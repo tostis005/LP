@@ -4,7 +4,7 @@ import type {PoolClient} from "pg";
 import {createHash} from "node:crypto";
 export const normalize=(v:string)=>v.normalize("NFKD").replace(/\p{M}/gu,"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
 type Candidate={row:number;name:string;city:string;category:string;email:string;source:string;address:string;sourceId:string};
-type Decision={row:number;name:string;city:string;email:string;source:string;action:"update"|"create"|"skip";id:string;reason:string};
+type Decision={row:number;name:string;city:string;email:string;source:string;address:string;action:"update"|"create"|"skip";id:string;reason:string};
 type Existing={id:string;source:string;source_id:string;name:string;city:string;locality_code:string;state:string;municipality:string;status:string;email:string|null;public_email:string|null};
 const blockedStates=["do_not_contact","discarded","converted"];
 export function parseContactCsv(text:string):Candidate[]{
@@ -30,7 +30,7 @@ export function parseContactCsv(text:string):Candidate[]{
 export function decideContacts(candidates:Candidate[],existing:Existing[],emailOwners:Map<string,string[]>,excluded:Set<string>):Decision[]{
  const seenNames=new Set<string>(),seenEmails=new Set<string>();
  return candidates.map(v=>{
-  const base={row:v.row,name:v.name,city:v.city,email:v.email,source:v.source};
+  const base={row:v.row,name:v.name,city:v.city,email:v.email,source:v.source,address:v.address};
   const skip=(reason:string):Decision=>({...base,action:"skip",id:"",reason});
   const key=normalize(v.city)+":"+normalize(v.name);
   if(seenNames.has(key)||seenEmails.has(v.email))return skip("Duplicado dentro del archivo");
