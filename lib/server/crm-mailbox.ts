@@ -12,7 +12,7 @@ export function seal(value:Credentials){
  const data=Buffer.concat([cipher.update(JSON.stringify(value),"utf8"),cipher.final()]);
  return [iv,cipher.getAuthTag(),data].map(b=>b.toString("base64url")).join(".");
 }
-function unseal(value:string):Credentials{
+export function unseal(value:string):Credentials{
  const [iv,tag,data]=value.split(".").map(x=>Buffer.from(x,"base64url"));
  const cipher=createDecipheriv("aes-256-gcm",key(),iv);
  cipher.setAuthTag(tag);
@@ -20,7 +20,7 @@ function unseal(value:string):Credentials{
 }
 export async function mailboxCall(token:string,command:Command){
  let response:Response;
- try{response=await fetch("https://g.sendcorex.com/v1",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({commands:[command]}),cache:"no-store",redirect:"error",signal:AbortSignal.timeout(12000)});}
+ try{response=await fetch("https://g.sendcorex.com/v1",{method:"POST",headers:{"Authorization":token,"Content-Type":"application/json"},body:JSON.stringify({commands:[command]}),cache:"no-store",redirect:"error",signal:AbortSignal.timeout(12000)});}
  catch{throw new ApiError("No se pudo comunicar con Sendcorex. Si estabas enviando, comprueba Enviados antes de repetir.",502);}
  const j=await response.json().catch(()=>null);
  const r=j?.results?.[0],code=String(r?.code||j?.code||"");

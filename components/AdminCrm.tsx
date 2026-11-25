@@ -2,8 +2,8 @@
 import {useEffect,useRef,useState} from "react";
 import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X,Building2,Mail,FolderUp,CheckCircle2,RefreshCw} from "lucide-react";
 import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
-import {AdminCrmMailbox} from "./AdminCrmMailbox";
-type Prospect={id:string;name:string;phone:string;address:string;website:string;latitude:string;longitude:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string};
+import {CrmContactHistory,CrmMailSettings,useCrmMailSync} from "./CrmContactHistory";
+type Prospect={id:string;name:string;phone:string;address:string;website:string;latitude:string;longitude:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string;last_sent_at?:string|null;last_attempt_at?:string|null;last_received_at?:string|null;sent_count?:number};
 type Region={country_code:string;state_code:string;state:string;municipality_code:string;municipality:string;locality_code:string;city:string;total:number};
 type Count={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
 type Report=Count&{duplicates:number;skipped:number;byCity:Array<Count&{state:string;municipality:string;city:string;state_code:string;municipality_code:string;locality_code:string}>;bySector:Array<Count&{category:string}>};
@@ -23,6 +23,7 @@ export function AdminCrm(){
  const [columnFilters,setColumnFilters]=useState<Record<string,string>>({}),[loading,setLoading]=useState(true),[jump,setJump]=useState("");
  const requestVersion=useRef(0),lastRevision=useRef(-1),lastText=useRef("");
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
+ const mailSync=useCrmMailSync(()=>setRevision(v=>v+1));
  useEffect(()=>{
   const controller=new AbortController();setOptionsLoading(true);
   fetch("/api/local/admin/crm?view=options",{signal:controller.signal,cache:"no-store"}).then(async r=>{
@@ -84,13 +85,13 @@ export function AdminCrm(){
  return <div className="panel-card crm-workspace">
   <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
   <div className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
-   {([{id:"directory",label:"Negocios",icon:Building2},{id:"mail",label:"Correo comercial",icon:Mail},{id:"imports",label:"Importaciones",icon:FolderUp}] as const).map(t=><button key={t.id} type="button" role="tab" aria-selected={tab===t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}><t.icon size={18}/>{t.label}</button>)}
+   {([{id:"directory",label:"Negocios",icon:Building2},{id:"mail",label:"Sincronización de correo",icon:Mail},{id:"imports",label:"Importaciones",icon:FolderUp}] as const).map(t=><button key={t.id} type="button" role="tab" aria-selected={tab===t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}><t.icon size={18}/>{t.label}</button>)}
   </div>
   {tab==="directory"&&<>{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}{optionsError&&<div role="alert" className="alert error">{optionsError}</div>}
   <div className="crm-metrics" aria-label="Resumen de los resultados filtrados">
    {([{label:"Negocios",n:data?.count.total,icon:Building2},{label:"Con correo",n:data?.count.with_email,icon:Mail},{label:"Correos únicos",n:data?.count.unique_emails,icon:Mail},{label:"Revisados",n:data?.count.reviewed,icon:CheckCircle2}] as const).map(m=><div className="crm-metric" key={m.label}><span><m.icon size={16}/>{m.label}</span><strong>{m.n===undefined?"—":format(m.n)}</strong></div>)}
   </div></>}
-  {tab==="mail"&&<AdminCrmMailbox initiallyOpen/>}
+  {tab==="mail"&&<CrmMailSettings sync={mailSync}/>}
   {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{pendingCities.length>0&&options.regions.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/></section>}
   <style>{`
    .crm-workspace{min-width:0}
@@ -105,7 +106,35 @@ export function AdminCrm(){
    .crm-metric{border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:14px;min-width:0;background:var(--card,#fff)}
    .crm-metric span{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--muted,#64748b)}
    .crm-metric strong{display:block;font-size:1.55rem;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin-top:8px}
-   .crm-workspace .crm-list-filters{border:1px solid var(--border,#e2e8f0);padding:14px;border-radius:12px;gap:12px;margin-bottom:18px}
+   .crm-filter-box{background:var(--color-brand-100,#f8eef1);border:1px solid var(--color-bg-2,#e8dce1);border-radius:16px;padding:16px 18px;margin:16px 0 18px}
+   .crm-filter-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--color-brand-900,#57233d);font-size:.85rem;font-weight:700}
+   .crm-workspace .crm-list-filters{padding:0;gap:12px;margin:12px 0 0;grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}
+   .crm-workspace .crm-list-filters label{font-weight:700;color:var(--color-brand-900,#57233d);min-width:0}
+   .crm-workspace .crm-list-filters select,.crm-workspace .crm-list-filters .search-box{background:#fff;border:1px solid #d8c6cf;border-radius:9px;min-height:40px;width:100%;min-width:0;color:#38232e}
+   .crm-workspace .crm-list-filters select:focus,.crm-workspace .crm-column-filter:focus{outline:2px solid var(--color-brand-300,#ba849c);outline-offset:1px}
+   .crm-workspace .crm-list-filters label:first-child{grid-column:span 2}
+   .crm-workspace .crm-table-shell .data-table thead th{background:var(--color-brand-900,#57233d);color:#fff;border-color:#ffffff20;vertical-align:top}
+   .crm-workspace .crm-table-shell .data-table thead th[aria-sort="ascending"],.crm-workspace .crm-table-shell .data-table thead th[aria-sort="descending"]{background:var(--color-brand,#783752)}
+   .crm-workspace .crm-table-shell .data-table thead th button{color:#fff}
+   .crm-workspace .crm-table-shell .crm-column-filter{background:#fff;color:#38232e;border-color:#ffffff55;border-radius:7px;min-height:29px}
+   .crm-workspace .crm-table-shell tbody tr:nth-child(even){background:#faf7f8}
+   .crm-workspace .crm-table-shell tbody tr:hover{background:var(--color-brand-100,#f8eef1)}
+   .crm-activity{display:grid;gap:5px;min-width:145px;font-size:.77rem}
+   .crm-activity strong{color:var(--color-brand-900,#57233d)}
+   .crm-activity .crm-inbound{color:#166534;font-weight:700}
+   .crm-sync-panel{border:1px solid var(--line,#ddd);border-radius:14px;padding:20px}
+   .crm-sync-status{display:grid;gap:8px;background:var(--color-brand-100,#f8eef1);padding:16px;border-radius:10px;margin:12px 0}
+   .crm-sync-status>div{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:.82rem}
+   .crm-contact-history{border-top:1px solid var(--line,#ddd);padding-top:16px;margin-top:12px}
+   .crm-contact-history h3{display:flex;align-items:center;gap:8px;letter-spacing:-.025em}
+   .crm-history-item{border:1px solid var(--line,#ddd);border-radius:10px;margin:8px 0;padding:10px;background:#fff}
+   .crm-history-item summary{display:flex;align-items:flex-start;gap:10px;cursor:pointer;list-style:none}
+   .crm-history-item summary span:last-child{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
+   .crm-history-item small{font-size:.73rem;color:var(--muted,#64748b)}
+   .crm-history-item p{margin:12px 0 0;font-size:.85rem}
+   .crm-history-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;flex-shrink:0;background:var(--color-brand-100,#f8eef1);color:var(--color-brand-900,#57233d)}
+   .crm-history-icon.inbound{background:#e7f4e9;color:#166534}
+   @media(max-width:700px){.crm-filter-box{padding:12px}.crm-workspace .crm-list-filters label:first-child{grid-column:1/-1}}
    .crm-workspace .crm-table-shell{border:1px solid var(--border,#e2e8f0);border-radius:12px;overflow:hidden}
    .crm-workspace .crm-table-shell td{padding:12px 10px;font-size:.82rem}
    .crm-workspace .crm-table-shell tbody tr:hover{background:rgba(125,125,125,.07)}
@@ -135,7 +164,7 @@ export function AdminCrm(){
    .crm-pagination-group select,.crm-pagination-group input{max-width:100px}
    .crm-pagination-group button{display:inline-flex;align-items:center;gap:4px;min-width:32px;justify-content:center}
   `}</style>
-  {tab==="directory"&&<>{optionsLoading&&<small role="status" className="muted">Cargando opciones de filtros…</small>}<div className="crm-list-filters">
+  {tab==="directory"&&<>{optionsLoading&&<small role="status" className="muted">Cargando opciones de filtros…</small>}<div className="crm-filter-box"><div className="crm-filter-heading"><span>Filtrar negocios</span><span>{hasFilters?"Filtros activos":"Todos los negocios"}</span></div><div className="crm-list-filters">
    <label>Buscar<div className="search-box small-search"><Search size={17}/><input aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Negocio, correo, teléfono…"/></div></label>
    <label>Estado<select value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label>Municipio<select value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
@@ -147,7 +176,7 @@ export function AdminCrm(){
    <label>Estado comercial<select value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
    <label>Revisión<select value={review} onChange={e=>{setReview(e.target.value);setPage(0)}}><option value="">Todas</option>{Object.entries(reviewStages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
    <button type="button" className="button button-outline button-sm" onClick={clearFilters}><X size={15}/> Limpiar filtros</button>
-  </div>
+  </div></div>
   <div className="crm-list-header">
    <span className="muted" aria-live="polite">{data?format(total):"—"} negocios · {data?format(data.count.with_email):"—"} con correo · {data?format(data.count.unique_emails):"—"} correos únicos{hasFilters?" · filtros activos":""}</span>
    
@@ -162,10 +191,11 @@ export function AdminCrm(){
     {key==="category"&&<select className="crm-column-filter" aria-label="Filtrar sector" value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración y heladerías</option>{options.categories.map(c=><option key={c.category}>{c.category}</option>)}</select>}
     {key==="status"&&<select className="crm-column-filter" aria-label="Filtrar estado comercial" value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select>}
     {key==="review"&&<select className="crm-column-filter" aria-label="Filtrar revisión" value={review} onChange={e=>{setReview(e.target.value);setPage(0)}}><option value="">Todas</option>{Object.entries(reviewStages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select>}
-   </th>)}<th scope="col">Ficha</th></tr></thead>
+   </th>)}<th scope="col">Actividad de correo</th><th scope="col">Ficha</th></tr></thead>
    <tbody style={{opacity:loading?0.45:1}}>{data?.prospects.map(p=><tr key={p.id}>
     <td><strong>{p.name}</strong></td><td>{p.state}</td><td>{p.municipality}</td><td>{p.city}</td><td>{p.category}</td><td>{p.activity||"—"}</td>
     <td>{p.public_email||p.email||"Sin correo"}{p.public_email&&<small>Fuente externa</small>}</td><td>{p.phone||"—"}</td><td>{p.address||"—"}</td><td>{p.website||"—"}</td><td><span className="crm-stage" data-stage={p.status}>{stages[p.status]||p.status}</span></td><td>{reviewStages[p.contact_review]||p.contact_review||"—"}</td>
+    <td><div className="crm-activity">{p.last_sent_at?<><strong>{p.sent_count||0} enviado(s)</strong><small>Último: {new Date(p.last_sent_at).toLocaleDateString("es-MX")}</small></>:p.last_attempt_at?<small>Intento de envío: {new Date(p.last_attempt_at).toLocaleDateString("es-MX")}</small>:<small>Sin envíos registrados</small>}{p.last_received_at&&<small className="crm-inbound">Recibido: {new Date(p.last_received_at).toLocaleDateString("es-MX")}</small>}</div></td>
     <td><button type="button" className="inline-table-button" disabled={loading} onClick={()=>setFocus({...p})}>Abrir</button></td>
    </tr>)}</tbody></table></div>
    {loading&&<div className="crm-table-loading" role="status"><span><Loader2 className="crm-list-spinner" size={20}/>{data?"Actualizando resultados…":"Cargando negocios…"}</span></div>}
@@ -199,6 +229,7 @@ export function AdminCrm(){
    </details>
    <label>Notas<textarea maxLength={2000} value={focus.notes} onChange={e=>setFocus({...focus,notes:e.target.value})}/></label>
    <button className="button button-dark button-sm" disabled={busy} onClick={save}>Guardar ficha</button>
+   <CrmContactHistory id={focus.id} revision={revision}/>
   </div></div></div>}
  </>}
  </div>;

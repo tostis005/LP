@@ -76,6 +76,17 @@ export async function GET(request:Request){
    const totalPages=Math.max(1,Math.ceil(count.total/pageSize));
    const page=Math.min(requestedPage,totalPages-1);
    const prospects=(await c.query("SELECT * FROM public.crm_prospects"+filter+" ORDER BY "+sort+" "+direction+" NULLS LAST,id ASC LIMIT $"+(args.length+1)+" OFFSET $"+(args.length+2),[...args,pageSize,page*pageSize])).rows;
+   // Look up only the addresses on the visible page, using the correspondence index.
+   if(prospects.length){
+    const addresses=[...new Set(prospects.flatMap(p=>[p.email,p.public_email].filter((v):v is string=>typeof v==="string"&&!!v).map(v=>v.toLowerCase())))];
+    const activity=addresses.length?(await c.query("SELECT correspondent,max(occurred_at) FILTER (WHERE direction='outbound' AND delivery_status='delivered') AS last_sent_at,max(occurred_at) FILTER (WHERE direction='outbound') AS last_attempt_at,max(occurred_at) FILTER (WHERE direction='inbound') AS last_received_at,count(*) FILTER (WHERE direction='outbound' AND delivery_status='delivered')::int AS sent_count FROM public.crm_mail_history WHERE correspondent=ANY($1::text[]) GROUP BY correspondent",[addresses])).rows:[];
+    const byAddress=new Map(activity.map(r=>[r.correspondent,r]));
+    for(const p of prospects){
+     const matched=[...new Set([p.email,p.public_email].filter((v):v is string=>typeof v==="string"&&!!v).map(v=>v.toLowerCase()))].map(a=>byAddress.get(a)).filter(Boolean);
+     const latest=(key:string)=>matched.reduce<string|null>((max,r)=>{const value=r?.[key];if(!value)return max;const iso=new Date(value).toISOString();return !max||iso>max?iso:max;},null);
+     p.last_sent_at=latest("last_sent_at");p.last_attempt_at=latest("last_attempt_at");p.last_received_at=latest("last_received_at");p.sent_count=matched.reduce((sum,r)=>sum+Number(r?.sent_count||0),0);
+    }
+   }
    // Legacy callers still receive options; the CRM requests them independently.
    if(p.get("compact")==="1")return {prospects,count,page,pageSize,totalPages};
    const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
