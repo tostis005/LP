@@ -74,3 +74,14 @@ export function foodPilotImport(text:string,municipalityFilter=""){
  },isFoodPilot);
  return {...result,prospects:[...result.prospects.filter(p=>isFoodPilot(p.activity_code)),...missing]};
 }
+
+/** All compatible sectors, including establishments without a published email. */
+export function compatibleDenueImport(text:string,municipalityFilter=""){
+ const missing:Array<Omit<Prospect,"email">&{email:null}>=[];
+ const result=analyzeDenue(text,municipalityFilter,row=>{
+  if(row.hasEmail)return;
+  const {hasEmail,hasWebsite,...business}=row;
+  missing.push({...business,email:null});
+ });
+ return {...result,prospects:[...result.prospects,...missing]};
+}
