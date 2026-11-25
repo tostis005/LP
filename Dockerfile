@@ -9,6 +9,7 @@ WORKDIR /app
 COPY db/migrations ./db/migrations
 COPY supabase/migrations ./supabase/migrations
 COPY scripts ./scripts
+COPY lib/server/denue.ts ./lib/server/denue.ts
 CMD ["node", "scripts/migrate.mjs"]
 
 FROM deps AS builder

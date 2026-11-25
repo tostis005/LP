@@ -1,0 +1,45 @@
+name: DENUE pilot aggregate analysis
+on:
+  pull_request:
+    paths:
+      - 'lib/server/denue.ts'
+      - 'scripts/analyze-denue-pilot.mjs'
+      - 'tests/native/denue.mjs'
+      - '.github/workflows/denue-pilot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --experimental-strip-types --test tests/native/denue.mjs
+      - name: Download official Baja California archive and calculate pilot totals
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"
+          trap 'rm -rf "$work"' EXIT
+          found=false
+          for edition in 2026_05:0526 2025_11:1125 2025_05:0525; do
+            folder="${edition%:*}"
+            date="${edition#*:}"
+            for filename in "denue_02_${date}_csv.zip" "denue_02_csv.zip"; do
+              url="https://www.inegi.org.mx/contenidos/masiva/denue/$folder/$filename"
+              if curl --fail --silent --show-error --location --connect-timeout 10 --max-time 100 "$url" -o "$work/denue.zip" && unzip -tq "$work/denue.zip" >/dev/null 2>&1; then
+                found=true
+                echo "Valid DENUE archive: $url ; state 02, municipality 02003"
+                break 2
+              fi
+              echo "Archive unavailable or not ZIP: $url"
+            done
+          done
+          if [ "$found" != true ]; then echo "::error::No official ZIP retrieved"; exit 1; fi
+          unzip -q "$work/denue.zip" -d "$work/extracted"
+          mapfile -d '' files < <(find "$work/extracted" -type f -iname '*.csv' -path '*/conjunto_de_datos/*' -print0)
+          node --experimental-strip-types scripts/analyze-denue-pilot.mjs "${files[@]}"
