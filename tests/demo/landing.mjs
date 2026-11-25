@@ -135,3 +135,14 @@ assert.match(posterUi,/showTitle&&/);
 assert.match(posterUi,/showSubtitle&&/);
 assert.match(posterUi,/showFooter&&/);
 assert.match(posterUi,/Escanea y/);
+
+const sharedStampCard=readFileSync(new URL("../../components/StampCard.tsx",import.meta.url),"utf8");
+assert.doesNotMatch(sharedStampCard,/CLUB DE RECOMPENSAS|REWARDS CLUB/);
+assert.match(sharedStampCard,/className="stamp-visual-pill stamp-visual-brand"/);
+assert.match(sharedStampCard,/backgroundColor:"rgba\(255,255,255,\.88\)"/);
+assert.match(sharedStampCard,/kreyv-pegada-vino-mostaza-claro\.svg/);
+assert.match(sharedStampCard,/kreyv-pegada-tinta-maiz-claro\.svg/);
+assert.match(sharedStampCard,/alt=\{BRAND_NAME\}/);
+const customerCard=readFileSync(new URL("../../components/LoyaltyCard.tsx",import.meta.url),"utf8");
+assert.match(customerCard,/<MerchantCard business=\{business\}/);
+console.log("Shared cards: KREYVI brand capsule on a translucent neutral background.");
