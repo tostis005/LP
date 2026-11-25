@@ -2,12 +2,12 @@
 import {useEffect,useState} from "react";
 import {Upload,Search} from "lucide-react";
 import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
-type Prospect={id:string;name:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string};
+type Prospect={id:string;name:string;phone:string;address:string;website:string;latitude:string;longitude:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string};
 type Region={country_code:string;state_code:string;state:string;municipality_code:string;municipality:string;locality_code:string;city:string;total:number};
 type Count={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
 type Report=Count&{duplicates:number;skipped:number;byCity:Array<Count&{state:string;municipality:string;city:string;state_code:string;municipality_code:string;locality_code:string}>;bySector:Array<Count&{category:string}>};
 type Data={prospects:Prospect[];count:{total:number;unique_emails:number;with_email:number;missing_email:number;reviewed:number};regions:Region[];categories:Array<{category:string;total:number}>;imports:Array<{filename:string;created_at:string;report:Report&{edition?:string|null}}>;page:number};
-const stages:Record<string,string>={pending_review:"Por revisar",qualified:"Cualificado",contacted:"Contactado",interested:"Interesado",trial:"En prueba",converted:"Cliente",discarded:"Descartado",do_not_contact:"No contactar"};
+const stages:Record<string,string>={pending_review:"Sin contactar",qualified:"Sin contactar (revisado)",contacted:"Contactado",interested:"Interesado",trial:"En prueba",converted:"Cliente",discarded:"No interesado",do_not_contact:"No contactar"};
 const reviewStages:Record<string,string>={pending:"Pendiente",source_found:"Fuente localizada",no_contact_found:"Sin contacto localizado",ambiguous:"Identidad dudosa",not_relevant:"No relevante"};
 export function AdminCrm(){
  const [data,setData]=useState<Data|null>(null),[report,setReport]=useState<Report|null>(null),[file,setFile]=useState<File|null>(null);
@@ -39,7 +39,7 @@ export function AdminCrm(){
    const body=new FormData();body.append("mode","official");body.append("municipality",code);
    const r=await fetch("/api/local/admin/crm",{method:"POST",body}),j=await r.json();
    if(!r.ok)throw new Error(j.error||"No se pudo importar "+name+".");
-   setReport(j.report);setCountry("MX");setState(code.slice(0,2));setMunicipality(code.slice(2));setCity("");setCategory("");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);
+   setReport(null);setCountry("MX");setState(code.slice(0,2));setMunicipality(code.slice(2));setCity("");setCategory("");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);
    setNotice(j.alreadyImported?"El directorio de "+name+" ya está cargado.":name+": "+j.report.relevant+" negocios del sector y "+j.report.withEmail+" con correo DENUE. No se ha enviado ningún correo.");
   }catch(e){setNotice("");setError(e instanceof Error?e.message:"Error de importación oficial.");}finally{setBusy(false);}
  }
@@ -69,20 +69,20 @@ export function AdminCrm(){
    </div>
   </details>
   <div className="form-stack">
-   <div className="search-box small-search"><Search size={17}/><input aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Buscar negocio o correo"/></div>
+   <div className="search-box small-search"><Search size={17}/><input aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Buscar negocio, correo o teléfono"/></div>
    <label>Estado<select value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label>Municipio<select value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label>Sector<select value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="pilot_food">Piloto: restauración, cafeterías y heladerías</option><option value="">Todos</option>{data?.categories.map(c=><option key={c.category}>{c.category}</option>)}</select></label>
-   <label>Disponibilidad de correo<select value={coverage} onChange={e=>{setCoverage(e.target.value);setPage(0)}}><option value="">Todos</option><option value="available">Con correo publicado</option><option value="missing">Sin correo localizado</option><option value="web">Con fuente externa registrada</option></select></label>
+   <label>Correo<select value={coverage} onChange={e=>{setCoverage(e.target.value);setPage(0)}}><option value="">Todos</option><option value="available">Con correo publicado</option><option value="missing">Sin correo localizado</option><option value="web">Con fuente externa registrada</option></select></label>
    <label>Estado comercial<select value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
   </div>
   <p className="muted">{data?.count.total.toLocaleString("es-MX")??"—"} negocios · {data?.count.with_email.toLocaleString("es-MX")??"—"} con correo</p>
-  <div className="table-wrap"><table className="data-table"><thead><tr><th>Negocio</th><th>Ubicación</th><th>Sector</th><th>Correo</th><th>Estado</th><th></th></tr></thead><tbody>{data?.prospects.map(p=><tr key={p.id}><td>{p.name}</td><td>{p.city}<small>{p.municipality}, {p.state}</small></td><td>{p.category}</td><td>{p.email||p.public_email||"Sin localizar"}<small>{p.email?"DENUE":p.public_email?"Fuente externa":"Pendiente"}</small></td><td>{stages[p.status]}</td><td><button className="inline-table-button" onClick={()=>setFocus({...p})}>Ficha</button></td></tr>)}</tbody></table></div>
+  <div className="table-wrap"><table className="data-table"><thead><tr><th>Negocio</th><th>Ubicación</th><th>Sector</th><th>Contacto</th><th>Estado</th><th></th></tr></thead><tbody>{data?.prospects.map(p=><tr key={p.id}><td>{p.name}</td><td>{p.city}<small>{p.municipality}, {p.state}</small></td><td>{p.category}</td><td>{p.public_email||p.email||"Sin correo"}{p.phone&&<small>{p.phone}</small>}</td><td>{stages[p.status]}</td><td><button className="inline-table-button" onClick={()=>setFocus({...p})}>Ficha</button></td></tr>)}</tbody></table></div>
   {!data?.prospects.length&&<p className="muted">{data?"No hay prospectos con estos filtros.":"Cargando prospectos…"}</p>}
   <div className="content-heading"><button className="button button-outline button-sm" disabled={page===0} onClick={()=>setPage(x=>x-1)}>Anterior</button><span>Página {page+1}</span><button className="button button-outline button-sm" disabled={(page+1)*50>=(data?.count.total||0)} onClick={()=>setPage(x=>x+1)}>Siguiente</button></div>
   {focus&&<div className="admin-inspector"><div className="inspector-head"><div><strong>{focus.name}</strong><small>{focus.email} · {focus.activity}</small></div><button className="inline-table-button" onClick={()=>setFocus(null)}>Cerrar</button></div><div className="form-stack">
    <label>Estado<select disabled={focus.status==="do_not_contact"} value={focus.status} onChange={e=>setFocus({...focus,status:e.target.value})}>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
-   <p>Correo original DENUE: {focus.email||"No publicado"}</p>
+   <p>{focus.address||focus.city}</p><p>Teléfono: {focus.phone||"Sin localizar"} · Correo: {focus.public_email||focus.email||"Sin localizar"}</p>{focus.website&&<p>Web: {focus.website}</p>}
    <details><summary>Datos de contacto y fuente</summary><label>Correo comercial publicado en otra fuente<input type="email" value={focus.public_email||""} onChange={e=>setFocus({...focus,public_email:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
    <label>URL de la fuente pública<input type="url" value={focus.public_email_source||""} onChange={e=>setFocus({...focus,public_email_source:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
    {focus.public_email_checked_at&&<small>Fuente registrada: {new Date(focus.public_email_checked_at).toLocaleDateString("es-MX")}</small>}
