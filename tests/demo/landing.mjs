@@ -72,7 +72,14 @@ for(const copy of [/"APK"/,/sin App Store/i,/sin Google Play/i,/sin coste/i,/PWA
 }
 assert.match(appEntry,/display-mode: standalone/,"Installed app must detect standalone mode");
 assert.match(appEntry,/Abrir como app web/,"iPhone must enable the app launch mode");
-assert.match(appEntry,/router\.replace\("\/app"\)/,"Returning customers must reach their cards");
+assert.match(appEntry,/router\.replace\("\/entrar"\)/,"Returning users are routed to their authorized role");
+assert.doesNotMatch(appEntry,/router\.replace\("\/app"\)/,"Installation and login must not force business users into the private customer area");
+assert.match(appEntry,/if\(!installing\)\{router\.replace\("\/entrar"\);return;\}/,"A signed-in user can still install from the public entry");
+assert.match(appEntry,/const installing=!appMode&&new URLSearchParams\(window.location.search\).has\("instalar"\)/,"The installed app ignores the install query");
+assert.match(appEntry,/<SocialAuthButtons next="\/entrar"\/>/);
+assert.match(installUi,/if\(ios\)\{window.location.assign\("\/mi-loyally\?instalar=1"\);return;\}/,"iOS receives instructions without a native prompt");
+assert.doesNotMatch(installUi,/window.location.assign\("\/app"\)/);
+assert.match(installUi,/nativePrompt\.prompt\(\)/,"Android native install flow is retained");
 assert.match(appEntry,/Añadir a mi móvil/,"Customers can install from app entry");
 assert.match(manifest,/start_url:"\/mi-loyally"/,"The installed icon opens the customer-first experience");
 assert.match(manifest,/display:"standalone"/,"The app has a standalone window");
