@@ -67,6 +67,11 @@ try{
  finance=(await db.query("SELECT * FROM public.business_customer_financials($1)",[biz.id])).rows[0];
  assert.equal(Number(finance.sales_cents),5500);
  assert.equal(Number(finance.reward_cost_cents),350,"Default reward cost is also frozen per redemption");
+ // now() is fixed for the enclosing test transaction; place the events inside the report window.
+ await db.query("RESET ROLE");
+ await db.query("UPDATE public.loyalty_transactions SET created_at=now()-interval '1 second' WHERE business_id=$1",[biz.id]);
+ await db.query("UPDATE public.reward_redemptions SET redeemed_at=now()-interval '1 second' WHERE business_id=$1",[biz.id]);
+ await db.query("SET LOCAL ROLE authenticated");
  const metrics=(await db.query("SELECT * FROM public.business_dashboard_metrics($1,30)",[biz.id])).rows;
  assert.equal(Number(metrics.find(r=>r.metric==="reward_cost_cents").current_value),350);
  await db.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[users["cliente@loyally.local"]]);

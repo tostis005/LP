@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS public.program_reward_costs(
  cost_cents integer CHECK(cost_cents BETWEEN 0 AND 100000000)
 );
 ALTER TABLE public.program_reward_costs ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.program_reward_costs FROM PUBLIC,anon,authenticated,lp_api;
 CREATE OR REPLACE FUNCTION public.business_default_reward_cost(p_business uuid)
 RETURNS TABLE(cost_cents integer) LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $fin$
 BEGIN

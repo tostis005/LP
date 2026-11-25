@@ -57,6 +57,9 @@ export function BusinessAnalytics({currency,showMoney,metrics,summary,growth,ran
  const sales=legacy("sales_cents"),cost=legacy("reward_cost_cents"),visits=legacy("visits"),redeems=legacy("redemptions"),missingSales=legacy("unpriced_purchases"),missingCosts=legacy("unpriced_rewards");
  const money=(n:number)=>new Intl.NumberFormat("es-MX",{style:"currency",currency}).format(n/100);
  const complete=visits>0&&missingSales===0&&missingCosts===0;
+ const previous=(key:string)=>Number(metrics.find(m=>m.metric===key)?.previous_value||0);
+ const comparableSales=visits>0&&previous("visits")>0&&missingSales===0&&previous("unpriced_purchases")===0;
+ const comparableCosts=missingCosts===0&&previous("unpriced_rewards")===0;
  const kpis=[
   {key:"new_customers",label:"Nuevas tarjetas",value:integer(lookup("new_customers")),helper:"Clientes que se han inscrito"},
   {key:"habitual_customers",label:"Clientes habituales",value:integer(lookup("habitual_customers")),helper:"Con compras recurrentes en el periodo"},
@@ -77,9 +80,9 @@ export function BusinessAnalytics({currency,showMoney,metrics,summary,growth,ran
    <small>{card.helper}</small>
   </article>)}</div>
   {showMoney&&<section className="panel-card"><h3>Rendimiento económico</h3><p className="muted">Compras vinculadas a la fidelización · últimos {days} días</p><div className="owner-kpi-grid">
-   <article className="owner-kpi"><span>Importe registrado</span><strong>{visits>missingSales?money(sales):"—"}</strong><small>{integer(visits-missingSales)} de {integer(visits)} compras con importe</small></article>
+   <article className="owner-kpi"><span>Importe registrado</span><strong>{visits>missingSales?money(sales):"—"}</strong><small>{integer(visits-missingSales)} de {integer(visits)} compras con importe</small>{comparableSales&&<Change value={sales} previous={previous("sales_cents")}/>}</article>
    <article className="owner-kpi"><span>Ticket medio registrado</span><strong>{visits>missingSales?money(sales/(visits-missingSales)):"—"}</strong><small>Solo compras con importe</small></article>
-   <article className="owner-kpi"><span>Coste de regalos</span><strong>{redeems===0||redeems>missingCosts?money(cost):"—"}</strong><small>{integer(redeems-missingCosts)} de {integer(redeems)} canjes con coste</small></article>
+   <article className="owner-kpi"><span>Coste de regalos</span><strong>{redeems===0||redeems>missingCosts?money(cost):"—"}</strong><small>{integer(redeems-missingCosts)} de {integer(redeems)} canjes con coste</small>{comparableCosts&&<Change value={cost} previous={previous("reward_cost_cents")}/>}</article>
    <article className="owner-kpi"><span>Coste / ventas registradas</span><strong>{complete&&sales>0?(cost/sales*100).toFixed(1)+" %":"—"}</strong><small>Solo con datos completos</small></article>
    <article className="owner-kpi"><span>Ventas por cada {currency} invertido en premios</span><strong>{complete&&cost>0?(sales/cost).toFixed(2)+"×":"—"}</strong><small>Ratio descriptivo, no ROI incremental</small></article>
    </div>{(missingSales>0||missingCosts>0)&&<p className="muted">Histórico incompleto: {integer(missingSales)} compras sin importe y {integer(missingCosts)} premios sin coste. No se estiman valores desconocidos.</p>}
