@@ -1,5 +1,5 @@
 import {actorFromRequest,asActor,checkOrigin,responseError,ApiError,type Actor} from "@/lib/server/db";
-import {foodPilotImport,decodeDenue} from "@/lib/server/denue";
+import {foodPilotImport,compatibleDenueImport,decodeDenue} from "@/lib/server/denue";
 import {downloadOfficialCsv,officialCities} from "@/lib/server/denue-download";
 import type {PoolClient} from "pg";
 export const runtime="nodejs";
@@ -55,20 +55,21 @@ export async function POST(request:Request){
   if(edition&&!/^20\d{2}-(05|11)$/.test(edition))throw new ApiError("Edición DENUE inválida.");
   if(municipality&&!/^\d{5}$/.test(municipality))throw new ApiError("Clave municipal inválida.");
   if(mode!=="preview"&&mode!=="import"&&!official)throw new ApiError("Modo inválido.");
+  const parse=municipality==="02003"?foodPilotImport:compatibleDenueImport;
   let data:ReturnType<typeof foodPilotImport>,filename:string;
   if(official){
    const existing=await admin(request,async c=>(await c.query("SELECT report FROM public.crm_import_runs WHERE filename=$1 ORDER BY created_at DESC LIMIT 1",[officialCity!.filename])).rows[0]);
    if(existing)return Response.json({report:existing.report,imported:0,alreadyImported:true},{headers});
    if(officialImportRunning)throw new ApiError("La importación oficial ya está en curso.",409);
    officialImportRunning=true;
-   try{data=foodPilotImport(await downloadOfficialCsv(municipality),municipality);}finally{officialImportRunning=false;}
+   try{data=parse(await downloadOfficialCsv(municipality),municipality);}finally{officialImportRunning=false;}
    filename=officialCity!.filename;
    if(data.prospects.length===0)throw new ApiError("El archivo oficial no contiene prospectos del municipio.",502);
   }else{
    if(!(file instanceof File)||!file.name.toLowerCase().endsWith(".csv"))throw new ApiError("Selecciona el CSV oficial descomprimido del DENUE.");
    if(file.size>40*1024*1024)throw new ApiError("Divide el CSV en archivos de hasta 40 MB, conservando la cabecera.",413);
    filename=file.name.slice(0,240);
-   try{data=foodPilotImport(decodeDenue(await file.arrayBuffer()),municipality);}catch(e){throw new ApiError(e instanceof Error?e.message:"CSV inválido.");}
+   try{data=parse(decodeDenue(await file.arrayBuffer()),municipality);}catch(e){throw new ApiError(e instanceof Error?e.message:"CSV inválido.");}
   }
   if(mode==="preview")return Response.json({report:data.report},{headers});
   if(data.report.total===0)throw new ApiError("El archivo no contiene establecimientos válidos para el filtro.");
@@ -87,7 +88,7 @@ export async function POST(request:Request){
     changed+=result.rowCount||0;
    }
    await c.query("UPDATE public.crm_prospects p SET status='do_not_contact',updated_at=now() WHERE p.status<>'do_not_contact' AND EXISTS (SELECT 1 FROM public.crm_email_exclusions e WHERE e.email IN (lower(p.email),lower(p.public_email)))");
-   await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[filename,JSON.stringify({...data.report,edition:edition||null,scope:municipality,pilotFood:true})]);
+   await c.query("INSERT INTO public.crm_import_runs(filename,report) VALUES($1,$2::jsonb)",[filename,JSON.stringify({...data.report,edition:edition||null,scope:municipality,pilotFood:municipality==="02003"})]);
    return changed;
   });
   return Response.json({report:data.report,imported},{headers});
