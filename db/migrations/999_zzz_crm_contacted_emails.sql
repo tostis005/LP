@@ -30,18 +30,18 @@ INSERT INTO public.crm_contacted_emails(email,first_contacted_at)
 
 CREATE FUNCTION public.crm_email_blocked_for_first_contact(address text) RETURNS boolean
  LANGUAGE sql STABLE SET search_path=pg_catalog,public AS $$
- SELECT nullif(lower(btrim(address)),'') IS NULL
- OR EXISTS(SELECT 1 FROM public.crm_contacted_emails e WHERE e.email=lower(btrim(address)))
- OR EXISTS(SELECT 1 FROM public.crm_email_exclusions e WHERE lower(btrim(e.email))=lower(btrim(address)))
- OR EXISTS(SELECT 1 FROM public.crm_mail_attempts a WHERE lower(btrim(a.recipient))=lower(btrim(address)))
- OR EXISTS(SELECT 1 FROM public.crm_mail_history h WHERE h.direction='outbound' AND lower(btrim(h.correspondent))=lower(btrim(address)))
+ SELECT nullif(lower(btrim($1)),'') IS NULL
+ OR EXISTS(SELECT 1 FROM public.crm_contacted_emails e WHERE e.email=lower(btrim($1)))
+ OR EXISTS(SELECT 1 FROM public.crm_email_exclusions e WHERE lower(btrim(e.email))=lower(btrim($1)))
+ OR EXISTS(SELECT 1 FROM public.crm_mail_attempts a WHERE lower(btrim(a.recipient))=lower(btrim($1)))
+ OR EXISTS(SELECT 1 FROM public.crm_mail_history h WHERE h.direction='outbound' AND lower(btrim(h.correspondent))=lower(btrim($1)))
  OR EXISTS(SELECT 1 FROM public.crm_prospects p WHERE p.status IN ('contacted','interested','trial','converted','discarded','do_not_contact')
-   AND (lower(btrim(p.email))=lower(btrim(address)) OR lower(btrim(p.public_email))=lower(btrim(address))));
+   AND (lower(btrim(p.email))=lower(btrim($1)) OR lower(btrim(p.public_email))=lower(btrim($1))));
  $$;
 
 CREATE FUNCTION public.crm_record_contacted_email(address text) RETURNS void
  LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
- DECLARE normalized text:=lower(btrim(address));
+ DECLARE normalized text:=lower(btrim($1));
  BEGIN
   IF normalized IS NULL OR normalized='' THEN RETURN; END IF;
   PERFORM pg_advisory_xact_lock(hashtext('crm-sendcorex-send'));
@@ -90,6 +90,7 @@ CREATE FUNCTION public.crm_record_delivered_address() RETURNS trigger
 CREATE TRIGGER crm_record_delivered_address AFTER INSERT OR UPDATE OF delivery_status ON public.crm_mail_history
  FOR EACH ROW EXECUTE FUNCTION public.crm_record_delivered_address();
 REVOKE ALL ON FUNCTION public.crm_record_delivered_address() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.crm_inherit_contacted_email(),public.crm_contact_address_write_lock(),public.crm_record_delivered_address() TO authenticated;
 -- One-time reconciliation of every existing duplicate.
 UPDATE public.crm_prospects p SET status='contacted',updated_at=now()
  WHERE p.status IN ('pending_review','qualified') AND EXISTS(
