@@ -179,3 +179,14 @@ assert.match(en.benefits.items[3].title,/offline/i);
 assert.match(landingUi,/name="Café Noma"/);
 assert.doesNotMatch(landingUi,/loi-hero-spark|✦/);
 assert.match(landingCss,/cafe-noma-beans\.svg/);
+
+const contactUi=readFileSync(new URL("../../app/solicitar-acceso/page.tsx",import.meta.url),"utf8");
+const contactCss=readFileSync(new URL("../../app/public-pages.css",import.meta.url),"utf8");
+assert.match(contactUi,/request-kicker/);
+assert.match(contactUi,/request-form-heading/);
+assert.match(contactUi,/fetch\("\/api\/leads"/);
+assert.match(contactUi,/consent_contact,website/);
+assert.match(contactUi,/id="consent-access" required/);
+assert.match(contactUi,/honeypot-field/);
+assert.match(contactCss,/\.request-page \.request-copy h1 em\{color:#f2ca7e\}/);
+assert.match(contactCss,/\.request-page \.request-form\{/);
