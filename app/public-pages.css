@@ -119,3 +119,75 @@
  .join-page-rich .join-action-panel,.join-page-rich .join-info-panel,.join-page-rich .join-side-card{padding:16px}
  .join-page-rich .join-action-panel h2{font-size:20px}
 }
+
+/* Contacto comercial: prolonga el lenguaje visual del hero sin alterar el alta. */
+.request-page{
+ position:relative;isolation:isolate;overflow:hidden;
+ background:radial-gradient(ellipse at 15% 35%,#783044 0%,transparent 56%),linear-gradient(128deg,#35111e,#501729 72%,#32101e);
+ padding:clamp(46px,6.5vw,90px) 0 clamp(56px,7vw,105px);
+}
+.request-page::before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background-image:radial-gradient(rgba(245,214,158,.19) .8px,transparent .8px);
+ background-size:23px 23px;mask-image:linear-gradient(100deg,#000,transparent 72%);
+}
+.request-page .request-grid{gap:clamp(28px,6vw,92px);align-items:start}
+.request-page .request-copy{padding-top:12px;min-width:0}
+.request-kicker{
+ display:inline-flex;align-items:center;gap:8px;padding:8px 12px;
+ border-radius:30px;border:1px solid #f0ce9040;background:#ffffff0b;
+ color:#f0ce90;font-size:10px;font-weight:850;letter-spacing:.12em;
+}
+.request-kicker>span{width:7px;height:7px;border-radius:50%;background:#edc476;box-shadow:0 0 0 4px #edc47622}
+.request-page .request-copy h1{
+ font-family:var(--font-heading),sans-serif;letter-spacing:-.055em;
+ font-size:clamp(38px,4.9vw,68px);line-height:1.04;color:#fff9ef;
+ margin:24px 0 22px;
+}
+.request-page .request-copy h1 em{color:#f2ca7e}
+.request-page .request-copy>p{color:#f2dfe2;font-size:16px;line-height:1.7;max-width:510px}
+.request-page .request-benefits{gap:10px;margin:30px 0 24px}
+.request-page .request-benefits>div{
+ gap:13px;padding:11px 13px;border:1px solid #fff2;
+ border-radius:13px;background:#ffffff0b;align-items:center;
+}
+.request-page .request-benefits>div>span{min-width:0}
+.request-page .request-benefits strong,.request-page .request-benefits small{display:block}
+.request-page .request-benefits strong{color:#fff8ee;font-size:14px;line-height:1.4}
+.request-page .request-benefits small{color:#e7cdd2;font-size:12px;font-weight:500;line-height:1.5;margin-top:3px}
+.request-page .request-benefit-icon{width:40px;height:40px;border-radius:10px;background:#f1cb80;color:#4e192a}
+.request-page .request-note{
+ max-width:100%;color:#f1dce1;background:#ffffff08;border:1px solid #f0ce9040;
+ padding:15px;border-radius:13px;line-height:1.6;
+}
+.request-page .request-note strong,.request-page .request-note svg{color:#f2ca7e}
+.request-page .request-app-link{display:inline-flex;align-items:center;gap:8px;color:#f4d798;font-size:13px;font-weight:750;margin-top:20px;text-decoration:underline;text-underline-offset:4px}
+.request-page .request-form{
+ position:relative;background:#fffdfa;border:1px solid #f2dfc0;border-top:4px solid #f1cb80;
+ border-radius:24px;padding:clamp(21px,3.1vw,38px);
+ box-shadow:0 25px 65px #22091045;
+}
+.request-form-heading{display:flex;align-items:center;gap:13px;margin-bottom:12px}
+.request-form-heading .panel-icon{margin:0;width:45px;height:45px;display:grid;place-items:center;border-radius:12px;background:#f5e7ca;color:#5e1a2b}
+.request-form-kicker{display:block;color:#946b3e;font-size:10px;letter-spacing:.12em;font-weight:850;margin-bottom:3px}
+.request-page .request-form h2{margin:0;color:#401424;letter-spacing:-.035em;font-size:clamp(25px,3vw,32px);line-height:1.15}
+.request-page .request-form .form-stack{margin-top:22px}
+.request-page .request-form .form-stack :is(input:not([type=checkbox]),select,textarea){
+ background:#fff;border-color:#e8dcd5;border-radius:10px;
+}
+.request-page .request-form .button-dark{background:#5e1a2b;color:#fff9ef;border-radius:12px;min-height:49px}
+.request-page .request-form .button-dark:hover{background:#421223}
+.request-page .request-form .tiny-note{line-height:1.55}
+@media(max-width:850px){
+ .request-page .request-grid{grid-template-columns:minmax(0,1fr);max-width:660px}
+ .request-page .request-copy{padding-top:0}
+ .request-page .request-copy h1{font-size:clamp(37px,7.5vw,55px)}
+ .request-page .request-form{width:100%;max-width:none}
+}
+@media(max-width:520px){
+ .request-page .request-grid{gap:27px}
+ .request-page .request-copy>p{font-size:14px}
+ .request-page .request-benefits{margin:23px 0 19px;gap:8px}
+ .request-page .request-benefits>div{padding:10px}
+ .request-page .request-form{border-radius:19px;padding:20px}
+}
