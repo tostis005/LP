@@ -9,7 +9,7 @@ import {StampMark} from "@/components/StampMarks";
 import {KreyvIcon} from "@/components/KreyvIcon";
 import {LANDING_COPY,landingHref,type LandingLanguage} from "@/lib/landing-copy";
 
-const BENEFIT_ICONS=["favoritos","premios","comercio","perfil"] as const;
+const BENEFIT_ICONS=["premios","comercio","perfil","favoritos"] as const;
 
 export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
  const t=LANDING_COPY[lang];
@@ -48,8 +48,6 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
    </section>
    <section className="loi-audience-strip loi-audience-expanded" aria-labelledby="loi-audience-heading"><div className="container loi-audience-expanded-inner"><div className="loi-audience-title"><span className="loi-overline">{t.audience.eyebrow}</span><h2 id="loi-audience-heading">{lang==="en"?"For any business that wants loyal customers.":"Para cualquier negocio que quiera clientes que vuelvan."}</h2><p><BrandText value={lang==="en"?"From neighborhood favorites to growing chains, Kreyvi adapts to your business.":"Desde un pequeño establecimiento hasta una cadena de locales: Kreyvi se adapta a ti."}/></p></div><div className="loi-audience-list"><span><StampMark kind="cafeteria" size={24}/>{lang==="en"?"Coffee shops":"Cafeterías"}</span><span><StampMark kind="restaurante" size={24}/>{lang==="en"?"Restaurants":"Restaurantes"}</span><span><StampMark kind="barberia" size={24}/>{lang==="en"?"Barbershops":"Barberías"}</span><span><StampMark kind="peluqueria" size={24}/>{lang==="en"?"Hair salons":"Peluquerías"}</span><span><StampMark kind="panaderia" size={24}/>{lang==="en"?"Bakeries":"Panaderías"}</span><span><StampMark kind="gimnasio" size={24}/>{lang==="en"?"Gyms":"Gimnasios"}</span><span><StampMark kind="mascotas" size={24}/>{lang==="en"?"Pet services":"Mascotas"}</span><span><StampMark kind="floristeria" size={24}/>{lang==="en"?"Flower shops":"Floristerías"}</span><span><StampMark kind="comercio" size={24}/>{lang==="en"?"Retail shops":"Comercios"}</span><span><StampMark kind="spa" size={24}/>{lang==="en"?"Spas":"Spa y bienestar"}</span><span><StampMark kind="automocion" size={24}/>{lang==="en"?"Auto services":"Automoción"}</span><span><StampMark kind="categorias" size={24}/>{lang==="en"?"And more":"Y muchos más"}</span></div></div></section>
 
-   <InstallGuide lang={lang}/>
-
    <section className="loi-section" id="beneficios">
     <div className="container">
      <div className="loi-section-lead"><div><span className="loi-overline">{t.benefits.eyebrow}</span><h2>{t.benefits.first}<br/><em><BrandText value={t.benefits.second}/></em></h2></div><p>{t.benefits.intro}</p></div>
@@ -61,6 +59,20 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
     <div className="container loi-process-layout">
      <div className="loi-process-copy"><span className="loi-overline">{t.how.eyebrow}</span><h2>{t.how.first} <em>{t.how.second}</em></h2><p>{t.how.intro}</p><Link href="/solicitar-acceso" className="loi-text-link">{t.how.cta} <ArrowUpRight size={18}/></Link></div>
      <div className="loi-process-steps">{t.how.items.map((s,i)=><article className="loi-step" key={s.title}><span>0{i+1}</span><div><h3>{s.title}</h3><p>{s.text}</p></div><Check size={19}/></article>)}</div>
+    </div>
+   </section>
+
+   <section className="loi-section" id="comunidad">
+    <div className="container loi-design-layout">
+     <div className="loi-design-copy"><span className="loi-overline">{t.community.eyebrow}</span><h2>{t.community.first} <em>{t.community.second}</em></h2><p>{t.community.intro}</p><Link href="/solicitar-acceso" className="loi-button loi-button-main">{lang==="en"?"Join the community":"Únete a la comunidad"} <ArrowUpRight size={18}/></Link></div>
+     <div className="loi-process-steps">{t.community.items.map((item,i)=><article className="loi-step" key={item.title}><span><KreyvIcon name={BENEFIT_ICONS[i]} size={25}/></span><div><h3>{item.title}</h3><p>{item.text}</p></div><Check size={19}/></article>)}</div>
+    </div>
+   </section>
+
+   <section className="loi-process" id="panel-negocio">
+    <div className="container loi-process-layout">
+     <div className="loi-process-copy"><span className="loi-overline">{t.dashboard.eyebrow}</span><h2>{t.dashboard.first} <em>{t.dashboard.second}</em></h2><p>{t.dashboard.intro}</p><Link href="/solicitar-acceso" className="loi-text-link">{t.hero.primary} <ArrowUpRight size={18}/></Link></div>
+     <div className="loi-process-steps">{t.dashboard.items.map((item,i)=><article className="loi-step" key={item.title}><span><KreyvIcon name={BENEFIT_ICONS[(i+2)%BENEFIT_ICONS.length]} size={25}/></span><div><h3>{item.title}</h3><p>{item.text}</p></div><Check size={19}/></article>)}</div>
     </div>
    </section>
 
@@ -78,8 +90,10 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
     </div>
    </section>
 
+   <InstallGuide lang={lang}/>
+
    <section className="loi-final-section" id="empezar"><div className="container"><div className="loi-final-card"><div><span className="loi-overline">{t.final.eyebrow}</span><h2>{t.final.first}<br/><em>{t.final.second}</em></h2><p>{t.final.description}</p><div className="loi-final-actions"><Link href="/solicitar-acceso" className="loi-button loi-button-cream">{t.final.primary} <ArrowUpRight size={19}/></Link><Link href="/acceder" className="loi-final-secondary">{t.final.secondary} <ArrowRight size={17}/></Link></div></div><div className="loi-final-deco" aria-hidden="true"><KreyvIcon name="premios" size={170}/><KreyvIcon name="recompensa" size={58}/></div></div></div></section>
   </main>
-  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand href={landingHref(lang)}/><p>{t.footer.tagline}<br/>{t.footer.description}</p></div><nav aria-label={lang==="en"?"Footer links":"Enlaces del pie de página"}><Link href={landingHref(lang,"beneficios")}>{t.footer.benefits}</Link><Link href={landingHref(lang,"como-funciona")}>{t.footer.how}</Link><Link href="/solicitar-acceso">{t.footer.contact}</Link><Link href="/acceder">{t.footer.access}</Link><Link href={landingHref(lang,"instalar")}>{lang==="en"?"The app":"La app"}</Link></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} <BrandText value="Kreyvi"/></span><span><BrandText value={t.footer.goodbye}/></span></div></footer>
+  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand href={landingHref(lang)}/><p>{t.footer.tagline}<br/>{t.footer.description}</p></div><nav aria-label={lang==="en"?"Footer links":"Enlaces del pie de página"}><Link href={landingHref(lang,"beneficios")}>{t.footer.benefits}</Link><Link href={landingHref(lang,"como-funciona")}>{t.footer.how}</Link><Link href={landingHref(lang,"comunidad")}>{lang==="en"?"Community":"Comunidad"}</Link><Link href={landingHref(lang,"panel-negocio")}>{lang==="en"?"Business dashboard":"Panel de negocio"}</Link><Link href="/solicitar-acceso">{t.footer.contact}</Link><Link href="/acceder">{t.footer.access}</Link><Link href={landingHref(lang,"instalar")}>{lang==="en"?"The app":"La app"}</Link></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} <BrandText value="Kreyvi"/></span><span><BrandText value={t.footer.goodbye}/></span></div></footer>
  </div>;
 }
