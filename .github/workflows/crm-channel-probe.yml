@@ -1,13 +1,34 @@
 name: CRM - Canal de órdenes
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/crm-channel-probe.yml'
+      - 'scripts/crm-github-command.mjs'
+      - 'app/api/local/admin/crm/campaigns/puebla/**'
+      - 'components/AdminCrmPueblaCampaign.tsx'
+      - 'db/migrations/999_zz_crm_github_channel.sql'
+      - 'tests/demo/crm-github-channel.mjs'
   issue_comment:
     types: [created]
 permissions:
   contents: read
 concurrency:
-  group: lp-crm-command
+  group: lp-crm-command-${{ github.event_name }}
   cancel-in-progress: false
 jobs:
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/demo/crm-github-channel.mjs
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
   probe:
     if: github.repository == 'tostis005/LP' && github.event.issue.number == 84 && !github.event.issue.pull_request && github.event.comment.user.id == 23707815 && github.event.comment.user.login == 'tostis005' && github.actor == 'tostis005' && github.triggering_actor == 'tostis005' && github.event.comment.body == '/crm ping'
     runs-on: ubuntu-latest
@@ -15,3 +36,55 @@ jobs:
     steps:
       - name: Comprobar canal
         run: echo 'CRM_CHANNEL_PROBE_OK'
+
+  server:
+    if: github.repository == 'tostis005/LP' && github.event.issue.number == 84 && !github.event.issue.pull_request && github.event.comment.user.id == 23707815 && github.event.comment.user.login == 'tostis005' && github.actor == 'tostis005' && github.triggering_actor == 'tostis005' && (github.event.comment.body == '/crm puebla preview' || github.event.comment.body == '/crm puebla send 30')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - name: Ejecutar operación permitida
+        shell: bash
+        env:
+          ORDER_ID: ${{ github.event.comment.id }}
+          OPERATION: ${{ github.event.comment.body == '/crm puebla preview' && 'preview' || 'send30' }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          LP_SSH_KNOWN_HOSTS: ${{ secrets.LP_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ "$ORDER_ID" =~ ^[0-9]{1,20}$ ]] || exit 2
+          [[ "$OPERATION" == preview || "$OPERATION" == send30 ]] || exit 2
+          [[ -n "$VPS_HOST" && -n "$VPS_USER" && -n "$VPS_SSH_KEY" ]] || { echo 'Faltan credenciales SSH'; exit 2; }
+          PORT="${VPS_SSH_PORT:-22}"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$HOME/.ssh/id_deploy"
+          chmod 600 "$HOME/.ssh/id_deploy"
+          trap 'rm -f "$HOME/.ssh/id_deploy"' EXIT
+          if [[ -n "$LP_SSH_KNOWN_HOSTS" ]]; then
+            printf '%s\n' "$LP_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          else
+            echo 'Falta LP_SSH_KNOWN_HOSTS: el canal comercial exige una huella SSH previamente verificada.'
+            exit 2
+          fi
+          chmod 600 "$HOME/.ssh/known_hosts"
+          set +e
+          output=$(ssh -i "$HOME/.ssh/id_deploy" -p "$PORT" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" "bash -se -- $OPERATION $ORDER_ID" 2>/dev/null <<'REMOTE'
+          set -euo pipefail
+          cd /opt/lp
+          COMPOSE=(docker compose)
+          if ! test -r .env.production || ! docker info >/dev/null 2>&1; then
+            sudo -n docker info >/dev/null 2>&1
+            COMPOSE=(sudo -n docker compose)
+          fi
+          "${COMPOSE[@]}" --env-file .env.production exec -T automation-worker node scripts/crm-github-command.mjs "$1" "$2"
+          REMOTE
+          )
+          rc=$?
+          set -e
+          result=$(printf '%s\n' "$output" | grep -E '^CRM_RESULT (enabled|disabled|not_ready|completed|stopped|already_processed|unauthorized|invalid|error) ([0-9]|[12][0-9]|30) ([0-9]|[12][0-9]|30)$' | tail -1 || true)
+          if [[ -z "$result" ]]; then echo 'CRM_RESULT error 0 0'; exit 1; fi
+          printf '%s\n' "$result"
+          exit "$rc"
