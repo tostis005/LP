@@ -14,7 +14,10 @@ for(const route of ["card","team","reports","marketing"])
  assert.match(owner,new RegExp('\\{id:"'+route+'"'),"Business navigation must keep "+route);
 for(const s of ['cardArea==="design"','cardArea==="rules"','cardArea==="rewards"',"max_stamps_per_action","max_daily_awards_per_employee","require_ticket_reference"])assert.ok(owner.includes(s),s);
 assert.match(owner,/count!==1/,"Saves must verify affected record counts");
-assert.match(owner,/persistAsset/,"Image uploads must not discard unsaved changes");
+const upload=owner.slice(owner.indexOf("async function upload("),owner.indexOf("async function invite("));
+assert.match(upload,/setBiz\(old=>old&&old.id===selected\?\{\.\.\.old,\[field\]:data.publicUrl\}:old\)/,"Upload changes only the current draft and preserves unsaved fields");
+assert.doesNotMatch(upload,/\.from\("businesses"\)\.update|await reload\(|persistAsset/,"Image uploads must not save or reload the merchant before explicit confirmation");
+assert.match(owner,/onClick=\{saveDesigner\}/,"The owner explicitly saves the design");
 for(const key of ["new_customers","habitual_customers","avg_units_habitual","avg_visits_habitual"])assert.ok(data.includes(key),key);
 assert.match(migration,/NOT EXISTS\s*\(SELECT 1 FROM public\.loyalty_transactions reversal WHERE reversal\.reversal_of=t\.id\)/);
 assert.match(flow,/Campañas|automatización|Automatización/i);
