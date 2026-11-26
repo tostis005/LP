@@ -1,7 +1,7 @@
 "use client";
 import {useRef,useState} from "react";
 type Candidate={id:string;name:string;email:string;category:string;activity:string;source_url:string;status:string};
-type Plan={sender:string|null;remaining:number;subject:string;candidates:Candidate[]};
+type Plan={sender:string|null;remaining:number;subject:string;candidates:Candidate[];github?:{enabled:boolean;fiscalAddress:string}};
 const endpoint="/api/local/admin/crm/campaigns/puebla";
 async function call(body?:object){
  const r=await fetch(endpoint,{cache:"no-store",...(body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});
@@ -11,9 +11,17 @@ export function AdminCrmPueblaCampaign({onChange}:{onChange:()=>void}){
  const [plan,setPlan]=useState<Plan|null>(null),[selected,setSelected]=useState<string[]>([]),[address,setAddress]=useState(""),[permitted,setPermitted]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[sent,setSent]=useState<string[]>([]),[current,setCurrent]=useState("");
  const working=useRef(false);
+ const [githubNotice,setGithubNotice]=useState("");
+ async function configureGithub(enabled:boolean){
+  if(working.current||enabled&&(!permitted||address.trim().length<10))return;
+  working.current=true;setBusy(true);setError("");setGithubNotice("");
+  try{await call({action:"configure_github",enabled,permitted,fiscalAddress:address});const p:Plan=await call();setPlan(p);setSelected(p.candidates.slice(0,p.remaining).map(c=>c.id));setPermitted(false);setGithubNotice(enabled?"Canal GitHub habilitado para órdenes autorizadas.":"Canal GitHub deshabilitado.");}
+  catch(e){setError(e instanceof Error?e.message:"No se pudo configurar el canal.");}
+  finally{working.current=false;setBusy(false);}
+ }
  async function prepare(){
   if(working.current)return;working.current=true;setBusy(true);setError("");setPermitted(false);setSent([]);
-  try{const p:Plan=await call();setPlan(p);setSelected(p.candidates.slice(0,p.remaining).map(c=>c.id));}
+  try{const p:Plan=await call();setPlan(p);setAddress(p.github?.fiscalAddress||"");setSelected(p.candidates.slice(0,p.remaining).map(c=>c.id));}
   catch(e){setError(e instanceof Error?e.message:"No se pudo preparar la selección.");}
   finally{working.current=false;setBusy(false);}
  }
@@ -36,6 +44,7 @@ export function AdminCrmPueblaCampaign({onChange}:{onChange:()=>void}){
   {error&&<div role="alert" className="alert error">{error}</div>}
   {!!sent.length&&<div role="status" className="alert success">{sent.length} correos confirmados en cola. La entrega se comprueba en el historial.</div>}
   {current&&<p role="status">Enviando a {current}…</p>}
+  {githubNotice&&<p role="status">{githubNotice}</p>}
   {plan&&<div className="form-stack">
    <p>Remitente: {plan.sender||"No conectado"} · Intentos disponibles: {plan.remaining} · Seleccionados: {selected.length}</p>
    <p><strong>Asunto:</strong> {plan.subject}</p>
@@ -43,6 +52,7 @@ export function AdminCrmPueblaCampaign({onChange}:{onChange:()=>void}){
    <label>Dirección fiscal real<input value={address} maxLength={500} disabled={busy} onChange={e=>setAddress(e.target.value)} placeholder="Dirección postal del remitente"/></label>
    <label style={{display:"flex",gap:10,alignItems:"center"}}><input type="checkbox" checked={permitted} disabled={busy} onChange={e=>setPermitted(e.target.checked)}/>Confirmo que los contactos seleccionados pueden recibir esta comunicación comercial conforme a las condiciones de SendCoreX y la normativa aplicable.</label>
    <button type="button" className="button" disabled={busy||!plan.sender||!permitted||address.trim().length<10||!selected.length||selected.length>plan.remaining} onClick={()=>void send()}>Enviar {selected.length} correos seleccionados</button>
+   <div className="admin-inspector"><strong>Canal de órdenes GitHub</strong><p>Estado: {plan.github?.enabled?"Habilitado":"Deshabilitado"}. Habilitar autoriza envíos futuros de hasta 30 contactos elegibles por orden del propietario, únicamente cuando la comunicación esté permitida. Puedes revocarlo aquí. La dirección fiscal queda en el CRM, nunca en GitHub.</p><button type="button" className="button button-outline" disabled={busy||(!plan.github?.enabled&&(!plan.sender||!permitted||address.trim().length<10))} onClick={()=>void configureGithub(!plan.github?.enabled)}>{plan.github?.enabled?"Deshabilitar canal GitHub":"Autorizar canal GitHub"}</button></div>
    <small>Sin seguimiento de aperturas o clics. SendCoreX añade su mecanismo de baja. Los errores detienen el lote; no se reintenta automáticamente.</small>
   </div>}
  </section>;
