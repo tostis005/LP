@@ -19,3 +19,9 @@ CREATE POLICY crm_github_channel_admin ON public.crm_github_channel FOR ALL TO a
 CREATE POLICY crm_github_orders_admin ON public.crm_github_orders FOR ALL TO authenticated USING (public.is_platform_admin()) WITH CHECK (public.is_platform_admin());
 REVOKE ALL ON public.crm_github_channel,public.crm_github_orders FROM anon,PUBLIC;
 GRANT SELECT,INSERT,UPDATE ON public.crm_github_channel,public.crm_github_orders TO authenticated;
+
+CREATE FUNCTION public.crm_github_actor() RETURNS uuid
+ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,public
+ AS $$ SELECT authorized_by FROM public.crm_github_channel WHERE id=true $$;
+REVOKE ALL ON FUNCTION public.crm_github_actor() FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.crm_github_actor() TO lp_auth;
