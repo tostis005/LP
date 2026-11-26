@@ -25,3 +25,7 @@ Tener Google Wallet instalada en el móvil **no habilita la emisión de pases**.
 - Antes de usarlo con clientes, confirma en el móvil que Google acepta el pase; la verificación de variables por sí sola no prueba que Google haya autorizado al emisor.
 
 Documentación oficial: [crear cuenta de emisor](https://developers.google.com/wallet/generic/getting-started/issuer-onboarding), [cuenta de servicio y permisos](https://developers.google.com/wallet/generic/getting-started/auth/rest), [publicar pases](https://developers.google.com/wallet/retail/loyalty-cards/test-and-go-live/request-publishing-access).
+
+## Perfil comercial: asistencia
+
+Usa `https://kreyvi.com/help` como Customer support URL cuando esté publicado y comprobado. El formulario crea una consulta de soporte separada de las solicitudes comerciales, visible en Administración → Solicitudes de acceso. Google también solicita un correo y teléfono reales de atención al cliente en el perfil: no usar datos ficticios. La aprobación final corresponde a Google.

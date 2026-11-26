@@ -9,6 +9,7 @@ import {db} from "@/lib/supabase";
 import {dateShort} from "@/lib/format";
 import {CURRENCIES} from "@/lib/currency";
 import {AdminCampaignCharges} from "@/components/AdminCampaignCharges";
+import {AdminSupportRequests} from "./AdminSupportRequests";
 import {AdminMarketingUsers} from "./AdminMarketingUsers";
 import {AdminCrm} from "@/components/AdminCrm";
 type Biz={id:string;name:string;slug:string;currency:string;category:string|null;parent_business_id:string|null;active:boolean;public_listing:boolean;created_at:string};
@@ -200,6 +201,7 @@ function AdminContent({account,tab}:{account:Account;tab:AdminTab}){
  {focusUser&&<div className="admin-inspector"><div className="inspector-head"><div><strong>{focusUser.full_name||focusUser.email}</strong><small>{focusUser.email}</small></div><button onClick={()=>setFocusUser(null)} className="inline-table-button">Cerrar</button></div>
  {focusCards.length?focusCards.map(c=><div className="activity-row" key={c.business_id}><div className="activity-icon positive"><Store size={17}/></div><div><strong>{c.businesses?.name||c.business_id}</strong><span>Saldo: {c.balance}</span></div></div>):<p className="muted">No figura en ningún programa.</p>}</div>}
  </div>}
+ {tab==="leads"&&<AdminSupportRequests/>}
  {tab==="leads"&&<div className="panel-card"><div className="content-heading"><div><h2>Solicitudes de acceso</h2><p>Revisa cada negocio y conviértelo manualmente en cliente cuando proceda.</p></div><span className="table-pill">{leads.length} solicitudes</span></div>
  <div className="table-wrap"><table className="data-table"><thead><tr><th>Negocio</th><th>Persona</th><th>Ubicación</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
  <tbody>{leads.map(l=><tr key={l.id}>
