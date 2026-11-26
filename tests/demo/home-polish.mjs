@@ -46,7 +46,7 @@ assert.match(home,/kind="categorias"/);
 assert.match(home,/\["cafeteria","hamburgueseria","restaurante","barberia"/);
 const install=read("components/InstallGuide.tsx");
 assert.match(install,/<img src="\/kreyv-mark-v3.svg" alt=""/);
-assert.match(install,/<StampCard[^>]*icon="coffee"/);
+assert.match(install,/<StampCard[^>]*icon="nails"/);
 assert.doesNotMatch(install,/>L<\/span>/,"No Loyally placeholder in phone mockup");
 const css=read("app/landing.css");
 for(const token of ["--color-bg","--color-accent-100","--color-brand-900","--color-brand-100"])assert.ok(css.includes("var("+token+")"));
