@@ -24,7 +24,7 @@ export default function JoinPage(){
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
  const [membershipId,setMembershipId]=useState("");
- const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(false),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
+ const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(true),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con KREYVI.");setLoading(false);return}
   const [o,u,assets]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser(),db().rpc("public_business_card_assets",{p_slug:params.slug})]);
@@ -49,7 +49,7 @@ export default function JoinPage(){
     db().from("platform_admins").select("user_id").eq("user_id",u.data.user.id).maybeSingle(),
     db().from("marketing_consents").select("global_business_opt_in").eq("customer_id",u.data.user.id).is("business_id",null).maybeSingle()
    ]);
-   if(alive){setJoined(!!m.data);setMembershipId(m.data?.id||"");setIsBusinessAccount(!!admin.data||!!roles.data?.length);setGlobalConsent(defaultChoice.data?.global_business_opt_in??(u.data.user?.user_metadata?.card_notifications_opt_in===true?true:u.data.user?.user_metadata?.card_notifications_opt_in===false?false:null));}
+   if(alive){setJoined(!!m.data);setMembershipId(m.data?.id||"");setIsBusinessAccount(!!admin.data||!!roles.data?.length);const choice=defaultChoice.data?.global_business_opt_in??(u.data.user?.user_metadata?.card_notifications_opt_in===true?true:u.data.user?.user_metadata?.card_notifications_opt_in===false?false:null);setGlobalConsent(choice);setMarketing(choice!==false);}
   }
   if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);
@@ -57,16 +57,16 @@ export default function JoinPage(){
   if(!offer||busy)return;
   if(isBusinessAccount){setError("Para guardar tarjetas necesitas una cuenta de cliente.");return;}
   if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder?next="+encodeURIComponent("/unirse/"+params.slug+"?alta=1"));return;}
-  // Una sola acción inscribe la tarjeta; el consentimiento comercial es voluntario
-  // y está desmarcado de origen. El permiso del sistema push es siempre explícito.
-  const accepted=globalConsent===null?marketing:globalConsent;
-  if(accepted&&globalConsent===null&&!/^\+[1-9][0-9]{7,14}$/.test((phone||savedPhone).trim())){
-   setError("Para recibir avisos por WhatsApp, añade tu número con prefijo internacional.");
+  // El botón confirma expresamente los canales de esta tarjeta; una baja general previa se respeta.
+  // El teléfono y el permiso del sistema push son independientes de la preferencia de la tarjeta.
+  const accepted=globalConsent===true||marketing;
+  if(accepted&&phone.trim()&&phone.trim()!==savedPhone&&!/^\+[1-9][0-9]{7,14}$/.test(phone.trim())){
+   setError("Introduce un número de WhatsApp válido con prefijo internacional, o déjalo vacío.");
    return;
   }
   setBusy(true);setError("");
   try{
-   if(globalConsent===null&&accepted&&phone.trim()&&phone.trim()!==savedPhone){
+   if(accepted&&phone.trim()&&phone.trim()!==savedPhone){
     const update=await db().auth.updateUser({whatsapp:phone.trim()});
     if(update.error)throw update.error;
     setSavedPhone(phone.trim());
@@ -85,7 +85,7 @@ export default function JoinPage(){
  const autoJoinAttempted=useRef(false);
  useEffect(()=>{
   if(loading||!offer||!signed||isBusinessAccount||joined||busy||autoJoinAttempted.current)return;
-  if(new URLSearchParams(window.location.search).get("alta")!=="1"||globalConsent===null)return;
+  if(new URLSearchParams(window.location.search).get("alta")!=="1"||globalConsent!==true)return;
   // A scanned URL alone must never create a membership. The prior explicit click is required.
   if(window.localStorage.getItem("lp_pending_join")!==offer.business_id)return;
   autoJoinAttempted.current=true;
@@ -114,21 +114,21 @@ export default function JoinPage(){
       <div className="join-subscribe">
        <h2>Tu tarjeta, en el móvil</h2>
        <p>Consíguela gratis y empieza a disfrutar de tus recompensas.</p>
-       {signed&&globalConsent===null&&<>
+       {signed&&globalConsent!==true&&<>
         <label className="join-marketing-choice join-unified-promo">
          <input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);setError("")}}/>
          <span><strong><BellRing size={17}/> Quiero recibir ofertas y novedades</strong>
-          <small>No te pierdas las promociones de los locales participantes. Puedes cambiar tus preferencias en Ajustes.</small><details><summary>Más información</summary><small>De tus tarjetas actuales y futuras, por correo electrónico, WhatsApp y notificaciones push. Es opcional.</small></details>
+          <small>Activa correo electrónico, WhatsApp y notificaciones push para esta tarjeta. Puedes cambiar cada canal en Ajustes.</small><details><summary>Más información</summary><small>Es opcional. Al añadir la tarjeta con avisos confirmas esta preferencia; no cambia las de tus otras tarjetas.</small></details>
          </span>
         </label>
         {marketing&&(!/^\+[1-9][0-9]{7,14}$/.test(savedPhone))&&
          <label className="join-phone-field">Tu número de WhatsApp (con prefijo del país)
-          <input type="tel" inputMode="tel" required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/>
-          <small>Necesario para habilitar también WhatsApp. Puedes cambiarlo en Mi perfil.</small>
+          <input type="tel" inputMode="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/>
+          <small>Opcional: podrás recibir WhatsApp cuando añadas un número válido. También puedes hacerlo en Mi perfil.</small>
          </label>}
        </>}
        {error&&<div className="alert error" role="alert">{error}</div>}
-       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Añadir mi tarjeta":"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
+       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?(globalConsent===true||marketing?"Añadir tarjeta y activar avisos":"Añadir tarjeta sin avisos"):"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
       </div>}
      </section>
      <section className="join-info-panel">
