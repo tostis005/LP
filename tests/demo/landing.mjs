@@ -206,6 +206,9 @@ assert.doesNotMatch(nextConfig,/source\s*:\s*"\/"\s*,\s*destination\s*:\s*"\/pre
 
 const installedEntry=readFileSync(new URL("../../components/InstalledAppEntry.tsx",import.meta.url),"utf8");
 assert.match(installedEntry,/display-mode: standalone/);
-assert.match(installedEntry,/if\(standalone\)\{setInstalled\(true\);router.replace\("\/entrar"\);\}/);
+assert.match(installedEntry,/if\(!browser&&standalone&&location.pathname==="\/"\)window.location.replace\("\/entrar"\)/);
+assert.match(installedEntry,/display-mode: browser/);
+assert.match(rootPage,/<InstalledAppEntry\/><main className="customer-public" data-public-landing="customer">/,"The public server-rendered landing is independent of the legacy installed-app fallback");
+assert.doesNotMatch(rootPage,/<InstalledAppEntry>/,"Never wrap public content in a client-side auth boundary");
 assert.doesNotMatch(installedEntry,/auth.getUser|localStorage/,"The public browser landing never depends on the session");
 assert.match(rootPage,/dynamic="force-dynamic"/);

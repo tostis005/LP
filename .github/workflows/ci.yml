@@ -154,6 +154,7 @@ jobs:
             echo "::error::El selector no ofrece volver a español."
             exit 1
           fi
+          bash scripts/check-public-pages.sh http://127.0.0.1:3156
           echo "OK: Docker ofrece la portada comercial en español e inglés."
       - name: Verificar que la raiz sirve la presentacion y no el login
         shell: bash

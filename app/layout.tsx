@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   metadataBase:new URL("https://kreyvi.com"),
   title: BRAND_NAME + " — Tus lugares favoritos, tus próximos premios",
   description: "Todas tus tarjetas de fidelización, sellos y recompensas en un solo lugar.",
-  manifest:"/manifest.webmanifest?v=kreyvi-v2",
+  manifest:"/manifest.webmanifest?v=kreyvi-v3",
   appleWebApp:{capable:true,statusBarStyle:"default",title:BRAND_NAME},
   icons:{
    icon:[{url:"/kreyv-favicon-v3.svg",type:"image/svg+xml"},{url:"/kreyv-favicon-v3-48.png",sizes:"48x48",type:"image/png"}],

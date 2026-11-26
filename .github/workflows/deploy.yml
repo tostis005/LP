@@ -273,7 +273,25 @@ jobs:
             node:22-bookworm-slim node /setup-push-env.mjs /loyally/.env.production --kreyvi-production
 
           "${COMPOSE[@]}" --env-file .env.production config --quiet
-          "${COMPOSE[@]}" --env-file .env.production up -d --build --remove-orphans
+          # Construir y comprobar la imagen candidata antes de sustituir el servicio activo.
+          "${COMPOSE[@]}" --env-file .env.production build
+          candidate="$("${DOCKER[@]}" run -d --rm -p 127.0.0.1::3000 lp-web:latest)"
+          trap '"${DOCKER[@]}" rm -f "$candidate" >/dev/null 2>&1 || true' EXIT
+          candidate_port="$("${DOCKER[@]}" port "$candidate" 3000/tcp | sed -n 's/^127\.0\.0\.1://p' | head -1)"
+          test -n "$candidate_port"
+          candidate_ok=false
+          for attempt in $(seq 1 20); do
+            if bash scripts/check-public-pages.sh "http://127.0.0.1:$candidate_port"; then candidate_ok=true; break; fi
+            sleep 2
+          done
+          if [[ "$candidate_ok" != true ]]; then
+            "${DOCKER[@]}" logs --tail 50 "$candidate"
+            echo "ERROR: la imagen candidata no sirve las páginas públicas; no se sustituye producción."
+            exit 1
+          fi
+          "${DOCKER[@]}" rm -f "$candidate" >/dev/null
+          trap - EXIT
+          "${COMPOSE[@]}" --env-file .env.production up -d --no-build --remove-orphans
           # Verificación de solo lectura: no expone usuarios, identificadores ni mensajes.
           "${COMPOSE[@]}" --env-file .env.production exec -T db sh -c 'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' <<'NOMA_SQL'
           WITH target AS (
@@ -305,6 +323,7 @@ jobs:
                curl -fsS --max-time 8 http://127.0.0.1:3100/ -o "$homepage" &&
                grep -Fq 'Tus lugares favoritos.' "$homepage" &&
                grep -Fq 'href="/para-negocios"' "$homepage" &&
+               grep -Fq 'data-public-landing="customer"' "$homepage" &&
                ! grep -q 'Preparando tu espacio' "$homepage" &&
                curl -fsS --max-time 8 'http://127.0.0.1:3100/para-negocios?lang=en' -o "$homepage_en" &&
                grep -Fq 'More customers. More visits.' "$homepage_en" &&
@@ -330,6 +349,7 @@ jobs:
                 echo "ERROR: no se ha podido verificar Web Push por HTTPS público con certificado válido."
                 exit 1
               fi
+              bash scripts/check-public-pages.sh "https://kreyvi.com"
               echo "Kreyv responde correctamente: home ES/EN, negocio, campañas, Wallet y Web Push HTTPS activo."
               exit 0
             fi

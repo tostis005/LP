@@ -47,7 +47,7 @@ export default function Login(){
  if(!sessionReady)return <KreyviLoading label="Preparando tu espacio"/>;
  return <main className="auth-layout auth-compact auth-all-access public-login">
   <aside className="auth-story auth-story-compact">
-   <Brand light href="/entrar"/>
+   <Brand light href="/"/>
    <div className="auth-story-inner">
     <div className="auth-story-label"><Sparkles size={16}/> UNA VISITA MÁS, UNA HISTORIA MÁS</div>
     <h1>Un detalle.<br/><em>Mil motivos<br/>para volver.</em></h1>
@@ -57,7 +57,7 @@ export default function Login(){
    <div className="auth-story-foot">Kreyvi ♡ · Tan sencillo como volver.</div>
   </aside>
   <section className="auth-right auth-right-compact">
-   <div className="auth-mobile-logo"><Brand href="/entrar"/></div>
+   <div className="auth-mobile-logo"><Brand href="/"/></div>
    <div className="auth-mobile-intro"><Sparkles size={17}/><strong>Tus lugares favoritos.<br/>Tus próximos premios.</strong><p>Todos tus sellos y tarjetas, siempre contigo.</p></div>
    <div className="auth-form-wrap auth-choice-wrap auth-full-login">
     <div className="eyebrow">BIENVENIDO</div>

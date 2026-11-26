@@ -1,14 +1,13 @@
 "use client";
-import {useEffect,useLayoutEffect,useState,type ReactNode} from "react";
-import {useRouter} from "next/navigation";
+import {useEffect} from "react";
 import {KreyviLoading} from "@/components/KreyviLoading";
-// Browser visitors always see the public landing, even with an existing session.
-// Only an installed standalone window enters the private session router.
-export function InstalledAppEntry({children}:{children:ReactNode}){
- const router=useRouter(),[installed,setInstalled]=useState(false);
- useLayoutEffect(()=>{
+// The manifest launches /entrar. This isolated fallback only handles older
+// home-screen icons saved at /. It never wraps or controls the public HTML.
+export function InstalledAppEntry(){
+ useEffect(()=>{
+  const browser=window.matchMedia("(display-mode: browser)").matches;
   const standalone=window.matchMedia("(display-mode: standalone)").matches||(navigator as Navigator&{standalone?:boolean}).standalone===true;
-  if(standalone){setInstalled(true);router.replace("/entrar");}
- },[router]);
- return installed?<KreyviLoading label="Preparando tu espacio"/>:<>{children}</>;
+  if(!browser&&standalone&&location.pathname==="/")window.location.replace("/entrar");
+ },[]);
+ return <div className="installed-root-loading" aria-hidden="true"><KreyviLoading label="Abriendo Kreyvi"/></div>;
 }
