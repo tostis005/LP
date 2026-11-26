@@ -6,6 +6,7 @@ export type User={id:string;email?:string;user_metadata?:{full_name?:string;what
 import {clearOfflineAccount} from "@/lib/client/offline";
 import {showActionToast} from "@/lib/action-toast";
 const mutatingRpcs=new Set([
+ "manager_add_stamp_milestone","manager_disable_stamp_milestone","staff_claim_stamp_milestone",
  "invite_staff","set_staff_active","join_program","join_program_with_notifications","customer_set_all_notifications","staff_redeem_voucher_choice","staff_redeem_card_choice",
  "staff_redeem_voucher","staff_award_card","staff_redeem_card","business_upsert_consent",
  "business_upsert_whatsapp_consent","platform_upsert_consent","admin_create_business",

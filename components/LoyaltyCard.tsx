@@ -6,8 +6,9 @@ import {Download, Maximize2, QrCode, X} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
 import {money,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
+import {emptyMilestones,type MilestoneDetails} from "@/lib/milestones";
 import {MerchantCard} from "@/components/StampCard";
-export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void}){
+export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose,milestones=emptyMilestones}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void;milestones?:MilestoneDetails}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
  type HistoryRow={id:string;kind:string;amount_delta:number;created_at:string;reversed:boolean;reward_label:string|null;purchase_cents:number|null};
@@ -90,7 +91,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  const origin="https://kreyvi.com";
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
- const cardVisual=<MerchantCard business={business} program={program} balance={membership.balance} qrValue={qrUrl}/>;
+ const cardVisual=<MerchantCard business={business} program={program} balance={membership.balance} qrValue={qrUrl} milestones={milestones.rules}/>;
  return <>{!modalOnly&&<div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>
  <div className="merchant-card-button">{cardVisual}<button type="button" className="merchant-card-hitbox" onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}/></div>
  {!compact&&<button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><QrCode size={17}/> Ver tarjeta y QR</button>}
@@ -105,6 +106,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   <div><small>Saldo</small><strong>{units(membership.balance,program?.type,business.currency)}</strong></div>
   <div><small>Regla</small><strong>{program?.type==="stamps"?program.reward_cost+" sellos":program?.type==="points"?"Puntos":"Cashback"}</strong></div>
  </div>
+ {(milestones.rules.length>0||milestones.grants.length>0)&&<section className="customer-card-visits"><h3>Premios intermedios</h3>{milestones.rules.map(r=><p key={r.position}>Sello {r.position} · {r.label}</p>)}{milestones.grants.filter(g=>g.available).map(g=><div key={g.id} className="reward-claim-panel"><strong>{g.label}</strong><p>Premio disponible. Muestra tu QR personal en caja para canjearlo.</p></div>)}{milestones.grants.some(g=>g.redeemed)&&<p className="muted">{milestones.grants.filter(g=>g.redeemed).length} premios intermedios canjeados</p>}</section>}
  <button type="button" className="customer-show-qr" onClick={()=>setExpandedQr("card")}><QrCode size={20}/> Mostrar mi QR en caja</button>
  <div className="customer-detail-secondary">
   <p>También puedes guardar el QR como imagen.</p>

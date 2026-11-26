@@ -1,8 +1,9 @@
 "use client";
+import type {MilestoneDetails} from "@/lib/milestones";
 import type {Business,Membership,Program} from "@/lib/types";
 export type OfflineCard=Membership&{businesses:Business};
 export type OfflineAccount={id:string;area:"customer"|"staff";at:number;businesses:{id:string;name:string;program?:Program;currency?:string}[]};
-export type Snapshot={id:string;at:number;cards:OfflineCard[];programs:Program[]};
+export type Snapshot={id:string;at:number;cards:OfflineCard[];programs:Program[];milestones?:Record<string,MilestoneDetails>};
 export type Award={id:string;actor:string;business:string;token:string;at:number;amount:number;stamps:number;ticket:string|null;error?:string};
 const prefix="kreyvi-offline-v1:", accountKey=prefix+"account",snapshotKey=prefix+"cards",queuePrefix=prefix+"award:";
 export function read<T>(key:string):T|null{try{return JSON.parse(localStorage.getItem(key)||"null") as T|null}catch{return null}}
