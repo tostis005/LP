@@ -13,9 +13,12 @@ try{
  for(const key of ["owner","staff"])await q("INSERT INTO public.business_members(business_id,user_id,role) VALUES($1,$2,$3)",[id.business,id[key],key==="owner"?"owner":"employee"]);
  const m=(await q("INSERT INTO public.loyalty_memberships(business_id,customer_id) VALUES($1,$2) RETURNING id,card_token",[id.business,id.customer])).rows[0];
  const reward=(await q("INSERT INTO public.reward_options(business_id,label,cost_cents,active,position) VALUES($1,'Galleta',125,true,0) RETURNING id",[id.business])).rows[0].id;
+ const intermediate=(await q("INSERT INTO public.milestone_reward_options(business_id,label,cost_cents,active,position) VALUES($1,'Galleta intermedia',75,true,0) RETURNING id",[id.business])).rows[0].id;
  await identity(id.owner);
- const rule=(await q("SELECT public.manager_add_stamp_milestone($1,3,$2) AS id",[id.business,reward])).rows[0].id;
+ await rejected("SELECT public.manager_add_stamp_milestone($1,3,$2)",[id.business,reward],/catálogo de premios intermedios/);
+ const rule=(await q("SELECT public.manager_add_stamp_milestone($1,3,$2) AS id",[id.business,intermediate])).rows[0].id;
  await identity(id.staff);
+ assert.deepEqual((await q("SELECT id FROM public.available_rewards($1)",[id.business])).rows.map(r=>r.id),[reward]);
  const access=(await q("SELECT * FROM public.staff_offline_access()")).rows[0];
  const op=randomUUID(),at=new Date().toISOString(),args=[op,id.staff,id.business,m.card_token,0,3,"ticket-offline",at,access.revision];
  const award="SELECT public.staff_sync_award($1,$2,$3,$4,$5,$6,$7,$8,$9) AS balance";
@@ -43,8 +46,9 @@ try{
  await q("RESET ROLE");
  const check=(await q("SELECT balance,total_earned FROM public.loyalty_memberships WHERE id=$1",[m.id])).rows[0];assert.deepEqual(check,{balance:3,total_earned:3});
  const history=(await q("SELECT r.reward_label,r.cost_cents,t.amount_delta FROM public.reward_redemptions r JOIN public.loyalty_transactions t ON t.id=r.transaction_id WHERE t.membership_id=$1",[m.id])).rows;
- assert.deepEqual(history,[{reward_label:"Galleta",cost_cents:125,amount_delta:0}]);
+ assert.deepEqual(history,[{reward_label:"Galleta intermedia",cost_cents:75,amount_delta:0}]);
  await identity(id.staff);await q("SELECT public.staff_award_card($1,0,3,NULL)",[m.card_token]);
+ await rejected("SELECT public.staff_redeem_card_choice($1,NULL,$2)",[m.card_token,intermediate],/recompensa|regalo/i);
  await q("SELECT public.staff_redeem_card_choice($1,NULL,$2)",[m.card_token,reward]);
  await q("SELECT public.staff_award_card($1,0,3,NULL)",[m.card_token]);
  d=await details();assert.equal(d.grants.length,2,"New cycle unlocks another prize");assert.equal(d.grants.filter(g=>g.available).length,1);

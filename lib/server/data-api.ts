@@ -12,9 +12,9 @@ const tables=new Set([
  "profiles","platform_admins","businesses","business_members","business_invitations",
  "loyalty_programs","loyalty_memberships","loyalty_transactions","business_locations",
  "marketing_consents","marketing_campaigns","business_marketing_rates","platform_billing_settings","reward_vouchers",
- "business_billing","billing_webhook_events","business_leads","reward_options","offer_campaign_charges"
+ "business_billing","billing_webhook_events","business_leads","reward_options","milestone_reward_options","offer_campaign_charges"
 ]);
-const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads","business_marketing_rates","reward_options"]);
+const editable=new Set(["profiles","businesses","loyalty_programs","business_locations","marketing_campaigns","business_leads","business_marketing_rates","reward_options","milestone_reward_options"]);
 function ident(value:string) {
  if(!/^[a-z_][a-z0-9_]*$/.test(value))throw new ApiError("Campo o tabla no válida.");
  return '"'+value+'"';

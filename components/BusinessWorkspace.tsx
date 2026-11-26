@@ -412,7 +412,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
    <div className="check-control"><input id="require-ticket" type="checkbox" checked={prog.require_ticket_reference} onChange={e=>setProg({...prog,require_ticket_reference:e.target.checked})}/><label htmlFor="require-ticket"><strong>Exigir referencia de ticket</strong><small>Evita reutilizar el mismo identificador de venta dentro del negocio.</small></label></div></div>
    <div className="info-callout"><ShieldCheck size={18}/> Cada visita queda registrada con la fecha y el empleado que la atendió, para que puedas consultar el historial y corregir errores.</div>
    <button disabled={busy} className="button button-dark">Guardar programa <Check size={17}/></button></div></form>}
-    {tab==="card"&&cardArea==="rewards"&&<><RewardCatalog businessId={selected} currency={currency} options={rewardOptions} onSaved={reload}/>{prog.type==="stamps"&&<StampMilestoneSettings key={selected} businessId={selected} total={prog.reward_cost} options={rewardOptions}/>}</>}
+    {tab==="card"&&cardArea==="rewards"&&<><RewardCatalog businessId={selected} currency={currency} options={rewardOptions} onSaved={reload}/>{prog.type==="stamps"&&<StampMilestoneSettings key={selected} businessId={selected} total={prog.reward_cost} currency={currency}/>}</>}
    {tab==="team"&&<div className="team-section">
     {teamView==="list"?<>
      <div className="campaign-page-header team-page-header"><div><span className="page-eyebrow">PERSONAL DEL NEGOCIO</span><h2>Empleados y accesos</h2>
