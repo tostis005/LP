@@ -5,7 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import {useParams,useRouter} from "next/navigation";
-import {ArrowUpRight,Gift,Heart,MapPin,Check,ArrowLeft,BellRing} from "lucide-react";
+import {ArrowUpRight,Gift,Heart,MapPin,Check,ArrowLeft} from "lucide-react";
 import {Brand} from "@/components/Brand";
 import {logoImageUrl} from "@/lib/asset-images";
 import {MerchantCard} from "@/components/StampCard";
@@ -24,13 +24,12 @@ export default function JoinPage(){
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
  const [membershipId,setMembershipId]=useState("");
- const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false),[marketing,setMarketing]=useState(true),[phone,setPhone]=useState(""),[savedPhone,setSavedPhone]=useState(""),[globalConsent,setGlobalConsent]=useState<boolean|null>(null);
+ const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con KREYVI.");setLoading(false);return}
   const [o,u,assets]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser(),db().rpc("public_business_card_assets",{p_slug:params.slug})]);
   if(!alive)return;
   setSigned(!!u.data.user);
-  if(u.data.user){const existing=u.data.user.user_metadata?.whatsapp||"";setPhone(existing);setSavedPhone(existing)}
   if(o.error||!o.data?.length){setError("No hemos encontrado un programa disponible con este enlace.");setLoading(false);return}
   const found=o.data[0] as Offer;setOffer(found);
   setBusiness({
@@ -43,13 +42,12 @@ export default function JoinPage(){
   setProgram({type:found.program_type,reward_label:found.reward_label,reward_cost:found.reward_cost,cashback_bps:found.cashback_bps,points_per_euro:found.points_per_euro});
   setLocations(Array.isArray(found.locations_json)?found.locations_json:[]);
   if(u.data.user){
-   const [m,roles,admin,defaultChoice]=await Promise.all([
+   const [m,roles,admin]=await Promise.all([
     db().from("loyalty_memberships").select("id").eq("business_id",found.business_id).eq("customer_id",u.data.user.id).maybeSingle(),
     db().from("business_members").select("id").eq("user_id",u.data.user.id).eq("active",true).limit(1),
-    db().from("platform_admins").select("user_id").eq("user_id",u.data.user.id).maybeSingle(),
-    db().from("marketing_consents").select("global_business_opt_in").eq("customer_id",u.data.user.id).is("business_id",null).maybeSingle()
+    db().from("platform_admins").select("user_id").eq("user_id",u.data.user.id).maybeSingle()
    ]);
-   if(alive){setJoined(!!m.data);setMembershipId(m.data?.id||"");setIsBusinessAccount(!!admin.data||!!roles.data?.length);const choice=defaultChoice.data?.global_business_opt_in??(u.data.user?.user_metadata?.card_notifications_opt_in===true?true:u.data.user?.user_metadata?.card_notifications_opt_in===false?false:null);setGlobalConsent(choice);setMarketing(choice!==false);}
+   if(alive){setJoined(!!m.data);setMembershipId(m.data?.id||"");setIsBusinessAccount(!!admin.data||!!roles.data?.length);}
   }
   if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);
@@ -57,22 +55,11 @@ export default function JoinPage(){
   if(!offer||busy)return;
   if(isBusinessAccount){setError("Para guardar tarjetas necesitas una cuenta de cliente.");return;}
   if(!signed){window.localStorage.setItem("lp_pending_join",offer.business_id);router.push("/acceder?next="+encodeURIComponent("/unirse/"+params.slug+"?alta=1"));return;}
-  // El botón confirma expresamente los canales de esta tarjeta; una baja general previa se respeta.
-  // El teléfono y el permiso del sistema push son independientes de la preferencia de la tarjeta.
-  const accepted=globalConsent===true||marketing;
-  if(accepted&&phone.trim()&&phone.trim()!==savedPhone&&!/^\+[1-9][0-9]{7,14}$/.test(phone.trim())){
-   setError("Introduce un número de WhatsApp válido con prefijo internacional, o déjalo vacío.");
-   return;
-  }
+  // New cards use the account-level default; existing individual preferences are never reset.
   setBusy(true);setError("");
   try{
-   if(accepted&&phone.trim()&&phone.trim()!==savedPhone){
-    const update=await db().auth.updateUser({whatsapp:phone.trim()});
-    if(update.error)throw update.error;
-    setSavedPhone(phone.trim());
-   }
    const result=await db().rpc("join_program_with_notifications",{
-    p_business:offer.business_id,p_opted_in:accepted
+    p_business:offer.business_id,p_opted_in:true
    });
    if(result.error)throw result.error;
    window.localStorage.removeItem("lp_pending_join");
@@ -85,13 +72,13 @@ export default function JoinPage(){
  const autoJoinAttempted=useRef(false);
  useEffect(()=>{
   if(loading||!offer||!signed||isBusinessAccount||joined||busy||autoJoinAttempted.current)return;
-  if(new URLSearchParams(window.location.search).get("alta")!=="1"||globalConsent!==true)return;
+  if(new URLSearchParams(window.location.search).get("alta")!=="1")return;
   // A scanned URL alone must never create a membership. The prior explicit click is required.
   if(window.localStorage.getItem("lp_pending_join")!==offer.business_id)return;
   autoJoinAttempted.current=true;
   window.localStorage.removeItem("lp_pending_join");
   void join();
- },[loading,offer,signed,isBusinessAccount,joined,busy,globalConsent]);
+ },[loading,offer,signed,isBusinessAccount,joined,busy]);
  const category=business?.category||null;
  const offerProgram=program|| (offer?{type:offer.program_type,reward_label:offer.reward_label}:null);
  const hasLocation=locations.length>0;
@@ -114,21 +101,8 @@ export default function JoinPage(){
       <div className="join-subscribe">
        <h2>Tu tarjeta, en el móvil</h2>
        <p>Consíguela gratis y empieza a disfrutar de tus recompensas.</p>
-       {signed&&globalConsent!==true&&<>
-        <label className="join-marketing-choice join-unified-promo">
-         <input type="checkbox" checked={marketing} onChange={e=>{setMarketing(e.target.checked);setError("")}}/>
-         <span><strong><BellRing size={17}/> Quiero recibir ofertas y novedades</strong>
-          <small>Activa correo electrónico, WhatsApp y notificaciones push para esta tarjeta. Puedes cambiar cada canal en Ajustes.</small><details><summary>Más información</summary><small>Es opcional. Al añadir la tarjeta con avisos confirmas esta preferencia; no cambia las de tus otras tarjetas.</small></details>
-         </span>
-        </label>
-        {marketing&&(!/^\+[1-9][0-9]{7,14}$/.test(savedPhone))&&
-         <label className="join-phone-field">Tu número de WhatsApp (con prefijo del país)
-          <input type="tel" inputMode="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/>
-          <small>Opcional: podrás recibir WhatsApp cuando añadas un número válido. También puedes hacerlo en Mi perfil.</small>
-         </label>}
-       </>}
        {error&&<div className="alert error" role="alert">{error}</div>}
-       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?(globalConsent===true||marketing?"Añadir tarjeta y activar avisos":"Añadir tarjeta sin avisos"):"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
+       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Añadir tarjeta":"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
       </div>}
      </section>
      <section className="join-info-panel">

@@ -26,7 +26,7 @@ assert.match(offers,/offerImageUrl\(o\.image_url,480\)/);
 assert.match(details,/offerImageUrl\(offer\.image_url,960\)/);
 assert.match(getAsset,/\[96,192,256,512,480,720,960,1200\]\.includes\(width\)/,"Offer and logo sizes are all supported");
 assert.match(putAsset,/isOfferImage=match\[2\]\.startsWith\("oferta-"\)/);
-assert.match(join,/const accepted=globalConsent===true\|\|marketing/,"One-step optional consent");
+assert.match(join,/p_opted_in:true/,"New card uses default channel preferences");
 assert.match(join,/router\.replace\("\/app"/,"Open the newly added card immediately");
 assert.doesNotMatch(join,/showMarketingPrompt|No, solo mi tarjeta/,"No double confirmation");
 assert.match(notify,/open=\{expandedBusiness===card\.business_id\}/,"The focused card stays expandable");

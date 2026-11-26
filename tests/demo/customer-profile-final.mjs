@@ -13,7 +13,8 @@ assert.doesNotMatch(profile,/Tu privacidad importa|Notificaciones del teléfono|
 assert.doesNotMatch(settings,/Mi cuenta|Editar mis datos/);
 assert.match(settings,/CustomerNotificationSettings/);
 assert.match(settings,/PushPreferences/);
-assert.match(join,/globalConsent!==true/);
+assert.doesNotMatch(join,/join-marketing-choice|join-phone-field/);
+assert.match(join,/p_opted_in:true/);
 assert.match(join,/join_program_with_notifications/);
 assert.match(migration,/global_business_opt_in/);
 assert.match(migration,/customer_set_all_notifications/);

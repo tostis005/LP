@@ -6,7 +6,6 @@ import {ArrowUpRight,Compass,Gift,Plus} from "lucide-react";
 import {AppFrame, type Account} from "@/components/AppFrame";
 import {CustomerCardDeck} from "@/components/CustomerCardDeck";
 import "../customer-deck.css";
-import {PushWelcomePrompt} from "@/components/PushWelcomePrompt";
 import {db} from "@/lib/supabase";
 import type {MilestoneDetails} from "@/lib/milestones";
 import {saveCards} from "@/lib/client/offline";
@@ -87,7 +86,6 @@ function CustomerHome({account}:{account:Account}){
  const closestProgram=closest?prog(closest.business_id):undefined;
  const remaining=closest&&closestProgram?Math.max(0,closestProgram.reward_cost-closest.balance):0;
  return <div className="customer-first-layout">
-  <PushWelcomePrompt/>
   <div className="customer-home-greeting">
    <span className="customer-overline">TUS RECOMPENSAS</span>
    <h2>Hola{firstName?", "+firstName:""}<span className="customer-greeting-dot">.</span></h2>
@@ -99,7 +97,7 @@ function CustomerHome({account}:{account:Account}){
    <p>{closestProgram.reward_label}</p>
    <div className="customer-spotlight-foot"><span>{Math.min(closest.balance,closestProgram.reward_cost)}/{closestProgram.reward_cost} sellos</span><Link href={"/app?card="+encodeURIComponent(closest.id)} onClick={()=>window.dispatchEvent(new CustomEvent("kreyv:open-card",{detail:closest.id}))}>Ver tarjeta <ArrowUpRight size={17}/></Link></div>
   </section>}
-  <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza hacia arriba o abajo</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
+  <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza para girar · toca para abrir</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
   {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button> · <a href="/offline">Ver tarjetas guardadas</a></div>}
   {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<CustomerCardDeck cards={cards} programs={programs} milestones={milestones} offerCounts={offerCounts}/>}
 

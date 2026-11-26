@@ -35,7 +35,7 @@ assert.match(css,/\.workspace-customer \.customer-profile-only/);
 const home=read("app/app/page.tsx"),map=read("app/app/descubrir/page.tsx");
 const deck=read("components/CustomerCardDeck.tsx"),deckCss=read("app/customer-deck.css");
 assert.match(home,/<CustomerCardDeck/,"Keep the customer card deck");
-assert.match(deck,/onTouchStart/);assert.match(deck,/onTouchEnd/);assert.match(deck,/\(i\+delta\+cards.length\)%cards.length/,"Vertical navigation wraps");
+assert.match(deck,/onPointerMove=\{pointerMove\}/,"The wheel follows the finger throughout the gesture");assert.match(deck,/wheelDestination\(pos.current,velocity\)/,"Release retains momentum");assert.match(deck,/requestAnimationFrame/);assert.match(deckCss,/perspective:1050px/);assert.match(deckCss,/border:2px solid rgba\(255,255,255,.9\)/);
 assert.match(deck,/modalOnly autoOpen/,"Open the existing QR and reward details");
 assert.match(deckCss,/\.customer-wallet-tab\{/);assert.match(deckCss,/\.customer-wallet-logo\{/);
 assert.match(map,/className="customer-map-stage"/,"Keep integrated discovery map");

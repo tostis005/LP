@@ -11,10 +11,9 @@ const schema=read("db/migrations/999_zzzzz_card_notification_defaults.sql");
 const registry=read("lib/server/data-api.ts");
 const wallet=read("components/LoyaltyCard.tsx");
 
-assert.match(join,/checked=\{marketing\}/,"Registration shows one, explicit marketing opt-in");
+assert.doesNotMatch(join,/join-marketing-choice|join-phone-field|activar avisos|sin avisos/,"No notification step in enrollment");
 assert.doesNotMatch(join,/checked=\{pushMarketing\}|checked=\{whatsappMarketing\}/,"No redundant registration permissions");
-assert.match(join,/correo electrónico, WhatsApp y notificaciones push/,"Channels are named before consent");
-assert.match(join,/\[marketing,setMarketing\]=useState\(true\)/,"New card offers preselected channels with explicit enrollment confirmation");
+assert.match(join,/p_opted_in:true/,"New card preferences default on");
 assert.doesNotMatch(join,/showMarketingPrompt|No recibirás promociones/,"One-step enrollment does not pressure users");
 assert.match(join,/join_program_with_notifications/,"One DB call creates the card and saves all channels");
 assert.match(schema,/INSERT INTO public.marketing_consents[\s\S]*true,true,true/,"All three channel preferences enabled explicitly");
@@ -37,7 +36,7 @@ assert.match(legacy,/redirect\("\/app\/ajustes"\)/,"Old URLs continue to work");
 assert.match(read("components/PushPreferences.tsx"),/Notification.requestPermission\(\)/,"Operating-system permission remains an explicit user action");
 console.log("OK: single optional registration opt-in, three independent card channels in Ajustes and real push device consent.");
 
-assert.match(join,/Añadir tarjeta y activar avisos/,"The action expressly confirms the selected channels");
-assert.match(join,/setMarketing\(choice!==false\)/,"An earlier refusal is respected");
+assert.match(join,/signed\?"Añadir tarjeta"/);
+assert.match(schema,/IF v_existing THEN RETURN v_id/,"Existing choices cannot be overwritten by rejoining");
 assert.match(schema,/IF v_existing THEN RETURN v_id/,"Repeated enrollment never reactivates preferences");
 assert.match(schema,/global_business_opt_in IS TRUE/,"Only previously authorized missing preferences are repaired");
