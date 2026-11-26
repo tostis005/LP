@@ -599,7 +599,6 @@
  width:min(110%,510px);height:auto;aspect-ratio:1;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);
  border:1px dashed rgba(248,223,173,.55);
 }
-.loi-hero-spark{position:absolute;z-index:-1;top:8%;right:7%;color:#f5d596;font-size:58px;line-height:1;transform:rotate(-10deg)}
 .loi-site .loi-showcase-phone{
  width:min(310px,100%);padding:13px 12px 9px;border:6px solid #35101e;border-radius:29px;
  box-shadow:0 22px 55px rgba(26,4,11,.34),0 0 0 1px rgba(255,255,255,.26);
@@ -660,7 +659,6 @@
  .loi-hero-callout{position:relative;inset:auto;transform:none;max-width:none;min-width:0;padding:9px}
  .loi-site .loi-hero-orbit.orbit-a{width:min(100%,390px);top:43%}
  .loi-site .loi-hero-orbit.orbit-b{width:min(110%,440px);top:43%}
- .loi-hero-spark{font-size:37px;right:4%;top:14%}
 }
 @media(max-width:650px){
  .loi-site .loi-hero-layout{padding-block:29px 30px;gap:13px}
@@ -687,4 +685,128 @@
 @media(max-width:350px){
  .loi-hero-callouts{grid-template-columns:1fr}
  .loi-site .loi-hero-copy h1{font-size:36px}
+}
+
+/* HOME: formato ISO de tarjeta de crédito, idéntico en las tres muestras. */
+.loi-site .loi-marketing-card{
+ width:100%;max-width:420px;aspect-ratio:85.6/54;container-type:inline-size;
+ position:relative;isolation:isolate;flex:none;margin-inline:auto;
+}
+.loi-site .loi-marketing-card > .stamp-visual-card.stamp-visual-rebalanced{
+ display:block;position:absolute;inset:0;width:100%;height:100%;aspect-ratio:85.6/54;
+ min-height:0!important;max-height:none;max-width:none;box-sizing:border-box;
+ padding:4cqw!important;border-radius:5cqw;transform:none;
+ overflow:hidden;container-type:normal;
+ border:1px solid rgba(255,255,255,.2);
+ box-shadow:0 10px 25px rgba(39,19,25,.17);
+}
+.loi-site .loi-marketing-card-wine > .stamp-visual-card{
+ background-image:radial-gradient(ellipse at 100% 0%,rgba(240,199,124,.21),transparent 48%),linear-gradient(150deg,#742b3d,#471222);
+}
+.loi-site .loi-marketing-card-noma > .stamp-visual-card{
+ background-image:linear-gradient(110deg,rgba(10,36,57,.20),transparent 70%),url("/brand/cafe-noma-beans.svg");
+ background-size:cover,100% 100%;background-position:center;
+}
+.loi-site .loi-marketing-card .stamp-visual-main{
+ position:relative;display:grid;grid-template-columns:10cqw minmax(0,1fr);
+ grid-template-rows:10cqw minmax(0,1fr) auto auto;align-items:center;
+ justify-content:normal;gap:1.4cqw 2.2cqw;width:100%;height:100%;
+ min-height:0;min-width:0;overflow:visible;
+}
+.loi-site .loi-marketing-card .stamp-business-logo{
+ grid-column:1;grid-row:1;width:10cqw;height:10cqw;
+ border-radius:2.4cqw;font-size:5cqw;
+}
+.loi-site .loi-marketing-card .stamp-visual-name{
+ grid-column:2;grid-row:1;box-sizing:border-box;
+ font-size:5.2cqw;line-height:1.1;letter-spacing:-.045em;
+ padding-right:21cqw;width:100%;font-weight:800;white-space:normal;
+ overflow-wrap:normal;overflow:visible;
+}
+.loi-site .loi-marketing-card .stamp-visual-side{
+ position:absolute;top:4cqw;right:4cqw;max-width:22cqw;z-index:2;
+}
+.loi-site .loi-marketing-card .stamp-visual-pill.stamp-visual-brand{
+ padding:0.65cqw 1.4cqw!important;
+}
+.loi-site .loi-marketing-card .stamp-visual-brand img{width:17cqw!important;height:auto}
+.loi-site .loi-marketing-card .stamp-grid{
+ grid-column:1/-1;grid-row:2;width:100%;height:100%;min-height:0;
+ margin:0;padding:0;display:grid;
+ grid-template-columns:repeat(var(--stamp-columns),minmax(0,10.4cqw));
+ grid-auto-rows:minmax(0,1fr);gap:1.1cqw 3.2cqw;
+ align-content:center;justify-content:center;justify-items:center;align-items:center;
+}
+.loi-site .loi-marketing-card .stamp-slot{
+ width:100%;max-width:10.4cqw;max-height:100%;aspect-ratio:1;transform:none;
+ border-width:1px;box-sizing:border-box;
+}
+.loi-site .loi-marketing-card .stamp-slot svg{width:66%;height:66%}
+.loi-site .loi-marketing-card .stamp-slot.is-filled{background:#fff4df;border-color:#e9cb92}
+.loi-site .loi-marketing-card .stamp-slot:not(.is-filled){background:rgba(255,255,255,.07);border:1px dashed rgba(255,255,255,.63)}
+.loi-site .loi-marketing-card-noma .stamp-slot.is-filled{background:#e9f2f4;border-color:#c8e1e7}
+.loi-site .loi-marketing-card .stamp-visual-message{
+ grid-column:1/-1;grid-row:3;display:block;font-size:2.65cqw;
+ line-height:1.15;letter-spacing:.075em;white-space:nowrap;overflow:hidden;
+ text-overflow:ellipsis;opacity:.92;
+}
+.loi-site .loi-marketing-card .stamp-visual-footer{
+ grid-column:1/-1;grid-row:4;display:flex;flex-wrap:wrap;align-items:center;
+ justify-content:space-between;gap:1cqw;margin:0;padding-top:1.5cqw;
+ border-top:1px solid rgba(255,255,255,.25);min-width:0;
+}
+.loi-site .loi-marketing-card .stamp-visual-footer strong{
+ font-size:3.1cqw;line-height:1.2;color:#f6dfaf;white-space:nowrap;font-weight:700;
+}
+.loi-site .loi-marketing-card .stamp-visual-footer .stamp-reward-name{
+ font-size:3.6cqw;line-height:1.2;color:#fff;white-space:normal;
+ overflow:visible;margin:0;font-weight:800;opacity:1;
+}
+.loi-site .loi-marketing-card-noma .stamp-visual-footer strong{color:#c6e5ef}
+.loi-site .loi-design-preview{
+ min-height:0;gap:16px;padding:clamp(18px,3vw,34px);
+ background:linear-gradient(145deg,#f8f5ee,#eee5d8);
+ border:1px solid #e7ddce;border-radius:24px;
+}
+.loi-site .loi-design-preview-label{margin-bottom:0}
+.loi-site .loi-design-preview .loi-marketing-card{max-width:420px}
+.loi-site .loi-stamp-library{transform:none;margin:0;box-shadow:0 8px 24px #3d0f1b0a}
+.loi-site .loi-install-app-preview .loi-marketing-card{max-width:380px;margin-block:8px 0}
+
+/* Ritmo de portada: marfil, blanco, vino y crema, con límites ligeros. */
+.loi-site .loi-audience-expanded{
+ background:#f8f4ed;border-bottom:1px solid #e8e0d4;
+}
+.loi-site #beneficios{background:#fff}
+.loi-site #como-funciona{
+ background:linear-gradient(125deg,#35111e,#5e1a2b);
+ border-block:1px solid #541b2c;
+}
+.loi-site #comunidad{
+ background:linear-gradient(120deg,#fbf7ee,#f3e9d8);
+ border-bottom:1px solid #e9dfcf;
+}
+.loi-site #panel-negocio{
+ background:#fff;border-bottom:1px solid #ede5dc;
+}
+.loi-site #panel-negocio .loi-process-copy h2{color:var(--color-brand-900)}
+.loi-site #panel-negocio .loi-process-copy h2 em{color:var(--color-accent-600)}
+.loi-site #panel-negocio .loi-process-copy .loi-overline{color:var(--color-brand-500)}
+.loi-site #panel-negocio .loi-process-copy>p{color:var(--color-text-2)}
+.loi-site #panel-negocio .loi-text-link{color:var(--color-brand);border-color:var(--color-brand)}
+.loi-site #comunidad .loi-process-steps,.loi-site #panel-negocio .loi-process-steps{
+ box-shadow:0 12px 35px #3d0f1b0d;border-color:#e8e0d5;
+}
+.loi-site #personalizacion{background:#f8f4ed;border-bottom:1px solid #e8e0d4}
+.loi-site .loi-install-section{background:#fff;border-top:0;border-bottom:1px solid #ede5dc}
+.loi-site .loi-final-section{background:#f4eadb}
+.loi-site #beneficios,.loi-site #como-funciona,.loi-site #comunidad,
+.loi-site #panel-negocio,.loi-site #personalizacion,.loi-site #instalar,.loi-site #empezar{
+ padding-block:clamp(60px,7vw,100px);
+}
+@media(max-width:650px){
+ .loi-site .loi-design-preview{padding:17px 12px;gap:13px}
+ .loi-site .loi-stamp-library{padding:12px 8px}
+ .loi-site #beneficios,.loi-site #como-funciona,.loi-site #comunidad,
+ .loi-site #panel-negocio,.loi-site #personalizacion,.loi-site #instalar,.loi-site #empezar{padding-block:54px}
 }
