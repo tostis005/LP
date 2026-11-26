@@ -1,13 +1,34 @@
 name: CRM - Canal de órdenes
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/crm-channel-probe.yml'
+      - 'scripts/crm-github-command.mjs'
+      - 'app/api/local/admin/crm/campaigns/puebla/**'
+      - 'components/AdminCrmPueblaCampaign.tsx'
+      - 'db/migrations/999_zz_crm_github_channel.sql'
+      - 'tests/demo/crm-github-channel.mjs'
   issue_comment:
     types: [created]
 permissions:
   contents: read
 concurrency:
-  group: lp-crm-command
+  group: lp-crm-command-${{ github.event_name }}
   cancel-in-progress: false
 jobs:
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/demo/crm-github-channel.mjs
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
   probe:
     if: github.repository == 'tostis005/LP' && github.event.issue.number == 84 && !github.event.issue.pull_request && github.event.comment.user.id == 23707815 && github.event.comment.user.login == 'tostis005' && github.actor == 'tostis005' && github.triggering_actor == 'tostis005' && github.event.comment.body == '/crm ping'
     runs-on: ubuntu-latest
