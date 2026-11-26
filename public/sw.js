@@ -1,10 +1,15 @@
-/* KREYVI PWA: solo se guarda una página pública sin datos personales. */
-const CACHE="kreyv-offline-v5";
+/* KREYVI PWA: shell público y recursos estáticos; no se guardan respuestas privadas de API. */
+const CACHE="kreyv-offline-v6";
 const PUSH_ICON="/kreyv-notification-icon-v2-192.png";
 const PUSH_BADGE="/kreyv-notification-badge-v2-96.png";
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
-  await cache.add("/offline");
+  const shell=await fetch("/offline",{cache:"reload",credentials:"omit"});
+  if(!shell.ok)throw Error("Offline shell");
+  const html=await shell.clone().text();
+  const paths=[...new Set([...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(m=>m[1]).filter(p=>p.startsWith("/_next/static/")))];
+  await cache.addAll(paths);
+  await cache.put("/offline",shell);
   // Tener los símbolos de marca incluso cuando Chrome muestre una notificación sin la app abierta.
   await Promise.allSettled([cache.add(PUSH_ICON),cache.add(PUSH_BADGE)]);
  }).then(()=>self.skipWaiting()));
@@ -19,8 +24,11 @@ self.addEventListener("fetch",event=>{
   event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
   return;
  }
+ if(path.origin===self.location.origin&&(path.pathname.startsWith("/_next/static/")||path.pathname.startsWith("/brand/")||path.pathname.startsWith("/api/assets/business-assets/"))){
+  event.respondWith((async()=>{const cache=await caches.open(CACHE);try{const response=await fetch(event.request);if(response.ok&&(path.pathname.startsWith("/_next/static/")||/public/i.test(response.headers.get("Cache-Control")||"")||path.pathname.startsWith("/brand/")))await cache.put(event.request,response.clone());return response}catch{const cached=await cache.match(event.request);if(cached)return cached;return Response.error()}})());return;
+ }
  if(event.request.mode!=="navigate")return;
- event.respondWith(fetch(event.request).catch(()=>caches.match("/offline")));
+ event.respondWith(fetch(event.request).catch(async()=>{if(path.pathname==="/offline")return (await caches.match("/offline"))||Response.error();return Response.redirect(new URL("/offline",self.location.origin).href,302)}));
 });
 
 /* Notificaciones Web Push: visibles incluso con la PWA cerrada. */

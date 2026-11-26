@@ -124,6 +124,7 @@ export async function queryData(client:PoolClient,input:QueryInput) {
 type Arg=[string,"uuid"|"text"|"integer"|"boolean"|"bigint"|"double precision"];
 type Spec={args:Arg[];returns:"scalar"|"table"};
 const rpcMap:Record<string,Spec>={
+ staff_sync_award:{args:[["p_operation","uuid"],["p_actor","uuid"],["p_business","uuid"],["p_token","uuid"],["p_purchase_cents","integer"],["p_stamps","integer"],["p_ticket_ref","text"],["p_captured_at","timestamptz"]],returns:"scalar"},
  public_business_card_assets:{args:[["p_slug","text"]],returns:"table"},
  available_rewards:{args:[["p_business","uuid"]],returns:"table"},
  business_default_reward_cost:{args:[["p_business","uuid"]],returns:"table"},

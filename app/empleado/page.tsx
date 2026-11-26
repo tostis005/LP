@@ -6,6 +6,7 @@ import {BrowserQRCodeReader,type IScannerControls} from "@zxing/browser";
 import {Camera,Check,Gift,Keyboard,Minus,Plus,RefreshCw,ScanLine,ShieldCheck,StopCircle,Ticket} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {db} from "@/lib/supabase";
+import {queueAward,submitAward,awards,syncAwards,removeAward} from "@/lib/client/offline";
 import {dateShort,normalizeToken,units,customerDisplayName} from "@/lib/format";
 import {displayCurrency} from "@/lib/currency";
 type RewardChoice={id:string;label:string;retail_cents:number|null};
@@ -14,6 +15,8 @@ type Found={membership_id:string;business_id:string;business_name:string;custome
 function StaffMain({account}:{account:Account}){
  const params=useSearchParams(),[input,setInput]=useState(""),[card,setCard]=useState<Found|null>(null),[receipt,setReceipt]=useState(""),[stamps,setStamps]=useState(1),[amount,setAmount]=useState(""),[cash,setCash]=useState(""),[busy,setBusy]=useState(false),[scanner,setScanner]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
  const [rewards,setRewards]=useState<RewardChoice[]>([]),[chosen,setChosen]=useState(""),[currency,setCurrency]=useState("MXN");
+ const [queue,setQueue]=useState(()=>awards(account.user.id));
+ useEffect(()=>{const refresh=()=>{void syncAwards(account.user.id).finally(()=>setQueue(awards(account.user.id)))};refresh();window.addEventListener("online",refresh);return()=>window.removeEventListener("online",refresh)},[account.user.id]);
  const video=useRef<HTMLVideoElement>(null),controls=useRef<IScannerControls|null>(null);
  const lookup=useCallback(async(raw:string)=>{const voucherUrl=raw.match(/\/p\/([a-f0-9-]{36})/i);
   const token=voucherUrl?.[1]||normalizeToken(raw);setError("");setSuccess("");
@@ -56,7 +59,13 @@ function StaffMain({account}:{account:Account}){
   if(kind==="earn"&&card.require_purchase_amount&&(!Number.isFinite(Number(amount))||Number(amount)<=0)){setError("Introduce el importe de la compra.");return}
   setBusy(true);setError("");setSuccess("");
   let result;
-  if(kind==="earn"&&!card.voucher_id){result=await db().rpc("staff_award_card",{p_token:input,p_purchase_cents:card.require_purchase_amount?Math.round(Number(amount)*100):0,p_stamps:stamps,p_ticket_ref:receipt.trim()||null});}
+  if(kind==="earn"&&!card.voucher_id){
+   try{const a=queueAward({actor:account.user.id,business:card.business_id,token:input,amount:card.require_purchase_amount?Math.round(Number(amount)*100):0,stamps,ticket:receipt.trim()||null});const r=await submitAward(a);
+    setQueue(awards(account.user.id));
+    if(r.state!=="confirmed"){setBusy(false);setCard(null);setSuccess(r.state==="pending"?"Compra guardada. Pendiente de sincronización.":"");if(r.state==="rejected")setError(r.message||"Compra rechazada");return}
+    result={data:r.balance,error:null};
+   }catch(e){setBusy(false);setError((e as Error).message);return}
+  }
   else {if(!window.confirm("¿Confirmas el canje de esta recompensa?")){setBusy(false);return}result=card.voucher_id?await db().rpc("staff_redeem_voucher_choice",{p_token:input,p_reward_option:chosen||null}):await db().rpc("staff_redeem_card_choice",{p_token:input,p_cashback_cents:card.program_type==="cashback"?Math.round(Number(cash)*100):null,p_reward_option:chosen||null})}
   setBusy(false);if(result.error){setError(result.error.message);return}
   setSuccess(kind==="earn"?"Compra registrada. Nuevo saldo: "+units(result.data,card.program_type,currency):"Recompensa canjeada. Saldo restante: "+units(result.data,card.program_type,currency));
@@ -74,6 +83,8 @@ function StaffMain({account}:{account:Account}){
   }finally{setBusy(false)}
  }
  return <div className="staff-app">
+  <p><a href="/offline" className="button button-outline">Modo sin conexión{queue.length?" · "+queue.length+" pendientes":""}</a></p>
+  {queue.length>0&&<div className="panel-card"><h3>Compras pendientes</h3>{queue.map(a=><p key={a.id}>{a.ticket||new Date(a.at).toLocaleString()} · {a.error||"Pendiente"} {a.error&&<button type="button" onClick={()=>{if(confirm("¿Descartar la compra rechazada?")){removeAward(a);setQueue(awards(account.user.id))}}}>Descartar</button>}</p>)}<button className="button button-outline" onClick={()=>void syncAwards(account.user.id).finally(()=>setQueue(awards(account.user.id)))}>Sincronizar</button></div>}
   <div className="staff-app-intro"><span className="page-eyebrow">CAJA Y FIDELIZACIÓN</span><h2>Escanea, registra y listo.</h2><p>El QR identifica al cliente. Comprueba la operación antes de sumar sellos o canjear un premio.</p></div>
   <div className="scanner-grid"><section className="panel-card staff-scan-panel"><div className="panel-icon"><ScanLine size={23}/></div><h2>Escanear tarjeta</h2>
   {scanner?<div className="camera-frame"><video ref={video} autoPlay muted playsInline/><button className="button button-outline button-sm" onClick={stopCamera}><StopCircle size={16}/> Detener</button></div>:<div className="scanner-placeholder"><ScanLine size={54}/><span>Listo para escanear</span><small>Presenta el QR de la tarjeta del cliente.</small></div>}

@@ -7,6 +7,7 @@ import {AppFrame, type Account} from "@/components/AppFrame";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
 import {PushWelcomePrompt} from "@/components/PushWelcomePrompt";
 import {db} from "@/lib/supabase";
+import {saveCards} from "@/lib/client/offline";
 import type {Membership,Business,Program} from "@/lib/types";
 import {dateShort,units} from "@/lib/format";
 type CardRow=Membership&{businesses:Business|null};
@@ -59,9 +60,10 @@ function CustomerHome({account}:{account:Account}){
     ]);
     setPrograms((p.data||[]) as Program[]);
     setMovements((m.data||[]) as Movement[]);
+    if(!p.error&&complete.length===rows.length)saveCards({id:account.user.id,at:Date.now(),cards:complete,programs:(p.data||[]) as Program[]});
     if(p.error||m.error)setError("Algunas operaciones no están disponibles. Puedes actualizar para intentarlo de nuevo.");
    }else{
-    setPrograms([]);setMovements([]);
+    setPrograms([]);setMovements([]);if(!rows.length)saveCards({id:account.user.id,at:Date.now(),cards:[],programs:[]});
    }
   }catch{
    setError("No hemos podido cargar tus tarjetas. Comprueba la conexión e inténtalo de nuevo.");
@@ -94,7 +96,7 @@ function CustomerHome({account}:{account:Account}){
    <div className="customer-spotlight-foot"><span>{Math.min(closest.balance,closestProgram.reward_cost)}/{closestProgram.reward_cost} sellos</span><Link href={"/app?card="+encodeURIComponent(closest.id)} onClick={()=>window.dispatchEvent(new CustomEvent("kreyv:open-card",{detail:closest.id}))}>Ver tarjeta <ArrowUpRight size={17}/></Link></div>
   </section>}
   <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza para verlas</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
-  {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button></div>}
+  {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button> · <a href="/offline">Ver tarjetas guardadas</a></div>}
   {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid" role="region" aria-label="Tus tarjetas, desliza horizontalmente para verlas" tabIndex={0}>{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0} compact/>)}</div>}
 
   {movements.length>0&&<section className="customer-activity-section" aria-label="Últimos movimientos">

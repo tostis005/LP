@@ -10,7 +10,7 @@ export async function POST(request:Request){
   const input=JSON.parse(body) as {name:string;args:Record<string,unknown>};
   const actor=await actorFromRequest(request);
   const result=await asActor(actor,c=>callRpc(c,input.name,input.args||{}));
-  if(input.name==="staff_award_card"&&typeof input.args?.p_token==="string"){
+  if((input.name==="staff_award_card"||input.name==="staff_sync_award")&&typeof input.args?.p_token==="string"){
    try{await notifyReward(input.args.p_token)}catch(e){console.warn("Notificación de premio pendiente",e instanceof Error?e.message:"Error SMTP")}
   }
   return Response.json(result,{"headers":{"Cache-Control":"no-store"}});
