@@ -47,7 +47,7 @@ SELECT m.customer_id,m.business_id,true,true,true
 FROM public.loyalty_memberships m
 JOIN public.marketing_consents c ON c.customer_id=m.customer_id
  AND c.business_id IS NULL AND c.global_business_opt_in IS TRUE
-WHERE c.created_at<=m.created_at
+WHERE c.updated_at<=m.created_at
 AND NOT EXISTS(SELECT 1 FROM public.marketing_consents p
  WHERE p.customer_id=m.customer_id AND p.business_id=m.business_id)
 ON CONFLICT(customer_id,business_id) WHERE business_id IS NOT NULL DO NOTHING;

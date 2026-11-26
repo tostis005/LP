@@ -262,6 +262,27 @@ jobs:
 
           "${COMPOSE[@]}" --env-file .env.production config --quiet
           "${COMPOSE[@]}" --env-file .env.production up -d --build --remove-orphans
+          # Verificación de solo lectura: no expone usuarios, identificadores ni mensajes.
+          "${COMPOSE[@]}" --env-file .env.production exec -T db sh -c 'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' <<'NOMA_SQL'
+          WITH target AS (
+            SELECT id FROM public.businesses WHERE slug='interno-cafe-noma' AND name='Café Noma'
+          ), visible AS (
+            SELECT o.id FROM public.business_offers o JOIN target t ON t.id=o.business_id
+            WHERE o.archived_at IS NULL AND NOT EXISTS(SELECT 1 FROM public.automation_rules a WHERE a.offer_id=o.id)
+            UNION ALL
+            SELECT c.id FROM public.marketing_campaigns c JOIN target t ON t.id=c.business_id
+            WHERE c.offer_id IS NULL AND NOT EXISTS(SELECT 1 FROM public.demo_hidden_campaigns h WHERE h.business_id=c.business_id AND h.campaign_id=c.id)
+            UNION ALL
+            SELECT p.id FROM public.push_campaigns p JOIN target t ON t.id=p.business_id
+            WHERE NOT EXISTS(SELECT 1 FROM public.business_offers o WHERE o.push_campaign_id=p.id)
+            AND NOT EXISTS(SELECT 1 FROM public.demo_hidden_campaigns h WHERE h.business_id=p.business_id AND h.campaign_id=p.id)
+          )
+          SELECT (SELECT count(*) FROM target) AS noma_negocio_encontrado,
+                 (SELECT count(*) FROM visible) AS noma_campanas_manuales_visibles,
+                 EXISTS(SELECT 1 FROM public.local_schema_migrations WHERE name='999_zzzz_noma_keep_two_campaigns.sql') AS noma_limpieza_aplicada,
+                 EXISTS(SELECT 1 FROM public.local_schema_migrations WHERE name='999_zzzzz_card_notification_defaults.sql') AS avisos_migracion_aplicada;
+          NOMA_SQL
+
           # La producción no crea negocios ni usuarios ficticios. Los datos
           # y permisos existentes permanecen intactos durante el despliegue.
           homepage="$(mktemp)"
