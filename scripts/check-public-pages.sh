@@ -11,6 +11,8 @@ page() {
  if [[ "$status" != 200 ]]; then echo "PUBLIC_FAIL $path HTTP=$status"; return 1; fi
 }
 page / customer
+page /inicio customer_alias
+grep -Fq '<h1>Tus lugares favoritos.' "$dir/customer_alias" || { echo 'PUBLIC_FAIL /inicio missing heading'; exit 1; }
 grep -Fq '<main class="customer-public" data-public-landing="customer">' "$dir/customer" || { echo 'PUBLIC_FAIL / missing customer main'; exit 1; }
 grep -Fq '<h1>Tus lugares favoritos.' "$dir/customer" || { echo 'PUBLIC_FAIL / missing rendered heading'; exit 1; }
 grep -Fq 'href="/para-negocios"' "$dir/customer" || { echo 'PUBLIC_FAIL / missing business link'; exit 1; }

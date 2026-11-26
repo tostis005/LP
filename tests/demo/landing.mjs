@@ -212,3 +212,8 @@ assert.match(rootPage,/<InstalledAppEntry\/><main className="customer-public" da
 assert.doesNotMatch(rootPage,/<InstalledAppEntry>/,"Never wrap public content in a client-side auth boundary");
 assert.doesNotMatch(installedEntry,/auth.getUser|localStorage/,"The public browser landing never depends on the session");
 assert.match(rootPage,/dynamic="force-dynamic"/);
+
+assert.match(nextConfig,/beforeFiles:\[\{source:"\/",destination:"\/inicio"\}\]/,"Root is served from a dedicated public customer route without an external redirect");
+const publicAlias=readFileSync(new URL("../../app/inicio/page.tsx",import.meta.url),"utf8");
+assert.match(publicAlias,/return <CustomerHome\/>/);
+assert.doesNotMatch(publicAlias,/redirect\(|auth.getUser/);

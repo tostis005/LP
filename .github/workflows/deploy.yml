@@ -211,7 +211,7 @@ jobs:
             -o IdentitiesOnly=yes -o BatchMode=yes \
             -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
-            -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" 'bash -se' <<'REMOTE'
+            -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" "bash -se -- $GITHUB_SHA" <<'REMOTE'
           set -euo pipefail
           cd /opt/lp
           test -f .env.production || { echo "ERROR: falta /opt/lp/.env.production"; exit 1; }
@@ -250,6 +250,10 @@ jobs:
             "${GIT_CMD[@]}" switch -c main --track origin/main
           fi
           "${GIT_CMD[@]}" pull --ff-only origin main
+          if [[ "$("${GIT_CMD[@]}" rev-parse HEAD)" != "$1" ]]; then
+            echo "Hay una revisión más reciente; no se despliega un commit que este workflow no ha verificado."
+            exit 1
+          fi
 
           # Ejecutar Compose como root cuando el fichero de entorno está protegido
           # o cuando la cuenta de despliegue no tiene acceso al socket de Docker.
