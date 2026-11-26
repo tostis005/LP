@@ -32,7 +32,7 @@ export default function Login(){
     if(data.session)router.replace(loginTarget);else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");
    }else{
     const {error}=await db().auth.signInWithPassword({email,password});
-    if(error)throw error;router.push(loginTarget);
+    if(error)throw error;router.replace(loginTarget);
    }
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }

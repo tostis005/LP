@@ -233,7 +233,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    </form>
   </div>
   {focus&&<div className="crm-inspector-wrap" onClick={e=>{if(e.target===e.currentTarget&&!busy)setFocus(null);}}><div className="admin-inspector" role="dialog" aria-modal="true" aria-label="Ficha del negocio"><div className="inspector-head"><div><strong>{focus.name}</strong><small>{focus.email} · {focus.activity}</small></div><button className="inline-table-button" onClick={()=>setFocus(null)}>Cerrar</button></div><div className="form-stack">
-   <label>Estado<select disabled={marketingOnly||focus.status==="do_not_contact"} value={focus.status} onChange={e=>setFocus({...focus,status:e.target.value})}>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
+   <label>Estado<select disabled={focus.status==="do_not_contact"} value={focus.status} onChange={e=>setFocus({...focus,status:e.target.value})}>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
    <p>{focus.address||focus.city}{focus.neighborhood&&" · "+focus.neighborhood}{focus.postal_code&&" · CP "+focus.postal_code}</p>{focus.instagram&&<p>Instagram: {focus.instagram}</p>}{(focus.latitude||focus.longitude)&&<p>Coordenadas: {focus.latitude||"—"}, {focus.longitude||"—"}</p>}<p>Teléfono: {focus.phone||"Sin localizar"} · Correo: {focus.public_email||focus.email||"Sin localizar"}</p>{focus.website&&<p>Web: {focus.website}</p>}
    <details hidden={marketingOnly}><summary>Datos de contacto y fuente</summary><label>Correo comercial publicado en otra fuente<input type="email" value={focus.public_email||""} onChange={e=>setFocus({...focus,public_email:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
    <label>URL de la fuente pública<input type="url" value={focus.public_email_source||""} onChange={e=>setFocus({...focus,public_email_source:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
@@ -243,8 +243,8 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    <label>Fuente revisada (URL)<input type="url" value={focus.contact_review_url||""} onChange={e=>setFocus({...focus,contact_review_url:e.target.value})}/></label>
    {focus.contact_reviewed_at&&<small>Última revisión: {new Date(focus.contact_reviewed_at).toLocaleDateString("es-MX")}</small>}
    </details>
-   <label>Notas<textarea readOnly={marketingOnly} maxLength={2000} value={focus.notes} onChange={e=>setFocus({...focus,notes:e.target.value})}/></label>
-   {!marketingOnly&&<button className="button button-dark button-sm" disabled={busy} onClick={save}>Guardar ficha</button>}
+   <label>Notas<textarea maxLength={2000} value={focus.notes} onChange={e=>setFocus({...focus,notes:e.target.value})}/></label>
+   <button className="button button-dark button-sm" disabled={busy} onClick={save}>Guardar ficha</button>
    {!marketingOnly&&<CrmContactHistory id={focus.id} revision={revision}/>}
   </div></div></div>}
  </>}

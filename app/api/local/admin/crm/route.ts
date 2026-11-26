@@ -162,7 +162,8 @@ export async function PATCH(request:Request){
   const raw=await request.text();if(raw.length>5000)throw new ApiError("Solicitud demasiado larga.",413);
   const v=JSON.parse(raw) as {id?:string;status?:string;notes?:string;public_email?:string;public_email_source?:string;contact_review?:string;contact_review_url?:string};
   if(typeof v.id!=="string"||!/^[0-9a-f-]{36}$/i.test(v.id)||typeof v.status!=="string"||!statuses.includes(v.status)||typeof v.notes!=="string"||v.notes.length>2000)throw new ApiError("Datos no válidos.");
-  await admin(request,async c=>{
+  await crmReader(request,async (c,restricted)=>{
+   if(restricted){await c.query("SELECT public.crm_marketing_save_contact($1::uuid,$2,$3)",[v.id,v.status,v.notes]);return;}
    const hasEvidence=v.public_email!==undefined||v.public_email_source!==undefined;
    let email:string|null=null,source:string|null=null;
    if(hasEvidence){
