@@ -35,7 +35,7 @@ try{
   await fixture.query("BEGIN");
   const marker="metric-"+randomUUID(),mailbox=marker+"@example.test";
   const add=async(n,status,email,city="Metric City")=>{
-   await fixture.query("INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,public_email,status) VALUES($1,$2,'MX','21','Puebla','114','Puebla','0001',$3,'722515','Cafetería','Restaurantes y cafeterías',$4,$4,$5)",[marker+n,marker+n,city,email,status]);
+   await fixture.query("INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,public_email,public_email_source,public_email_checked_at,status) VALUES($1,$2,'MX','21','Puebla','114','Puebla','0001',$3,'722515','Cafetería','Restaurantes y cafeterías',$4,$4,'https://example.test/contact',now(),$5)",[marker+n,marker+n,city,email,status]);
   };
   const address=n=>marker+n+"@example.test";
   await add("a","pending_review",address("a"));
