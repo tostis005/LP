@@ -54,3 +54,18 @@ const roleCss=read("app/role-app.css");
 assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid \.merchant-card-button\{\s*background:transparent;box-shadow:none;/,"Transparent carousel wrappers");
 assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid\{\s*box-sizing:border-box;width:calc\(100% \+ 24px\);margin-inline:-12px;\s*padding:12px 14px 36px;scroll-padding-inline:14px;/,"Space around the scrolling cards preserves individual shadows");
 assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid \.stamp-visual-card\{\s*box-shadow:0 4px 7px -3px #3d0f1b55,0 15px 22px -9px #3d0f1b66,inset 0 1px 0 #ffffff30,inset 0 0 0 1px #00000012;/,"Visible layered local elevation instead of a diffuse shadow band");
+
+const wheelCode=ts.transpileModule(read("lib/customer-wheel.ts"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const wheelModule={exports:{}};runInNewContext(wheelCode,{module:wheelModule,exports:wheelModule.exports});
+const {wheelSlots,wheelTransform,wheelDestination,wrapIndex}=wheelModule.exports;
+assert.equal(wrapIndex(-1,5),4);assert.equal(wrapIndex(5,5),0);
+for(const n of [1,2,3,7,163])for(const p of [-8.7,-.5,0,.4,2.7,n+.2]){
+ const slots=wheelSlots(p,n);assert.equal(new Set(slots.map(x=>x.index)).size,slots.length);
+ assert.ok(slots.length<=7);assert.ok(slots.every(x=>x.index>=0&&x.index<n));
+ const active=slots.find(x=>x.index===wrapIndex(Math.round(p),n));assert.ok(active);
+}
+assert.ok(wheelTransform(.2).y<wheelTransform(.8).y);assert.ok(wheelTransform(1).z<0);assert.ok(wheelTransform(1).scale<wheelTransform(0).scale);
+assert.ok(wheelDestination(1.3,.018)>=5,"A fast gesture moves several cards");
+assert.ok(wheelDestination(1.3,-.018)<0,"Momentum also works in reverse");
+assert.match(deckCss,/customer-wallet-lower-label/,"Lower cards keep a visible merchant label");
+console.log("Circular wheel: continuous geometry, depth, inertial travel, stable unique cards and wraparound.");

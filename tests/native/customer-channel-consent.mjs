@@ -32,6 +32,15 @@ try{
   "SELECT opted_in,whatsapp_opted_in,push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id=$2",
   [user.id,business[0].id]);
  assert.equal(noMarketing.rowCount,0,"Declining marketing never creates an opt-in");
+ await client.query("SAVEPOINT default_card");
+ const defaultCard=(await client.query("SELECT public.join_program_with_notifications($1::uuid,true) AS card",[business[1].id])).rows[0];
+ assert.ok(defaultCard.card);
+ const defaults=(await client.query("SELECT opted_in,whatsapp_opted_in,push_opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id=$2",[user.id,business[1].id])).rows[0];
+ assert.deepEqual(defaults,{opted_in:true,whatsapp_opted_in:true,push_opted_in:true},"New card preferences are saved, not merely checked in the UI");
+ await client.query("SELECT public.business_upsert_consent($1::uuid,false)",[business[1].id]);
+ await client.query("SELECT public.join_program_with_notifications($1::uuid,true)",[business[1].id]);
+ assert.equal((await client.query("SELECT opted_in FROM public.marketing_consents WHERE customer_id=$1 AND business_id=$2",[user.id,business[1].id])).rows[0].opted_in,false,"Rejoining never reverses an opt-out");
+ await client.query("ROLLBACK TO SAVEPOINT default_card");
  const second=(await client.query(
   "SELECT public.join_program_with_notifications($1::uuid,false) AS card",
   [business[1].id])).rows[0];
