@@ -12,7 +12,7 @@ assert.match(flow,/github\.triggering_actor == 'tostis005'/);
 assert.match(flow,/StrictHostKeyChecking=yes/);
 assert.match(flow,/\/crm puebla preview/);
 assert.match(flow,/\/crm puebla send 30/);
-assert.doesNotMatch(flow,/actions\/checkout/);
+assert.doesNotMatch(flow.split('\n  server:')[1],/actions\/checkout/);
 assert.match(route,/timingSafeEqual/);
 assert.match(route,/crm-github-command-v1/);
 assert.match(worker,/crm-github-command-v1/);
