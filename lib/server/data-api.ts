@@ -121,7 +121,7 @@ export async function queryData(client:PoolClient,input:QueryInput) {
  throw new ApiError("Operación no permitida.");
 }
 
-type Arg=[string,"uuid"|"text"|"integer"|"boolean"|"bigint"|"double precision"];
+type Arg=[string,"uuid"|"text"|"integer"|"boolean"|"bigint"|"double precision"|"timestamptz"];
 type Spec={args:Arg[];returns:"scalar"|"table"};
 const rpcMap:Record<string,Spec>={
  manager_stamp_milestones:{args:[["p_business","uuid"]],returns:"table"},
