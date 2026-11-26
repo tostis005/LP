@@ -8,6 +8,12 @@ export const dynamic="force-dynamic";
 const headers={"Cache-Control":"no-store"};
 const json=(data:unknown)=>Response.json(data,{headers});
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// kreyviapp.com is a distinct commercial domain; only the main kreyvi.com
+// domain and its subdomains are prohibited for first-contact outreach.
+function commercialSenderAllowed(email:unknown){
+ const domain=String(email||"").trim().toLowerCase().split("@")[1];
+ return !!domain&&domain!=="kreyvi.com"&&!domain.endsWith(".kreyvi.com");
+}
 type Candidate={id:string;name:string;email:string;category:string;activity:string;source_url:string;status:string};
 async function admin(request:Request){
  const actor=await actorFromRequest(request);
@@ -63,8 +69,7 @@ async function sendOne(actor:Actor,id:string,email:string,address:string,viaGith
   const row=(await candidates(c,id))[0];
   if(!row||row.email!==email.trim().toLowerCase())throw new ApiError("El contacto ya no es elegible; actualiza la selección.",409);
   const mailbox=(await c.query("SELECT email FROM public.crm_mailbox WHERE id=true")).rows[0];
-  const domain=String(mailbox?.email||"").toLowerCase().split("@")[1];
-  if(!domain||domain==="kreyvi.com"||domain.endsWith(".kreyvi.com")||domain==="kreyviapp.com"||domain.endsWith(".kreyviapp.com"))throw new ApiError("Configura el buzón comercial independiente.");
+  if(!commercialSenderAllowed(mailbox?.email))throw new ApiError("Configura el buzón comercial independiente.");
   if((await remaining(c))===0)throw new ApiError("Límite diario configurado del CRM alcanzado.",429);
   const attempt=randomUUID();
   await c.query("INSERT INTO public.crm_mail_attempts(id,recipient) VALUES($1::uuid,$2)",[attempt,row.email]);
@@ -89,24 +94,26 @@ async function githubCommand(request:Request,raw:string){
  const plan=await asActor(actor,async c=>{
   if(!(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed)return null;
   const config=(await c.query("SELECT enabled,authorized_by,fiscal_address FROM public.crm_github_channel WHERE id=true")).rows[0];
-  const connected=!!(await c.query("SELECT 1 FROM public.crm_mailbox WHERE id=true")).rowCount;
+  const mailbox=(await c.query("SELECT email FROM public.crm_mailbox WHERE id=true")).rows[0];
+  const connected=!!mailbox;
   const capacity=await remaining(c),requested=v.command==="send"?v.count:null;
   const limit=capacity===null?requested:requested===null?capacity:Math.min(capacity,requested);
   const rows=await candidates(c,null,limit);
-  return {enabled:config?.enabled===true&&config.authorized_by===actor.id,address:String(config?.fiscal_address||""),connected,rows};
+  return {enabled:config?.enabled===true&&config.authorized_by===actor.id,address:String(config?.fiscal_address||""),connected,senderAllowed:commercialSenderAllowed(mailbox?.email),senderEmail:String(mailbox?.email||"").toLowerCase(),rows};
  });
  if(!plan||!plan.connected)return json({state:"not_ready",queued:0});
+ if(!plan.senderAllowed)return json({state:"not_ready",queued:0,reason:"CRM_REJECTED_400"});
  if(v.command==="preview"){
   let reason="NONE";
   if(plan.enabled){
-   try{await callMailbox(actor,{command:"whoami"});}
+   try{const identity=await callMailbox(actor,{command:"whoami"});if(String(identity?.mailbox?.email||"").toLowerCase()!==plan.senderEmail)reason="CRM_REJECTED_409";}
    catch(e){reason=mailboxFailureCode(e);}
   }
   return json({state:plan.enabled?(reason==="NONE"?"enabled":"not_ready"):"disabled",eligible:plan.rows.length,queued:0,reason});
  }
  if(!plan.enabled)return json({state:"disabled",queued:0});
  const address=fiscal(plan.address);
- try{await callMailbox(actor,{command:"whoami"});}catch(e){return json({state:"not_ready",queued:0,reason:mailboxFailureCode(e)});}
+ try{const identity=await callMailbox(actor,{command:"whoami"});if(String(identity?.mailbox?.email||"").toLowerCase()!==plan.senderEmail)return json({state:"not_ready",queued:0,reason:"CRM_REJECTED_409"});}catch(e){return json({state:"not_ready",queued:0,reason:mailboxFailureCode(e)});}
  // The comment ID is durable and stable even when an Actions run is retried.
  const inserted=await asActor(actor,async c=>(await c.query("INSERT INTO public.crm_github_orders(order_id,requested_count) VALUES($1,$2) ON CONFLICT DO NOTHING",[v.orderId,v.count])).rowCount);
  if(!inserted)return json({state:"already_processed",queued:0});

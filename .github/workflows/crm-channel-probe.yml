@@ -107,64 +107,6 @@ jobs:
             echo 'CRM_DIAG worker_unavailable_or_stale'; exit 2
           fi
           echo 'CRM_DIAG worker_ready'
-          # Read-only audit of the most recent single-email order.
-          if [[ "$1" == preview ]]; then
-            "${COMPOSE[@]}" --env-file .env.production exec -T web node - <<'AUDIT' || echo 'CRM_AUDIT audit_unavailable'
-          const {Pool}=require("pg"),{createHash,createDecipheriv}=require("node:crypto");
-          const opts={host:process.env.PGHOST,port:Number(process.env.PGPORT||5432),database:process.env.PGDATABASE,connectionTimeoutMillis:5000,max:1};
-          const auth=new Pool({...opts,user:process.env.AUTH_PGUSER,password:process.env.AUTH_PGPASSWORD}),db=new Pool({...opts,user:process.env.PGUSER,password:process.env.PGPASSWORD});
-          const emit=s=>console.log("CRM_AUDIT "+s);
-          function unseal(value){
-            const key=createHash("sha256").update("kreyvi-crm-mailbox-v1:"+(process.env.SENDCOREX_ENCRYPTION_KEY||process.env.AUTH_PGPASSWORD)).digest();
-            const [iv,tag,body]=value.split(".").map(v=>Buffer.from(v,"base64url"));
-            const cipher=createDecipheriv("aes-256-gcm",key,iv);cipher.setAuthTag(tag);
-            return JSON.parse(Buffer.concat([cipher.update(body),cipher.final()]).toString("utf8"));
-          }
-          async function call(path,token,command,args){
-            const res=await fetch("https://g.sendcorex.com/v1"+path,{method:"POST",headers:{Authorization:token,"Content-Type":"application/json"},body:JSON.stringify({commands:[{command,args}]}),redirect:"error",signal:AbortSignal.timeout(12000)});
-            const json=await res.json().catch(()=>null),r=json?.results?.[0];
-            if(!res.ok||r?.type!=="SUCCESS"){
-              const code=String(r?.code||json?.code||"");
-              return {error:["TOKEN_EXPIRED","INVALID_TOKEN","MISSING_AUTH_HEADER","RATE_LIMITED","READ_ONLY_ACCESS","MISSING_SCOPE","AUTH_UNAVAILABLE"].includes(code)?code:"PROVIDER_ERROR"};
-            }
-            return {data:r.data};
-          }
-          (async()=>{
-            let c;
-            try{
-              const actor=(await auth.query("SELECT id,email FROM auth.users WHERE id=public.crm_github_actor() AND email_confirmed_at IS NOT NULL")).rows[0];
-              if(!actor){emit("no_actor");return;}
-              c=await db.connect();await c.query("BEGIN READ ONLY");await c.query("SET LOCAL ROLE authenticated");await c.query("SELECT set_config('request.jwt.claim.sub',$1,true),set_config('request.jwt.claim.email',$2,true)",[actor.id,actor.email]);
-              if(!(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed){emit("no_actor");return;}
-              const mailbox=(await c.query("SELECT email,secret,logs_secret FROM public.crm_mailbox WHERE id=true")).rows[0];
-              const order=(await c.query("SELECT state,queued,requested_count,created_at FROM public.crm_github_orders ORDER BY created_at DESC LIMIT 1")).rows[0];
-              const attempts=order&&order.requested_count===1?(await c.query("SELECT recipient,created_at FROM public.crm_mail_attempts WHERE created_at >= $1 AND created_at < $1::timestamptz+interval '1 minute' ORDER BY created_at LIMIT 2",[order.created_at])).rows:[];
-              await c.query("ROLLBACK");c.release();c=null;
-              if(!mailbox){emit("no_mailbox");return;}
-              const domain=String(mailbox.email||"").toLowerCase().split("@")[1];
-              emit(!domain?"sender_missing":domain==="kreyvi.com"||domain.endsWith(".kreyvi.com")?"sender_primary_domain":domain==="kreyviapp.com"||domain.endsWith(".kreyviapp.com")?"sender_alternate_domain":"sender_domain_allowed");
-              const who=await call("",unseal(mailbox.secret).token,"whoami",{});
-              emit(who.error?"mailbox_"+who.error:"mailbox_ok");
-              if(!order||order.requested_count!==1){emit("no_single_order");return;}
-              emit("order_"+(["started","completed","stopped"].includes(order.state)?order.state:"unknown")+" "+Number(order.queued)+" "+attempts.length);
-              if(attempts.length!==1)return;
-              if(mailbox.logs_secret){
-                const logs=await call("/logs",unseal(mailbox.logs_secret).token,"list_logs",{recipient:attempts[0].recipient,from:mailbox.email,after:new Date(order.created_at).toISOString(),subject:"Aumenta la retención de tus clientes y tu rentabilidad con Kreyvi",limit:10});
-                if(logs.error)emit("logs_"+logs.error);
-                else if(Array.isArray(logs.data?.logs)){const records=logs.data.logs;emit("logs "+records.length+" "+records.filter(r=>r.status==="delivered").length+" "+records.filter(r=>r.blocked===true).length);}
-                else emit("logs_unavailable");
-              }else emit("logs_unavailable");
-              if(!who.error){
-                const sent=await call("",unseal(mailbox.secret).token,"list_messages",{folder:"Sent",after:new Date(order.created_at).toISOString(),limit:100});
-                if(sent.error)emit("sent_"+sent.error);
-                else if(Array.isArray(sent.data?.messages)){const matches=sent.data.messages.filter(m=>m.subject==="Aumenta la retención de tus clientes y tu rentabilidad con Kreyvi");emit("sent_subject_matches "+matches.length+" "+(sent.data.has_more?1:0));}
-                else emit("sent_unavailable");
-              }
-            }catch{emit("audit_unavailable");}
-            finally{if(c){await c.query("ROLLBACK").catch(()=>{});c.release();}await Promise.all([auth.end(),db.end()]);}
-          })();
-          AUDIT
-          fi
           "${COMPOSE[@]}" --env-file .env.production exec -T automation-worker node scripts/crm-github-command.mjs "$1" "$2" "$3" </dev/null
           REMOTE
           )
@@ -180,7 +122,6 @@ jobs:
             else echo 'CRM_DIAG remote_command_failed'; fi
             echo 'CRM_RESULT error 0 0'; exit 1
           fi
-          printf '%s\n' "$output" | grep -E '^CRM_AUDIT (audit_unavailable|no_actor|no_mailbox|no_single_order|sender_missing|sender_primary_domain|sender_alternate_domain|sender_domain_allowed|mailbox_(ok|TOKEN_EXPIRED|INVALID_TOKEN|MISSING_AUTH_HEADER|RATE_LIMITED|READ_ONLY_ACCESS|MISSING_SCOPE|AUTH_UNAVAILABLE|PROVIDER_ERROR)|order_(started|completed|stopped|unknown) [0-9]+ [0-2]|logs [0-9]+ [0-9]+ [0-9]+|sent_subject_matches [0-9]+ [01]|(logs|sent)_(unavailable|TOKEN_EXPIRED|INVALID_TOKEN|MISSING_AUTH_HEADER|RATE_LIMITED|READ_ONLY_ACCESS|MISSING_SCOPE|AUTH_UNAVAILABLE|PROVIDER_ERROR))$' || true
           printf '%s\n' "$result"
           printf '%s\n' "$output" | grep -E '^CRM_REASON (NONE|TOKEN_EXPIRED|INVALID_TOKEN|MISSING_AUTH_HEADER|READ_ONLY_ACCESS|RECIPIENT_UNSUBSCRIBED|NO_CREDITS|RATE_LIMITED|INVALID_ARGS|INVALID_TOADDRESS|SENDER_NOT_FOUND|SENDER_NO_DOMAIN|AUTH_UNAVAILABLE|INTERNAL|MARKETING_LIMIT_REACHED|DAILY_LIMIT|ACCOUNT_RESTRICTED|SPAM_DETECTED|UNSUBSCRIBE_UNAVAILABLE|FORBIDDEN_HTML_CONTENT|PAID_PLAN_REQUIRED|PROVIDER_NETWORK|PROVIDER_REJECTED|REFRESH_FAILED|DB_PERMISSION|DB_CONSTRAINT|CRM_REJECTED_[0-9]{3}|DEADLINE|QUEUE_UNCONFIRMED|UNKNOWN)$' || true
           exit "$rc"

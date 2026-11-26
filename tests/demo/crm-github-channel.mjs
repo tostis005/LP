@@ -38,3 +38,13 @@ console.log("CRM GitHub: restricciones, sintaxis de shell y rechazo de comando i
 assert.match(worker,/reasons.has\(j.reason\)/);
 assert.match(route,/command:"whoami"/);
 assert.match(route,/reason=mailboxFailureCode\(e\)/);
+
+// Exercise the domain rule from the actual route without importing Next.js.
+const domainRule=route.match(/function commercialSenderAllowed\(email:unknown\)\{([\s\S]*?)\n\}/)?.[1];
+assert.ok(domainRule);
+const allows=new Function("email",domainRule);
+assert.equal(allows("commercial@kreyviapp.com"),true);
+assert.equal(allows("commercial@KREYVIAPP.COM"),true);
+assert.equal(allows("commercial@kreyvi.com"),false);
+assert.equal(allows("commercial@sub.kreyvi.com"),false);
+assert.equal(allows(""),false);
