@@ -41,7 +41,7 @@ export default function MiLoyally(){
   setShowInstall(installing);
   if(new URLSearchParams(window.location.search).has("auth_error"))setError("No hemos podido conectar con tu cuenta. Prueba de nuevo.");
   function capture(e:Event){e.preventDefault();setInstallPrompt(e as InstallPrompt);}
-  function installed(){setStandalone(true);setShowInstall(false);setInstallPrompt(null);}
+  function installed(){setStandalone(isStandalone());setShowInstall(false);setInstallPrompt(null);}
   window.addEventListener("beforeinstallprompt",capture);
   window.addEventListener("appinstalled",installed);
   let active=true;
