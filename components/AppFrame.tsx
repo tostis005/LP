@@ -10,7 +10,7 @@ import {adminNavigation,adminActiveHref} from "@/lib/admin-sections";
 import {KreyvIcon} from "@/components/KreyvIcon";
 import {CustomerInboxBell} from "@/components/CustomerInboxBell";
 import { configured, db } from "@/lib/supabase";
-import {saveAccount,clearOfflineAccount,awards} from "@/lib/client/offline";
+import {saveAccount,clearOfflineAccount,awards,syncAwards} from "@/lib/client/offline";
 import type {Program} from "@/lib/types";
 import {syncExistingPushSubscription} from "@/lib/client/push-sync";
 export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employee"; active:boolean; businesses:{id:string;name:string;slug:string} | null };
@@ -49,6 +49,8 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
     if(admins.error) throw admins.error;
     if(live){
      const u=auth.data.user,rs=(members.data||[]) as unknown as BusinessRole[];
+     // La baja bloquea nuevas compras, pero no impide confirmar las anteriores.
+     if(awards(u.id).some(a=>!a.error))await syncAwards(u.id);
      if(area==="customer"&&!admins.data&&rs.length===0)saveAccount({id:u.id,area:"customer",at:Date.now(),businesses:[]});
      else if(area==="staff"&&rs.some(r=>r.role==="employee")){
       const staff=rs.filter(r=>r.role==="employee"),[p,access]=await Promise.all([db().from("loyalty_programs").select("*").in("business_id",staff.map(r=>r.business_id)),db().rpc("staff_offline_access")]);
@@ -67,7 +69,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  if(loading)return <KreyviLoading/>;
  if(error)return <div className="empty-page"><h2>No hemos podido abrir tu espacio</h2><p>{error}</p><a className="button button-outline" href="/offline">Abrir modo sin conexión</a><Link className="button button-dark" href="/acceder">Volver al acceso</Link></div>;
  if(!user)return <KreyviLoading label="Abriendo el acceso"/>;
- if(!allowed)return <div className="empty-page"><h2>Esta zona es privada</h2><p>No tienes permisos para acceder a esta sección.</p><Link className="button button-dark" href={admin?"/admin":roles.some(x=>x.role!=="employee")?"/negocio":roles.length?"/empleado":"/app"}>Volver a mi espacio</Link></div>;
+ if(!allowed)return <div className="empty-page"><h2>Esta zona es privada</h2><p>No tienes permisos para acceder a esta sección.</p>{awards(user.id).length>0&&<p>Compras pendientes o rechazadas: {awards(user.id).length}. Las operaciones anteriores a la baja se sincronizan al recuperar la conexión.</p>}<Link className="button button-dark" href={admin?"/admin":roles.some(x=>x.role!=="employee")?"/negocio":roles.length?"/empleado":"/app"}>Volver a mi espacio</Link></div>;
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
  return <div className={"workspace workspace-"+area}>
   <aside className="sidebar"><div className="sidebar-brand"><Brand/></div><div className="sidebar-caption">NAVEGACIÓN</div><nav className="side-links" aria-label="Menú principal">

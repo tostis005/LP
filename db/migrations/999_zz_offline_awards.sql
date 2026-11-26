@@ -3,24 +3,37 @@ ALTER TABLE public.business_members ADD COLUMN IF NOT EXISTS offline_revision uu
 ALTER TABLE public.business_members ADD COLUMN IF NOT EXISTS access_changed_at timestamptz NOT NULL DEFAULT clock_timestamp();
 CREATE TABLE IF NOT EXISTS public.staff_access_events(
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),business_id uuid NOT NULL,user_id uuid NOT NULL,
- active boolean NOT NULL,role text NOT NULL,changed_at timestamptz NOT NULL,changed_by uuid
+ active boolean NOT NULL,role text NOT NULL,changed_at timestamptz NOT NULL,changed_by uuid,
+ revision uuid NOT NULL UNIQUE, valid_until timestamptz
 );
 ALTER TABLE public.staff_access_events ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.staff_access_events FROM PUBLIC,anon,authenticated,lp_api;
+INSERT INTO public.staff_access_events(business_id,user_id,active,role,changed_at,revision)
+ SELECT business_id,user_id,active,role,access_changed_at,offline_revision FROM public.business_members
+ ON CONFLICT(revision) DO NOTHING;
+CREATE INDEX IF NOT EXISTS staff_access_events_member ON public.staff_access_events(business_id,user_id,changed_at);
 CREATE OR REPLACE FUNCTION public.track_staff_access_change() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+DECLARE v_now timestamptz:=clock_timestamp();
 BEGIN
+ IF TG_OP='DELETE' THEN
+  UPDATE public.staff_access_events SET valid_until=v_now WHERE revision=OLD.offline_revision AND valid_until IS NULL;
+  RETURN OLD;
+ END IF;
  IF TG_OP='UPDATE' THEN
   IF NEW.active IS NOT DISTINCT FROM OLD.active AND NEW.role IS NOT DISTINCT FROM OLD.role THEN
    NEW.offline_revision:=OLD.offline_revision; NEW.access_changed_at:=OLD.access_changed_at; RETURN NEW;
   END IF;
  END IF;
- NEW.offline_revision:=gen_random_uuid(); NEW.access_changed_at:=clock_timestamp();
- INSERT INTO public.staff_access_events(business_id,user_id,active,role,changed_at,changed_by)
- VALUES(NEW.business_id,NEW.user_id,NEW.active,NEW.role,NEW.access_changed_at,auth.uid());
+ IF TG_OP='UPDATE' THEN
+  UPDATE public.staff_access_events SET valid_until=v_now WHERE revision=OLD.offline_revision AND valid_until IS NULL;
+ END IF;
+ NEW.offline_revision:=gen_random_uuid(); NEW.access_changed_at:=v_now;
+ INSERT INTO public.staff_access_events(business_id,user_id,active,role,changed_at,changed_by,revision)
+ VALUES(NEW.business_id,NEW.user_id,NEW.active,NEW.role,NEW.access_changed_at,auth.uid(),NEW.offline_revision);
  RETURN NEW;
 END $$;
 DROP TRIGGER IF EXISTS track_staff_access_change ON public.business_members;
-CREATE TRIGGER track_staff_access_change BEFORE INSERT OR UPDATE ON public.business_members FOR EACH ROW EXECUTE FUNCTION public.track_staff_access_change();
+CREATE TRIGGER track_staff_access_change BEFORE INSERT OR UPDATE OR DELETE ON public.business_members FOR EACH ROW EXECUTE FUNCTION public.track_staff_access_change();
 REVOKE ALL ON FUNCTION public.track_staff_access_change() FROM PUBLIC,anon,authenticated;
 CREATE OR REPLACE FUNCTION public.staff_offline_access()
 RETURNS TABLE(business_id uuid,revision uuid) LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
@@ -33,6 +46,26 @@ GRANT EXECUTE ON FUNCTION public.staff_offline_access() TO authenticated;
 -- Hora de captura declarada y hora de confirmación separadas. Los informes y
 -- automatizaciones conservan created_at como fecha contable de confirmación.
 ALTER TABLE public.loyalty_transactions ADD COLUMN IF NOT EXISTS captured_at timestamptz;
+ALTER TABLE public.loyalty_transactions ADD COLUMN IF NOT EXISTS offline_access_revision uuid;
+-- Una baja cierra el intervalo de autorización, no invalida las compras anteriores.
+CREATE OR REPLACE FUNCTION public.assert_staff_capture_access(p_business uuid,p_actor uuid,p_at timestamptz,p_revision uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $
+BEGIN
+ IF auth.uid() IS DISTINCT FROM p_actor OR p_actor IS NULL THEN RAISE EXCEPTION 'Sesión o permisos no válidos'; END IF;
+ -- Espera una baja/reactivación concurrente antes de consultar el historial.
+ PERFORM 1 FROM public.business_members WHERE business_id=p_business AND user_id=p_actor FOR SHARE;
+ IF p_revision IS NULL THEN
+  IF NOT public.is_business_staff(p_business) THEN RAISE EXCEPTION 'El usuario no pertenece a este negocio'; END IF;
+ ELSE
+  IF p_at IS NULL OR NOT EXISTS(
+   SELECT 1 FROM public.staff_access_events e WHERE e.revision=p_revision AND e.business_id=p_business AND e.user_id=p_actor
+   AND e.active AND e.role='employee'
+   AND p_at>=date_trunc('milliseconds',e.changed_at)
+   AND (e.valid_until IS NULL OR p_at<e.valid_until)
+  ) THEN RAISE EXCEPTION 'Permisos revocados o fecha fuera del periodo autorizado'; END IF;
+ END IF;
+END $;
+REVOKE ALL ON FUNCTION public.assert_staff_capture_access(uuid,uuid,timestamptz,uuid) FROM PUBLIC,anon,authenticated,lp_api;
 CREATE INDEX IF NOT EXISTS loyalty_earn_capture_card ON public.loyalty_transactions(membership_id,(coalesce(captured_at,created_at))) WHERE kind='earn';
 CREATE INDEX IF NOT EXISTS loyalty_earn_capture_staff ON public.loyalty_transactions(business_id,employee_id,(coalesce(captured_at,created_at))) WHERE kind='earn';
 CREATE OR REPLACE FUNCTION public.guard_loyalty_award()
@@ -42,8 +75,7 @@ BEGIN
  IF NEW.kind<>'earn' THEN RETURN NEW; END IF;
  IF auth.uid() IS NULL OR NEW.employee_id IS DISTINCT FROM auth.uid() THEN RAISE EXCEPTION 'El empleado no coincide con la sesión'; END IF;
  -- El bloqueo serializa con bajas y cambios de rol.
- PERFORM 1 FROM public.business_members WHERE business_id=NEW.business_id AND user_id=auth.uid() AND active FOR SHARE;
- IF NOT FOUND OR NOT public.is_business_staff(NEW.business_id) THEN RAISE EXCEPTION 'El usuario no pertenece a este negocio'; END IF;
+ PERFORM public.assert_staff_capture_access(NEW.business_id,NEW.employee_id,NEW.captured_at,NEW.offline_access_revision);
  SELECT max_daily_awards_per_employee,require_ticket_reference,min_seconds_between_awards INTO v_limit,v_require,v_gap
  FROM public.loyalty_programs WHERE business_id=NEW.business_id;
  IF NOT FOUND THEN RAISE EXCEPTION 'Programa inexistente'; END IF;
@@ -60,15 +92,15 @@ BEGIN
  IF v_count>=v_limit THEN RAISE EXCEPTION 'Se ha alcanzado el máximo diario de operaciones de este empleado'; END IF;
  RETURN NEW;
 END $$;
-CREATE OR REPLACE FUNCTION public.apply_staff_award(p_token uuid,p_purchase_cents integer,p_stamps integer,p_ticket_ref text,p_captured_at timestamptz)
+CREATE OR REPLACE FUNCTION public.apply_staff_award(p_token uuid,p_purchase_cents integer,p_stamps integer,p_ticket_ref text,p_captured_at timestamptz,p_revision uuid)
 RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE v_m public.loyalty_memberships%rowtype; v_p public.loyalty_programs%rowtype;
  v_delta integer; v_ref text;
 BEGIN
  SELECT * INTO v_m FROM public.loyalty_memberships WHERE card_token=p_token FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Tarjeta no encontrada'; END IF;
- IF NOT public.is_business_staff(v_m.business_id)
-  OR NOT EXISTS(SELECT 1 FROM public.businesses WHERE id=v_m.business_id AND active)
+ PERFORM public.assert_staff_capture_access(v_m.business_id,auth.uid(),p_captured_at,p_revision);
+ IF NOT EXISTS(SELECT 1 FROM public.businesses WHERE id=v_m.business_id AND active)
  THEN RAISE EXCEPTION 'Acceso denegado'; END IF;
  SELECT * INTO v_p FROM public.loyalty_programs WHERE business_id=v_m.business_id;
  IF (v_p.require_purchase_amount OR v_p.type<>'stamps') AND coalesce(p_purchase_cents,0)<1 THEN RAISE EXCEPTION 'Indica el importe de la compra'; END IF;
@@ -87,18 +119,18 @@ BEGIN
   IF v_delta<1 THEN RAISE EXCEPTION 'Importe demasiado pequeño para generar saldo'; END IF;
  END IF;
  v_ref:=nullif(left(btrim(coalesce(p_ticket_ref,'')),100),'');
- INSERT INTO public.loyalty_transactions(business_id,membership_id,employee_id,kind,amount_delta,purchase_cents,ticket_ref,captured_at)
+ INSERT INTO public.loyalty_transactions(business_id,membership_id,employee_id,kind,amount_delta,purchase_cents,ticket_ref,captured_at,offline_access_revision)
  VALUES(v_m.business_id,v_m.id,auth.uid(),'earn',v_delta,
-   nullif(p_purchase_cents,0),v_ref,p_captured_at);
+   nullif(p_purchase_cents,0),v_ref,p_captured_at,p_revision);
  UPDATE public.loyalty_memberships
   SET balance=balance+v_delta,total_earned=total_earned+v_delta WHERE id=v_m.id;
  RETURN v_m.balance+v_delta;
 END $$;
 
-REVOKE ALL ON FUNCTION public.apply_staff_award(uuid,integer,integer,text,timestamptz) FROM PUBLIC,anon,authenticated,lp_api;
+REVOKE ALL ON FUNCTION public.apply_staff_award(uuid,integer,integer,text,timestamptz,uuid) FROM PUBLIC,anon,authenticated,lp_api;
 CREATE OR REPLACE FUNCTION public.staff_award_card(p_token uuid,p_purchase_cents integer DEFAULT 0,p_stamps integer DEFAULT 1,p_ticket_ref text DEFAULT null)
 RETURNS integer LANGUAGE sql SECURITY DEFINER SET search_path=public AS $$
- SELECT public.apply_staff_award(p_token,p_purchase_cents,p_stamps,p_ticket_ref,NULL)
+ SELECT public.apply_staff_award(p_token,p_purchase_cents,p_stamps,p_ticket_ref,NULL,NULL)
 $$;
 REVOKE ALL ON FUNCTION public.staff_award_card(uuid,integer,integer,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.staff_award_card(uuid,integer,integer,text) TO authenticated;
@@ -113,7 +145,7 @@ ALTER TABLE public.offline_award_receipts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.offline_award_receipts FROM PUBLIC,anon,authenticated,lp_api;
 CREATE OR REPLACE FUNCTION public.staff_sync_award(p_operation uuid,p_actor uuid,p_business uuid,p_token uuid,p_purchase_cents integer,p_stamps integer,p_ticket_ref text,p_captured_at timestamptz,p_revision uuid)
 RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE r public.offline_award_receipts%rowtype; v_balance integer; v_access public.business_members%rowtype; v_joined timestamptz;
+DECLARE r public.offline_award_receipts%rowtype; v_balance integer; v_joined timestamptz;
 BEGIN
  IF auth.uid() IS NULL OR auth.uid() IS DISTINCT FROM p_actor THEN RAISE EXCEPTION 'Sesión o permisos no válidos para sincronizar'; END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended(p_operation::text,0));
@@ -125,16 +157,15 @@ BEGIN
   THEN RAISE EXCEPTION 'Identificador de operación ya utilizado'; END IF;
   RETURN r.balance;
  END IF;
- SELECT * INTO v_access FROM public.business_members WHERE business_id=p_business AND user_id=p_actor FOR SHARE;
- IF NOT FOUND OR NOT v_access.active OR v_access.role<>'employee' OR v_access.offline_revision IS DISTINCT FROM p_revision
- THEN RAISE EXCEPTION 'Permisos revocados o modificados: compra pendiente no autorizada'; END IF;
+ IF p_revision IS NULL THEN RAISE EXCEPTION 'Falta la autorización offline'; END IF;
+ PERFORM public.assert_staff_capture_access(p_business,p_actor,p_captured_at,p_revision);
  IF p_captured_at IS NULL OR p_captured_at>clock_timestamp()+interval '5 minutes'
  THEN RAISE EXCEPTION 'Fecha de compra no válida'; END IF;
  SELECT created_at INTO v_joined FROM public.loyalty_memberships WHERE card_token=p_token AND business_id=p_business;
  IF NOT FOUND THEN RAISE EXCEPTION 'La tarjeta no pertenece a este establecimiento'; END IF;
- IF p_captured_at<date_trunc('milliseconds',v_access.access_changed_at) OR p_captured_at<date_trunc('milliseconds',v_joined) THEN RAISE EXCEPTION 'Fecha anterior a la autorización o al alta de la tarjeta'; END IF;
+ IF p_captured_at<date_trunc('milliseconds',v_joined) THEN RAISE EXCEPTION 'Fecha anterior a la autorización o al alta de la tarjeta'; END IF;
  -- Misma lógica de saldo y controles que online, pero por hora de captura.
- v_balance:=public.apply_staff_award(p_token,p_purchase_cents,p_stamps,p_ticket_ref,p_captured_at);
+ v_balance:=public.apply_staff_award(p_token,p_purchase_cents,p_stamps,p_ticket_ref,p_captured_at,p_revision);
  INSERT INTO public.offline_award_receipts(operation_id,actor_id,business_id,card_token,purchase_cents,stamps,ticket_ref,captured_at,balance,revision)
  VALUES(p_operation,p_actor,p_business,p_token,p_purchase_cents,p_stamps,p_ticket_ref,p_captured_at,v_balance,p_revision);
  RETURN v_balance;
