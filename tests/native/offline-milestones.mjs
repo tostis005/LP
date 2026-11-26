@@ -22,6 +22,17 @@ try{
  assert.equal((await q(award,args)).rows[0].balance,3);
  assert.equal((await q(award,args)).rows[0].balance,3,"Replay is idempotent");
  await rejected(award,[...args.slice(0,5),4,...args.slice(6)],/Identificador de operación ya utilizado/);
+ await identity(id.owner);
+ await q("UPDATE public.loyalty_programs SET min_seconds_between_awards=60 WHERE business_id=$1",[id.business]);
+ await identity(id.staff);
+ await rejected(award,[randomUUID(),...args.slice(1,5),11,"ticket-limite",at,access.revision],/Sellos fuera del límite/);
+ await rejected(award,[randomUUID(),...args.slice(1,6),"ticket-intervalo",at,access.revision],/Espera antes de registrar/);
+ await identity(id.owner);
+ await q("UPDATE public.loyalty_programs SET min_seconds_between_awards=0,max_daily_awards_per_employee=1 WHERE business_id=$1",[id.business]);
+ await identity(id.staff);
+ await rejected(award,[randomUUID(),...args.slice(1,6),"ticket-diario",at,access.revision],/máximo diario/);
+ await identity(id.owner);await q("UPDATE public.loyalty_programs SET max_daily_awards_per_employee=100 WHERE business_id=$1",[id.business]);
+ await identity(id.staff);
  const details=async()=> (await q("SELECT public.stamp_milestone_details($1) AS d",[m.id])).rows[0].d;
  let d=await details();assert.equal(d.grants.length,1);assert.equal(d.grants[0].available,true);
  const grant=d.grants[0].id;

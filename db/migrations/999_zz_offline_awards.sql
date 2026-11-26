@@ -60,7 +60,7 @@ BEGIN
  IF v_count>=v_limit THEN RAISE EXCEPTION 'Se ha alcanzado el máximo diario de operaciones de este empleado'; END IF;
  RETURN NEW;
 END $$;
-CREATE OR REPLACE FUNCTION public.apply_staff_award(p_token uuid,p_purchase_cents integer,p_stamps integer,p_ticket_ref text,p_captured_at timestamptz,p_revision uuid)
+CREATE OR REPLACE FUNCTION public.apply_staff_award(p_token uuid,p_purchase_cents integer,p_stamps integer,p_ticket_ref text,p_captured_at timestamptz)
 RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE v_m public.loyalty_memberships%rowtype; v_p public.loyalty_programs%rowtype;
  v_delta integer; v_ref text;
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS public.offline_award_receipts(
 );
 ALTER TABLE public.offline_award_receipts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.offline_award_receipts FROM PUBLIC,anon,authenticated,lp_api;
-CREATE OR REPLACE FUNCTION public.staff_sync_award(p_operation uuid,p_actor uuid,p_business uuid,p_token uuid,p_purchase_cents integer,p_stamps integer,p_ticket_ref text,p_captured_at timestamptz)
+CREATE OR REPLACE FUNCTION public.staff_sync_award(p_operation uuid,p_actor uuid,p_business uuid,p_token uuid,p_purchase_cents integer,p_stamps integer,p_ticket_ref text,p_captured_at timestamptz,p_revision uuid)
 RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE r public.offline_award_receipts%rowtype; v_balance integer; v_access public.business_members%rowtype; v_joined timestamptz;
 BEGIN
@@ -132,7 +132,7 @@ BEGIN
  THEN RAISE EXCEPTION 'Fecha de compra no válida'; END IF;
  SELECT created_at INTO v_joined FROM public.loyalty_memberships WHERE card_token=p_token AND business_id=p_business;
  IF NOT FOUND THEN RAISE EXCEPTION 'La tarjeta no pertenece a este establecimiento'; END IF;
- IF p_captured_at<v_access.access_changed_at OR p_captured_at<v_joined THEN RAISE EXCEPTION 'Fecha anterior a la autorización o al alta de la tarjeta'; END IF;
+ IF p_captured_at<date_trunc('milliseconds',v_access.access_changed_at) OR p_captured_at<date_trunc('milliseconds',v_joined) THEN RAISE EXCEPTION 'Fecha anterior a la autorización o al alta de la tarjeta'; END IF;
  -- Misma lógica de saldo y controles que online, pero por hora de captura.
  v_balance:=public.apply_staff_award(p_token,p_purchase_cents,p_stamps,p_ticket_ref,p_captured_at);
  INSERT INTO public.offline_award_receipts(operation_id,actor_id,business_id,card_token,purchase_cents,stamps,ticket_ref,captured_at,balance,revision)
