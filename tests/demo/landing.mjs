@@ -169,7 +169,13 @@ console.log("Shared cards: KREYVI brand capsule on a translucent neutral backgro
 
 assert.match(landingUi,/loi-marketing-card-wine/);
 assert.match(landingUi,/loi-marketing-card-noma/);
-assert.match(installUi,/loi-marketing-card-noma/);
+assert.match(installUi,/loi-marketing-card-blush/);
+assert.doesNotMatch(installUi,/name="Café Noma"/);
+assert.match(installUi,/name="Studio Blush"/);
+assert.match(installUi,/studio-blush-stamp\.svg/);
+assert.match(landingCss,/studio-blush-background\.svg/);
+assert.match(es.benefits.items[3].title,/sin conexión/i);
+assert.match(en.benefits.items[3].title,/offline/i);
 assert.match(landingUi,/name="Café Noma"/);
 assert.doesNotMatch(landingUi,/loi-hero-spark|✦/);
 assert.match(landingCss,/cafe-noma-beans\.svg/);
