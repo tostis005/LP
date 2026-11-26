@@ -89,7 +89,10 @@ jobs:
             if curl -fsS --max-time 5 http://127.0.0.1:3155/ -o /tmp/loyally-root.html 2>/dev/null; then break; fi
             sleep 1
           done
-          if ! grep -q 'Más clientes. Más visitas.' /tmp/loyally-root.html; then
+          if ! grep -Fq 'Más clientes. Más visitas.' /tmp/loyally-root.html ||
+             ! grep -Fq 'Más ventas.' /tmp/loyally-root.html ||
+             ! grep -Fq 'id="comunidad"' /tmp/loyally-root.html ||
+             ! grep -Fq 'id="panel-negocio"' /tmp/loyally-root.html; then
             echo "::error::La raiz / no muestra la presentación de Kreyv."
             grep -oE 'Preparando tu espacio|Accede a tu espacio|Más clientes. Más visitas.' /tmp/loyally-root.html || true
             tail -35 /tmp/loyally-root.log
@@ -265,11 +268,17 @@ jobs:
           for i in $(seq 1 40); do
             if curl -fsS --max-time 5 http://127.0.0.1:3100/api/health >/dev/null &&
                curl -fsS --max-time 8 http://127.0.0.1:3100/ -o "$homepage" &&
-               grep -q 'Más clientes. Más visitas.' "$homepage" &&
+               grep -Fq 'Más clientes. Más visitas.' "$homepage" &&
+               grep -Fq 'Más ventas.' "$homepage" &&
+               grep -Fq 'id="comunidad"' "$homepage" &&
+               grep -Fq 'id="panel-negocio"' "$homepage" &&
                ! grep -q 'Preparando tu espacio' "$homepage" &&
                curl -fsS --max-time 8 'http://127.0.0.1:3100/?lang=en' -o "$homepage_en" &&
-               grep -q 'More customers. More visits.' "$homepage_en" &&
-               ! grep -q 'Más clientes. Más visitas.' "$homepage_en"; then
+               grep -Fq 'More customers. More visits.' "$homepage_en" &&
+               grep -Fq 'More sales.' "$homepage_en" &&
+               grep -Fq 'id="comunidad"' "$homepage_en" &&
+               grep -Fq 'id="panel-negocio"' "$homepage_en" &&
+               ! grep -Fq 'Más clientes. Más visitas.' "$homepage_en"; then
               # Evitar que un enlace de vista previa o una sección interna vuelva a responder 404/500.
               for route in /negocio /negocio/poster /negocio/reports /negocio/transactions /negocio/customers /negocio/marketing /negocio/vista-previa /app/descubrir /api/local/wallet/status /api/local/marketing/status /kreyv-mark-v3.svg /kreyv-mark-v3-192.png /kreyv-mark-v3-512.png /kreyv-favicon-v3.svg /kreyv-apple-touch-v3.png /manifest.webmanifest; do
                 if ! curl -fsS --max-time 12 "http://127.0.0.1:3100${route}" >/dev/null; then
