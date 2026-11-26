@@ -20,7 +20,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
     <div className="container loi-hero-layout">
      <div className="loi-hero-copy">
       <span className="loi-overline">{t.hero.eyebrow}</span>
-      <h1>{t.hero.title} <em>{t.hero.accent}</em></h1>
+      <h1>{t.hero.title} <em>{t.hero.accent}<svg className="loi-hero-underline" viewBox="0 0 300 16" fill="none" aria-hidden="true" preserveAspectRatio="none"><path d="M3 12 Q145 -3 297 8" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"/></svg></em></h1>
       <p>{t.hero.description}</p>
       <div className="loi-hero-actions">
        <Link href="/solicitar-acceso" className="loi-button loi-button-main">{t.hero.primary} <ArrowUpRight size={19}/></Link>
@@ -30,7 +30,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
       <div className="loi-hero-foot"><div className="loi-hero-foot-icons"><span><KreyvIcon name="favoritos" size={17}/></span><span><KreyvIcon name="cafeteria" size={17}/></span><span><KreyvIcon name="premios" size={17}/></span></div><span>{t.hero.foot}<br/><strong>{t.hero.footBold}</strong></span></div>
      </div>
      <div className="loi-hero-showcase" aria-label={t.hero.previewLabel}>
-      <div className="loi-hero-orbit orbit-a"/><div className="loi-hero-orbit orbit-b"/>
+      <div className="loi-hero-orbit orbit-a" aria-hidden="true"/><div className="loi-hero-orbit orbit-b" aria-hidden="true"/><div className="loi-hero-spark" aria-hidden="true">✦</div>
       <div className="loi-showcase-caption"><KreyvIcon name="recompensa" size={17}/> {t.hero.previewLabel}</div>
       <div className="loi-showcase-phone">
        <div className="loi-phone-status"><span>9:41</span><span>●●●</span></div>
@@ -41,7 +41,10 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
        <div className="loi-phone-progress"><span><KreyvIcon name="premios" size={17}/> {t.hero.almost}</span><strong>{t.hero.progress}</strong></div>
        <div className="loi-phone-nav"><span className="active"><KreyvIcon name="mis-tarjetas" size={17}/> {t.hero.cardNav}</span><span><KreyvIcon name="comercio" size={17}/> {t.hero.businessNav}</span><span><KreyvIcon name="perfil" size={17}/> {t.hero.profileNav}</span></div>
       </div>
-      <div className="loi-showcase-floating"><span className="loi-floating-icon"><KreyvIcon name="recompensa" size={23}/></span><div><strong>{t.hero.floatingTitle}</strong><small>{t.hero.floatingDetail}</small></div></div>
+      <div className="loi-hero-callouts">
+       <div className="loi-hero-callout loi-hero-callout-discover"><span className="loi-floating-icon"><KreyvIcon name="comercio" size={22}/></span><div><strong>{lang==="en"?"Discover local":"Descubre cerca de ti"}</strong><small>{lang==="en"?"More ways to find your business":"Más visibilidad para tu negocio"}</small></div></div>
+       <div className="loi-hero-callout loi-hero-callout-reward"><span className="loi-floating-icon"><KreyvIcon name="premios" size={22}/></span><div><strong>{lang==="en"?"Reasons to return":"Motivos para volver"}</strong><small>{lang==="en"?"Every visit counts":"Cada visita cuenta"}</small></div></div>
+      </div>
       
      </div>
     </div>
