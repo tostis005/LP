@@ -13,7 +13,7 @@ type Report=Count&{duplicates:number;skipped:number;byCity:Array<Count&{state:st
 type Data={prospects:Prospect[];count:{total:number;unique_emails:number;with_email:number;missing_email:number;reviewed:number;contacted:number;confirmed_email:number;confirmed_24h:number;pending_contact:number};regions:Region[];categories:Array<{category:string;total:number}>;imports:Array<{filename:string;created_at:string;report:Report&{edition?:string|null}}>;page:number;pageSize:number;totalPages:number};
 const stages:Record<string,string>={pending_review:"Sin contactar",qualified:"Sin contactar (revisado)",contacted:"Contactado",interested:"Interesado",trial:"En prueba",converted:"Cliente",discarded:"No interesado",do_not_contact:"No contactar"};
 const reviewStages:Record<string,string>={pending:"Pendiente",source_found:"Fuente localizada",no_contact_found:"Sin contacto localizado",ambiguous:"Identidad dudosa",not_relevant:"No relevante"};
-export function AdminCrm(){
+export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const [showMap,setShowMap]=useState(false);
  const [data,setData]=useState<Data|null>(null);
  const [tab,setTab]=useState<"directory"|"mail"|"imports">("directory");
@@ -28,7 +28,7 @@ export function AdminCrm(){
  const requestVersion=useRef(0),lastRevision=useRef(-1),lastText=useRef("");
  const [activityRevision,setActivityRevision]=useState(0);
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
- const mailSync=useCrmMailSync(()=>setActivityRevision(v=>v+1));
+ const mailSync=useCrmMailSync(()=>setActivityRevision(v=>v+1),!marketingOnly);
  useEffect(()=>{if(tab!=="directory")return;const refresh=()=>{if(!document.hidden)setActivityRevision(v=>v+1);};const timer=setInterval(refresh,60000);window.addEventListener("focus",refresh);return()=>{clearInterval(timer);window.removeEventListener("focus",refresh);};},[tab]);
  useEffect(()=>{
   const controller=new AbortController();setOptionsLoading(true);
@@ -90,7 +90,7 @@ export function AdminCrm(){
  const pendingCities=[{code:"11020",name:"León"},{code:"14039",name:"Guadalajara"},{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
  return <div className="panel-card crm-workspace">
   <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
-  <div className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
+  <div hidden={marketingOnly} className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
    {([{id:"directory",label:"Negocios",icon:Building2},{id:"mail",label:"Sincronización de correo",icon:Mail},{id:"imports",label:"Importaciones",icon:FolderUp}] as const).map(t=><button key={t.id} type="button" role="tab" aria-selected={tab===t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}><t.icon size={18}/>{t.label}</button>)}
   </div>
   {tab==="directory"&&<>{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}{optionsError&&<div role="alert" className="alert error">{optionsError}</div>}
@@ -233,9 +233,9 @@ export function AdminCrm(){
    </form>
   </div>
   {focus&&<div className="crm-inspector-wrap" onClick={e=>{if(e.target===e.currentTarget&&!busy)setFocus(null);}}><div className="admin-inspector" role="dialog" aria-modal="true" aria-label="Ficha del negocio"><div className="inspector-head"><div><strong>{focus.name}</strong><small>{focus.email} · {focus.activity}</small></div><button className="inline-table-button" onClick={()=>setFocus(null)}>Cerrar</button></div><div className="form-stack">
-   <label>Estado<select disabled={focus.status==="do_not_contact"} value={focus.status} onChange={e=>setFocus({...focus,status:e.target.value})}>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
+   <label>Estado<select disabled={marketingOnly||focus.status==="do_not_contact"} value={focus.status} onChange={e=>setFocus({...focus,status:e.target.value})}>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
    <p>{focus.address||focus.city}{focus.neighborhood&&" · "+focus.neighborhood}{focus.postal_code&&" · CP "+focus.postal_code}</p>{focus.instagram&&<p>Instagram: {focus.instagram}</p>}{(focus.latitude||focus.longitude)&&<p>Coordenadas: {focus.latitude||"—"}, {focus.longitude||"—"}</p>}<p>Teléfono: {focus.phone||"Sin localizar"} · Correo: {focus.public_email||focus.email||"Sin localizar"}</p>{focus.website&&<p>Web: {focus.website}</p>}
-   <details><summary>Datos de contacto y fuente</summary><label>Correo comercial publicado en otra fuente<input type="email" value={focus.public_email||""} onChange={e=>setFocus({...focus,public_email:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
+   <details hidden={marketingOnly}><summary>Datos de contacto y fuente</summary><label>Correo comercial publicado en otra fuente<input type="email" value={focus.public_email||""} onChange={e=>setFocus({...focus,public_email:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
    <label>URL de la fuente pública<input type="url" value={focus.public_email_source||""} onChange={e=>setFocus({...focus,public_email_source:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
    {focus.public_email_checked_at&&<small>Fuente registrada: {new Date(focus.public_email_checked_at).toLocaleDateString("es-MX")}</small>}
    <p className="muted">La presencia de un correo publicado no confirma vigencia, entregabilidad ni permiso de envío.</p>
@@ -243,9 +243,9 @@ export function AdminCrm(){
    <label>Fuente revisada (URL)<input type="url" value={focus.contact_review_url||""} onChange={e=>setFocus({...focus,contact_review_url:e.target.value})}/></label>
    {focus.contact_reviewed_at&&<small>Última revisión: {new Date(focus.contact_reviewed_at).toLocaleDateString("es-MX")}</small>}
    </details>
-   <label>Notas<textarea maxLength={2000} value={focus.notes} onChange={e=>setFocus({...focus,notes:e.target.value})}/></label>
-   <button className="button button-dark button-sm" disabled={busy} onClick={save}>Guardar ficha</button>
-   <CrmContactHistory id={focus.id} revision={revision}/>
+   <label>Notas<textarea readOnly={marketingOnly} maxLength={2000} value={focus.notes} onChange={e=>setFocus({...focus,notes:e.target.value})}/></label>
+   {!marketingOnly&&<button className="button button-dark button-sm" disabled={busy} onClick={save}>Guardar ficha</button>}
+   {!marketingOnly&&<CrmContactHistory id={focus.id} revision={revision}/>}
   </div></div></div>}
  </>}
  </div>;

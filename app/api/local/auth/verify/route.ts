@@ -19,7 +19,8 @@ export async function GET(request:NextRequest) {
     const userId=result.rows[0].user_id as string;
     if(purpose==="verify")await authPool.query("UPDATE auth.users SET email_confirmed_at=now(),updated_at=now() WHERE id=$1",[userId]);
     const session=await createSession(userId);
-    const response=NextResponse.redirect(new URL(purpose==="reset"?"/restablecer-clave":safeJoinTarget(request.nextUrl.searchParams.get("next"))||"/entrar",root));
+    const invited=(await authPool.query("SELECT raw_user_meta_data->>\x27crm_marketing_invited\x27 AS invited FROM auth.users WHERE id=$1",[userId])).rows[0]?.invited==="true";
+    const response=NextResponse.redirect(new URL(purpose==="reset"||invited?"/restablecer-clave":safeJoinTarget(request.nextUrl.searchParams.get("next"))||"/entrar",root));
     response.headers.set("Referrer-Policy","no-referrer");
     return setSessionCookie(response,session.token,session.expires);
   }catch{return invalid()}

@@ -32,9 +32,10 @@ async function admin<T>(request:Request,fn:(c:PoolClient,actor:Actor)=>Promise<T
   return fn(c,actor);
  });
 }
+async function crmReader<T>(request:Request,fn:(c:PoolClient,restricted:boolean)=>Promise<T>){const actor=await actorFromRequest(request);if(!actor)throw new ApiError("Inicia sesión.",401);return asActor(actor,async c=>{const r=(await c.query("SELECT public.is_platform_admin() AS admin,public.crm_marketing_active() AS marketing")).rows[0];if(!r.admin&&!r.marketing)throw new ApiError("Sin acceso al CRM.",403);return fn(c,!r.admin);});}
 export async function GET(request:Request){
  try{
-  const result=await admin(request,async c=>{
+  const result=await crmReader(request,async (c,restricted)=>{
    const p=new URL(request.url).searchParams;
    if(p.get("view")==="options"){
     const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
@@ -68,13 +69,13 @@ export async function GET(request:Request){
    const requestedSort=p.get("sort")||"name";
    const sort=Object.prototype.hasOwnProperty.call(sortColumns,requestedSort)?sortColumns[requestedSort]:sortColumns.name;
    const direction=p.get("direction")==="desc"?"DESC":"ASC";
-   const cacheKey=JSON.stringify([filter,args]),cached=countCache.get(cacheKey);
+   const cacheKey=JSON.stringify([filter,args]),cached=restricted?undefined:countCache.get(cacheKey);
    let count:Aggregate;
    if(cached&&cached.expires>Date.now()&&p.get("refresh")!=="1")count=cached.data;
    else{
      count=await crmDirectoryCount(c,filter,args);
     if(countCache.size>=128)countCache.clear();
-    countCache.set(cacheKey,{expires:Date.now()+15000,data:count});
+    if(!restricted)countCache.set(cacheKey,{expires:Date.now()+15000,data:count});
    }
    const totalPages=Math.max(1,Math.ceil(count.total/pageSize));
    const page=Math.min(requestedPage,totalPages-1);
@@ -91,7 +92,7 @@ export async function GET(request:Request){
     }
    }
    // Legacy callers still receive options; the CRM requests them independently.
-   if(p.get("compact")==="1")return {prospects,count,page,pageSize,totalPages};
+   if(restricted||p.get("compact")==="1")return {prospects,count,page,pageSize,totalPages};
    const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
    const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
    const imports=(await c.query("SELECT filename,created_at,report FROM public.crm_import_runs WHERE source='DENUE' ORDER BY created_at DESC LIMIT 5")).rows;
