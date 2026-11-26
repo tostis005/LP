@@ -65,7 +65,17 @@ jobs:
           printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$HOME/.ssh/id_deploy"
           chmod 600 "$HOME/.ssh/id_deploy"
           if [[ -n "$LP_SSH_KNOWN_HOSTS" ]]; then
-            printf '%s\n' "$LP_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+            printf '%s\n' "$LP_SSH_KNOWN_HOSTS" | tr -d '\r' > "$HOME/.ssh/known_hosts"
+            LOOKUP="$VPS_HOST"
+            if [[ "$PORT" != 22 ]]; then LOOKUP="[$VPS_HOST]:$PORT"; fi
+            if ! ssh-keygen -F "$LOOKUP" -f "$HOME/.ssh/known_hosts" >/dev/null 2>&1; then
+              # Accept one explicitly supplied public host key, with or without a hostname.
+              # Never obtain a replacement key from the network or disable strict checking.
+              PIN=$(awk 'NF && $1 !~ /^#/ { n++; if ($1 ~ /^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521))$/) { k=$1 " " $2 } else if ($1 !~ /^@/ && $2 ~ /^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521))$/) { k=$2 " " $3 } } END { if(n==1 && k!="") print k; else exit 1 }' "$HOME/.ssh/known_hosts") || { echo 'CRM_DIAG invalid_host_key_format'; exit 2; }
+              printf '%s %s\n' "$LOOKUP" "$PIN" > "$HOME/.ssh/known_hosts"
+              if ! ssh-keygen -l -f "$HOME/.ssh/known_hosts" >/dev/null 2>&1; then echo 'CRM_DIAG invalid_host_key_format'; exit 2; fi
+              echo 'CRM_DIAG pinned_host_key_format_normalized'
+            fi
           else
             ssh-keyscan -T 15 -p "$PORT" "$VPS_HOST" > "$HOME/.ssh/known_hosts" 2>/dev/null
           fi
