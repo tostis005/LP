@@ -180,6 +180,11 @@ export async function PATCH(request:Request){
    const r=await c.query("UPDATE public.crm_prospects SET status=$2,notes=$3,updated_at=now()"+(hasEvidence?",public_email=$4,public_email_source=$5,public_email_checked_at=CASE WHEN $4::text IS NULL THEN NULL WHEN public_email IS DISTINCT FROM $4 OR public_email_source IS DISTINCT FROM $5 THEN now() ELSE public_email_checked_at END":"")+" WHERE id=$1::uuid AND (status<>'do_not_contact' OR $2='do_not_contact') RETURNING id",hasEvidence?[v.id,v.status,v.notes,email,source]:[v.id,v.status,v.notes]);
    if(!r.rowCount)throw new ApiError("Contacto no encontrado o excluido de comunicaciones.",404);
    if(hasReview)await c.query("UPDATE public.crm_prospects SET contact_review=$2,contact_review_url=$3,contact_reviewed_at=CASE WHEN $2='pending' THEN NULL ELSE now() END WHERE id=$1::uuid",[v.id,review,reviewUrl||source]);
+   if(["contacted","interested","trial","converted"].includes(v.status!)){
+    // Explicit commercial status is historical evidence even if the address is edited later.
+    const addresses=(await c.query("SELECT DISTINCT lower(btrim(a)) AS email FROM public.crm_prospects p CROSS JOIN LATERAL unnest(ARRAY[p.email,p.public_email]) AS t(a) WHERE p.id=$1::uuid AND nullif(btrim(a),'') IS NOT NULL",[v.id])).rows;
+    for(const row of addresses)await c.query("SELECT public.crm_record_contacted_email($1)",[row.email]);
+   }
    if(v.status==="do_not_contact"){
     await c.query("INSERT INTO public.crm_email_exclusions(email) SELECT lower(a) FROM public.crm_prospects p CROSS JOIN LATERAL unnest(ARRAY[p.email,p.public_email]) AS t(a) WHERE p.id=$1::uuid AND a IS NOT NULL ON CONFLICT DO NOTHING",[v.id]);
     // Global exclusion is applied by the shared update below.
