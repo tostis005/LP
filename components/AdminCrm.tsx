@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X,Building2,Mail,FolderUp,CheckCircle2,RefreshCw} from "lucide-react";
+import {AdminCrmPueblaCampaign} from "./AdminCrmPueblaCampaign";
 import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
 import {CrmContactHistory,CrmMailSettings,useCrmMailSync} from "./CrmContactHistory";
 type Prospect={id:string;name:string;phone:string;address:string;website:string;latitude:string;longitude:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string;last_sent_at?:string|null;last_attempt_at?:string|null;last_received_at?:string|null;sent_count?:number};
@@ -91,7 +92,7 @@ export function AdminCrm(){
   <div className="crm-metrics" aria-label="Resumen de los resultados filtrados">
    {([{label:"Negocios",n:data?.count.total,icon:Building2},{label:"Con correo",n:data?.count.with_email,icon:Mail},{label:"Correos únicos",n:data?.count.unique_emails,icon:Mail},{label:"Revisados",n:data?.count.reviewed,icon:CheckCircle2}] as const).map(m=><div className="crm-metric" key={m.label}><span><m.icon size={16}/>{m.label}</span><strong>{m.n===undefined?"—":format(m.n)}</strong></div>)}
   </div></>}
-  {tab==="mail"&&<CrmMailSettings sync={mailSync}/>}
+  {tab==="mail"&&<><CrmMailSettings sync={mailSync}/><AdminCrmPueblaCampaign onChange={()=>setRevision(v=>v+1)}/></>}
   {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{pendingCities.length>0&&options.regions.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/></section>}
   <style>{`
    .crm-workspace{min-width:0}
