@@ -109,7 +109,7 @@ assert.match(entryRouter,/router.replace\("\/app"\)/);
 const rootPage=readFileSync(new URL("../../app/page.tsx",import.meta.url),"utf8");
 assert.match(rootPage,/Tus lugares favoritos/);
 assert.match(rootPage,/href="\/para-negocios"/);
-assert.match(rootPage,/href="\/acceder"/);
+assert.match(rootPage,/href="\/entrar"/);
 assert.match(readFileSync(new URL("../../app/para-negocios/page.tsx",import.meta.url),"utf8"),/<LandingHome/);
 assert.match(manifest,/display:"standalone"/,"The app has a standalone window");
 assert.doesNotMatch(rootLayout,/<InstallLoyally\/>/,"Remove the old floating install widget");
@@ -202,3 +202,9 @@ assert.match(contactCss,/\.request-page \.request-form\{/);
 
 const nextConfig=readFileSync(new URL("../../next.config.ts",import.meta.url),"utf8");
 assert.doesNotMatch(nextConfig,/source\s*:\s*"\/"\s*,\s*destination\s*:\s*"\/presentacion"/,"The Next.js rewrite cannot shadow the customer home");
+
+const installedEntry=readFileSync(new URL("../../components/InstalledAppEntry.tsx",import.meta.url),"utf8");
+assert.match(installedEntry,/display-mode: standalone/);
+assert.match(installedEntry,/if\(standalone\)\{setInstalled\(true\);router.replace\("\/entrar"\);\}/);
+assert.doesNotMatch(installedEntry,/auth.getUser|localStorage/,"The public browser landing never depends on the session");
+assert.match(rootPage,/dynamic="force-dynamic"/);

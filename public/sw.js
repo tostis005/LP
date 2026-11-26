@@ -1,5 +1,5 @@
 /* KREYVI PWA: shell público y recursos estáticos; no se guardan respuestas privadas de API. */
-const CACHE="kreyv-offline-v7";
+const CACHE="kreyv-offline-v8";
 const PUSH_ICON="/kreyv-notification-icon-v2-192.png";
 const PUSH_BADGE="/kreyv-notification-badge-v2-96.png";
 self.addEventListener("install",event=>{
@@ -41,7 +41,7 @@ self.addEventListener("fetch",event=>{
   event.respondWith((async()=>{const cache=await caches.open(CACHE);try{const response=await fetch(event.request);if(response.ok&&(path.pathname.startsWith("/_next/static/")||/public/i.test(response.headers.get("Cache-Control")||"")||path.pathname.startsWith("/brand/")))await cache.put(event.request,response.clone());return response}catch{const cached=await cache.match(event.request);if(cached)return cached;return Response.error()}})());return;
  }
  if(event.request.mode!=="navigate")return;
- event.respondWith(fetch(event.request).catch(async()=>{if(path.pathname==="/offline")return (await caches.match("/offline"))||Response.error();return Response.redirect(new URL("/offline",self.location.origin).href,302)}));
+ event.respondWith(fetch(event.request,{cache:"no-store"}).catch(async()=>{if(path.pathname==="/offline")return (await caches.match("/offline"))||Response.error();return Response.redirect(new URL("/offline",self.location.origin).href,302)}));
 });
 
 /* Notificaciones Web Push: visibles incluso con la PWA cerrada. */

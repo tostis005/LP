@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {ArrowRight,CheckCircle2,Eye,EyeOff,Sparkles} from "lucide-react";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import {Brand} from "@/components/Brand";
 import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import {StampCard} from "@/components/StampCard";
@@ -15,10 +16,15 @@ export default function Login(){
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[surname,setSurname]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[whatsapp,setWhatsapp]=useState("");
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
  const [loginTarget,setLoginTarget]=useState("/entrar");
+ const [sessionReady,setSessionReady]=useState(false);
  useEffect(()=>{
   const candidate=new URLSearchParams(window.location.search).get("next")||"";
-  if(safeJoinTarget(candidate)||/^\/app\/novedades\/[a-f0-9-]{36}$/i.test(candidate))setLoginTarget(candidate);
- },[]);
+  const target=safeJoinTarget(candidate)||(/^\/app\/novedades\/[a-f0-9-]{36}$/i.test(candidate)?candidate:"/entrar");
+  setLoginTarget(target);
+  let active=true;
+  db().auth.getUser().then(({data})=>{if(!active)return;if(data?.user){router.replace(target);return;}setSessionReady(true);}).catch(()=>{if(active)setSessionReady(true);});
+  return()=>{active=false;};
+ },[router]);
  async function submit(e:React.FormEvent){
   e.preventDefault();setBusy(true);setError("");setMessage("");
   try{
@@ -38,6 +44,7 @@ export default function Login(){
  }
  useEffect(()=>{if(new URLSearchParams(window.location.search).has("auth_error"))setError("No hemos podido acceder con tu cuenta. Vuelve a intentarlo.");},[]);
  function switchMode(next:typeof mode){setMode(next);setError("");setMessage("")}
+ if(!sessionReady)return <KreyviLoading label="Preparando tu espacio"/>;
  return <main className="auth-layout auth-compact auth-all-access public-login">
   <aside className="auth-story auth-story-compact">
    <Brand light href="/entrar"/>
