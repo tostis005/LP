@@ -32,7 +32,7 @@ export const LANDING_COPY = {
         {title:"Haz que vuelvan",text:"Premia cada compra y convierte las visitas ocasionales en clientes habituales."},
         {title:"Atrae nuevos clientes",text:"Gana visibilidad entre los usuarios que descubren negocios y recompensas cerca de ellos."},
         {title:"Conoce y conecta",text:"Consulta la actividad de quienes tienen tu tarjeta y prepara promociones para tus clientes."},
-        {title:"Empieza sin complicaciones",text:"Crea tarjetas con tu marca y tus premios, sin papel ni cambiar tu sistema de caja."},
+        {title:"Funciona sin conexión",text:"Tras verificar tu sesión, registra compras y sellos sin internet. Se sincronizan al recuperar la conexión, sin cambiar tu sistema de caja."},
       ],
     },
     how: {
@@ -42,7 +42,7 @@ export const LANDING_COPY = {
       cta:"Descubre cómo empezar",
       items:[
         {title:"Crea tu tarjeta",text:"Elige sellos, puntos o cashback y define el premio."},
-        {title:"Registra las visitas",text:"Tu equipo escanea el QR y actualiza el saldo del cliente."},
+        {title:"Registra las visitas",text:"Tu equipo escanea el QR y registra la compra, incluso sin internet. Las operaciones pendientes se sincronizan al recuperar la conexión."},
         {title:"Entrega las recompensas",text:"Cuando cumplan las condiciones, podrán canjear su premio."},
       ],
     },
@@ -125,7 +125,7 @@ export const LANDING_COPY = {
         {title:"Keep them coming back",text:"Reward purchases and turn occasional visits into lasting customer relationships."},
         {title:"Attract new customers",text:"Gain visibility among users discovering nearby businesses and rewards."},
         {title:"Know and connect",text:"Review cardholders' activity and prepare promotions for your customers."},
-        {title:"Get started easily",text:"Create branded cards and rewards without paper cards or changes to your point of sale."},
+        {title:"Works offline",text:"After verifying your session, record purchases and stamps without internet. They sync when you reconnect, with no changes to your point of sale."},
       ],
     },
     how: {
@@ -135,7 +135,7 @@ export const LANDING_COPY = {
       cta:"See how to get started",
       items:[
         {title:"Create your card",text:"Choose stamps, points or cashback and set your rewards."},
-        {title:"Record visits",text:"Your team scans the QR code to update the customer's balance."},
+        {title:"Record visits",text:"Your team scans the QR code and records the purchase, even offline. Pending transactions sync when you reconnect."},
         {title:"Redeem rewards",text:"Customers can redeem rewards when they meet the conditions."},
       ],
     },
