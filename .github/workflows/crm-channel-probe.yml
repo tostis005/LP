@@ -67,7 +67,8 @@ jobs:
           install -d -m 700 "$HOME/.ssh"
           printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$HOME/.ssh/id_deploy"
           chmod 600 "$HOME/.ssh/id_deploy"
-          trap 'rm -f "$HOME/.ssh/id_deploy"' EXIT
+          trap 'rm -f "$HOME/.ssh/id_deploy" "$HOME/.ssh/known_hosts" "$HOME/.ssh/crm-stderr"' EXIT
+          if ! ssh-keygen -y -P "" -f "$HOME/.ssh/id_deploy" >/dev/null 2>&1; then echo 'CRM_DIAG invalid_client_key'; exit 2; fi
           if [[ -n "$LP_SSH_KNOWN_HOSTS" ]]; then
             printf '%s\n' "$LP_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           else
@@ -75,21 +76,42 @@ jobs:
             exit 2
           fi
           chmod 600 "$HOME/.ssh/known_hosts"
+          HOST_LOOKUP="$VPS_HOST"
+          if [[ "$PORT" != 22 ]]; then HOST_LOOKUP="[$VPS_HOST]:$PORT"; fi
+          if ! ssh-keygen -F "$HOST_LOOKUP" -f "$HOME/.ssh/known_hosts" >/dev/null 2>&1; then
+            echo 'CRM_DIAG known_hosts_missing_matching_host'; exit 2
+          fi
           set +e
-          output=$(ssh -i "$HOME/.ssh/id_deploy" -p "$PORT" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" "bash -se -- $OPERATION $ORDER_ID $COUNT" 2>/dev/null <<'REMOTE'
+          output=$(ssh -i "$HOME/.ssh/id_deploy" -p "$PORT" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" "bash -se -- $OPERATION $ORDER_ID $COUNT" 2>"$HOME/.ssh/crm-stderr" <<'REMOTE'
           set -euo pipefail
-          cd /opt/lp
+          echo 'CRM_DIAG ssh_connected'
+          cd /opt/lp || { echo 'CRM_DIAG project_path_missing'; exit 2; }
           COMPOSE=(docker compose)
           if ! test -r .env.production || ! docker info >/dev/null 2>&1; then
-            sudo -n docker info >/dev/null 2>&1
+            sudo -n docker info >/dev/null 2>&1 || { echo 'CRM_DIAG docker_access_denied'; exit 2; }
             COMPOSE=(sudo -n docker compose)
           fi
+          if ! "${COMPOSE[@]}" --env-file .env.production exec -T automation-worker node -e 'const fs=require("fs"); if(!fs.existsSync("scripts/crm-github-command.mjs"))process.exit(2); if(process.env.PGUSER!=="lp_auth"||!process.env.PGPASSWORD)process.exit(3);' >/dev/null 2>&1; then
+            echo 'CRM_DIAG worker_unavailable_or_stale'; exit 2
+          fi
+          echo 'CRM_DIAG worker_ready'
           "${COMPOSE[@]}" --env-file .env.production exec -T automation-worker node scripts/crm-github-command.mjs "$1" "$2" "$3"
           REMOTE
           )
           rc=$?
           set -e
           result=$(printf '%s\n' "$output" | grep -E '^CRM_RESULT (enabled|disabled|not_ready|completed|stopped|already_processed|unauthorized|invalid|error) [0-9]{1,10} [0-9]{1,10}$' | tail -1 || true)
-          if [[ -z "$result" ]]; then echo 'CRM_RESULT error 0 0'; exit 1; fi
+          printf '%s\n' "$output" | grep -E '^CRM_DIAG (ssh_connected|project_path_missing|docker_access_denied|worker_unavailable_or_stale|worker_ready)
+          printf '%s\n' "$result"
+          exit "$rc"
+ || true
+          if [[ -z "$result" ]]; then
+            if grep -Eqi 'host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED|No .* host key is known' "$HOME/.ssh/crm-stderr"; then echo 'CRM_DIAG host_key_verification_failed'
+            elif grep -Eqi 'Permission denied|Authentication failed' "$HOME/.ssh/crm-stderr"; then echo 'CRM_DIAG ssh_authentication_denied'
+            elif grep -Eqi 'Connection timed out|Connection refused|No route to host|Could not resolve hostname' "$HOME/.ssh/crm-stderr"; then echo 'CRM_DIAG ssh_network_unavailable'
+            elif [[ "$rc" == 255 ]]; then echo 'CRM_DIAG ssh_transport_failed'
+            else echo 'CRM_DIAG remote_command_failed'; fi
+            echo 'CRM_RESULT error 0 0'; exit 1
+          fi
           printf '%s\n' "$result"
           exit "$rc"
