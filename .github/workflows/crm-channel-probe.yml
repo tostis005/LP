@@ -141,6 +141,8 @@ jobs:
               const attempts=order&&order.requested_count===1?(await c.query("SELECT recipient,created_at FROM public.crm_mail_attempts WHERE created_at >= $1 AND created_at < $1::timestamptz+interval '1 minute' ORDER BY created_at LIMIT 2",[order.created_at])).rows:[];
               await c.query("ROLLBACK");c.release();c=null;
               if(!mailbox){emit("no_mailbox");return;}
+              const domain=String(mailbox.email||"").toLowerCase().split("@")[1];
+              emit(!domain?"sender_missing":domain==="kreyvi.com"||domain.endsWith(".kreyvi.com")?"sender_primary_domain":domain==="kreyviapp.com"||domain.endsWith(".kreyviapp.com")?"sender_alternate_domain":"sender_domain_allowed");
               const who=await call("",unseal(mailbox.secret).token,"whoami",{});
               emit(who.error?"mailbox_"+who.error:"mailbox_ok");
               if(!order||order.requested_count!==1){emit("no_single_order");return;}
@@ -178,7 +180,7 @@ jobs:
             else echo 'CRM_DIAG remote_command_failed'; fi
             echo 'CRM_RESULT error 0 0'; exit 1
           fi
-          printf '%s\n' "$output" | grep -E '^CRM_AUDIT (audit_unavailable|no_actor|no_mailbox|no_single_order|mailbox_(ok|TOKEN_EXPIRED|INVALID_TOKEN|MISSING_AUTH_HEADER|RATE_LIMITED|READ_ONLY_ACCESS|MISSING_SCOPE|AUTH_UNAVAILABLE|PROVIDER_ERROR)|order_(started|completed|stopped|unknown) [0-9]+ [0-2]|logs [0-9]+ [0-9]+ [0-9]+|sent_subject_matches [0-9]+ [01]|(logs|sent)_(unavailable|TOKEN_EXPIRED|INVALID_TOKEN|MISSING_AUTH_HEADER|RATE_LIMITED|READ_ONLY_ACCESS|MISSING_SCOPE|AUTH_UNAVAILABLE|PROVIDER_ERROR))$' || true
+          printf '%s\n' "$output" | grep -E '^CRM_AUDIT (audit_unavailable|no_actor|no_mailbox|no_single_order|sender_missing|sender_primary_domain|sender_alternate_domain|sender_domain_allowed|mailbox_(ok|TOKEN_EXPIRED|INVALID_TOKEN|MISSING_AUTH_HEADER|RATE_LIMITED|READ_ONLY_ACCESS|MISSING_SCOPE|AUTH_UNAVAILABLE|PROVIDER_ERROR)|order_(started|completed|stopped|unknown) [0-9]+ [0-2]|logs [0-9]+ [0-9]+ [0-9]+|sent_subject_matches [0-9]+ [01]|(logs|sent)_(unavailable|TOKEN_EXPIRED|INVALID_TOKEN|MISSING_AUTH_HEADER|RATE_LIMITED|READ_ONLY_ACCESS|MISSING_SCOPE|AUTH_UNAVAILABLE|PROVIDER_ERROR))$' || true
           printf '%s\n' "$result"
           printf '%s\n' "$output" | grep -E '^CRM_REASON (NONE|TOKEN_EXPIRED|INVALID_TOKEN|MISSING_AUTH_HEADER|READ_ONLY_ACCESS|RECIPIENT_UNSUBSCRIBED|NO_CREDITS|RATE_LIMITED|INVALID_ARGS|INVALID_TOADDRESS|SENDER_NOT_FOUND|SENDER_NO_DOMAIN|AUTH_UNAVAILABLE|INTERNAL|MARKETING_LIMIT_REACHED|DAILY_LIMIT|ACCOUNT_RESTRICTED|SPAM_DETECTED|UNSUBSCRIBE_UNAVAILABLE|FORBIDDEN_HTML_CONTENT|PAID_PLAN_REQUIRED|PROVIDER_NETWORK|PROVIDER_REJECTED|REFRESH_FAILED|DB_PERMISSION|DB_CONSTRAINT|CRM_REJECTED_[0-9]{3}|DEADLINE|QUEUE_UNCONFIRMED|UNKNOWN)$' || true
           exit "$rc"
