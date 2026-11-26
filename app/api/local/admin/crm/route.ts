@@ -2,6 +2,7 @@ import {actorFromRequest,asActor,checkOrigin,responseError,ApiError,type Actor} 
 import {foodPilotImport,compatibleDenueImport,decodeDenue} from "@/lib/server/denue";
 import {downloadOfficialCsv,officialCities} from "@/lib/server/denue-download";
 import type {PoolClient} from "pg";
+import {crmDirectoryCount,type CrmDirectoryCount} from "@/lib/server/crm-directory-metrics";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 let officialImportRunning=false;
@@ -19,7 +20,7 @@ const sortColumns:Record<string,string>={
 const pageSizes=[25,50,100,200];
 // Only authorized platform administrators can read this shared directory.
 // Cache compact aggregate data, not prospect rows. Expire quickly to pick up external imports.
-type Aggregate={total:number;unique_emails:number;with_email:number;missing_email:number;reviewed:number};
+type Aggregate=CrmDirectoryCount;
 const countCache=new Map<string,{expires:number;data:Aggregate}>();
 function clearCounts(){countCache.clear();}
 
@@ -69,7 +70,7 @@ export async function GET(request:Request){
    let count:Aggregate;
    if(cached&&cached.expires>Date.now()&&p.get("refresh")!=="1")count=cached.data;
    else{
-    count=(await c.query("SELECT count(*)::int AS total,count(DISTINCT lower(COALESCE(email,public_email)))::int AS unique_emails,count(*) FILTER (WHERE email IS NOT NULL OR public_email IS NOT NULL)::int AS with_email,count(*) FILTER (WHERE email IS NULL AND public_email IS NULL)::int AS missing_email,count(*) FILTER (WHERE contact_review<>'pending')::int AS reviewed FROM public.crm_prospects"+filter,args)).rows[0];
+     count=await crmDirectoryCount(c,filter,args);
     if(countCache.size>=128)countCache.clear();
     countCache.set(cacheKey,{expires:Date.now()+15000,data:count});
    }

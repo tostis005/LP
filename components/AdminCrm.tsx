@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
-import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X,Building2,Mail,FolderUp,CheckCircle2,RefreshCw} from "lucide-react";
+import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X,Building2,Mail,FolderUp,CheckCircle2,RefreshCw,Send,Clock3,Users} from "lucide-react";
 import {AdminCrmPueblaCampaign} from "./AdminCrmPueblaCampaign";
 import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
 import {CrmContactHistory,CrmMailSettings,useCrmMailSync} from "./CrmContactHistory";
@@ -8,7 +8,7 @@ type Prospect={id:string;name:string;phone:string;address:string;website:string;
 type Region={country_code:string;state_code:string;state:string;municipality_code:string;municipality:string;locality_code:string;city:string;total:number};
 type Count={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
 type Report=Count&{duplicates:number;skipped:number;byCity:Array<Count&{state:string;municipality:string;city:string;state_code:string;municipality_code:string;locality_code:string}>;bySector:Array<Count&{category:string}>};
-type Data={prospects:Prospect[];count:{total:number;unique_emails:number;with_email:number;missing_email:number;reviewed:number};regions:Region[];categories:Array<{category:string;total:number}>;imports:Array<{filename:string;created_at:string;report:Report&{edition?:string|null}}>;page:number;pageSize:number;totalPages:number};
+type Data={prospects:Prospect[];count:{total:number;unique_emails:number;with_email:number;missing_email:number;reviewed:number;contacted:number;confirmed_email:number;confirmed_24h:number;pending_contact:number};regions:Region[];categories:Array<{category:string;total:number}>;imports:Array<{filename:string;created_at:string;report:Report&{edition?:string|null}}>;page:number;pageSize:number;totalPages:number};
 const stages:Record<string,string>={pending_review:"Sin contactar",qualified:"Sin contactar (revisado)",contacted:"Contactado",interested:"Interesado",trial:"En prueba",converted:"Cliente",discarded:"No interesado",do_not_contact:"No contactar"};
 const reviewStages:Record<string,string>={pending:"Pendiente",source_found:"Fuente localizada",no_contact_found:"Sin contacto localizado",ambiguous:"Identidad dudosa",not_relevant:"No relevante"};
 export function AdminCrm(){
@@ -23,8 +23,10 @@ export function AdminCrm(){
  const [pageSize,setPageSize]=useState(50),[sort,setSort]=useState("name"),[direction,setDirection]=useState<"asc"|"desc">("asc");
  const [columnFilters,setColumnFilters]=useState<Record<string,string>>({}),[loading,setLoading]=useState(true),[jump,setJump]=useState("");
  const requestVersion=useRef(0),lastRevision=useRef(-1),lastText=useRef("");
+ const [activityRevision,setActivityRevision]=useState(0);
  const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
- const mailSync=useCrmMailSync(()=>setRevision(v=>v+1));
+ const mailSync=useCrmMailSync(()=>setActivityRevision(v=>v+1));
+ useEffect(()=>{if(tab!=="directory")return;const refresh=()=>{if(!document.hidden)setActivityRevision(v=>v+1);};const timer=setInterval(refresh,60000);window.addEventListener("focus",refresh);return()=>{clearInterval(timer);window.removeEventListener("focus",refresh);};},[tab]);
  useEffect(()=>{
   const controller=new AbortController();setOptionsLoading(true);
   fetch("/api/local/admin/crm?view=options",{signal:controller.signal,cache:"no-store"}).then(async r=>{
@@ -51,7 +53,7 @@ export function AdminCrm(){
    .finally(()=>{if(!controller.signal.aborted&&version===requestVersion.current)setLoading(false);});
   },delay);
   return()=>{clearTimeout(timer);controller.abort();};
- },[country,state,municipality,city,category,status,coverage,review,search,page,pageSize,sort,direction,columnFilters,revision,tab]);
+ },[country,state,municipality,city,category,status,coverage,review,search,page,pageSize,sort,direction,columnFilters,revision,activityRevision,tab]);
  useEffect(()=>{if(!focus)return;const handler=(e:KeyboardEvent)=>{if(e.key==="Escape"&&!busy)setFocus(null);};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler);},[focus,busy]);
  const regions=options.regions,states=[...new Map(regions.filter(r=>!country||r.country_code===country).map(r=>[r.state_code,r.state])).entries()];
  const municipalities=[...new Map(regions.filter(r=>r.state_code===state).map(r=>[r.municipality_code,r.municipality])).entries()];
@@ -90,8 +92,8 @@ export function AdminCrm(){
   </div>
   {tab==="directory"&&<>{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}{optionsError&&<div role="alert" className="alert error">{optionsError}</div>}
   <div className="crm-metrics" aria-label="Resumen de los resultados filtrados">
-   {([{label:"Negocios",n:data?.count.total,icon:Building2},{label:"Con correo",n:data?.count.with_email,icon:Mail},{label:"Correos únicos",n:data?.count.unique_emails,icon:Mail},{label:"Revisados",n:data?.count.reviewed,icon:CheckCircle2}] as const).map(m=><div className="crm-metric" key={m.label}><span><m.icon size={16}/>{m.label}</span><strong>{m.n===undefined?"—":format(m.n)}</strong></div>)}
-  </div></>}
+   {([{label:"Negocios",n:data?.count.total,icon:Building2,hint:"Total con los filtros actuales"},{label:"Contactados",n:data?.count.contacted,icon:Users,hint:"Envío confirmado o contacto registrado comercialmente"},{label:"Por contactar",n:data?.count.pending_contact,icon:Clock3,hint:"Con correo y estado pendiente; no implica elegibilidad para una campaña"},{label:"Con envío confirmado",n:data?.count.confirmed_email,icon:Send,hint:"Negocios con al menos un correo aceptado por el destinatario"},{label:"Confirmados últimas 24 h",n:data?.count.confirmed_24h,icon:CheckCircle2,hint:"Negocios distintos con envío confirmado en las últimas 24 horas"},{label:"Con correo",n:data?.count.with_email,icon:Mail,hint:"Negocios con dirección registrada"},{label:"Correos únicos",n:data?.count.unique_emails,icon:Mail,hint:"Direcciones de correo distintas"},{label:"Revisados",n:data?.count.reviewed,icon:CheckCircle2,hint:"Contactos con revisión registrada"}] as const).map(m=><div className="crm-metric" key={m.label} title={m.hint}><span><m.icon size={16}/>{m.label}</span><strong>{m.n===undefined?"—":format(m.n)}</strong></div>)}
+  </div><p className="crm-metrics-note muted">Indicadores de todos los resultados filtrados, no solo de esta página. Los envíos en cola, fallidos o rebotados no cuentan como confirmados.</p></>}
   {tab==="mail"&&<><CrmMailSettings sync={mailSync}/><AdminCrmPueblaCampaign onChange={()=>setRevision(v=>v+1)}/></>}
   {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{pendingCities.length>0&&options.regions.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/></section>}
   <style>{`
@@ -103,7 +105,9 @@ export function AdminCrm(){
    .crm-tabs{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--border,#e2e8f0);margin-bottom:20px}
    .crm-tabs button{display:flex;align-items:center;gap:8px;white-space:nowrap;padding:12px 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:inherit;cursor:pointer;font:inherit;font-weight:600;font-size:.86rem;opacity:.72}
    .crm-tabs button.active{border-bottom-color:currentColor;opacity:1}
-   .crm-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 20px}
+   .crm-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 8px}
+    .crm-metrics-note{font-size:.75rem;margin:0 0 16px}
+    .crm-metric span{min-height:32px}
    .crm-metric{border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:14px;min-width:0;background:var(--card,#fff)}
    .crm-metric span{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--muted,#64748b)}
    .crm-metric strong{display:block;font-size:1.55rem;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin-top:8px}

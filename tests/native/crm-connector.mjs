@@ -15,6 +15,7 @@ const {apiPool,authPool,ApiError,hashToken,asActor}=require("../../.crm-connecto
 const root=new pg.Pool({host:process.env.PGHOST,port:Number(process.env.PGPORT||5432),database:"lp_test",user:process.env.POSTGRES_USER,password:process.env.POSTGRES_PASSWORD});
 const ids=[],sourceIds=[];
 const batch=require("../../.crm-connector-test/crm-contact-batch.js");
+const {crmDirectoryCount}=require("../../.crm-connector-test/crm-directory-metrics.js");
 const libraryFilename="test-city-"+randomUUID()+".csv";
 const newName="Cafetería nueva "+randomUUID();
 const tag=randomUUID().slice(0,8);
@@ -27,6 +28,32 @@ try{
   return {id,email,user_metadata:{}};
  };
  const admin=await makeUser(true),other=await makeUser(false);
+ // Isolated fixture: multiple deliveries, duplicate address fields, failed/queued
+ // messages, a manual contact and a different city. Roll back every fixture row.
+ const fixture=await root.connect();
+ try{
+  await fixture.query("BEGIN");
+  const marker="metric-"+randomUUID(),mailbox=marker+"@example.test";
+  const add=async(n,status,email,city="Metric City")=>{
+   await fixture.query("INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,public_email,status) VALUES($1,$2,'MX','21','Puebla','114','Puebla','0001',$3,'722515','Cafetería','Restaurantes y cafeterías',$4,$4,$5)",[marker+n,marker+n,city,email,status]);
+  };
+  const address=n=>marker+n+"@example.test";
+  await add("a","pending_review",address("a"));
+  await add("b","qualified",address("b"));
+  await add("c","interested",address("c"));
+  await add("d","do_not_contact",address("d"));
+  await add("e","contacted",address("e"),"Other City");
+  const msg=async(n,email,state,direction="outbound",age="1 hour")=>fixture.query("INSERT INTO public.crm_mail_history(mailbox,source,external_id,correspondent,direction,occurred_at,delivery_status) VALUES($1,'logs',$2,$3,$4,now()-$5::interval,$6)",[mailbox,n,email,direction,age,state]);
+  await msg("1",address("a"),"delivered");
+  await msg("2",address("a"),"delivered");
+  await msg("3",address("b"),"bounced");
+  await msg("4",address("b"),"received","inbound");
+  await msg("5",address("d"),"delivered","outbound","2 days");
+  await msg("6",address("e"),"delivered");
+  const metrics=await crmDirectoryCount(fixture," WHERE source_id LIKE $1 AND city=$2",[marker+"%","Metric City"]);
+  assert.equal(metrics.total,4);assert.equal(metrics.contacted,3);
+  assert.equal(metrics.confirmed_email,2);assert.equal(metrics.confirmed_24h,1);assert.equal(metrics.pending_contact,1);
+ }finally{await fixture.query("ROLLBACK");fixture.release();}
  const verifier=randomBytes(32).toString("base64url");
  const requestParams=new URLSearchParams({client_id:oauth.crmOAuth.clientId,redirect_uri:oauth.crmOAuth.redirectUri,resource:oauth.crmOAuth.resource,scope:oauth.crmOAuth.scope,response_type:"code",state:"test",code_challenge:oauth.pkce(verifier),code_challenge_method:"S256"});
  const params=oauth.validateAuthorization(requestParams);
