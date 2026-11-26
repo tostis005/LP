@@ -9,7 +9,9 @@ assert.doesNotMatch(data,/demoRole|demoDb/,"No localStorage role-based database"
 assert.doesNotMatch(login,/enterDemo|sandboxPassword|NEXT_PUBLIC_LP_SANDBOX_PASSWORD/);
 assert.match(login,/db\(\)\.auth\.signInWithPassword/);
 assert.doesNotMatch(staff,/DEMO_CARD_TOKEN|demoRole/);
-assert.match(staff,/staff_award_card/);
+assert.match(staff,/queueAward\(/);
+assert.match(read("lib/client/offline.ts"),/staff_sync_award/);
+assert.match(read("db/migrations/999_zz_offline_awards.sql"),/public\.apply_staff_award\(/);
 assert.match(customer,/QRCodeSVG value=\{qrUrl\}/);
 assert.match(customer,/loyally-modal-card-preview/,"QR modal must also show card design");
 assert.doesNotMatch(business,/PushCampaignPanel|pushView|Enviar notificación push<\/button>/);

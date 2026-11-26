@@ -5,7 +5,9 @@ import {Suspense} from "react";
 import {BrowserQRCodeReader,type IScannerControls} from "@zxing/browser";
 import {Camera,Check,Gift,Keyboard,Minus,Plus,RefreshCw,ScanLine,ShieldCheck,StopCircle,Ticket} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
+import {emptyMilestones,type MilestoneDetails} from "@/lib/milestones";
 import {db} from "@/lib/supabase";
+import {queueAward,submitAward,awards,syncAwards,removeAward} from "@/lib/client/offline";
 import {dateShort,normalizeToken,units,customerDisplayName} from "@/lib/format";
 import {displayCurrency} from "@/lib/currency";
 type RewardChoice={id:string;label:string;retail_cents:number|null};
@@ -14,21 +16,26 @@ type Found={membership_id:string;business_id:string;business_name:string;custome
 function StaffMain({account}:{account:Account}){
  const params=useSearchParams(),[input,setInput]=useState(""),[card,setCard]=useState<Found|null>(null),[receipt,setReceipt]=useState(""),[stamps,setStamps]=useState(1),[amount,setAmount]=useState(""),[cash,setCash]=useState(""),[busy,setBusy]=useState(false),[scanner,setScanner]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState("");
  const [rewards,setRewards]=useState<RewardChoice[]>([]),[chosen,setChosen]=useState(""),[currency,setCurrency]=useState("MXN");
+ const [milestones,setMilestones]=useState<MilestoneDetails>(emptyMilestones);
+ const [queue,setQueue]=useState(()=>awards(account.user.id));
+ useEffect(()=>{const refresh=()=>{void syncAwards(account.user.id).finally(()=>setQueue(awards(account.user.id)))};refresh();window.addEventListener("online",refresh);return()=>window.removeEventListener("online",refresh)},[account.user.id]);
  const video=useRef<HTMLVideoElement>(null),controls=useRef<IScannerControls|null>(null);
  const lookup=useCallback(async(raw:string)=>{const voucherUrl=raw.match(/\/p\/([a-f0-9-]{36})/i);
-  const token=voucherUrl?.[1]||normalizeToken(raw);setError("");setSuccess("");
+  const token=voucherUrl?.[1]||normalizeToken(raw);setError("");setSuccess("");setMilestones(emptyMilestones);
   if(!token){setError("El código QR o identificador no es válido.");return}
   setInput(token);
+  if(!navigator.onLine&&!voucherUrl){try{sessionStorage.setItem("kreyvi-offline-scan",raw)}catch{}window.location.assign("/offline");return}
   let {data,error}=voucherUrl?await db().rpc("staff_lookup_voucher",{p_token:token}):await db().rpc("staff_lookup_card",{p_token:token});
   if(!voucherUrl&&!error&&(!data||!data.length)){const voucher=await db().rpc("staff_lookup_voucher",{p_token:token});if(!voucher.error&&voucher.data?.length){data=voucher.data;error=null;}}
-  if(error){setError(error.message);setCard(null)}else if(!data?.length){setError("Tarjeta no encontrada o sin permiso para este negocio.");setCard(null)}else {
+  if(error){if(!voucherUrl&&error.message==="No se pudo conectar con el servidor."){try{sessionStorage.setItem("kreyvi-offline-scan",raw)}catch{}window.location.assign("/offline");return}setError(error.message);setCard(null)}else if(!data?.length){setError("Tarjeta no encontrada o sin permiso para este negocio.");setCard(null)}else {
    const found=data[0] as Found;
-   const [limit,choices,business,context]=await Promise.all([
+   const [limit,choices,business,context,ms]=await Promise.all([
     db().from("loyalty_programs").select("max_stamps_per_action,require_purchase_amount").eq("business_id",found.business_id).maybeSingle(),
     db().rpc("available_rewards",{p_business:found.business_id}),
     db().from("businesses").select("currency").eq("id",found.business_id).maybeSingle(),
-    db().rpc("staff_card_context",{p_membership:found.membership_id})
+    db().rpc("staff_card_context",{p_membership:found.membership_id}),db().rpc("stamp_milestone_details",{p_membership:found.membership_id})
    ]);
+   setMilestones(ms.data||emptyMilestones);
    setCurrency(displayCurrency(business.data?.currency));
    setRewards((choices.data||[]) as RewardChoice[]);setChosen("");if(choices.error)setError(choices.error.message);
    const ctx=(context.data||[])[0] as {customer_label:string;joined_at:string;verified_visits:number;earned_total:number;staff_notes:StaffNote[]}|undefined;
@@ -56,11 +63,22 @@ function StaffMain({account}:{account:Account}){
   if(kind==="earn"&&card.require_purchase_amount&&(!Number.isFinite(Number(amount))||Number(amount)<=0)){setError("Introduce el importe de la compra.");return}
   setBusy(true);setError("");setSuccess("");
   let result;
-  if(kind==="earn"&&!card.voucher_id){result=await db().rpc("staff_award_card",{p_token:input,p_purchase_cents:card.require_purchase_amount?Math.round(Number(amount)*100):0,p_stamps:stamps,p_ticket_ref:receipt.trim()||null});}
+  if(kind==="earn"&&!card.voucher_id){
+   try{const a=queueAward({actor:account.user.id,business:card.business_id,token:input,amount:card.require_purchase_amount?Math.round(Number(amount)*100):0,stamps,ticket:receipt.trim()||null});const r=await submitAward(a);
+    setQueue(awards(account.user.id));
+    if(r.state!=="confirmed"){setBusy(false);setCard(null);setSuccess(r.state==="pending"?"Compra guardada. Pendiente de sincronización.":"");if(r.state==="rejected")setError(r.message||"Compra rechazada");return}
+    result={data:r.balance,error:null};
+   }catch(e){setBusy(false);setError((e as Error).message);return}
+  }
   else {if(!window.confirm("¿Confirmas el canje de esta recompensa?")){setBusy(false);return}result=card.voucher_id?await db().rpc("staff_redeem_voucher_choice",{p_token:input,p_reward_option:chosen||null}):await db().rpc("staff_redeem_card_choice",{p_token:input,p_cashback_cents:card.program_type==="cashback"?Math.round(Number(cash)*100):null,p_reward_option:chosen||null})}
-  setBusy(false);if(result.error){setError(result.error.message);return}
-  setSuccess(kind==="earn"?"Compra registrada. Nuevo saldo: "+units(result.data,card.program_type,currency):"Recompensa canjeada. Saldo restante: "+units(result.data,card.program_type,currency));
+  if(result.error){setBusy(false);setError(result.error.message);return}
+  if(kind==="earn"){const ms=await db().rpc("stamp_milestone_details",{p_membership:card.membership_id});if(!ms.error)setMilestones(ms.data||emptyMilestones)}
+  setBusy(false);setSuccess(kind==="earn"?"Compra registrada. Nuevo saldo: "+units(result.data,card.program_type,currency):"Recompensa canjeada. Saldo restante: "+units(result.data,card.program_type,currency));
   setCard(kind==="redeem"?null:{...card,balance:result.data,earned_total:(card.earned_total||0)+(kind==="earn"&&card.program_type==="stamps"?stamps:0),visits:(card.visits||0)+(kind==="earn"?1:0)});setReceipt("");setAmount("");setCash("");setChosen("")
+ }
+ async function claimMilestone(id:string){
+  if(!card||!navigator.onLine||busy||!confirm("¿Confirmas que has entregado este premio intermedio? No descuenta sellos."))return;
+  setBusy(true);setError("");setSuccess("");try{const r=await db().rpc("staff_claim_stamp_milestone",{p_grant:id});if(r.error){setError(r.error.message);return}setSuccess("Premio intermedio canjeado. Saldo de sellos sin cambios.");const ms=await db().rpc("stamp_milestone_details",{p_membership:card.membership_id});if(!ms.error)setMilestones(ms.data||emptyMilestones)}finally{setBusy(false)}
  }
  async function claimBonus(note:StaffNote){
   if(!card||note.redeemed||(card.earned_total||0)<note.target)return;
@@ -74,6 +92,8 @@ function StaffMain({account}:{account:Account}){
   }finally{setBusy(false)}
  }
  return <div className="staff-app">
+  <p><a href="/offline" className="button button-outline">Modo sin conexión{queue.length?" · "+queue.length+" pendientes":""}</a></p>
+  {queue.length>0&&<div className="panel-card"><h3>Compras pendientes</h3>{queue.map(a=><p key={a.id}>{a.ticket||new Date(a.at).toLocaleString()} · {a.error||"Pendiente"} {a.error&&<button type="button" onClick={()=>{if(confirm("¿Descartar la compra rechazada?")){removeAward(a);setQueue(awards(account.user.id))}}}>Descartar</button>}</p>)}<button className="button button-outline" onClick={()=>void syncAwards(account.user.id).finally(()=>setQueue(awards(account.user.id)))}>Sincronizar</button></div>}
   <div className="staff-app-intro"><span className="page-eyebrow">CAJA Y FIDELIZACIÓN</span><h2>Escanea, registra y listo.</h2><p>El QR identifica al cliente. Comprueba la operación antes de sumar sellos o canjear un premio.</p></div>
   <div className="scanner-grid"><section className="panel-card staff-scan-panel"><div className="panel-icon"><ScanLine size={23}/></div><h2>Escanear tarjeta</h2>
   {scanner?<div className="camera-frame"><video ref={video} autoPlay muted playsInline/><button className="button button-outline button-sm" onClick={stopCamera}><StopCircle size={16}/> Detener</button></div>:<div className="scanner-placeholder"><ScanLine size={54}/><span>Listo para escanear</span><small>Presenta el QR de la tarjeta del cliente.</small></div>}
@@ -98,6 +118,7 @@ function StaffMain({account}:{account:Account}){
      <div><small>Visitas registradas</small><strong>{card.visits??"—"}</strong></div>
     </div>
    </div>
+   {milestones.grants.some(g=>g.available)&&<div className="staff-campaign-notes"><strong><Gift size={18}/> Premios intermedios disponibles</strong>{milestones.grants.filter(g=>g.available).map(g=><div className="staff-campaign-note" key={g.id}><b>{g.label}</b><p>No descuenta sellos.</p><button className="staff-bonus-claim" disabled={busy} onClick={()=>void claimMilestone(g.id)}>Confirmar entrega</button></div>)}</div>}
    {(card.staff_notes||[]).length>0&&<div className="staff-campaign-notes" aria-label="Reglas de campañas automáticas">
     <strong><Gift size={18}/> Promociones activas para esta tarjeta</strong>
     {card.staff_notes!.map(note=>{

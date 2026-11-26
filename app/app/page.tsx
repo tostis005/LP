@@ -7,6 +7,8 @@ import {AppFrame, type Account} from "@/components/AppFrame";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
 import {PushWelcomePrompt} from "@/components/PushWelcomePrompt";
 import {db} from "@/lib/supabase";
+import type {MilestoneDetails} from "@/lib/milestones";
+import {saveCards} from "@/lib/client/offline";
 import type {Membership,Business,Program} from "@/lib/types";
 import {dateShort,units} from "@/lib/format";
 type CardRow=Membership&{businesses:Business|null};
@@ -18,6 +20,7 @@ function completeCard(card:CardRow):card is CompleteCard {
 type Movement={id:string;amount_delta:number;kind:string;created_at:string;business_id:string;};
 function CustomerHome({account}:{account:Account}){
  const [cards,setCards]=useState<CompleteCard[]>([]),[programs,setPrograms]=useState<Program[]>([]),[movements,setMovements]=useState<Movement[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
+ const [milestones,setMilestones]=useState<Record<string,MilestoneDetails>>({});
  const [offerCounts,setOfferCounts]=useState<Record<string,number>>({}),[unreadOffers,setUnreadOffers]=useState(0);
  useEffect(()=>{
   let live=true;
@@ -52,23 +55,25 @@ function CustomerHome({account}:{account:Account}){
     setError("No hemos podido mostrar algunas tarjetas. Vuelve a intentarlo.");
    }
    if(complete.length){
-    const [p,m]=await Promise.all([
+    const [p,m,ms]=await Promise.all([
      db().from("loyalty_programs").select("*").in("business_id",complete.map(c=>c.business_id)),
      db().from("loyalty_transactions").select("id,amount_delta,kind,created_at,business_id")
-      .in("membership_id",complete.map(c=>c.id)).order("created_at",{ascending:false}).limit(10)
+      .in("membership_id",complete.map(c=>c.id)).order("created_at",{ascending:false}).limit(10),db().rpc("customer_stamp_milestones")
     ]);
     setPrograms((p.data||[]) as Program[]);
     setMovements((m.data||[]) as Movement[]);
+    const md:Record<string,MilestoneDetails>=Object.fromEntries(((ms.data||[]) as {membership_id:string;details:MilestoneDetails}[]).map(x=>[x.membership_id,x.details]));setMilestones(md);
+    if(!p.error&&complete.length===rows.length)saveCards({id:account.user.id,at:Date.now(),cards:complete,programs:(p.data||[]) as Program[],milestones:md,movements:(m.data||[]) as Movement[]});
     if(p.error||m.error)setError("Algunas operaciones no están disponibles. Puedes actualizar para intentarlo de nuevo.");
    }else{
-    setPrograms([]);setMovements([]);
+    setPrograms([]);setMovements([]);setMilestones({});if(!rows.length)saveCards({id:account.user.id,at:Date.now(),cards:[],programs:[]});
    }
   }catch{
    setError("No hemos podido cargar tus tarjetas. Comprueba la conexión e inténtalo de nuevo.");
    setCards([]);setPrograms([]);setMovements([]);
   }finally{setLoading(false);}
  },[account.user.id]);
- useEffect(()=>{load()},[load]);
+ useEffect(()=>{load();const refresh=()=>{void load()};window.addEventListener("online",refresh);return()=>window.removeEventListener("online",refresh)},[load]);
  const prog=(id:string)=>programs.find(x=>x.business_id===id);
  const readyRewards=cards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length;
  const firstName=String(account.user.user_metadata?.full_name||"").trim().split(/\s+/)[0];
@@ -94,8 +99,8 @@ function CustomerHome({account}:{account:Account}){
    <div className="customer-spotlight-foot"><span>{Math.min(closest.balance,closestProgram.reward_cost)}/{closestProgram.reward_cost} sellos</span><Link href={"/app?card="+encodeURIComponent(closest.id)} onClick={()=>window.dispatchEvent(new CustomEvent("kreyv:open-card",{detail:closest.id}))}>Ver tarjeta <ArrowUpRight size={17}/></Link></div>
   </section>}
   <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza para verlas</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
-  {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button></div>}
-  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid" role="region" aria-label="Tus tarjetas, desliza horizontalmente para verlas" tabIndex={0}>{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0} compact/>)}</div>}
+  {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button> · <a href="/offline">Ver tarjetas guardadas</a></div>}
+  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid" role="region" aria-label="Tus tarjetas, desliza horizontalmente para verlas" tabIndex={0}>{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0} milestones={milestones[c.id]} compact/>)}</div>}
 
   {movements.length>0&&<section className="customer-activity-section" aria-label="Últimos movimientos">
    <h2>Actividad reciente</h2>

@@ -124,6 +124,14 @@ export async function queryData(client:PoolClient,input:QueryInput) {
 type Arg=[string,"uuid"|"text"|"integer"|"boolean"|"bigint"|"double precision"];
 type Spec={args:Arg[];returns:"scalar"|"table"};
 const rpcMap:Record<string,Spec>={
+ manager_stamp_milestones:{args:[["p_business","uuid"]],returns:"table"},
+ manager_add_stamp_milestone:{args:[["p_business","uuid"],["p_position","integer"],["p_reward","uuid"]],returns:"scalar"},
+ manager_disable_stamp_milestone:{args:[["p_rule","uuid"]],returns:"scalar"},
+ stamp_milestone_details:{args:[["p_membership","uuid"]],returns:"scalar"},
+ customer_stamp_milestones:{args:[],returns:"table"},
+ staff_claim_stamp_milestone:{args:[["p_grant","uuid"]],returns:"scalar"},
+ staff_offline_access:{args:[],returns:"table"},
+ staff_sync_award:{args:[["p_operation","uuid"],["p_actor","uuid"],["p_business","uuid"],["p_token","uuid"],["p_purchase_cents","integer"],["p_stamps","integer"],["p_ticket_ref","text"],["p_captured_at","timestamptz"],["p_revision","uuid"]],returns:"scalar"},
  public_business_card_assets:{args:[["p_slug","text"]],returns:"table"},
  available_rewards:{args:[["p_business","uuid"]],returns:"table"},
  business_default_reward_cost:{args:[["p_business","uuid"]],returns:"table"},

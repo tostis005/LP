@@ -3,8 +3,10 @@
 // Ruta histórica de importación; NO utiliza SDK, Auth ni Storage de Supabase.
 // Todas las operaciones pasan por el backend local, que aplica RLS en PostgreSQL.
 export type User={id:string;email?:string;user_metadata?:{full_name?:string;whatsapp?:string;card_notifications_opt_in?:boolean}};
+import {clearOfflineAccount} from "@/lib/client/offline";
 import {showActionToast} from "@/lib/action-toast";
 const mutatingRpcs=new Set([
+ "manager_add_stamp_milestone","manager_disable_stamp_milestone","staff_claim_stamp_milestone",
  "invite_staff","set_staff_active","join_program","join_program_with_notifications","customer_set_all_notifications","staff_redeem_voucher_choice","staff_redeem_card_choice",
  "staff_redeem_voucher","staff_award_card","staff_redeem_card","business_upsert_consent",
  "business_upsert_whatsapp_consent","platform_upsert_consent","admin_create_business",
@@ -65,8 +67,8 @@ class Query implements PromiseLike<Result>{
 const auth={
  getUser:async()=>post<{user:User|null}>("/api/local/auth",{action:"getUser"}),
  getSession:async()=>post<{session:{access_token:string;user:User}|null}>("/api/local/auth",{action:"getSession"}),
- signOut:async()=>post("/api/local/auth",{action:"signOut"}),
- signInWithPassword:async(data:{email:string;password:string})=>post("/api/local/auth",{action:"signInWithPassword",...data}),
+ signOut:async()=>{const r=await post("/api/local/auth",{action:"signOut"});if(!r.error)clearOfflineAccount();return r},
+ signInWithPassword:async(data:{email:string;password:string})=>{const r=await post("/api/local/auth",{action:"signInWithPassword",...data});if(!r.error)clearOfflineAccount();return r},
  signUp:async(data:{email:string;password:string;options?:{data?:{full_name?:string;whatsapp?:string;platform_marketing_opt_in?:boolean;platform_push_opt_in?:boolean;card_notifications_opt_in?:boolean;return_to?:string};emailRedirectTo?:string}})=>post<{user:User|null;session:unknown}>("/api/local/auth",{action:"signUp",email:data.email,password:data.password,full_name:data.options?.data?.full_name,whatsapp:data.options?.data?.whatsapp,platform_marketing_opt_in:data.options?.data?.platform_marketing_opt_in===true,platform_push_opt_in:data.options?.data?.platform_push_opt_in===true,card_notifications_opt_in:data.options?.data?.card_notifications_opt_in===true,return_to:data.options?.data?.return_to}),
  resetPasswordForEmail:async(email:string,_options?:{redirectTo?:string})=>post("/api/local/auth",{action:"resetPasswordForEmail",email}),
  updateUser:async(data:{email?:string;password?:string;whatsapp?:string})=>post("/api/local/auth",{action:"updateUser",...data}),

@@ -220,6 +220,8 @@ jobs:
         run: node tests/native/growth-automation.mjs
       - name: Probar altas y canjes en flujos automáticos reales
         run: node tests/native/automation-flow.mjs
+      - name: Verificar idempotencia offline y premios intermedios recurrentes
+        run: node tests/native/offline-milestones.mjs
       - name: Probar catálogo completo de disparadores en PostgreSQL
         run: node tests/native/automation-trigger-catalog.mjs
       - name: Validar muestra de Café Noma en PostgreSQL
