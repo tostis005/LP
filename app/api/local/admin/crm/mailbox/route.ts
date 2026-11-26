@@ -63,13 +63,14 @@ export async function POST(request:Request){
     await c.query("SELECT pg_advisory_xact_lock(hashtext('crm-sendcorex-send'))");
     if((await c.query("SELECT 1 FROM public.crm_email_exclusions WHERE email=$1",[to])).rowCount)throw new ApiError("El contacto está excluido de comunicaciones.",409);
     if((await c.query("SELECT 1 FROM public.crm_mail_attempts WHERE id=$1::uuid",[id])).rowCount)throw new ApiError("Este envío ya se intentó. Comprueba Enviados antes de repetir.",409);
+    if((await c.query("SELECT public.crm_email_blocked_for_first_contact($1) AS blocked",[to])).rows[0].blocked)throw new ApiError("Esta dirección ya fue contactada, excluida o tiene un intento previo. Usa el historial para responder.",409);
     const count=(await c.query("SELECT count(*)::int AS n FROM public.crm_mail_attempts WHERE created_at>now()-interval '24 hours'")).rows[0].n;
     if(count>=30)throw new ApiError("Límite del CRM: 30 intentos de correo nuevo en 24 horas.",429);
     await c.query("INSERT INTO public.crm_mail_attempts(id,recipient) VALUES($1::uuid,$2)",[id,to]);
    });
    const data=await callMailbox(actor,{command:"send_email",args:{to,subject,text,unsubscribe:true,track_opens:false,track_clicks:false}});
    if(data?.queued===true)await asActor(actor,async c=>{
-    await c.query("UPDATE public.crm_prospects SET status='contacted',updated_at=now() WHERE status IN ('pending_review','qualified') AND $1 IN (lower(email),lower(public_email))",[to]);
+    await c.query("SELECT public.crm_record_contacted_email($1)",[to]);
    });
    return json({queued:data?.queued===true});
   }

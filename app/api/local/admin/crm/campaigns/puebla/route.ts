@@ -17,19 +17,19 @@ async function admin(request:Request){
 }
 // Prefer verified public business addresses and relevant sectors. Never use the CSV as live state.
 async function candidates(c:PoolClient,id:string|null=null):Promise<Candidate[]>{
- const sql="SELECT p.id,p.name,lower(trim(p.public_email)) AS email,p.category,p.activity,p.public_email_source AS source_url,p.status FROM public.crm_prospects p "+
- "WHERE p.country_code='MX' AND lower(trim(p.state))='puebla' AND lower(trim(p.municipality))='puebla' "+
+ const sql="WITH eligible AS (SELECT p.id,p.name,lower(btrim(p.public_email)) AS email,p.category,p.activity,p.public_email_source AS source_url,p.status, "+
+ "CASE WHEN p.activity ~* 'caf[eé]|cafeter|panader|pasteler|helad|never[ií]' OR p.category ~* 'helad|panader|pasteler' THEN 0 ELSE 1 END AS priority, CASE WHEN p.status='qualified' THEN 0 ELSE 1 END AS stage_priority "+
+ "FROM public.crm_prospects p WHERE p.country_code='MX' AND lower(trim(p.state))='puebla' AND lower(trim(p.municipality))='puebla' "+
  "AND lower(trim(p.city)) IN ('puebla','heroica puebla de zaragoza','puebla de zaragoza') "+
  "AND p.status IN ('qualified','pending_review') AND p.contact_review='source_found' "+
  "AND p.public_email_checked_at IS NOT NULL AND p.public_email_source ~ '^https?://' "+
  "AND p.public_email IS NOT NULL AND lower(trim(p.public_email)) ~ '^[^[:space:]@,;<>]+@[a-z0-9.-]+[.][a-z]{2,}$' "+
  "AND (p.activity_code LIKE '7225%' OR p.activity_code IN ('461170','311520') OR p.category IN ('Restaurantes y cafeterías','Heladerías') OR p.category ~* 'panader|pasteler') "+
  "AND ($1::uuid IS NULL OR p.id=$1::uuid) "+
- "AND NOT EXISTS (SELECT 1 FROM public.crm_email_exclusions x WHERE x.email IN (lower(trim(p.email)),lower(trim(p.public_email)))) "+
- "AND NOT EXISTS (SELECT 1 FROM public.crm_mail_attempts a WHERE a.recipient IN (lower(trim(p.email)),lower(trim(p.public_email)))) "+
- "AND NOT EXISTS (SELECT 1 FROM public.crm_mail_history h WHERE h.direction='outbound' AND h.correspondent IN (lower(trim(p.email)),lower(trim(p.public_email)))) "+
- "AND NOT EXISTS (SELECT 1 FROM public.crm_prospects q WHERE q.id<>p.id AND lower(trim(p.public_email)) IN (lower(trim(q.email)),lower(trim(q.public_email)))) "+
- "ORDER BY CASE WHEN p.activity ~* 'caf[eé]|cafeter|panader|pasteler|helad|never[ií]' OR p.category ~* 'helad|panader|pasteler' THEN 0 ELSE 1 END, CASE WHEN p.status='qualified' THEN 0 ELSE 1 END, lower(p.name),p.id LIMIT 30";
+ "AND NOT public.crm_email_blocked_for_first_contact(p.public_email) "+
+ "AND (nullif(btrim(p.email),'') IS NULL OR NOT public.crm_email_blocked_for_first_contact(p.email))"+
+ "), unique_email AS (SELECT DISTINCT ON (email) * FROM eligible ORDER BY email,priority,stage_priority,lower(name),id) "+
+ "SELECT id,name,email,category,activity,source_url,status FROM unique_email ORDER BY priority,stage_priority,lower(name),id LIMIT 30";
  return (await c.query<Candidate>(sql,[id])).rows;
 }
 async function remaining(c:PoolClient){
@@ -70,6 +70,7 @@ async function sendOne(actor:Actor,id:string,email:string,address:string,viaGith
   return {row,attempt};
  });
  const data=await callMailbox(actor,{command:"send_email",args:{to:reserved.row.email,to_name:reserved.row.name,subject:pueblaSubject,html:pueblaHtml(reserved.row.name,address),unsubscribe:true,track_opens:false,track_clicks:false}});
+ if(data?.queued===true)await asActor(actor,async c=>{await c.query("SELECT public.crm_record_contacted_email($1)",[reserved.row.email]);});
  return {attempt:reserved.attempt,id:reserved.row.id,queued:data?.queued===true,message_uid:data?.message_uid??null};
 }
 // Separate HMAC domain from the existing read-only mail synchronization. The

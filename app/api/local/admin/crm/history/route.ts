@@ -92,7 +92,7 @@ async function sync(actor:Actor,source:Source){
    if(current?.email!==job.email){await c.query("UPDATE public.crm_mail_sync SET lease=NULL WHERE mailbox=$1 AND source=$2",[job.email,source]);return {skipped:true};}
    if(rows.length){
     await c.query("INSERT INTO public.crm_mail_history(mailbox,source,external_id,correspondent,direction,occurred_at,subject,body_text,delivery_status) SELECT $1,$2,id,address,direction,date::timestamptz,subject,body,status FROM jsonb_to_recordset($3::jsonb) AS x(id text,address text,direction text,date text,subject text,body text,status text) ON CONFLICT(mailbox,source,external_id,correspondent) DO UPDATE SET subject=EXCLUDED.subject,body_text=COALESCE(NULLIF(EXCLUDED.body_text,''),crm_mail_history.body_text),delivery_status=EXCLUDED.delivery_status,occurred_at=EXCLUDED.occurred_at",[job.email,source,JSON.stringify(rows)]);
-    if(source==="logs"){const delivered=rows.filter(r=>r.status==="delivered").map(r=>r.address);if(delivered.length)await c.query("UPDATE public.crm_prospects SET status='contacted',updated_at=now() WHERE status IN ('pending_review','qualified') AND (lower(email)=ANY($1::text[]) OR lower(public_email)=ANY($1::text[]))",[delivered]);}
+    // The database trigger records delivered addresses and updates all matching businesses.
    }
    await c.query("UPDATE public.crm_mail_sync SET cursor=$3,window_start=CASE WHEN $3::text IS NULL THEN NULL ELSE window_start END,window_end=CASE WHEN $3::text IS NULL THEN NULL ELSE window_end END,last_finished=CASE WHEN $3::text IS NULL THEN window_end ELSE last_finished END,lease=NULL,last_error=NULL WHERE mailbox=$1 AND source=$2 AND lease=$4",[job.email,source,next,lease]);
    return {synced:rows.length,more:!!next};

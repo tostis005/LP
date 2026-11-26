@@ -33,6 +33,7 @@ export async function researchQueue(c:PoolClient,after:string){
    return {scope:"02003",stats,rows,next:rows.length===25?rows.at(-1).source_id:null};
 }
 export async function recordResearch(c:PoolClient,reviews:Evidence[]){
+   await c.query("SELECT pg_advisory_xact_lock(hashtext('crm-sendcorex-send'))");
    const out:Array<{source_id:string;result:string}>=[];
    for(const v of reviews){
     const r=await c.query("SELECT id,status,email,public_email FROM public.crm_prospects WHERE "+pilot+" AND source_id=$1 FOR UPDATE",[v.source_id]);

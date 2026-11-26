@@ -17,3 +17,6 @@ try{
  }finally{c.release();}
  console.log("CRM: historial protegido por RLS; trabajador sin acceso directo al contenido.");
 }finally{await Promise.all([app.end(),auth.end()]);}
+
+// Keep the global email dedup regression in the existing CRM PostgreSQL test suite.
+await import("./crm-email-dedup.mjs");
