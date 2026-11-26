@@ -1,5 +1,5 @@
 /* KREYVI PWA: shell público y recursos estáticos; no se guardan respuestas privadas de API. */
-const CACHE="kreyv-offline-v6";
+const CACHE="kreyv-offline-v7";
 const PUSH_ICON="/kreyv-notification-icon-v2-192.png";
 const PUSH_BADGE="/kreyv-notification-badge-v2-96.png";
 self.addEventListener("install",event=>{
@@ -10,12 +10,25 @@ self.addEventListener("install",event=>{
   const paths=[...new Set([...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(m=>m[1]).filter(p=>p.startsWith("/_next/static/")))];
   await cache.addAll(paths);
   await cache.put("/offline",shell);
+  await Promise.allSettled(["/brand/kreyv-pegada-vino-mostaza-claro.svg","/brand/kreyv-pegada-tinta-maiz-claro.svg"].map(p=>cache.add(p)));
   // Tener los símbolos de marca incluso cuando Chrome muestre una notificación sin la app abierta.
   await Promise.allSettled([cache.add(PUSH_ICON),cache.add(PUSH_BADGE)]);
  }).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",event=>{
  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith("loyally-offline-")||k.startsWith("kreyv-offline-"))&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener("message",event=>{
+ if(event.data?.type!=="WARM_CARD_ASSETS"||!Array.isArray(event.data.urls))return;
+ event.waitUntil((async()=>{const cache=await caches.open(CACHE);
+  await Promise.allSettled(event.data.urls.slice(0,150).map(async raw=>{
+   if(typeof raw!=="string")return;const url=new URL(raw,self.location.origin);
+   if(url.origin!==self.location.origin||!url.pathname.startsWith("/api/assets/business-assets/"))return;
+   if(await cache.match(url.href))return;
+   const response=await fetch(url.href,{credentials:"omit"});
+   if(response.ok&&/public/i.test(response.headers.get("Cache-Control")||"")&&/^image\//.test(response.headers.get("Content-Type")||""))await cache.put(url.href,response);
+  }));
+ })());
 });
 self.addEventListener("fetch",event=>{
  if(event.request.method!=="GET")return;

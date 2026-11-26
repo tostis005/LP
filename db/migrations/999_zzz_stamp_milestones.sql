@@ -30,7 +30,7 @@ RETURNS TABLE(id uuid,position integer,cycle_size integer,label text,active bool
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $$
 BEGIN
  IF NOT (public.is_business_manager(p_business) OR public.is_platform_admin()) THEN RAISE EXCEPTION 'No autorizado'; END IF;
- RETURN QUERY SELECT r.id,r.position,r.cycle_size,o.label,r.active AND o.active
+ RETURN QUERY SELECT r.id,r.position,r.cycle_size,o.label,r.active
  FROM public.stamp_milestone_rules r JOIN public.reward_options o ON o.id=r.reward_option_id
  WHERE r.business_id=p_business ORDER BY r.active DESC,r.position,r.created_at DESC;
 END $$;

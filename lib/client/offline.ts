@@ -1,16 +1,18 @@
 "use client";
+import {cardBackgroundUrl} from "@/lib/card-images";
+import {logoImageUrl,stampImageUrl} from "@/lib/asset-images";
 import type {MilestoneDetails} from "@/lib/milestones";
 import type {Business,Membership,Program} from "@/lib/types";
 export type OfflineCard=Membership&{businesses:Business};
 export type OfflineAccount={id:string;area:"customer"|"staff";at:number;businesses:{id:string;name:string;program?:Program;currency?:string}[]};
-export type Snapshot={id:string;at:number;cards:OfflineCard[];programs:Program[];milestones?:Record<string,MilestoneDetails>};
+export type Snapshot={id:string;at:number;cards:OfflineCard[];programs:Program[];milestones?:Record<string,MilestoneDetails>;movements?:{id:string;business_id:string;kind:string;amount_delta:number;created_at:string}[]};
 export type Award={id:string;actor:string;business:string;token:string;at:number;amount:number;stamps:number;ticket:string|null;error?:string};
 const prefix="kreyvi-offline-v1:", accountKey=prefix+"account",snapshotKey=prefix+"cards",queuePrefix=prefix+"award:";
 export function read<T>(key:string):T|null{try{return JSON.parse(localStorage.getItem(key)||"null") as T|null}catch{return null}}
 export function offlineAccount(){const a=read<OfflineAccount>(accountKey);return a&&Date.now()-a.at<24*60*60*1000?a:null}
 export function clearOfflineAccount(){try{localStorage.removeItem(accountKey);localStorage.removeItem(snapshotKey)}catch{}}
 export function saveAccount(a:OfflineAccount){try{const old=read<OfflineAccount>(accountKey);if(old?.id!==a.id||old?.area!==a.area)localStorage.removeItem(snapshotKey);localStorage.setItem(accountKey,JSON.stringify(a))}catch{}}
-export function saveCards(s:Snapshot){try{if(offlineAccount()?.id===s.id)localStorage.setItem(snapshotKey,JSON.stringify(s))}catch{}}
+export function saveCards(s:Snapshot){try{if(offlineAccount()?.id===s.id){localStorage.setItem(snapshotKey,JSON.stringify(s));if("serviceWorker" in navigator){const urls=s.cards.flatMap(c=>[cardBackgroundUrl(c.businesses.card_background,1200),logoImageUrl(c.businesses.logo_url,512),stampImageUrl(c.businesses.stamp_image_url,96)]).filter(Boolean);void navigator.serviceWorker.ready.then(r=>r.active?.postMessage({type:"WARM_CARD_ASSETS",urls})).catch(()=>{})}}}catch{}}
 export function offlineCards(){const a=offlineAccount(),s=read<Snapshot>(snapshotKey);return a?.area==="customer"&&s?.id===a.id?s:null}
 export function awards(actor:string):Award[]{try{return Object.keys(localStorage).filter(k=>k.startsWith(queuePrefix)).map(k=>read<Award>(k)).filter((a):a is Award=>!!a&&a.actor===actor).sort((a,b)=>a.at-b.at)}catch{return []}}
 export function queueAward(input:Omit<Award,"id"|"at"|"error">){const a=offlineAccount();if(!a||a.area!=="staff"||a.id!==input.actor||!a.businesses.some(b=>b.id===input.business))throw Error("Conecta y verifica tu sesión antes de registrar compras.");

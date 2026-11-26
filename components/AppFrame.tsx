@@ -10,7 +10,7 @@ import {adminNavigation,adminActiveHref} from "@/lib/admin-sections";
 import {KreyvIcon} from "@/components/KreyvIcon";
 import {CustomerInboxBell} from "@/components/CustomerInboxBell";
 import { configured, db } from "@/lib/supabase";
-import {saveAccount,clearOfflineAccount,syncAwards,awards} from "@/lib/client/offline";
+import {saveAccount,clearOfflineAccount,awards} from "@/lib/client/offline";
 import type {Program} from "@/lib/types";
 import {syncExistingPushSubscription} from "@/lib/client/push-sync";
 export type BusinessRole = { business_id:string; role:"owner"|"manager"|"employee"; active:boolean; businesses:{id:string;name:string;slug:string} | null };
@@ -46,13 +46,14 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
       db().from("platform_admins").select("user_id").eq("user_id",auth.data.user.id).maybeSingle()
     ]);
     if(members.error) throw members.error;
+    if(admins.error) throw admins.error;
     if(live){
      const u=auth.data.user,rs=(members.data||[]) as unknown as BusinessRole[];
      if(area==="customer"&&!admins.data&&rs.length===0)saveAccount({id:u.id,area:"customer",at:Date.now(),businesses:[]});
      else if(area==="staff"&&rs.some(r=>r.role==="employee")){
       const staff=rs.filter(r=>r.role==="employee"),p=await db().from("loyalty_programs").select("*").in("business_id",staff.map(r=>r.business_id));
       if(!p.error&&live)saveAccount({id:u.id,area:"staff",at:Date.now(),businesses:staff.map(r=>({id:r.business_id,name:r.businesses?.name||"Negocio",program:(p.data as Program[]||[]).find(x=>x.business_id===r.business_id)}))});
-      void syncAwards(u.id);
+      // StaffMain synchronizes the queue and refreshes its visible status.
      }else clearOfflineAccount();
      if(live){setUser(u);setRoles(rs);setAdmin(!!admins.data);setLoading(false)}
     }
@@ -63,7 +64,6 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  async function logout(){if(!window.confirm("¿Quieres cerrar tu sesión en KREYVI?"))return;if(user&&awards(user.id).length&&!window.confirm("Hay compras pendientes que solo podrás sincronizar al volver a iniciar sesión. ¿Continuar?"))return;const result=await db().auth.signOut();if(result.error){setError(result.error.message);return}clearOfflineAccount();router.replace("/acceder")}
  const hasBusiness=roles.some(x=>x.role==="owner"||x.role==="manager");
  const allowed=area==="customer"?!admin&&roles.length===0:area==="admin"?admin:area==="business"?hasBusiness:roles.some(x=>x.role==="employee");
- useEffect(()=>{if(!user||area!=="staff")return;const run=()=>{void syncAwards(user.id)};window.addEventListener("online",run);return()=>window.removeEventListener("online",run)},[user,area]);
  if(loading)return <KreyviLoading/>;
  if(error)return <div className="empty-page"><h2>No hemos podido abrir tu espacio</h2><p>{error}</p><a className="button button-outline" href="/offline">Abrir modo sin conexión</a><Link className="button button-dark" href="/acceder">Volver al acceso</Link></div>;
  if(!user)return <KreyviLoading label="Abriendo el acceso"/>;

@@ -24,9 +24,10 @@ function StaffMain({account}:{account:Account}){
   const token=voucherUrl?.[1]||normalizeToken(raw);setError("");setSuccess("");setMilestones(emptyMilestones);
   if(!token){setError("El código QR o identificador no es válido.");return}
   setInput(token);
+  if(!navigator.onLine&&!voucherUrl){try{sessionStorage.setItem("kreyvi-offline-scan",raw)}catch{}window.location.assign("/offline");return}
   let {data,error}=voucherUrl?await db().rpc("staff_lookup_voucher",{p_token:token}):await db().rpc("staff_lookup_card",{p_token:token});
   if(!voucherUrl&&!error&&(!data||!data.length)){const voucher=await db().rpc("staff_lookup_voucher",{p_token:token});if(!voucher.error&&voucher.data?.length){data=voucher.data;error=null;}}
-  if(error){setError(error.message);setCard(null)}else if(!data?.length){setError("Tarjeta no encontrada o sin permiso para este negocio.");setCard(null)}else {
+  if(error){if(!voucherUrl&&error.message==="No se pudo conectar con el servidor."){try{sessionStorage.setItem("kreyvi-offline-scan",raw)}catch{}window.location.assign("/offline");return}setError(error.message);setCard(null)}else if(!data?.length){setError("Tarjeta no encontrada o sin permiso para este negocio.");setCard(null)}else {
    const found=data[0] as Found;
    const [limit,choices,business,context,ms]=await Promise.all([
     db().from("loyalty_programs").select("max_stamps_per_action,require_purchase_amount").eq("business_id",found.business_id).maybeSingle(),
@@ -70,9 +71,9 @@ function StaffMain({account}:{account:Account}){
    }catch(e){setBusy(false);setError((e as Error).message);return}
   }
   else {if(!window.confirm("¿Confirmas el canje de esta recompensa?")){setBusy(false);return}result=card.voucher_id?await db().rpc("staff_redeem_voucher_choice",{p_token:input,p_reward_option:chosen||null}):await db().rpc("staff_redeem_card_choice",{p_token:input,p_cashback_cents:card.program_type==="cashback"?Math.round(Number(cash)*100):null,p_reward_option:chosen||null})}
-  setBusy(false);if(result.error){setError(result.error.message);return}
+  if(result.error){setBusy(false);setError(result.error.message);return}
   if(kind==="earn"){const ms=await db().rpc("stamp_milestone_details",{p_membership:card.membership_id});if(!ms.error)setMilestones(ms.data||emptyMilestones)}
-  setSuccess(kind==="earn"?"Compra registrada. Nuevo saldo: "+units(result.data,card.program_type,currency):"Recompensa canjeada. Saldo restante: "+units(result.data,card.program_type,currency));
+  setBusy(false);setSuccess(kind==="earn"?"Compra registrada. Nuevo saldo: "+units(result.data,card.program_type,currency):"Recompensa canjeada. Saldo restante: "+units(result.data,card.program_type,currency));
   setCard(kind==="redeem"?null:{...card,balance:result.data,earned_total:(card.earned_total||0)+(kind==="earn"&&card.program_type==="stamps"?stamps:0),visits:(card.visits||0)+(kind==="earn"?1:0)});setReceipt("");setAmount("");setCash("");setChosen("")
  }
  async function claimMilestone(id:string){

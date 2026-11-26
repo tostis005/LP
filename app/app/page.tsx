@@ -63,7 +63,7 @@ function CustomerHome({account}:{account:Account}){
     setPrograms((p.data||[]) as Program[]);
     setMovements((m.data||[]) as Movement[]);
     const md:Record<string,MilestoneDetails>=Object.fromEntries(((ms.data||[]) as {membership_id:string;details:MilestoneDetails}[]).map(x=>[x.membership_id,x.details]));setMilestones(md);
-    if(!p.error&&complete.length===rows.length)saveCards({id:account.user.id,at:Date.now(),cards:complete,programs:(p.data||[]) as Program[],milestones:md});
+    if(!p.error&&complete.length===rows.length)saveCards({id:account.user.id,at:Date.now(),cards:complete,programs:(p.data||[]) as Program[],milestones:md,movements:(m.data||[]) as Movement[]});
     if(p.error||m.error)setError("Algunas operaciones no están disponibles. Puedes actualizar para intentarlo de nuevo.");
    }else{
     setPrograms([]);setMovements([]);setMilestones({});if(!rows.length)saveCards({id:account.user.id,at:Date.now(),cards:[],programs:[]});
@@ -73,7 +73,7 @@ function CustomerHome({account}:{account:Account}){
    setCards([]);setPrograms([]);setMovements([]);
   }finally{setLoading(false);}
  },[account.user.id]);
- useEffect(()=>{load()},[load]);
+ useEffect(()=>{load();const refresh=()=>{void load()};window.addEventListener("online",refresh);return()=>window.removeEventListener("online",refresh)},[load]);
  const prog=(id:string)=>programs.find(x=>x.business_id===id);
  const readyRewards=cards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length;
  const firstName=String(account.user.user_metadata?.full_name||"").trim().split(/\s+/)[0];
