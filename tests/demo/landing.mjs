@@ -25,10 +25,17 @@ function assertSameKeys(left,right,name="root"){
  for(const key of Object.keys(left))assertSameKeys(left[key],right[key],name+"."+key);
 }
 assertSameKeys(es,en);
-assert.equal(es.hero.title,"Tarjetas de fidelización");
-assert.equal(en.hero.title,"Digital loyalty cards");
-assert.match(es.hero.description,/sellos, puntos o cashback/);
-assert.match(en.hero.description,/stamp, points or cashback/);
+assert.equal(es.hero.title,"Más clientes. Más visitas.");
+assert.equal(es.hero.accent,"Más ventas.");
+assert.equal(en.hero.title,"More customers. More visits.");
+assert.equal(en.hero.accent,"More sales.");
+assert.match(es.hero.description,/Fideliza a tus clientes/);
+assert.match(en.hero.description,/Build customer loyalty/);
+for(const lang of [es,en]){
+ assert.equal(lang.benefits.items.length,4);
+ assert.equal(lang.community.items.length,3);
+ assert.equal(lang.dashboard.items.length,3);
+}
 for(const lang of [es,en]){
  const all=JSON.stringify(lang);
  assert.doesNotMatch(all,/SVG|cuatro perfiles|four profiles|tablet|tableta/i);
@@ -60,6 +67,8 @@ const appEntry=readFileSync(new URL("../../app/mi-loyally/page.tsx",import.meta.
 const manifest=readFileSync(new URL("../../app/manifest.ts",import.meta.url),"utf8");
 const rootLayout=readFileSync(new URL("../../app/layout.tsx",import.meta.url),"utf8");
 
+assert.match(landingUi,/id="comunidad"/,"Community section stays on the landing");
+assert.match(landingUi,/id="panel-negocio"/,"Business dashboard section stays on the landing");
 assert.match(landingUi,/Kreyvi en mi móvil/,"Consumer-friendly action in the landing");
 assert.match(landingUi,/<InstallGuide lang=\{lang\}\/>/,"The install section stays on the landing");
 assert.match(headerUi,/"La app"/,"The top navigation links to the app");
