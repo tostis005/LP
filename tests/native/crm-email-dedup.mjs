@@ -22,10 +22,10 @@ try{
  const query=sqlSource.match(/"(?:\\.|[^"\\])*"/g).map(value=>JSON.parse(value)).join("");
  const shared=tag+"-shared@example.test";
  for(let i=0;i<30;i++)await add("shared"+i,null,"pending_review","Puebla",i%2?shared.toUpperCase():shared);
- const selected=(await c.query(query,[null])).rows.filter(row=>row.email===shared);
+ const selected=(await c.query(query,[null,30])).rows.filter(row=>row.email===shared);
  assert.equal(selected.length,1);
  await c.query("INSERT INTO public.crm_mail_attempts(id,recipient) VALUES($1,$2)",[randomUUID(),shared]);
- assert.equal((await c.query(query,[null])).rows.filter(row=>row.email===shared).length,0);
+ assert.equal((await c.query(query,[null,30])).rows.filter(row=>row.email===shared).length,0);
  await c.query("SELECT public.crm_record_contacted_email($1)",[shared]);
  assert.equal((await c.query("SELECT count(*)::int AS n FROM public.crm_prospects WHERE source_id LIKE $1 AND status='contacted'",[tag+"shared%"])).rows[0].n,30);
  const get=async(n)=>(await c.query("SELECT status FROM public.crm_prospects WHERE source_id=$1",[tag+n])).rows[0].status;
