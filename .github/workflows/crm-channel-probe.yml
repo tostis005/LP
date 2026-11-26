@@ -101,10 +101,7 @@ jobs:
           rc=$?
           set -e
           result=$(printf '%s\n' "$output" | grep -E '^CRM_RESULT (enabled|disabled|not_ready|completed|stopped|already_processed|unauthorized|invalid|error) [0-9]{1,10} [0-9]{1,10}$' | tail -1 || true)
-          printf '%s\n' "$output" | grep -E '^CRM_DIAG (ssh_connected|project_path_missing|docker_access_denied|worker_unavailable_or_stale|worker_ready)
-          printf '%s\n' "$result"
-          exit "$rc"
- || true
+          printf '%s\n' "$output" | grep -E '^CRM_DIAG (ssh_connected|project_path_missing|docker_access_denied|worker_unavailable_or_stale|worker_ready)$' || true
           if [[ -z "$result" ]]; then
             if grep -Eqi 'host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED|No .* host key is known' "$HOME/.ssh/crm-stderr"; then echo 'CRM_DIAG host_key_verification_failed'
             elif grep -Eqi 'Permission denied|Authentication failed' "$HOME/.ssh/crm-stderr"; then echo 'CRM_DIAG ssh_authentication_denied'
