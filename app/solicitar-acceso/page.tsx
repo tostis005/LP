@@ -16,15 +16,20 @@ export default function RequestAccess(){
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
  return <><PublicHeader/><main className="request-page"><div className="container request-grid">
-  <section className="request-copy"><div className="eyebrow">CRECE CON NOSOTROS</div>
-   <h1>Tu negocio merece <em>clientes que regresen.</em></h1>
-   <p>Cuéntanos un poco sobre tu negocio. Revisaremos la solicitud y, cuando podamos darte acceso, crearemos personalmente tu espacio en Kreyvi.</p>
-   <div className="request-benefits"><div><div className="request-benefit-icon"><Heart size={19}/></div><span>Tarjetas digitales con tu marca</span></div><div><div className="request-benefit-icon"><Store size={19}/></div><span>Control sencillo para tu equipo</span></div><div><div className="request-benefit-icon"><MapPin size={19}/></div><span>Más visibilidad ante clientes locales</span></div></div>
-   <div className="request-note"><ShieldCheck size={20}/><span>El alta no es automática: nuestro equipo revisa todas las solicitudes antes de activar un negocio.</span></div>
+  <section className="request-copy"><div className="request-kicker"><span aria-hidden="true"/> HABLEMOS DE TU NEGOCIO</div>
+   <h1>Hagamos que tus clientes <em>quieran volver.</em></h1>
+   <p>Cuéntanos qué quieres conseguir. Te ayudaremos a descubrir cómo Kreyvi puede encajar en tu negocio y a dar el primer paso con tu propio programa de recompensas.</p>
+   <div className="request-benefits">
+    <div><div className="request-benefit-icon"><Heart size={21}/></div><span><strong>Más visitas, más fidelidad</strong><small>Recompensa a tus clientes con tarjetas que llevan tu marca.</small></span></div>
+    <div><div className="request-benefit-icon"><MapPin size={21}/></div><span><strong>Que te descubran</strong><small>Da visibilidad a tu negocio dentro de la comunidad local.</small></span></div>
+    <div><div className="request-benefit-icon"><Store size={21}/></div><span><strong>Siempre a punto</strong><small>Registra compras y sellos sin conexión tras verificar tu sesión.</small></span></div>
+   </div>
+   <div className="request-note"><ShieldCheck size={21}/><span><strong>Hablemos sin compromiso.</strong><br/>Nuestro equipo revisará tu solicitud antes de activar tu negocio. No se realiza ningún cobro por solicitar acceso.</span></div>
+   <Link className="request-app-link" href="/mi-loyally?instalar=1">¿Quieres conocer la app? <ArrowUpRight size={17}/></Link>
   </section>
   <section className="panel-card request-form">
   {sent?<div className="request-success"><CheckCircle2 size={48}/><h2>¡Solicitud recibida!</h2><p>Hemos registrado tus datos. La incorporación requiere revisión manual; este mensaje no implica que el negocio esté aprobado.</p><Link className="button button-dark" href="/">Volver a inicio <ArrowUpRight size={17}/></Link></div>:
-  <><div className="panel-icon"><Mail size={22}/></div><h2>Solicita acceso</h2><p className="muted">Solo necesitamos unos datos para ponernos en contacto contigo.</p>
+  <><div className="request-form-heading"><div className="panel-icon"><Mail size={23}/></div><div><span className="request-form-kicker">TU PRIMER PASO</span><h2>Solicita acceso</h2></div></div><p className="muted">Déjanos tus datos y cuéntanos un poco sobre tu negocio.</p>
   <form className="form-stack" onSubmit={submit}><label>Nombre comercial<input required minLength={2} maxLength={120} value={business_name} onChange={e=>setBusiness(e.target.value)} placeholder="Ej. Café Noma"/></label>
    <label>Tu nombre<input required minLength={2} maxLength={120} value={contact_name} onChange={e=>setName(e.target.value)} placeholder="Nombre y apellidos"/></label>
    <label>Email de contacto<input required type="email" maxLength={254} value={contact_email} onChange={e=>setEmail(e.target.value)} placeholder="hola@minegocio.com"/></label>
