@@ -83,7 +83,7 @@ export function InstallGuide({lang="es"}:{lang?:LandingLanguage}){
    <div className="loi-install-card loi-install-app-preview">
     <div className="loi-install-app-top"><span className="loi-install-app-icon"><img src="/kreyv-mark-v3.svg" alt=""/></span><strong><BrandText value="Kreyvi"/></strong><span className="loi-install-app-love"><KreyvIcon name="recompensa" size={24}/></span></div>
     <span className="loi-install-app-caption"><BrandText value={t.phoneLabel}/></span>
-    <div className="loi-marketing-card loi-marketing-card-noma"><StampCard locale={lang} name="Café Noma" color="#183E5B" stampColor="#183E5B" reward={lang==="en"?"A coffee on us":"Un café gratis"} total={8} earned={5} icon="coffee" message={lang==="en"?"THANKS FOR COMING BACK":"GRACIAS POR VOLVER"}/></div>
+    <div className="loi-marketing-card loi-marketing-card-blush"><StampCard locale={lang} name="Studio Blush" color="#EAC8CC" textColor="#5C3048" stampColor="#7D3859" logoUrl="/brand/studio-blush-logo.svg" imageUrl="/brand/studio-blush-stamp.svg" reward={lang==="en"?"Complimentary nail art":"Diseño de uñas de regalo"} total={8} earned={5} icon="nails" message={lang==="en"?"A MOMENT JUST FOR YOU":"TU MOMENTO DE CUIDADO"}/></div>
     <div className="loi-install-app-nav"><span><KreyvIcon name="mis-tarjetas" size={17}/>{t.badges[0]}</span><span><KreyvIcon name="premios" size={17}/>{t.badges[2]}</span><span><KreyvIcon name="sellos" size={17}/>{t.badges[1]}</span></div>
     <div className="loi-install-qr">
      <div><strong>{t.qrTitle}</strong><p><BrandText value={t.qrText}/></p></div>
