@@ -34,3 +34,7 @@ const shell=flow.split("        run: |\n").at(-1).split("\n").map(x=>x.startsWit
 const parsed=spawnSync("bash",["-n"],{input:shell,encoding:"utf8"});
 assert.equal(parsed.status,0,parsed.stderr);
 console.log("CRM GitHub: restricciones, sintaxis de shell y rechazo de comando inválido OK");
+
+assert.match(worker,/reasons.has\(j.reason\)/);
+assert.match(route,/command:"whoami"/);
+assert.match(route,/reason=mailboxFailureCode\(e\)/);

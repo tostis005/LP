@@ -1,6 +1,6 @@
 import {randomUUID,createHmac,timingSafeEqual} from "node:crypto";
 import {actorFromRequest,asActor,authPool,checkOrigin,responseError,ApiError,type Actor} from "@/lib/server/db";
-import {callMailbox} from "@/lib/server/crm-mailbox";
+import {callMailbox,mailboxFailureCode} from "@/lib/server/crm-mailbox";
 import {pueblaHtml,pueblaSubject} from "@/lib/server/crm-puebla-template";
 import type {PoolClient} from "pg";
 export const runtime="nodejs";
@@ -96,24 +96,32 @@ async function githubCommand(request:Request,raw:string){
   return {enabled:config?.enabled===true&&config.authorized_by===actor.id,address:String(config?.fiscal_address||""),connected,rows};
  });
  if(!plan||!plan.connected)return json({state:"not_ready",queued:0});
- if(v.command==="preview")return json({state:plan.enabled?"enabled":"disabled",eligible:plan.rows.length,queued:0});
+ if(v.command==="preview"){
+  let reason="NONE";
+  if(plan.enabled){
+   try{await callMailbox(actor,{command:"whoami"});}
+   catch(e){reason=mailboxFailureCode(e);}
+  }
+  return json({state:plan.enabled?(reason==="NONE"?"enabled":"not_ready"):"disabled",eligible:plan.rows.length,queued:0,reason});
+ }
  if(!plan.enabled)return json({state:"disabled",queued:0});
  const address=fiscal(plan.address);
+ try{await callMailbox(actor,{command:"whoami"});}catch(e){return json({state:"not_ready",queued:0,reason:mailboxFailureCode(e)});}
  // The comment ID is durable and stable even when an Actions run is retried.
  const inserted=await asActor(actor,async c=>(await c.query("INSERT INTO public.crm_github_orders(order_id,requested_count) VALUES($1,$2) ON CONFLICT DO NOTHING",[v.orderId,v.count])).rowCount);
  if(!inserted)return json({state:"already_processed",queued:0});
- let queued=0,state="completed";const deadline=Date.now()+45*60*1000;
+ let queued=0,state="completed",reason="NONE";const deadline=Date.now()+45*60*1000;
  for(const row of plan.rows){
-  if(Date.now()>=deadline){state="stopped";break;}
+  if(Date.now()>=deadline){state="stopped";reason="DEADLINE";break;}
   try{
    const result=await sendOne(actor,row.id,row.email,address,true);
-   if(!result.queued){state="stopped";break;}
+   if(!result.queued){state="stopped";reason="QUEUE_UNCONFIRMED";break;}
    queued++;
    await asActor(actor,async c=>{await c.query("UPDATE public.crm_github_orders SET queued=$2 WHERE order_id=$1",[v.orderId,queued]);});
-  }catch{state="stopped";break;}
+  }catch(e){state="stopped";reason=mailboxFailureCode(e);break;}
  }
  await asActor(actor,async c=>{await c.query("UPDATE public.crm_github_orders SET state=$2,queued=$3 WHERE order_id=$1",[v.orderId,state,queued]);});
- return json({state,queued,eligible:plan.rows.length});
+ return json({state,queued,eligible:plan.rows.length,reason});
 }
 export async function POST(request:Request){
  try{
@@ -142,7 +150,7 @@ export async function POST(request:Request){
   return json(await sendOne(actor,v.id,v.email,fiscal(v.fiscalAddress)));
  }catch(e){
   // Never expose internal provider/recipient errors in the public Actions log.
-  if(request.headers.has("x-crm-github-signature"))return json({state:"error",queued:0});
+  if(request.headers.has("x-crm-github-signature"))return json({state:"error",queued:0,reason:mailboxFailureCode(e)});
   return responseError(e);
  }
 }

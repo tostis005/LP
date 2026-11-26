@@ -2,6 +2,18 @@ import {createCipheriv,createDecipheriv,createHash,randomBytes} from "node:crypt
 import {ApiError,asActor,type Actor} from "@/lib/server/db";
 type Credentials={token:string;refresh:string;expiresAt?:string};
 type Command={command:string;args?:Record<string,unknown>};
+const providerCodes=new Set(["TOKEN_EXPIRED","INVALID_TOKEN","MISSING_AUTH_HEADER","READ_ONLY_ACCESS","RECIPIENT_UNSUBSCRIBED","NO_CREDITS","RATE_LIMITED","INVALID_ARGS","INVALID_TOADDRESS","SENDER_NOT_FOUND","SENDER_NO_DOMAIN","AUTH_UNAVAILABLE","INTERNAL","MARKETING_LIMIT_REACHED","DAILY_LIMIT","ACCOUNT_RESTRICTED","SPAM_DETECTED","UNSUBSCRIBE_UNAVAILABLE","FORBIDDEN_HTML_CONTENT","PAID_PLAN_REQUIRED"]);
+export class MailboxError extends ApiError{
+ constructor(message:string,status:number,public reason:string){super(message,status);}
+}
+export function mailboxFailureCode(error:unknown){
+ if(error instanceof MailboxError)return error.reason;
+ const code=(error as {code?:string}|null)?.code;
+ if(code==="42501")return "DB_PERMISSION";
+ if(code==="23514"||code==="23503"||code==="23505")return "DB_CONSTRAINT";
+ if(error instanceof ApiError)return "CRM_REJECTED_"+error.status;
+ return "UNKNOWN";
+}
 function key(){
  const secret=process.env.SENDCOREX_ENCRYPTION_KEY||process.env.AUTH_PGPASSWORD;
  if(!secret||secret.length<32)throw new ApiError("Falta la clave de cifrado del servidor.",503);
@@ -21,17 +33,19 @@ export function unseal(value:string):Credentials{
 export async function mailboxCall(token:string,command:Command){
  let response:Response;
  try{response=await fetch("https://g.sendcorex.com/v1",{method:"POST",headers:{"Authorization":token,"Content-Type":"application/json"},body:JSON.stringify({commands:[command]}),cache:"no-store",redirect:"error",signal:AbortSignal.timeout(12000)});}
- catch{throw new ApiError("No se pudo comunicar con Sendcorex. Si estabas enviando, comprueba Enviados antes de repetir.",502);}
+ catch{throw new MailboxError("No se pudo comunicar con Sendcorex. Si estabas enviando, comprueba Enviados antes de repetir.",502,"PROVIDER_NETWORK");}
  const j=await response.json().catch(()=>null);
  const r=j?.results?.[0],code=String(r?.code||j?.code||"");
  if(code==="TOKEN_EXPIRED")throw new ApiError("TOKEN_EXPIRED",401);
  if(!response.ok||r?.type!=="SUCCESS"){
-  if(response.status===429)throw new ApiError("Límite temporal de Sendcorex. Intenta más tarde.",429);
-  if(code==="INVALID_TOKEN"||code==="MISSING_AUTH_HEADER")throw new ApiError("Credencial de buzón inválida. Reconecta el buzón.",400);
-  if(code==="READ_ONLY_ACCESS")throw new ApiError("El token es de solo lectura.",403);
-  if(code==="RECIPIENT_UNSUBSCRIBED")throw new ApiError("El destinatario se dio de baja.",409);
-  if(code==="NO_CREDITS")throw new ApiError("No quedan créditos de envío.",429);
-  throw new ApiError("Sendcorex rechazó la operación.",502);
+  const reason=providerCodes.has(code)?code:response.status===429?"RATE_LIMITED":"PROVIDER_REJECTED";
+  const fail=(message:string,status:number)=>new MailboxError(message,status,reason);
+  if(response.status===429)throw fail("Límite temporal de Sendcorex. Intenta más tarde.",429);
+  if(code==="INVALID_TOKEN"||code==="MISSING_AUTH_HEADER")throw fail("Credencial de buzón inválida. Reconecta el buzón.",400);
+  if(code==="READ_ONLY_ACCESS")throw fail("El token es de solo lectura.",403);
+  if(code==="RECIPIENT_UNSUBSCRIBED")throw fail("El destinatario se dio de baja.",409);
+  if(code==="NO_CREDITS")throw fail("No quedan créditos de envío.",429);
+  throw fail("Sendcorex rechazó la operación ("+reason+").",502);
  }
  return r.data;
 }
@@ -41,7 +55,7 @@ async function renew(c:Credentials):Promise<Credentials>{
  try{response=await fetch("https://g.sendcorex.com/v1/token/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({refresh_token:c.refresh}),cache:"no-store",redirect:"error",signal:AbortSignal.timeout(12000)});}
  catch{throw new ApiError("No se pudo renovar la conexión con Sendcorex.",502);}
  const j=await response.json().catch(()=>null);
- if(!response.ok||typeof j?.data?.token!=="string"||typeof j?.data?.refresh_token!=="string")throw new ApiError("No se pudo renovar el token. Reconecta el buzón.",400);
+ if(!response.ok||typeof j?.data?.token!=="string"||typeof j?.data?.refresh_token!=="string")throw new MailboxError("No se pudo renovar el token. Reconecta el buzón.",400,"REFRESH_FAILED");
  return {token:j.data.token,refresh:j.data.refresh_token,expiresAt:j.data.expires_at};
 }
 async function credentials(actor:Actor,expiredToken?:string){

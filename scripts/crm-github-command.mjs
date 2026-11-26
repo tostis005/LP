@@ -12,6 +12,8 @@ try{
  const states=["enabled","disabled","not_ready","completed","stopped","already_processed","unauthorized","invalid","error"];
  const queued=Number(j.queued),eligible=Number(j.eligible??0);
  if(!states.includes(j.state)||!Number.isInteger(queued)||queued<0||queued>(command==="send"?count:0)||!Number.isInteger(eligible)||eligible<0||eligible>2147483647)throw Error("response");
+ const reasons=new Set(["NONE","TOKEN_EXPIRED","INVALID_TOKEN","MISSING_AUTH_HEADER","READ_ONLY_ACCESS","RECIPIENT_UNSUBSCRIBED","NO_CREDITS","RATE_LIMITED","INVALID_ARGS","INVALID_TOADDRESS","SENDER_NOT_FOUND","SENDER_NO_DOMAIN","AUTH_UNAVAILABLE","INTERNAL","MARKETING_LIMIT_REACHED","DAILY_LIMIT","ACCOUNT_RESTRICTED","SPAM_DETECTED","UNSUBSCRIBE_UNAVAILABLE","FORBIDDEN_HTML_CONTENT","PAID_PLAN_REQUIRED","PROVIDER_NETWORK","PROVIDER_REJECTED","REFRESH_FAILED","DB_PERMISSION","DB_CONSTRAINT","CRM_REJECTED_400","CRM_REJECTED_401","CRM_REJECTED_403","CRM_REJECTED_409","CRM_REJECTED_429","CRM_REJECTED_502","CRM_REJECTED_503","DEADLINE","QUEUE_UNCONFIRMED","UNKNOWN"]);
  console.log("CRM_RESULT "+j.state+" "+queued+" "+eligible);
+ if(j.reason)console.log("CRM_REASON "+(reasons.has(j.reason)?j.reason:"UNKNOWN"));
  if(["unauthorized","invalid","error","not_ready","stopped"].includes(j.state)||command==="send"&&j.state==="disabled")process.exitCode=1;
 }catch{console.log("CRM_RESULT error 0 0");process.exitCode=1;}
