@@ -1,5 +1,6 @@
 "use client";
 import {useState} from "react";
+import {PUBLIC_BUSINESS_SECTORS} from "@/lib/public-business-sectors";
 import Link from "next/link";
 import {ArrowUpRight,CheckCircle2,Heart,Mail,Store,MapPin,ShieldCheck} from "lucide-react";
 import {PublicHeader} from "@/components/PublicHeader";
@@ -33,7 +34,7 @@ export default function RequestAccess(){
   <form className="form-stack" onSubmit={submit}><label>Nombre comercial<input required minLength={2} maxLength={120} value={business_name} onChange={e=>setBusiness(e.target.value)} placeholder="Ej. Café Noma"/></label>
    <label>Tu nombre<input required minLength={2} maxLength={120} value={contact_name} onChange={e=>setName(e.target.value)} placeholder="Nombre y apellidos"/></label>
    <label>Email de contacto<input required type="email" maxLength={254} value={contact_email} onChange={e=>setEmail(e.target.value)} placeholder="hola@minegocio.com"/></label>
-   <div className="form-two"><label>Sector<select value={category} onChange={e=>setCategory(e.target.value)}>{["Cafetería","Restaurante","Barbería","Belleza","Tienda","Salud y bienestar","Otros"].map(c=><option key={c}>{c}</option>)}</select></label><label>Ciudad<input required minLength={2} maxLength={120} value={city} onChange={e=>setCity(e.target.value)} placeholder="Madrid"/></label></div>
+   <div className="form-two"><label>Sector<select value={category} onChange={e=>setCategory(e.target.value)}>{PUBLIC_BUSINESS_SECTORS.map(c=><option key={c.value} value={c.value}>{c.value==="Tienda"?"Comercios y tiendas":c.value}</option>)}</select></label><label>Ciudad<input required minLength={2} maxLength={120} value={city} onChange={e=>setCity(e.target.value)} placeholder="Madrid"/></label></div>
    <label>¿Qué te gustaría conseguir? (opcional)<textarea rows={4} maxLength={1000} value={message} onChange={e=>setMessage(e.target.value)} placeholder="Nos gustaría fidelizar a nuestros clientes..."/></label>
    <div className="honeypot-field" aria-hidden="true"><label>Deja este campo vacío<input tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)}/></label></div>
    <div className="check-control"><input type="checkbox" id="consent-access" required checked={consent_contact} onChange={e=>setConsent(e.target.checked)}/><label htmlFor="consent-access"><strong>Autorizo que Kreyvi me contacte sobre esta solicitud.</strong><small>No implica aceptar publicidad ni suscribirse a una lista de marketing. Solo utilizaremos estos datos para responder a la solicitud.</small></label></div>
