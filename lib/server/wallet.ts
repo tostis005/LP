@@ -47,7 +47,7 @@ export function googleWalletUrl(card:WalletCard){
     subheader:localized("Tarjeta KREYVI"),
     barcode:{type:"QR_CODE",value:site+"/t/"+card.card_token,alternateText:"Escanea en el establecimiento"},
     textModulesData:[{header:"Saldo al guardar",body:String(card.balance)+(card.type==="stamps"?" / "+card.reward_cost+" sellos":card.type==="points"?" puntos":" de saldo"),id:"progress"}],
-    linksModuleData:{uris:[{uri:site+"/app",description:"Consultar saldo actualizado en KREYVI"}]}
+    linksModuleData:{uris:[{uri:site+"/app",description:"Consultar saldo actualizado en KREYVI"},{uri:site+"/help",description:"Ayuda y soporte de KREYVI",id:"support"}]}
    }]
   }
  };
@@ -102,7 +102,7 @@ export async function appleWalletPass(card:WalletCard):Promise<Buffer>{
    primaryFields:[{key:"program",label:"TU ESTABLECIMIENTO",value:card.name}],
    secondaryFields:[{key:"balance",label:"SALDO AL GUARDAR",value:String(card.balance)+(card.type==="stamps"?" / "+card.reward_cost+" sellos":"")}],
    auxiliaryFields:[{key:"reward",label:"TU RECOMPENSA",value:card.reward_label}],
-   backFields:[{key:"up_to_date",label:"Consulta tu saldo actualizado",value:site+"/app"}]
+   backFields:[{key:"up_to_date",label:"Consulta tu saldo actualizado",value:site+"/app"},{key:"support",label:"Ayuda y soporte de KREYVI",value:site+"/help"}]
   },
   barcodes:[{format:"PKBarcodeFormatQR",message:site+"/t/"+card.card_token,messageEncoding:"iso-8859-1"}]
  };

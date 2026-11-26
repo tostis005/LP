@@ -32,6 +32,8 @@ jobs:
         run: node tests/demo/home-polish.mjs
       - name: Textos bilingües y colección visual
         run: node tests/demo/landing.mjs
+      - name: Verificar centro de ayuda y enlace de Wallet
+        run: node tests/demo/help-support.mjs
       - name: Comprobar ofertas, novedades y recuperación de notificaciones push
         run: node tests/demo/offers-inbox.mjs
       - name: Verificar campañas unificadas y facturación por canal
@@ -309,7 +311,9 @@ jobs:
                grep -Fq 'More sales.' "$homepage_en" &&
                grep -Fq 'id="comunidad"' "$homepage_en" &&
                grep -Fq 'id="panel-negocio"' "$homepage_en" &&
-               ! grep -Fq 'Más clientes. Más visitas.' "$homepage_en"; then
+               ! grep -Fq 'Más clientes. Más visitas.' "$homepage_en" &&
+               curl -fsS --max-time 8 http://127.0.0.1:3100/help | grep -Fq "¿En qué podemos ayudarte?" &&
+               curl -fsS --max-time 8 'http://127.0.0.1:3100/help?lang=en' | grep -Fq "How can we help?"; then
               # Evitar que un enlace de vista previa o una sección interna vuelva a responder 404/500.
               for route in /negocio /negocio/poster /negocio/reports /negocio/transactions /negocio/customers /negocio/marketing /negocio/vista-previa /app/descubrir /api/local/wallet/status /api/local/marketing/status /kreyv-mark-v3.svg /kreyv-mark-v3-192.png /kreyv-mark-v3-512.png /kreyv-favicon-v3.svg /kreyv-apple-touch-v3.png /manifest.webmanifest; do
                 if ! curl -fsS --max-time 12 "http://127.0.0.1:3100${route}" >/dev/null; then
