@@ -214,6 +214,8 @@ jobs:
           rm -rf .crm-connector-test
       - name: Verificar aislamiento de roles
         run: node tests/native/smoke.mjs
+      - name: Verificar permisos geográficos de marketing
+        run: node tests/native/crm-marketing-scopes.mjs
       - name: Validar iconos rellenos Kreyv en PostgreSQL
         run: node tests/native/kreyv-icons.mjs
       - name: Validar colas automáticas y permisos PostgreSQL

@@ -134,6 +134,8 @@ jobs:
         run: npm run db:migrate
       - name: Comprobar aislamiento de datos
         run: node tests/native/smoke.mjs
+      - name: Verificar permisos geográficos de marketing
+        run: node tests/native/crm-marketing-scopes.mjs
       - name: Validar modo offline y premios intermedios
         run: node tests/native/offline-milestones.mjs
       - name: Validar permisos del historial comercial
