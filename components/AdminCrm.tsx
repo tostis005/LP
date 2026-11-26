@@ -90,7 +90,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const pendingCities=[{code:"11020",name:"León"},{code:"14039",name:"Guadalajara"},{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
  return <div className="panel-card crm-workspace">
   <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
-  <div hidden={marketingOnly} className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
+  <div style={marketingOnly?{display:"none"}:undefined} className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
    {([{id:"directory",label:"Negocios",icon:Building2},{id:"mail",label:"Sincronización de correo",icon:Mail},{id:"imports",label:"Importaciones",icon:FolderUp}] as const).map(t=><button key={t.id} type="button" role="tab" aria-selected={tab===t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}><t.icon size={18}/>{t.label}</button>)}
   </div>
   {tab==="directory"&&<>{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}{optionsError&&<div role="alert" className="alert error">{optionsError}</div>}
