@@ -72,6 +72,15 @@ assert.match(landingUi,/id="panel-negocio"/,"Business dashboard section stays on
 assert.match(landingUi,/Kreyvi en mi móvil/,"Consumer-friendly action in the landing");
 assert.match(landingUi,/<InstallGuide lang=\{lang\}\/>/,"The install section stays on the landing");
 assert.match(headerUi,/"La app"/,"The top navigation links to the app");
+
+assert.match(landingUi,/<a href="\/mi-loyally\?instalar=1" className="loi-button loi-button-install"/,"Hero opens the installation sheet directly");
+assert.match(headerUi,/<a href="\/mi-loyally\?instalar=1" className="loi-nav-install"/,"Header opens the installation sheet directly");
+const footerNav=landingUi.match(/<nav aria-label=\{lang==="en"\?"Footer links":"Enlaces del pie de página"\}>([\s\S]*?)<\/nav>/)?.[1]||"";
+assert.equal((footerNav.match(/href=/g)||[]).length,2,"Only contact and app remain in the footer navigation");
+assert.match(footerNav,/href="\/solicitar-acceso"/);
+assert.match(footerNav,/href="\/mi-loyally\?instalar=1"/);
+assert.doesNotMatch(footerNav,/landingHref|href="\/acceder"/);
+
 assert.match(installUi,/Tus próximos premios/,"The install section is customer-focused");
 assert.match(installUi,/beforeinstallprompt/,"Native browser install prompts still work");
 assert.match(installUi,/mi-loyally\?instalar=1/,"Installation leads to customer app entry");
