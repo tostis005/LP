@@ -30,14 +30,14 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
       <div className="loi-hero-foot"><div className="loi-hero-foot-icons"><span><KreyvIcon name="favoritos" size={17}/></span><span><KreyvIcon name="cafeteria" size={17}/></span><span><KreyvIcon name="premios" size={17}/></span></div><span>{t.hero.foot}<br/><strong>{t.hero.footBold}</strong></span></div>
      </div>
      <div className="loi-hero-showcase" aria-label={t.hero.previewLabel}>
-      <div className="loi-hero-orbit orbit-a" aria-hidden="true"/><div className="loi-hero-orbit orbit-b" aria-hidden="true"/><div className="loi-hero-spark" aria-hidden="true">✦</div>
-      <div className="loi-showcase-caption"><KreyvIcon name="recompensa" size={17}/> {t.hero.previewLabel}</div>
+      <div className="loi-hero-orbit orbit-a" aria-hidden="true"/><div className="loi-hero-orbit orbit-b" aria-hidden="true"/>
+      <div className="loi-showcase-caption">{t.hero.previewLabel}</div>
       <div className="loi-showcase-phone">
        <div className="loi-phone-status"><span>9:41</span><span>●●●</span></div>
        <div className="loi-phone-heading"><span>{t.hero.myCard}</span><span className="loi-phone-mini-icon"><KreyvIcon name="favoritos" size={17}/></span></div>
        <div className="loi-phone-greeting">{t.hero.hello} <span aria-hidden="true"><KreyvIcon name="recompensa" size={19}/></span></div>
        <p>{t.hero.nearReward}</p>
-       <StampCard locale={lang} name="Tu cafetería" color="#5E1A2B" stampColor="#5E1A2B" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/>
+       <div className="loi-marketing-card loi-marketing-card-wine"><StampCard locale={lang} name="Tu cafetería" color="#5E1A2B" stampColor="#5E1A2B" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/></div>
        <div className="loi-phone-progress"><span><KreyvIcon name="premios" size={17}/> {t.hero.almost}</span><strong>{t.hero.progress}</strong></div>
        <div className="loi-phone-nav"><span className="active"><KreyvIcon name="mis-tarjetas" size={17}/> {t.hero.cardNav}</span><span><KreyvIcon name="comercio" size={17}/> {t.hero.businessNav}</span><span><KreyvIcon name="perfil" size={17}/> {t.hero.profileNav}</span></div>
       </div>
@@ -83,7 +83,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
     <div className="container loi-design-layout">
      <div className="loi-design-preview">
       <div className="loi-design-preview-label">{t.design.previewLabel}</div>
-      <StampCard locale={lang} name="Casa Buena" color="#8A3346" stampColor="#EBC77F" reward={t.design.illustrationReward} total={6} earned={4} icon="burger" message={t.design.illustrationMessage}/>
+      <div className="loi-marketing-card loi-marketing-card-noma"><StampCard locale={lang} name="Café Noma" color="#183E5B" stampColor="#183E5B" reward={lang==="en"?"A coffee on us":"Un café gratis"} total={8} earned={5} icon="coffee" message={lang==="en"?"THANKS FOR COMING BACK":"GRACIAS POR VOLVER"}/></div>
       <div className="loi-stamp-library"><span>{t.design.iconsLabel}</span><div>{["cafeteria","hamburgueseria","restaurante","barberia","peluqueria","pizzeria","panaderia","taqueria","gimnasio","mascotas","floristeria","spa"].map(kind=><span key={kind}><StampMark kind={kind} size={25} color="#5E1A2B"/></span>)}</div></div>
      </div>
      <div className="loi-design-copy"><span className="loi-overline">{t.design.eyebrow}</span><h2>{t.design.first} <em>{t.design.second}</em></h2><p>{t.design.description}</p>
