@@ -22,7 +22,7 @@ export default function RequestAccess(){
    <div className="request-benefits">
     <div><div className="request-benefit-icon"><Heart size={21}/></div><span><strong>Más visitas, más fidelidad</strong><small>Recompensa a tus clientes con tarjetas que llevan tu marca.</small></span></div>
     <div><div className="request-benefit-icon"><MapPin size={21}/></div><span><strong>Que te descubran</strong><small>Da visibilidad a tu negocio dentro de la comunidad local.</small></span></div>
-    <div><div className="request-benefit-icon"><Store size={21}/></div><span><strong>Siempre a punto</strong><small>Registra compras y sellos sin conexión tras verificar tu sesión.</small></span></div>
+    <div><div className="request-benefit-icon"><Store size={21}/></div><span><strong>Siempre a punto</strong><small>Sigue sumando sellos a tus clientes, incluso si falla internet.</small></span></div>
    </div>
    <div className="request-note"><ShieldCheck size={21}/><span><strong>Hablemos sin compromiso.</strong><br/>Nuestro equipo revisará tu solicitud antes de activar tu negocio. No se realiza ningún cobro por solicitar acceso.</span></div>
    <Link className="request-app-link" href="/mi-loyally?instalar=1">¿Quieres conocer la app? <ArrowUpRight size={17}/></Link>
