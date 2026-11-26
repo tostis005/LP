@@ -12,7 +12,7 @@ try{
  await c.query("SET LOCAL ROLE authenticated");
  await c.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[user]);
  const add=async(n,email,status="pending_review",city="Puebla",publicEmail=null)=>{
-  const r=await c.query("INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,public_email,public_email_source,public_email_checked_at,status) VALUES($1,$2,'MX','21','Puebla','114','Puebla','0001',$3,'722515','Cafetería','Restaurantes y cafeterías',$4,$5,CASE WHEN $5::text IS NULL THEN NULL ELSE 'https://example.test/contact' END,CASE WHEN $5::text IS NULL THEN NULL ELSE now() END,$6) RETURNING status",[tag+n,n,city,email,publicEmail,status]);
+  const r=await c.query("INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,public_email,public_email_source,public_email_checked_at,status,contact_review) VALUES($1,$2,'MX','21','Puebla','114','Puebla','0001',$3,'722515','Cafetería','Restaurantes y cafeterías',$4,$5,CASE WHEN $5::text IS NULL THEN NULL ELSE 'https://example.test/contact' END,CASE WHEN $5::text IS NULL THEN NULL ELSE now() END,$6,CASE WHEN $5::text IS NULL THEN 'pending' ELSE 'source_found' END) RETURNING status",[tag+n,n,city,email,publicEmail,status]);
   return r.rows[0].status;
  };
  // Exercise the actual campaign SELECT, not a hand-written approximation.
