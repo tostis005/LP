@@ -188,21 +188,13 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   setBusy(true);setError("");setNotice("");
   try{
    const {error,count}=await db().from("businesses").update({
-    accent_color:biz.accent_color,card_text:biz.card_text,card_logo_scale:biz.card_logo_scale??100,card_logo_x:biz.card_logo_x??0,card_logo_y:biz.card_logo_y??0,
+    logo_url:biz.logo_url||null,card_background:biz.card_background||null,accent_color:biz.accent_color,card_text:biz.card_text,card_logo_scale:biz.card_logo_scale??100,card_logo_x:biz.card_logo_x??0,card_logo_y:biz.card_logo_y??0,
     card_text_color:biz.card_text_color||"#ffffff",stamp_color:biz.stamp_color||"#571c32",
     stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
    }).eq("id",selected);
    if(error||count!==1){setError(error?.message||"No se ha guardado el diseño. Revisa tus permisos.");return}
    success("Diseño guardado. Los clientes verán la nueva tarjeta.");await reload();
   }finally{setBusy(false)}
- }
- async function persistAsset(field:"logo_url"|"card_background"|"stamp_image_url",url:string|null){
-  if(!selected)return false;
-  const {error,count}=await db().from("businesses").update({[field]:url}).eq("id",selected);
-  if(error||count!==1){setError(error?.message||"La imagen se ha subido, pero no se ha podido guardar en el negocio.");return false}
-  // No recargar todo el formulario: preserva colores, mensaje y sellos aún por guardar.
-  setBiz(old=>old?{...old,[field]:url}:old);
-  success(url?"Imagen guardada.":"Imagen retirada.");return true;
  }
  async function upload(file:File|null,field:"logo_url"|"card_background"|"stamp_image_url"){
   if(!file||!selected)return;
@@ -216,7 +208,8 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
    const {data:uploaded,error}=await db().storage.from("business-assets").upload(key,file,{contentType:file.type,upsert:false});
    if(error){setError(error.message);return}
    const {data}=db().storage.from("business-assets").getPublicUrl(uploaded?.path||key);
-   await persistAsset(field,data.publicUrl);
+   setBiz(old=>old&&old.id===selected?{...old,[field]:data.publicUrl}:old);
+   setNotice("Imagen preparada. Pulsa Guardar diseño para aplicar los cambios.");
   }finally{setBusy(false)}
  }
  async function invite(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");setNotice("");
@@ -368,7 +361,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
       <div className="owner-card-brand-upload"><div className="owner-card-brand-preview">{biz.logo_url?<img src={logoImageUrl(biz.logo_url,256)} alt="Logotipo actual del negocio" decoding="async"/>:<span style={{background:biz.accent_color}}>{initials(biz.name)}</span>}</div>
        <div><strong>Logotipo de la tarjeta</strong><small>También se utiliza en la ficha del negocio.</small>
         <label className="file-input"><ImagePlus size={18}/> Subir o cambiar logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label>
-        <small>JPG, PNG o WEBP hasta 5 MB. Se guarda al subirlo.</small>
+        <small>JPG, PNG o WEBP hasta 5 MB. Se aplica al pulsar Guardar diseño.</small>
        </div>
       </div>
       {biz.logo_url&&<div className="logo-adjust-controls"><strong>Ajustar logotipo</strong><label>Tamaño · {biz.card_logo_scale??100}%<input type="range" min={50} max={220} value={biz.card_logo_scale??100} onChange={e=>setBiz({...biz,card_logo_scale:Number(e.target.value)})}/></label><label>Posición horizontal<input type="range" min={-50} max={50} value={biz.card_logo_x??0} onChange={e=>setBiz({...biz,card_logo_x:Number(e.target.value)})}/></label><label>Posición vertical<input type="range" min={-50} max={50} value={biz.card_logo_y??0} onChange={e=>setBiz({...biz,card_logo_y:Number(e.target.value)})}/></label><button type="button" className="button button-outline button-sm" onClick={()=>setBiz({...biz,card_logo_scale:100,card_logo_x:0,card_logo_y:0})}>Restablecer ajuste</button><small>Comprueba el resultado en la vista previa y guarda el diseño.</small></div>}
@@ -382,7 +375,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
        <div className="role-demo-icon-grid lp-real-icon-grid">{STAMP_OPTIONS.map(option=><button type="button" key={option.id} className={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url?"selected":""} aria-label={"Sello de "+option.label} aria-pressed={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url} onClick={()=>setBiz({...biz,stamp_icon:option.id,stamp_image_url:null})}><StampMark kind={option.id} size={30} color={biz.stamp_color||"#571c32"}/><span>{option.label}</span></button>)}</div>
        <div className="stamp-color-panel">
         <strong className="lp-icon-heading">2. Elige el color de tu sello</strong>
-        <p className="muted">Utiliza uno de estos colores o elige el que mejor combine con tu negocio. El cambio se verá en las tarjetas de tus clientes.</p>
+        <p className="muted">Utiliza uno de estos colores o elige el que mejor combine con tu negocio. El cambio se aplicará al guardar el diseño.</p>
         <div className="stamp-color-row">
          <div className="stamp-color-sample"><StampMark kind={biz.stamp_icon||"coffee"} size={38} color={biz.stamp_color||"#571c32"}/><span>Tu sello</span></div>
          <label className="color-input-label">Color personalizado <span><input aria-label="Cambiar color del sello" type="color" value={biz.stamp_color||"#571c32"} onChange={e=>setBiz({...biz,stamp_color:e.target.value})}/><code>{biz.stamp_color||"#571c32"}</code></span></label>
@@ -393,9 +386,9 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
        </div>
        <label className="file-input"><ImagePlus size={18}/> Subir sello propio <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"stamp_image_url")}/></label>
        {biz.stamp_image_url&&<button type="button" className="role-demo-textbutton" onClick={()=>setBiz({...biz,stamp_image_url:null})}>Quitar imagen personalizada</button>}
-       <small className="muted">Elige uno de nuestros dibujos o, si lo prefieres, sube tu propia imagen. Todos tus clientes verán el sello que hayas elegido.</small>
+       <small className="muted">Elige uno de nuestros dibujos o, si lo prefieres, sube tu propia imagen. Los clientes verán el sello cuando guardes el diseño.</small>
       </>}
-      <label className="file-input"><ImagePlus size={18}/> Subir imagen de fondo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"card_background")}/></label>{biz.card_background&&<button type="button" className="role-demo-textbutton" onClick={()=>void persistAsset("card_background",null)}>Quitar imagen de fondo</button>}
+      <label className="file-input"><ImagePlus size={18}/> Subir imagen de fondo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"card_background")}/></label>{biz.card_background&&<button type="button" className="role-demo-textbutton" disabled={busy} onClick={()=>setBiz(old=>old?{...old,card_background:null}:old)}>Quitar imagen de fondo</button>}
       <button className="button button-dark button-full" disabled={busy} type="button" onClick={saveDesigner}>{busy?"Guardando...":"Guardar diseño"} <Check size={17}/></button>
      </div>
     </section>
