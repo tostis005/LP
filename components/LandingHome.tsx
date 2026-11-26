@@ -63,7 +63,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
    </section>
 
    <section className="loi-section" id="comunidad">
-    <div className="container loi-design-layout">
+    <div className="container loi-process-layout">
      <div className="loi-design-copy"><span className="loi-overline">{t.community.eyebrow}</span><h2>{t.community.first} <em>{t.community.second}</em></h2><p>{t.community.intro}</p><Link href="/solicitar-acceso" className="loi-button loi-button-main">{lang==="en"?"Join the community":"Únete a la comunidad"} <ArrowUpRight size={18}/></Link></div>
      <div className="loi-process-steps">{t.community.items.map((item,i)=><article className="loi-step" key={item.title}><span><KreyvIcon name={BENEFIT_ICONS[i]} size={25}/></span><div><h3>{item.title}</h3><p>{item.text}</p></div><Check size={19}/></article>)}</div>
     </div>
