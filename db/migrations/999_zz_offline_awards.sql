@@ -49,7 +49,7 @@ ALTER TABLE public.loyalty_transactions ADD COLUMN IF NOT EXISTS captured_at tim
 ALTER TABLE public.loyalty_transactions ADD COLUMN IF NOT EXISTS offline_access_revision uuid;
 -- Una baja cierra el intervalo de autorización, no invalida las compras anteriores.
 CREATE OR REPLACE FUNCTION public.assert_staff_capture_access(p_business uuid,p_actor uuid,p_at timestamptz,p_revision uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
  IF auth.uid() IS DISTINCT FROM p_actor OR p_actor IS NULL THEN RAISE EXCEPTION 'Sesión o permisos no válidos'; END IF;
  -- Espera una baja/reactivación concurrente antes de consultar el historial.
@@ -64,7 +64,7 @@ BEGIN
    AND (e.valid_until IS NULL OR p_at<e.valid_until)
   ) THEN RAISE EXCEPTION 'Permisos revocados o fecha fuera del periodo autorizado'; END IF;
  END IF;
-END $;
+END $$;
 REVOKE ALL ON FUNCTION public.assert_staff_capture_access(uuid,uuid,timestamptz,uuid) FROM PUBLIC,anon,authenticated,lp_api;
 CREATE INDEX IF NOT EXISTS loyalty_earn_capture_card ON public.loyalty_transactions(membership_id,(coalesce(captured_at,created_at))) WHERE kind='earn';
 CREATE INDEX IF NOT EXISTS loyalty_earn_capture_staff ON public.loyalty_transactions(business_id,employee_id,(coalesce(captured_at,created_at))) WHERE kind='earn';

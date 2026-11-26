@@ -17,5 +17,6 @@ assert.match(importRoute,/email=COALESCE\(crm_prospects.email,EXCLUDED.email\)/)
 assert.match(importRoute,/status=crm_prospects.status/);
 assert.match(importRoute,/edition:edition\|\|null/);
 assert.match(ui,/confirm_new:confirmed/);
-assert.match(read("components/AdminCrm.tsx"),/Mayo 2026/);
+assert.match(read("components/AdminCrm.tsx"),/AdminCrmCsvLibrary/);
+assert.match(read("components/AdminCrmCsvLibrary.tsx"),/Importa solo los archivos nuevos o modificados/);
 console.log("CRM: administrator-only web prospect creation and versioned non-destructive DENUE imports.");

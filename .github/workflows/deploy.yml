@@ -136,6 +136,8 @@ jobs:
         run: npm run db:migrate
       - name: Comprobar aislamiento de datos
         run: node tests/native/smoke.mjs
+      - name: Validar modo offline y premios intermedios
+        run: node tests/native/offline-milestones.mjs
       - name: Validar permisos del historial comercial
         run: node tests/native/crm-mail-history.mjs
       - name: Validar iconos rellenos Kreyv en PostgreSQL

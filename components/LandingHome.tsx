@@ -20,28 +20,31 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
     <div className="container loi-hero-layout">
      <div className="loi-hero-copy">
       <span className="loi-overline">{t.hero.eyebrow}</span>
-      <h1>{t.hero.title} <em>{t.hero.accent}</em></h1>
+      <h1>{t.hero.title} <em>{t.hero.accent}<svg className="loi-hero-underline" viewBox="0 0 300 16" fill="none" aria-hidden="true" preserveAspectRatio="none"><path d="M3 12 Q145 -3 297 8" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"/></svg></em></h1>
       <p>{t.hero.description}</p>
       <div className="loi-hero-actions">
        <Link href="/solicitar-acceso" className="loi-button loi-button-main">{t.hero.primary} <ArrowUpRight size={19}/></Link>
        <Link href={landingHref(lang,"como-funciona")} className="loi-button loi-button-light">{t.hero.secondary} <ArrowRight size={18}/></Link>
-       <Link href={landingHref(lang,"instalar")} className="loi-button loi-button-install"><Download size={18}/><BrandText value={lang==="en"?"Kreyvi on my phone":"Kreyvi en mi móvil"}/></Link>
+       <a href="/mi-loyally?instalar=1" className="loi-button loi-button-install"><Download size={18}/><BrandText value={lang==="en"?"Kreyvi on my phone":"Kreyvi en mi móvil"}/></a>
       </div>
       <div className="loi-hero-foot"><div className="loi-hero-foot-icons"><span><KreyvIcon name="favoritos" size={17}/></span><span><KreyvIcon name="cafeteria" size={17}/></span><span><KreyvIcon name="premios" size={17}/></span></div><span>{t.hero.foot}<br/><strong>{t.hero.footBold}</strong></span></div>
      </div>
      <div className="loi-hero-showcase" aria-label={t.hero.previewLabel}>
-      <div className="loi-hero-orbit orbit-a"/><div className="loi-hero-orbit orbit-b"/>
-      <div className="loi-showcase-caption"><KreyvIcon name="recompensa" size={17}/> {t.hero.previewLabel}</div>
+      <div className="loi-hero-orbit orbit-a" aria-hidden="true"/><div className="loi-hero-orbit orbit-b" aria-hidden="true"/>
+      <div className="loi-showcase-caption">{t.hero.previewLabel}</div>
       <div className="loi-showcase-phone">
        <div className="loi-phone-status"><span>9:41</span><span>●●●</span></div>
        <div className="loi-phone-heading"><span>{t.hero.myCard}</span><span className="loi-phone-mini-icon"><KreyvIcon name="favoritos" size={17}/></span></div>
        <div className="loi-phone-greeting">{t.hero.hello} <span aria-hidden="true"><KreyvIcon name="recompensa" size={19}/></span></div>
        <p>{t.hero.nearReward}</p>
-       <StampCard locale={lang} name="Tu cafetería" color="#5E1A2B" stampColor="#5E1A2B" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/>
+       <div className="loi-marketing-card loi-marketing-card-wine"><StampCard locale={lang} name="Tu cafetería" color="#5E1A2B" stampColor="#5E1A2B" reward={t.hero.reward} total={8} earned={5} icon="coffee" message={t.hero.cardMessage}/></div>
        <div className="loi-phone-progress"><span><KreyvIcon name="premios" size={17}/> {t.hero.almost}</span><strong>{t.hero.progress}</strong></div>
        <div className="loi-phone-nav"><span className="active"><KreyvIcon name="mis-tarjetas" size={17}/> {t.hero.cardNav}</span><span><KreyvIcon name="comercio" size={17}/> {t.hero.businessNav}</span><span><KreyvIcon name="perfil" size={17}/> {t.hero.profileNav}</span></div>
       </div>
-      <div className="loi-showcase-floating"><span className="loi-floating-icon"><KreyvIcon name="recompensa" size={23}/></span><div><strong>{t.hero.floatingTitle}</strong><small>{t.hero.floatingDetail}</small></div></div>
+      <div className="loi-hero-callouts">
+       <div className="loi-hero-callout loi-hero-callout-discover"><span className="loi-floating-icon"><KreyvIcon name="comercio" size={22}/></span><div><strong>{lang==="en"?"Discover local":"Descubre cerca de ti"}</strong><small>{lang==="en"?"More ways to find your business":"Más visibilidad para tu negocio"}</small></div></div>
+       <div className="loi-hero-callout loi-hero-callout-reward"><span className="loi-floating-icon"><KreyvIcon name="premios" size={22}/></span><div><strong>{lang==="en"?"Reasons to return":"Motivos para volver"}</strong><small>{lang==="en"?"Every visit counts":"Cada visita cuenta"}</small></div></div>
+      </div>
       
      </div>
     </div>
@@ -80,7 +83,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
     <div className="container loi-design-layout">
      <div className="loi-design-preview">
       <div className="loi-design-preview-label">{t.design.previewLabel}</div>
-      <StampCard locale={lang} name="Casa Buena" color="#8A3346" stampColor="#EBC77F" reward={t.design.illustrationReward} total={6} earned={4} icon="burger" message={t.design.illustrationMessage}/>
+      <div className="loi-marketing-card loi-marketing-card-noma"><StampCard locale={lang} name="Café Noma" color="#183E5B" stampColor="#183E5B" reward={lang==="en"?"A coffee on us":"Un café gratis"} total={8} earned={5} icon="coffee" message={lang==="en"?"THANKS FOR COMING BACK":"GRACIAS POR VOLVER"}/></div>
       <div className="loi-stamp-library"><span>{t.design.iconsLabel}</span><div>{["cafeteria","hamburgueseria","restaurante","barberia","peluqueria","pizzeria","panaderia","taqueria","gimnasio","mascotas","floristeria","spa"].map(kind=><span key={kind}><StampMark kind={kind} size={25} color="#5E1A2B"/></span>)}</div></div>
      </div>
      <div className="loi-design-copy"><span className="loi-overline">{t.design.eyebrow}</span><h2>{t.design.first} <em>{t.design.second}</em></h2><p>{t.design.description}</p>
@@ -94,6 +97,6 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
 
    <section className="loi-final-section" id="empezar"><div className="container"><div className="loi-final-card"><div><span className="loi-overline">{t.final.eyebrow}</span><h2>{t.final.first}<br/><em>{t.final.second}</em></h2><p>{t.final.description}</p><div className="loi-final-actions"><Link href="/solicitar-acceso" className="loi-button loi-button-cream">{t.final.primary} <ArrowUpRight size={19}/></Link><Link href="/acceder" className="loi-final-secondary">{t.final.secondary} <ArrowRight size={17}/></Link></div></div><div className="loi-final-deco" aria-hidden="true"><KreyvIcon name="premios" size={170}/><KreyvIcon name="recompensa" size={58}/></div></div></div></section>
   </main>
-  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand href={landingHref(lang)}/><p>{t.footer.tagline}<br/>{t.footer.description}</p></div><nav aria-label={lang==="en"?"Footer links":"Enlaces del pie de página"}><Link href={landingHref(lang,"beneficios")}>{t.footer.benefits}</Link><Link href={landingHref(lang,"como-funciona")}>{t.footer.how}</Link><Link href={landingHref(lang,"comunidad")}>{lang==="en"?"Community":"Comunidad"}</Link><Link href={landingHref(lang,"panel-negocio")}>{lang==="en"?"Business dashboard":"Panel de negocio"}</Link><Link href="/solicitar-acceso">{t.footer.contact}</Link><Link href="/acceder">{t.footer.access}</Link><Link href={landingHref(lang,"instalar")}>{lang==="en"?"The app":"La app"}</Link></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} <BrandText value="Kreyvi"/></span><span><BrandText value={t.footer.goodbye}/></span></div></footer>
+  <footer className="loi-footer"><div className="container loi-footer-top"><div><Brand href={landingHref(lang)}/><p>{t.footer.tagline}<br/>{t.footer.description}</p></div><nav aria-label={lang==="en"?"Footer links":"Enlaces del pie de página"}><Link href="/solicitar-acceso">{t.footer.contact}</Link><a href="/mi-loyally?instalar=1">{lang==="en"?"The app":"La app"}</a></nav></div><div className="container loi-footer-bottom"><span>© {new Date().getFullYear()} <BrandText value="Kreyvi"/></span><span><BrandText value={t.footer.goodbye}/></span></div></footer>
  </div>;
 }

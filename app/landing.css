@@ -538,3 +538,275 @@
  .loi-site .loi-showcase-phone .stamp-slot{max-width:37px}
  .loi-site .loi-showcase-phone .stamp-grid{gap:7px 9px}
 }
+
+/* Hero editorial: una portada reconocible, con la app como protagonista.
+   Estilos exclusivos de la home comercial; no modifican tarjetas reales. */
+.loi-site .loi-hero{
+ position:relative;isolation:isolate;
+ background:radial-gradient(ellipse at 82% 35%,#813547 0%,transparent 49%),linear-gradient(125deg,#32101e 0%,#501729 65%,#38121e 100%);
+ border-bottom:0;
+}
+.loi-site .loi-hero::before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background-image:radial-gradient(rgba(247,220,165,.20) .8px,transparent .8px);
+ background-size:23px 23px;mask-image:linear-gradient(90deg,transparent 15%,#000 100%);
+}
+.loi-site .loi-hero-layout{min-height:680px;gap:clamp(24px,4vw,64px);padding-block:66px 76px}
+.loi-site .loi-hero-copy{position:relative;z-index:2}
+.loi-site .loi-hero-copy .loi-overline{
+ color:#f0ce90;background:rgba(255,255,255,.07);
+ border:1px solid rgba(240,206,144,.26);border-radius:30px;padding:8px 12px;
+ font-size:10px;letter-spacing:.10em;
+}
+.loi-site .loi-hero-copy .loi-overline::before{
+ content:"";width:7px;height:7px;border-radius:50%;background:#edc476;
+ box-shadow:0 0 0 4px rgba(237,196,118,.12);
+}
+.loi-site .loi-hero-copy h1{
+ color:#fff9ef;font-size:clamp(45px,5.3vw,75px);
+ line-height:1.04;letter-spacing:-.065em;margin:25px 0 29px;
+}
+.loi-site .loi-hero-copy h1 em{display:inline-block;position:relative;color:#f2ca7e;white-space:nowrap}
+.loi-hero-underline{position:absolute;left:2%;bottom:-9px;width:96%;height:13px;color:#f2ca7e;opacity:.85;pointer-events:none}
+.loi-site .loi-hero-copy>p{color:#f2dfe2;line-height:1.65;font-size:16px}
+.loi-site .loi-hero-actions{gap:10px;margin-top:28px}
+.loi-site .loi-hero-actions .loi-button-main{
+ color:#35111e;background:#f1cb80;box-shadow:0 8px 25px rgba(18,4,9,.25);
+}
+.loi-site .loi-hero-actions .loi-button-main:hover{background:#f9dfa5}
+.loi-site .loi-hero-actions .loi-button-light{
+ color:#fff8ed;background:rgba(255,255,255,.065);border-color:rgba(255,255,255,.28);
+}
+.loi-site .loi-hero-actions .loi-button-light:hover{background:rgba(255,255,255,.14)}
+.loi-site .loi-hero-actions .loi-button-install{
+ color:#fff8ed;background:transparent;border-color:transparent;padding-inline:5px;
+}
+.loi-site .loi-hero-actions .loi-brand-word{color:inherit}
+.loi-site .loi-hero-actions .loi-brand-word>span{color:#f1cb80}
+.loi-site .loi-hero-foot{color:#e3c6ce;margin-top:30px}
+.loi-site .loi-hero-foot strong{color:#fff3dc}
+.loi-site .loi-hero-foot-icons span{border-color:#4f192a;background:#f7e5c4;color:#5e1a2b}
+.loi-site .loi-hero-foot-icons span:nth-child(2){background:#f1cb80}
+.loi-site .loi-hero-foot-icons span:nth-child(3){background:#e5b8c2}
+.loi-site .loi-hero-showcase{min-width:0;padding:27px 0 31px;row-gap:18px;grid-template-rows:auto auto}
+.loi-site .loi-showcase-caption{color:#f8e4bc;font-weight:700;letter-spacing:.035em}
+.loi-site .loi-hero-orbit.orbit-a{
+ width:min(95%,450px);height:auto;aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%);
+ background:radial-gradient(circle,#f1cc8a 0%,#e6b86b 68%,#cf9a56 100%);
+ opacity:.88;
+}
+.loi-site .loi-hero-orbit.orbit-b{
+ width:min(110%,510px);height:auto;aspect-ratio:1;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);
+ border:1px dashed rgba(248,223,173,.55);
+}
+.loi-site .loi-showcase-phone{
+ width:min(310px,100%);padding:13px 12px 9px;border:6px solid #35101e;border-radius:29px;
+ box-shadow:0 22px 55px rgba(26,4,11,.34),0 0 0 1px rgba(255,255,255,.26);
+}
+.loi-site .loi-showcase-phone .loi-phone-status{padding-bottom:8px}
+.loi-site .loi-showcase-phone .loi-phone-greeting{font-size:21px;margin-top:6px}
+.loi-site .loi-showcase-phone>p{margin:5px 0 11px}
+.loi-site .loi-showcase-phone .loi-phone-progress{padding:9px 11px;margin-top:9px}
+.loi-site .loi-showcase-phone .loi-phone-nav{margin-top:12px;padding-top:9px}
+.loi-hero-callouts{display:contents}
+.loi-hero-callout{
+ position:absolute;z-index:3;display:flex;align-items:center;gap:9px;
+ border:1px solid rgba(255,255,255,.6);border-radius:13px;
+ padding:10px 12px;background:#fffaf2;box-shadow:0 12px 35px rgba(25,4,10,.26);
+ color:#4d1628;max-width:205px;text-align:left;
+}
+.loi-hero-callout .loi-floating-icon{width:34px;height:34px;flex:0 0 34px;border-radius:9px;background:#f6e4bf;color:#5e1a2b}
+.loi-hero-callout strong,.loi-hero-callout small{display:block;line-height:1.3}
+.loi-hero-callout strong{font-size:11px;font-weight:850}
+.loi-hero-callout small{font-size:9px;color:#735861;margin-top:3px}
+.loi-hero-callout-discover{top:24%;left:0;transform:translateX(-4%) rotate(-4deg)}
+.loi-hero-callout-reward{right:0;bottom:14%;transform:translateX(4%) rotate(4deg)}
+/* La tarjeta de muestra se lee como una pieza horizontal y no como una columna larga. */
+.loi-site .loi-showcase-phone .stamp-visual-card.stamp-visual-rebalanced{
+ padding:13px!important;border-radius:16px;
+ background-image:radial-gradient(ellipse at 100% 0%,rgba(244,199,124,.22),transparent 48%),linear-gradient(150deg,#742b3d,#471222);
+ border:1px solid rgba(255,255,255,.21);
+}
+.loi-site .loi-showcase-phone .stamp-visual-main{
+ display:grid;grid-template-columns:30px minmax(0,1fr);align-items:center;
+ gap:8px 8px;
+}
+.loi-site .loi-showcase-phone .stamp-business-logo{width:30px;height:30px;font-size:14px}
+.loi-site .loi-showcase-phone .stamp-visual-name{font-size:16px;line-height:1.15;padding-right:53px;box-sizing:border-box;overflow-wrap:anywhere}
+.loi-site .loi-showcase-phone .stamp-visual-side{top:14px;right:13px}
+.loi-site .loi-showcase-phone .stamp-visual-brand img{width:42px!important}
+.loi-site .loi-showcase-phone .stamp-grid,
+.loi-site .loi-showcase-phone .stamp-visual-message,
+.loi-site .loi-showcase-phone .stamp-visual-footer{grid-column:1/-1}
+.loi-site .loi-showcase-phone .stamp-grid{gap:8px 10px;margin:4px 0 0}
+.loi-site .loi-showcase-phone .stamp-slot{max-width:36px}
+.loi-site .loi-showcase-phone .stamp-slot.is-filled{background:#f8e8c5;border-color:#f2ce86}
+.loi-site .loi-showcase-phone .stamp-visual-message{font-size:8px}
+.loi-site .loi-showcase-phone .stamp-visual-footer{gap:3px;padding-top:8px}
+.loi-site .loi-showcase-phone .stamp-visual-footer .stamp-reward-name{font-size:13px}
+@media(min-width:901px){
+ .loi-site .loi-hero-showcase{grid-template-rows:auto auto auto}
+ .loi-hero-callouts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(430px,100%)}
+ .loi-hero-callout{position:relative;inset:auto;max-width:none;min-width:0;transform:none}
+ .loi-hero-callout-discover{transform:rotate(-2deg)}
+ .loi-hero-callout-reward{transform:rotate(2deg)}
+}
+@media(max-width:900px){
+ .loi-site .loi-hero-layout{min-height:0;padding-block:43px 35px;gap:20px}
+ .loi-site .loi-hero-copy h1{font-size:clamp(43px,7vw,64px);margin:19px auto 25px}
+ .loi-site .loi-hero-showcase{width:min(550px,100%);padding:18px 0 12px;grid-template-rows:auto auto auto}
+ .loi-hero-callouts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(430px,100%)}
+ .loi-hero-callout{position:relative;inset:auto;transform:none;max-width:none;min-width:0;padding:9px}
+ .loi-site .loi-hero-orbit.orbit-a{width:min(100%,390px);top:43%}
+ .loi-site .loi-hero-orbit.orbit-b{width:min(110%,440px);top:43%}
+}
+@media(max-width:650px){
+ .loi-site .loi-hero-layout{padding-block:29px 30px;gap:13px}
+ .loi-site .loi-hero-copy{padding:7px 0}
+ .loi-site .loi-hero-copy h1{font-size:clamp(39px,10.1vw,52px);margin:17px auto 23px}
+ .loi-site .loi-hero-copy>p{font-size:14px;line-height:1.6}
+ .loi-site .loi-hero-actions{margin-top:23px;gap:8px}
+ .loi-site .loi-hero-actions .loi-button{min-height:46px}
+ .loi-site .loi-hero-actions .loi-button-install{min-height:35px;padding-block:5px}
+ .loi-site .loi-hero-foot{margin-top:15px;font-size:11px}
+ .loi-site .loi-hero-showcase{row-gap:12px;padding:14px 0 7px}
+ .loi-site .loi-showcase-phone{width:min(274px,100%);border-width:5px;padding:11px 10px 8px;border-radius:26px}
+ .loi-site .loi-showcase-phone .stamp-visual-card.stamp-visual-rebalanced{padding:11px!important}
+ .loi-site .loi-showcase-phone .stamp-visual-side{top:12px;right:11px}
+ .loi-site .loi-showcase-phone .stamp-visual-name{font-size:15px;padding-right:49px}
+ .loi-site .loi-showcase-phone .stamp-slot{max-width:33px}
+ .loi-site .loi-showcase-phone .stamp-grid{gap:6px 8px}
+ .loi-hero-callout .loi-floating-icon{width:29px;height:29px;flex-basis:29px}
+ .loi-hero-callout .loi-floating-icon svg{width:18px;height:18px}
+ .loi-hero-callout{gap:6px;padding:8px}
+ .loi-hero-callout strong{font-size:10px}
+ .loi-hero-callout small{font-size:8px}
+}
+@media(max-width:350px){
+ .loi-hero-callouts{grid-template-columns:1fr}
+ .loi-site .loi-hero-copy h1{font-size:36px}
+}
+
+/* HOME: formato ISO de tarjeta de crédito, idéntico en las tres muestras. */
+.loi-site .loi-marketing-card{
+ width:100%;max-width:420px;aspect-ratio:85.6/54;container-type:inline-size;
+ position:relative;isolation:isolate;flex:none;margin-inline:auto;
+}
+.loi-site .loi-marketing-card > .stamp-visual-card.stamp-visual-rebalanced{
+ display:block;position:absolute;inset:0;width:100%;height:100%;aspect-ratio:85.6/54;
+ min-height:0!important;max-height:none;max-width:none;box-sizing:border-box;
+ padding:4cqw!important;border-radius:5cqw;transform:none;
+ overflow:hidden;container-type:normal;
+ border:1px solid rgba(255,255,255,.2);
+ box-shadow:0 10px 25px rgba(39,19,25,.17);
+}
+.loi-site .loi-marketing-card-wine > .stamp-visual-card{
+ background-image:radial-gradient(ellipse at 100% 0%,rgba(240,199,124,.21),transparent 48%),linear-gradient(150deg,#742b3d,#471222);
+}
+.loi-site .loi-marketing-card-noma > .stamp-visual-card{
+ background-image:linear-gradient(110deg,rgba(10,36,57,.20),transparent 70%),url("/brand/cafe-noma-beans.svg");
+ background-size:cover,100% 100%;background-position:center;
+}
+.loi-site .loi-marketing-card .stamp-visual-main{
+ position:relative;display:grid;grid-template-columns:10cqw minmax(0,1fr);
+ grid-template-rows:10cqw minmax(0,1fr) auto auto;align-items:center;
+ justify-content:normal;gap:1.4cqw 2.2cqw;width:100%;height:100%;
+ min-height:0;min-width:0;overflow:visible;
+}
+.loi-site .loi-marketing-card .stamp-business-logo{
+ grid-column:1;grid-row:1;width:10cqw;height:10cqw;
+ border-radius:2.4cqw;font-size:5cqw;
+}
+.loi-site .loi-marketing-card .stamp-visual-name{
+ grid-column:2;grid-row:1;box-sizing:border-box;
+ font-size:5.2cqw;line-height:1.1;letter-spacing:-.045em;
+ padding-right:21cqw;width:100%;font-weight:800;white-space:normal;
+ overflow-wrap:normal;overflow:visible;
+}
+.loi-site .loi-marketing-card .stamp-visual-side{
+ position:absolute;top:4cqw;right:4cqw;max-width:22cqw;z-index:2;
+}
+.loi-site .loi-marketing-card .stamp-visual-pill.stamp-visual-brand{
+ padding:0.65cqw 1.4cqw!important;
+}
+.loi-site .loi-marketing-card .stamp-visual-brand img{width:17cqw!important;height:auto}
+.loi-site .loi-marketing-card .stamp-grid{
+ grid-column:1/-1;grid-row:2;width:100%;height:100%;min-height:0;
+ margin:0;padding:0;display:grid;
+ grid-template-columns:repeat(var(--stamp-columns),minmax(0,10.4cqw));
+ grid-auto-rows:minmax(0,1fr);gap:1.1cqw 3.2cqw;
+ align-content:center;justify-content:center;justify-items:center;align-items:center;
+}
+.loi-site .loi-marketing-card .stamp-slot{
+ width:100%;max-width:10.4cqw;max-height:100%;aspect-ratio:1;transform:none;
+ border-width:1px;box-sizing:border-box;
+}
+.loi-site .loi-marketing-card .stamp-slot svg{width:66%;height:66%}
+.loi-site .loi-marketing-card .stamp-slot.is-filled{background:#fff4df;border-color:#e9cb92}
+.loi-site .loi-marketing-card .stamp-slot:not(.is-filled){background:rgba(255,255,255,.07);border:1px dashed rgba(255,255,255,.63)}
+.loi-site .loi-marketing-card-noma .stamp-slot.is-filled{background:#e9f2f4;border-color:#c8e1e7}
+.loi-site .loi-marketing-card .stamp-visual-message{
+ grid-column:1/-1;grid-row:3;display:block;font-size:2.65cqw;
+ line-height:1.15;letter-spacing:.075em;white-space:nowrap;overflow:hidden;
+ text-overflow:ellipsis;opacity:.92;
+}
+.loi-site .loi-marketing-card .stamp-visual-footer{
+ grid-column:1/-1;grid-row:4;display:flex;flex-wrap:wrap;align-items:center;
+ justify-content:space-between;gap:1cqw;margin:0;padding-top:1.5cqw;
+ border-top:1px solid rgba(255,255,255,.25);min-width:0;
+}
+.loi-site .loi-marketing-card .stamp-visual-footer strong{
+ font-size:3.1cqw;line-height:1.2;color:#f6dfaf;white-space:nowrap;font-weight:700;
+}
+.loi-site .loi-marketing-card .stamp-visual-footer .stamp-reward-name{
+ font-size:3.6cqw;line-height:1.2;color:#fff;white-space:normal;
+ overflow:visible;margin:0;font-weight:800;opacity:1;
+}
+.loi-site .loi-marketing-card-noma .stamp-visual-footer strong{color:#c6e5ef}
+.loi-site .loi-design-preview{
+ min-height:0;gap:16px;padding:clamp(18px,3vw,34px);
+ background:linear-gradient(145deg,#f8f5ee,#eee5d8);
+ border:1px solid #e7ddce;border-radius:24px;
+}
+.loi-site .loi-design-preview-label{margin-bottom:0}
+.loi-site .loi-design-preview .loi-marketing-card{max-width:420px}
+.loi-site .loi-stamp-library{transform:none;margin:0;box-shadow:0 8px 24px #3d0f1b0a}
+.loi-site .loi-install-app-preview .loi-marketing-card{max-width:380px;margin-block:8px 0}
+
+/* Ritmo de portada: marfil, blanco, vino y crema, con límites ligeros. */
+.loi-site .loi-audience-expanded{
+ background:#f8f4ed;border-bottom:1px solid #e8e0d4;
+}
+.loi-site #beneficios{background:#fff}
+.loi-site #como-funciona{
+ background:linear-gradient(125deg,#35111e,#5e1a2b);
+ border-block:1px solid #541b2c;
+}
+.loi-site #comunidad{
+ background:linear-gradient(120deg,#fbf7ee,#f3e9d8);
+ border-bottom:1px solid #e9dfcf;
+}
+.loi-site #panel-negocio{
+ background:#fff;border-bottom:1px solid #ede5dc;
+}
+.loi-site #panel-negocio .loi-process-copy h2{color:var(--color-brand-900)}
+.loi-site #panel-negocio .loi-process-copy h2 em{color:var(--color-accent-600)}
+.loi-site #panel-negocio .loi-process-copy .loi-overline{color:var(--color-brand-500)}
+.loi-site #panel-negocio .loi-process-copy>p{color:var(--color-text-2)}
+.loi-site #panel-negocio .loi-text-link{color:var(--color-brand);border-color:var(--color-brand)}
+.loi-site #comunidad .loi-process-steps,.loi-site #panel-negocio .loi-process-steps{
+ box-shadow:0 12px 35px #3d0f1b0d;border-color:#e8e0d5;
+}
+.loi-site #personalizacion{background:#f8f4ed;border-bottom:1px solid #e8e0d4}
+.loi-site .loi-install-section{background:#fff;border-top:0;border-bottom:1px solid #ede5dc}
+.loi-site .loi-final-section{background:#f4eadb}
+.loi-site #beneficios,.loi-site #como-funciona,.loi-site #comunidad,
+.loi-site #panel-negocio,.loi-site #personalizacion,.loi-site #instalar,.loi-site #empezar{
+ padding-block:clamp(60px,7vw,100px);
+}
+@media(max-width:650px){
+ .loi-site .loi-design-preview{padding:17px 12px;gap:13px}
+ .loi-site .loi-stamp-library{padding:12px 8px}
+ .loi-site #beneficios,.loi-site #como-funciona,.loi-site #comunidad,
+ .loi-site #panel-negocio,.loi-site #personalizacion,.loi-site #instalar,.loi-site #empezar{padding-block:54px}
+}

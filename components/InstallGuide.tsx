@@ -6,6 +6,7 @@ import {QRCodeSVG} from "qrcode.react";
 import {ArrowRight,Check,Smartphone} from "lucide-react";
 import {KreyvIcon} from "@/components/KreyvIcon";
 import {BrandText} from "@/components/BrandText";
+import {StampCard} from "@/components/StampCard";
 import type {LandingLanguage} from "@/lib/landing-copy";
 
 type InstallPrompt=Event&{prompt:()=>Promise<void>;userChoice:Promise<{outcome:string}>};
@@ -82,12 +83,7 @@ export function InstallGuide({lang="es"}:{lang?:LandingLanguage}){
    <div className="loi-install-card loi-install-app-preview">
     <div className="loi-install-app-top"><span className="loi-install-app-icon"><img src="/kreyv-mark-v3.svg" alt=""/></span><strong><BrandText value="Kreyvi"/></strong><span className="loi-install-app-love"><KreyvIcon name="recompensa" size={24}/></span></div>
     <span className="loi-install-app-caption"><BrandText value={t.phoneLabel}/></span>
-    <div className="loi-install-app-reward">
-     <div className="loi-install-app-reward-head"><strong>Café Noma</strong><KreyvIcon name="premios" size={22}/></div>
-     <p>{t.card}</p>
-     <div className="loi-install-app-stamps">{Array.from({length:8},(_,i)=><span className={i<5?"filled":""} key={i}><KreyvIcon name="cafeteria" size={22}/></span>)}</div>
-     <small>{t.cardDetail}</small>
-    </div>
+    <div className="loi-marketing-card loi-marketing-card-noma"><StampCard locale={lang} name="Café Noma" color="#183E5B" stampColor="#183E5B" reward={lang==="en"?"A coffee on us":"Un café gratis"} total={8} earned={5} icon="coffee" message={lang==="en"?"THANKS FOR COMING BACK":"GRACIAS POR VOLVER"}/></div>
     <div className="loi-install-app-nav"><span><KreyvIcon name="mis-tarjetas" size={17}/>{t.badges[0]}</span><span><KreyvIcon name="premios" size={17}/>{t.badges[2]}</span><span><KreyvIcon name="sellos" size={17}/>{t.badges[1]}</span></div>
     <div className="loi-install-qr">
      <div><strong>{t.qrTitle}</strong><p><BrandText value={t.qrText}/></p></div>
