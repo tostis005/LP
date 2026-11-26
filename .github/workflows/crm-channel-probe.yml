@@ -1,0 +1,17 @@
+name: CRM - Canal de órdenes
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+concurrency:
+  group: lp-crm-command
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.repository == 'tostis005/LP' && github.event.issue.number == 84 && !github.event.issue.pull_request && github.event.comment.user.id == 23707815 && github.event.comment.user.login == 'tostis005' && github.actor == 'tostis005' && github.triggering_actor == 'tostis005' && github.event.comment.body == '/crm ping'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Comprobar canal
+        run: echo 'CRM_CHANNEL_PROBE_OK'
