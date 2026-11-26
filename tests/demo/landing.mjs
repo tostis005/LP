@@ -101,7 +101,16 @@ assert.match(installUi,/if\(ios\)\{window.location.assign\("\/mi-loyally\?instal
 assert.doesNotMatch(installUi,/window.location.assign\("\/app"\)/);
 assert.match(installUi,/nativePrompt\.prompt\(\)/,"Android native install flow is retained");
 assert.match(appEntry,/Añadir a mi móvil/,"Customers can install from app entry");
-assert.match(manifest,/start_url:"\/mi-loyally"/,"The installed icon opens the customer-first experience");
+assert.match(manifest,/start_url:"\/entrar"/,"The installed icon starts with session resolution");
+const entryRouter=readFileSync(new URL("../../app/entrar/page.tsx",import.meta.url),"utf8");
+assert.match(entryRouter,/KreyviLoading/);
+assert.match(entryRouter,/if\(!user\)\{router.replace\("\/acceder"\);return\}/);
+assert.match(entryRouter,/router.replace\("\/app"\)/);
+const rootPage=readFileSync(new URL("../../app/page.tsx",import.meta.url),"utf8");
+assert.match(rootPage,/Tus lugares favoritos/);
+assert.match(rootPage,/href="\/para-negocios"/);
+assert.match(rootPage,/href="\/acceder"/);
+assert.match(readFileSync(new URL("../../app/para-negocios/page.tsx",import.meta.url),"utf8"),/<LandingHome/);
 assert.match(manifest,/display:"standalone"/,"The app has a standalone window");
 assert.doesNotMatch(rootLayout,/<InstallLoyally\/>/,"Remove the old floating install widget");
 

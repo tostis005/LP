@@ -33,7 +33,11 @@ assert.match(css,/\.loyalty-global-bottom-nav\.loyalty-nav-customer\{\s*border:1
 assert.match(css,/\.workspace-customer \.qr-modal\{\s*background:var\(--color-bg\)/);
 assert.match(css,/\.workspace-customer \.customer-profile-only/);
 const home=read("app/app/page.tsx"),map=read("app/app/descubrir/page.tsx");
-assert.match(home,/className="card-grid" role="region"/,"Keep swipeable merchant cards");
+const deck=read("components/CustomerCardDeck.tsx"),deckCss=read("app/customer-deck.css");
+assert.match(home,/<CustomerCardDeck/,"Keep the customer card deck");
+assert.match(deck,/onTouchStart/);assert.match(deck,/onTouchEnd/);assert.match(deck,/\(i\+delta\+cards.length\)%cards.length/,"Vertical navigation wraps");
+assert.match(deck,/modalOnly autoOpen/,"Open the existing QR and reward details");
+assert.match(deckCss,/\.customer-wallet-tab\{/);assert.match(deckCss,/\.customer-wallet-logo\{/);
 assert.match(map,/className="customer-map-stage"/,"Keep integrated discovery map");
 assert.doesNotMatch(map,/Wallet|wallets/,"Keep wallet issuance hidden");
 const nav=read("components/AppBottomNav.tsx");
