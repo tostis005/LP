@@ -142,8 +142,9 @@ jobs:
             exit 1
           fi
           curl -fsS --max-time 8 'http://127.0.0.1:3156/para-negocios?lang=en' -o /tmp/lp-root-en.html
-          if ! grep -q 'Digital loyalty cards' /tmp/lp-root-en.html ||
-             grep -q 'Tarjetas de fidelización' /tmp/lp-root-en.html; then
+          if ! grep -Fq 'More customers. More visits.' /tmp/lp-root-en.html ||
+             ! grep -Fq 'More sales.' /tmp/lp-root-en.html ||
+             grep -Fq 'Más clientes. Más visitas.' /tmp/lp-root-en.html; then
             echo "::error::Docker no devuelve la portada en inglés."
             exit 1
           fi

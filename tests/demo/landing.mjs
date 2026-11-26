@@ -199,3 +199,6 @@ assert.match(contactUi,/id="consent-access" required/);
 assert.match(contactUi,/honeypot-field/);
 assert.match(contactCss,/\.request-page \.request-copy h1 em\{color:#f2ca7e\}/);
 assert.match(contactCss,/\.request-page \.request-form\{/);
+
+const nextConfig=readFileSync(new URL("../../next.config.ts",import.meta.url),"utf8");
+assert.doesNotMatch(nextConfig,/source\s*:\s*"\/"\s*,\s*destination\s*:\s*"\/presentacion"/,"The Next.js rewrite cannot shadow the customer home");
