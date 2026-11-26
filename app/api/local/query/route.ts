@@ -8,7 +8,7 @@ export async function POST(request:Request){
   if(body.length>20000)return Response.json({error:"Solicitud demasiado larga."},{status:413});
   const input=JSON.parse(body) as QueryInput;
   const actor=await actorFromRequest(request);
-  const result=await asActor(actor,c=>queryData(c,input));
+  const result=await asActor(actor,async c=>{if(actor&&(await c.query("SELECT public.crm_is_marketing() AS marketing")).rows[0]?.marketing)throw Object.assign(new Error("No autorizado"),{code:"42501"});return queryData(c,input);});
   return Response.json(result,{"headers":{"Cache-Control":"no-store"}});
  }catch(e){return responseError(e)}
 }

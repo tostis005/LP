@@ -29,10 +29,10 @@ export default function Login(){
    }else if(mode==="signup"){
     const {data,error}=await db().auth.signUp({email,password,options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn,return_to:safeJoinTarget(loginTarget)||undefined},emailRedirectTo:PUBLIC_SITE_URL+"/auth/callback"}});
     if(error)throw error;
-    if(data.session)router.push(loginTarget);else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");
+    if(data.session)router.replace(loginTarget);else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");
    }else{
     const {error}=await db().auth.signInWithPassword({email,password});
-    if(error)throw error;router.push(loginTarget);
+    if(error)throw error;router.replace(loginTarget);
    }
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
@@ -40,7 +40,7 @@ export default function Login(){
  function switchMode(next:typeof mode){setMode(next);setError("");setMessage("")}
  return <main className="auth-layout auth-compact auth-all-access public-login">
   <aside className="auth-story auth-story-compact">
-   <Brand light/>
+   <Brand light href="/entrar"/>
    <div className="auth-story-inner">
     <div className="auth-story-label"><Sparkles size={16}/> UNA VISITA MÁS, UNA HISTORIA MÁS</div>
     <h1>Un detalle.<br/><em>Mil motivos<br/>para volver.</em></h1>
@@ -50,7 +50,8 @@ export default function Login(){
    <div className="auth-story-foot">Kreyvi ♡ · Tan sencillo como volver.</div>
   </aside>
   <section className="auth-right auth-right-compact">
-   <div className="auth-mobile-logo"><Brand/></div>
+   <div className="auth-mobile-logo"><Brand href="/entrar"/></div>
+   <div className="auth-mobile-intro"><Sparkles size={17}/><strong>Tus lugares favoritos.<br/>Tus próximos premios.</strong><p>Todos tus sellos y tarjetas, siempre contigo.</p></div>
    <div className="auth-form-wrap auth-choice-wrap auth-full-login">
     <div className="eyebrow">BIENVENIDO</div>
     <h2>{mode==="login"?"Accede a tu espacio.":mode==="signup"?"Crea tu cuenta.":"Recupera tu acceso."}</h2>

@@ -1,9 +1,4 @@
-import {NextRequest, NextResponse} from "next/server";
-
-// La raíz siempre muestra la presentación y conserva ?lang=en o ?lang=es.
-export function middleware(request:NextRequest){
- const destination=request.nextUrl.clone();
- destination.pathname="/presentacion";
- return NextResponse.rewrite(destination);
-}
+import {NextResponse} from "next/server";
+// The root is now the customer landing; /presentacion remains a legacy business URL.
+export function middleware(){return NextResponse.next();}
 export const config={matcher:["/"]};

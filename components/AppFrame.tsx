@@ -38,7 +38,10 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    if(!configured()){if(live){setError("No podemos abrir tu cuenta ahora mismo. Inténtalo de nuevo.");setLoading(false)}return}
    try{
     const auth=await db().auth.getUser(); if(auth.error) throw auth.error;
-    if(!auth.data.user){clearOfflineAccount();if(live){setLoading(false);router.replace("/acceder?next="+encodeURIComponent(pathname))}return}
+    if(!auth.data.user){clearOfflineAccount();if(live){router.replace("/acceder?next="+encodeURIComponent(pathname))}return}
+    const roleCheck=await fetch("/api/local/admin/marketing-users?self=1",{cache:"no-store"});
+    if(!roleCheck.ok)throw Error("No se pudieron comprobar los permisos.");
+    if((await roleCheck.json()).marketing){if(live)router.replace("/marketing");return;}
     if(area==="customer")void syncExistingPushSubscription(auth.data.user.id);
     try { await db().rpc("claim_invitations"); } catch { /* invitaciones opcionales */ }
     const [members,admins]=await Promise.all([
@@ -72,11 +75,11 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  if(!allowed)return <div className="empty-page"><h2>Esta zona es privada</h2><p>No tienes permisos para acceder a esta sección.</p>{awards(user.id).length>0&&<p>Compras pendientes o rechazadas: {awards(user.id).length}. Las operaciones anteriores a la baja se sincronizan al recuperar la conexión.</p>}<Link className="button button-dark" href={admin?"/admin":roles.some(x=>x.role!=="employee")?"/negocio":roles.length?"/empleado":"/app"}>Volver a mi espacio</Link></div>;
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
  return <div className={"workspace workspace-"+area}>
-  <aside className="sidebar"><div className="sidebar-brand"><Brand/></div><div className="sidebar-caption">NAVEGACIÓN</div><nav className="side-links" aria-label="Menú principal">
+  <aside className="sidebar"><div className="sidebar-brand"><Brand href="/entrar"/></div><div className="sidebar-caption">NAVEGACIÓN</div><nav className="side-links" aria-label="Menú principal">
    {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={activePath===i.href?"page":undefined} className={"side-link"+(activePath===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
   </nav><div className="sidebar-spacer"/><button type="button" className="side-logout" onClick={logout}><LogOut size={17}/> Cerrar sesión</button>
   </aside>
-  <div className="workspace-main">{area==="customer"&&<div className="customer-native-header"><Brand/><CustomerInboxBell/></div>}<header className="workspace-header"><div className="mobile-brand"><Brand/></div><div className="workspace-header-label">{area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Mi cuenta"}</div><div className="workspace-user">{area==="customer"&&<CustomerInboxBell/>}{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
+  <div className="workspace-main">{area==="customer"&&<div className="customer-native-header"><Brand href="/app"/><CustomerInboxBell/></div>}<header className="workspace-header"><div className="mobile-brand"><Brand href="/entrar"/></div><div className="workspace-header-label">{area==="admin"?"Administración":area==="business"?"Negocios":area==="staff"?"Escáner":"Mi cuenta"}</div><div className="workspace-user">{area==="customer"&&<CustomerInboxBell/>}{area==="business"?<details className="business-account-menu"><summary><UserRound size={18}/> Mi cuenta <ChevronRight size={15}/></summary><div className="business-account-dropdown">
   <Link href="/negocio/settings"><Store size={17}/> Datos del negocio</Link>
   <Link href="/negocio/locations"><MapPin size={17}/> Dirección y ubicación</Link>
   {roles.some(r=>r.role==="owner")&&<Link href="/negocio/facturacion"><CreditCard size={17}/> Facturación y pagos</Link>}

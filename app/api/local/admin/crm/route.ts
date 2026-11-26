@@ -32,9 +32,10 @@ async function admin<T>(request:Request,fn:(c:PoolClient,actor:Actor)=>Promise<T
   return fn(c,actor);
  });
 }
+async function crmReader<T>(request:Request,fn:(c:PoolClient,restricted:boolean)=>Promise<T>){const actor=await actorFromRequest(request);if(!actor)throw new ApiError("Inicia sesión.",401);return asActor(actor,async c=>{const r=(await c.query("SELECT public.is_platform_admin() AS admin,public.crm_marketing_active() AS marketing")).rows[0];if(!r.admin&&!r.marketing)throw new ApiError("Sin acceso al CRM.",403);return fn(c,!r.admin);});}
 export async function GET(request:Request){
  try{
-  const result=await admin(request,async c=>{
+  const result=await crmReader(request,async (c,restricted)=>{
    const p=new URL(request.url).searchParams;
    if(p.get("view")==="options"){
     const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
@@ -46,9 +47,10 @@ export async function GET(request:Request){
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
     const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR (source='WEB' AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
    }
+   const neighborhood=p.get("neighborhood")?.trim();if(neighborhood)add("neighborhood",neighborhood.slice(0,200));
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
    const review=p.get("review");if(review&&reviewStates.includes(review))add("contact_review",review);
-   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","city","municipality","state","category","activity"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
+   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","neighborhood","postal_code","instagram","city","municipality","state","category","activity"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
    const textFilters:Record<string,string>={name:"name",email:"COALESCE(NULLIF(public_email,''),email)",phone:"phone",address:"address",website:"website",activity:"activity"};
    for(const [key,expression] of Object.entries(textFilters)){
     const value=p.get("filter_"+key)?.trim().slice(0,120);
@@ -61,18 +63,22 @@ export async function GET(request:Request){
     if(value==="no")where.push("NULLIF("+column+",'') IS NULL");
    }
    const filter=where.length?" WHERE "+where.join(" AND "):"";
+   if(p.get("view")==="map"){
+    const result=await c.query("WITH raw AS MATERIALIZED (SELECT id,name,address,category,latitude,longitude FROM public.crm_prospects"+filter+"), coords AS MATERIALIZED (SELECT id,name,address,category,CASE WHEN latitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN latitude::double precision END AS lat,CASE WHEN longitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN longitude::double precision END AS lng FROM raw) SELECT id,name,address,category,lat,lng,count(*) OVER()::int AS total FROM coords WHERE lat BETWEEN -90 AND 90 AND lng BETWEEN -180 AND 180 AND NOT(lat=0 AND lng=0) ORDER BY name,id LIMIT 5000",args);
+    return {points:result.rows,total:result.rows[0]?.total||0};
+   }
    const requestedPage=Math.max(0,Math.min(100000,Math.floor(Number(p.get("page"))||0)));
    const requestedSize=Number(p.get("page_size")),pageSize=pageSizes.includes(requestedSize)?requestedSize:50;
    const requestedSort=p.get("sort")||"name";
    const sort=Object.prototype.hasOwnProperty.call(sortColumns,requestedSort)?sortColumns[requestedSort]:sortColumns.name;
    const direction=p.get("direction")==="desc"?"DESC":"ASC";
-   const cacheKey=JSON.stringify([filter,args]),cached=countCache.get(cacheKey);
+   const cacheKey=JSON.stringify([filter,args]),cached=restricted?undefined:countCache.get(cacheKey);
    let count:Aggregate;
    if(cached&&cached.expires>Date.now()&&p.get("refresh")!=="1")count=cached.data;
    else{
      count=await crmDirectoryCount(c,filter,args);
     if(countCache.size>=128)countCache.clear();
-    countCache.set(cacheKey,{expires:Date.now()+15000,data:count});
+    if(!restricted)countCache.set(cacheKey,{expires:Date.now()+15000,data:count});
    }
    const totalPages=Math.max(1,Math.ceil(count.total/pageSize));
    const page=Math.min(requestedPage,totalPages-1);
@@ -89,7 +95,7 @@ export async function GET(request:Request){
     }
    }
    // Legacy callers still receive options; the CRM requests them independently.
-   if(p.get("compact")==="1")return {prospects,count,page,pageSize,totalPages};
+   if(restricted||p.get("compact")==="1")return {prospects,count,page,pageSize,totalPages};
    const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
    const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
    const imports=(await c.query("SELECT filename,created_at,report FROM public.crm_import_runs WHERE source='DENUE' ORDER BY created_at DESC LIMIT 5")).rows;
@@ -138,10 +144,10 @@ export async function POST(request:Request){
    for(let i=0;i<data.prospects.length;i+=500){
     const batch=data.prospects.slice(i,i+500);
     const result=await c.query(
-     "INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website,phone,address,latitude,longitude) "+
-     "SELECT source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website,phone,address,latitude,longitude "+
-     "FROM jsonb_to_recordset($1::jsonb) AS x(source_id text,name text,country_code text,state_code text,state text,municipality_code text,municipality text,locality_code text,city text,activity_code text,activity text,category text,email text,website text,phone text,address text,latitude text,longitude text) "+
-     "ON CONFLICT(source,source_id) DO UPDATE SET name=EXCLUDED.name,country_code=EXCLUDED.country_code,state_code=EXCLUDED.state_code,state=EXCLUDED.state,municipality_code=EXCLUDED.municipality_code,municipality=EXCLUDED.municipality,locality_code=EXCLUDED.locality_code,city=EXCLUDED.city,activity_code=EXCLUDED.activity_code,activity=EXCLUDED.activity,category=EXCLUDED.category,phone=COALESCE(NULLIF(EXCLUDED.phone,''),crm_prospects.phone),address=COALESCE(NULLIF(EXCLUDED.address,''),crm_prospects.address),latitude=COALESCE(NULLIF(EXCLUDED.latitude,''),crm_prospects.latitude),longitude=COALESCE(NULLIF(EXCLUDED.longitude,''),crm_prospects.longitude),email=COALESCE(crm_prospects.email,EXCLUDED.email),website=COALESCE(NULLIF(EXCLUDED.website,''),crm_prospects.website),updated_at=now(),status=crm_prospects.status",
+     "INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website,phone,address,latitude,longitude,neighborhood,postal_code,instagram) "+
+     "SELECT source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website,phone,address,latitude,longitude,neighborhood,postal_code,instagram "+
+     "FROM jsonb_to_recordset($1::jsonb) AS x(source_id text,name text,country_code text,state_code text,state text,municipality_code text,municipality text,locality_code text,city text,activity_code text,activity text,category text,email text,website text,phone text,address text,latitude text,longitude text,neighborhood text,postal_code text,instagram text) "+
+     "ON CONFLICT(source,source_id) DO UPDATE SET name=EXCLUDED.name,country_code=EXCLUDED.country_code,state_code=EXCLUDED.state_code,state=EXCLUDED.state,municipality_code=EXCLUDED.municipality_code,municipality=EXCLUDED.municipality,locality_code=EXCLUDED.locality_code,city=EXCLUDED.city,activity_code=EXCLUDED.activity_code,activity=EXCLUDED.activity,category=EXCLUDED.category,phone=COALESCE(NULLIF(EXCLUDED.phone,''),crm_prospects.phone),address=COALESCE(NULLIF(EXCLUDED.address,''),crm_prospects.address),latitude=COALESCE(NULLIF(EXCLUDED.latitude,''),crm_prospects.latitude),longitude=COALESCE(NULLIF(EXCLUDED.longitude,''),crm_prospects.longitude),email=COALESCE(crm_prospects.email,EXCLUDED.email),website=COALESCE(NULLIF(EXCLUDED.website,''),crm_prospects.website),neighborhood=COALESCE(NULLIF(EXCLUDED.neighborhood,''),crm_prospects.neighborhood),postal_code=COALESCE(NULLIF(EXCLUDED.postal_code,''),crm_prospects.postal_code),instagram=COALESCE(NULLIF(EXCLUDED.instagram,''),crm_prospects.instagram),updated_at=now(),status=crm_prospects.status",
      [JSON.stringify(batch)]);
     changed+=result.rowCount||0;
    }
@@ -159,7 +165,8 @@ export async function PATCH(request:Request){
   const raw=await request.text();if(raw.length>5000)throw new ApiError("Solicitud demasiado larga.",413);
   const v=JSON.parse(raw) as {id?:string;status?:string;notes?:string;public_email?:string;public_email_source?:string;contact_review?:string;contact_review_url?:string};
   if(typeof v.id!=="string"||!/^[0-9a-f-]{36}$/i.test(v.id)||typeof v.status!=="string"||!statuses.includes(v.status)||typeof v.notes!=="string"||v.notes.length>2000)throw new ApiError("Datos no válidos.");
-  await admin(request,async c=>{
+  await crmReader(request,async (c,restricted)=>{
+   if(restricted){await c.query("SELECT public.crm_marketing_save_contact($1::uuid,$2,$3)",[v.id,v.status,v.notes]);return;}
    const hasEvidence=v.public_email!==undefined||v.public_email_source!==undefined;
    let email:string|null=null,source:string|null=null;
    if(hasEvidence){

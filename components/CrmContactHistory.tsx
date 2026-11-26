@@ -10,7 +10,7 @@ async function request(query="",body?:object){
 }
 const fmt=(d:string)=>new Date(d).toLocaleString("es-MX",{dateStyle:"medium",timeStyle:"short"});
 const labels:Record<string,string>={received:"Recibido",delivered:"Aceptado por destinatario",bounced:"Rebotado",spam:"Rechazado por spam",rate_limited:"Límite de envío",not_sent:"No enviado",unknown:"Estado desconocido"};
-export function useCrmMailSync(onChange:()=>void){
+export function useCrmMailSync(onChange:()=>void,enabled=true){
  const [status,setStatus]=useState<Status|null>(null),[error,setError]=useState(""),[syncing,setSyncing]=useState(false);
  const busy=useRef(false),callback=useRef(onChange),fingerprint=useRef("");callback.current=onChange;
  const refresh=useCallback(async()=>{const d=await request() as Status;setStatus(d);
@@ -29,7 +29,7 @@ export function useCrmMailSync(onChange:()=>void){
   }catch(e){setError(e instanceof Error?e.message:"Error de sincronización.");}
   finally{busy.current=false;setSyncing(false);}
  },[refresh]);
- useEffect(()=>{void run();const timer=setInterval(()=>{if(!document.hidden&&!busy.current)void refresh().catch(e=>setError(e.message));},60000);return()=>clearInterval(timer);},[run,refresh]);
+ useEffect(()=>{if(!enabled)return;void run();const timer=setInterval(()=>{if(!document.hidden&&!busy.current)void refresh().catch(e=>setError(e.message));},60000);return()=>clearInterval(timer);},[run,refresh,enabled]);
  return {status,error,syncing,run,refresh};
 }
 export function CrmMailSettings({sync}:{sync:ReturnType<typeof useCrmMailSync>}){

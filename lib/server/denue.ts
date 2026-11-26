@@ -3,7 +3,7 @@ export type Prospect = {
  source_id:string; name:string; country_code:string; state_code:string; state:string;
  municipality_code:string; municipality:string; locality_code:string; city:string;
  activity_code:string; activity:string; category:string; email:string; website:string;
- phone:string; address:string; latitude:string; longitude:string;
+ phone:string; address:string; latitude:string; longitude:string; neighborhood:string; postal_code:string; instagram:string;
 };
 export const categories: ReadonlyArray<[string,string]> = [
  ["7225","Restaurantes y cafeterías"],["7224","Bares"],["812110","Belleza y barberías"],
@@ -47,7 +47,8 @@ export function analyzeDenue(text:string, municipalityFilter="", observe?:(row:O
   const g=byCity.get(key)||{...blank(),state,municipality,city,state_code,municipality_code,locality_code};byCity.set(key,g);
   total.total++;g.total++;
   if(!category||(includeActivity&&!includeActivity(activity_code)))return;
-  const contact={phone:get("telefono").slice(0,80),address:[[get("tipo_vial"),get("nom_vial"),get("numero_ext"),get("letra_ext")].filter(Boolean).join(" "),get("numero_int")?"Int. "+get("numero_int")+get("letra_int"):"",get("nomb_asent"),get("cod_post")].filter(Boolean).join(", ").slice(0,500),latitude:get("latitud").slice(0,32),longitude:get("longitud").slice(0,32)};
+  const web=get("www");
+  const contact={neighborhood:get("nomb_asent").slice(0,200),postal_code:get("cod_post").slice(0,12),instagram:/^(?:https?:\/\/)?(?:www\.)?instagram\.com\/[a-z0-9._]+\/?(?:\?.*)?$/i.test(web)?(web.startsWith("http")?web:"https://"+web):"",phone:get("telefono").slice(0,80),address:[[get("tipo_vial"),get("nom_vial"),get("numero_ext"),get("letra_ext")].filter(Boolean).join(" "),get("numero_int")?"Int. "+get("numero_int")+get("letra_int"):"",get("nomb_asent"),get("cod_post")].filter(Boolean).join(", ").slice(0,500),latitude:get("latitud").slice(0,32),longitude:get("longitud").slice(0,32)};
   const s=bySector.get(category)||blank();bySector.set(category,s);
   total.relevant++;g.relevant++;s.total++;s.relevant++;
   if(observe)observe({source_id:id,name,country_code:"MX",state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,website:get("www"),...contact,hasEmail:validEmail(email),hasWebsite:!!get("www")});

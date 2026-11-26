@@ -8,6 +8,7 @@ export function PublicHeader({lang="es"}:{lang?:LandingLanguage}){
  return <header className="public-header loi-public-header"><div className="container header-inner">
   <Brand href={landingHref(lang)}/>
   <nav className="top-nav" aria-label={lang==="en"?"Main navigation":"Navegación principal"}>
+   <Link href="/">{lang==="en"?"For customers":"Para clientes"}</Link>
    <Link href={landingHref(lang,"beneficios")}>{t.benefits}</Link>
    <Link href={landingHref(lang,"como-funciona")}>{t.how}</Link>
    <Link href={landingHref(lang,"personalizacion")}>{t.design}</Link>

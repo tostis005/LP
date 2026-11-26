@@ -190,5 +190,5 @@ export const LANDING_COPY = {
 } as const;
 
 export function landingHref(lang:LandingLanguage,section?:string){
-  return "/?lang="+lang+(section?"#"+section:"");
+  return "/para-negocios?lang="+lang+(section?"#"+section:"");
 }

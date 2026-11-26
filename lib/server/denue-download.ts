@@ -12,6 +12,8 @@ const maxArchive=120*1024*1024;
 export const officialCities:Record<string,{archive:string;filename:string;edition:string}>={
  "02003":{archive:officialTecateArchive,filename:officialTecateFilename,edition:"2025-05"},
  "22014":{archive:"https://www.inegi.org.mx/contenidos/masiva/denue/2025_05/denue_22_0525_csv.zip",filename:"DENUE Querétaro 2025-05",edition:"2025-05"},
+ "11020":{archive:"https://www.inegi.org.mx/contenidos/masiva/denue/2025_05/denue_11_0525_csv.zip",filename:"DENUE León 2025-05",edition:"2025-05"},
+ "14039":{archive:"https://www.inegi.org.mx/contenidos/masiva/denue/2025_05/denue_14_0525_csv.zip",filename:"DENUE Guadalajara 2025-05",edition:"2025-05"},
  "21114":{archive:"https://www.inegi.org.mx/contenidos/masiva/denue/2025_05/denue_21_0525_csv.zip",filename:"DENUE Puebla 2025-05",edition:"2025-05"}
 };
 export async function downloadTecateCsv(){return downloadOfficialCsv("02003");}

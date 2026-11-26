@@ -136,18 +136,18 @@ jobs:
             echo "::error::La imagen Docker no responde en /"
             exit 1
           fi
-          if ! grep -q "Tarjetas de fidelización" /tmp/lp-root-smoke.html || grep -q "Preparando tu espacio" /tmp/lp-root-smoke.html; then
+          if ! grep -Fq "Tus lugares favoritos." /tmp/lp-root-smoke.html || ! grep -Fq 'href="/para-negocios"' /tmp/lp-root-smoke.html || grep -q "Preparando tu espacio" /tmp/lp-root-smoke.html; then
             echo "::error::Docker sigue devolviendo el router de acceso en la raiz."
             grep -oE "Preparando tu espacio|Accede a tu espacio|Tarjetas de fidelización" /tmp/lp-root-smoke.html || true
             exit 1
           fi
-          curl -fsS --max-time 8 'http://127.0.0.1:3156/?lang=en' -o /tmp/lp-root-en.html
+          curl -fsS --max-time 8 'http://127.0.0.1:3156/para-negocios?lang=en' -o /tmp/lp-root-en.html
           if ! grep -q 'Digital loyalty cards' /tmp/lp-root-en.html ||
              grep -q 'Tarjetas de fidelización' /tmp/lp-root-en.html; then
             echo "::error::Docker no devuelve la portada en inglés."
             exit 1
           fi
-          if ! grep -q 'href="/?lang=es"' /tmp/lp-root-en.html; then
+          if ! grep -q 'href="/para-negocios?lang=es"' /tmp/lp-root-en.html; then
             echo "::error::El selector no ofrece volver a español."
             exit 1
           fi
@@ -163,7 +163,7 @@ jobs:
             if curl -fsS --max-time 5 http://127.0.0.1:3155/ -o /tmp/loyally-root.html 2>/dev/null; then break; fi
             sleep 1
           done
-          if ! grep -q 'Tarjetas de fidelización' /tmp/loyally-root.html; then
+          if ! grep -Fq 'Tus lugares favoritos.' /tmp/loyally-root.html || ! grep -Fq 'href="/para-negocios"' /tmp/loyally-root.html; then
             echo "::error::La raiz / no muestra la presentacion de Loyally."
             grep -oE 'Preparando tu espacio|Accede a tu espacio|Tarjetas de fidelización' /tmp/loyally-root.html || true
             tail -35 /tmp/loyally-root.log
@@ -214,6 +214,8 @@ jobs:
           rm -rf .crm-connector-test
       - name: Verificar aislamiento de roles
         run: node tests/native/smoke.mjs
+      - name: Verificar permisos geográficos de marketing
+        run: node tests/native/crm-marketing-scopes.mjs
       - name: Validar iconos rellenos Kreyv en PostgreSQL
         run: node tests/native/kreyv-icons.mjs
       - name: Validar colas automáticas y permisos PostgreSQL
