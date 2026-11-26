@@ -1,0 +1,11 @@
+name: CRM - Prueba de canal sin efectos
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comprobar ejecución
+        run: echo 'CRM_CHANNEL_PROBE_OK'
