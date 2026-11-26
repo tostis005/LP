@@ -810,3 +810,27 @@
  .loi-site #beneficios,.loi-site #como-funciona,.loi-site #comunidad,
  .loi-site #panel-negocio,.loi-site #personalizacion,.loi-site #instalar,.loi-site #empezar{padding-block:54px}
 }
+
+/* Studio Blush: tercera tarjeta ilustrativa, con la misma proporción ISO. */
+.loi-site .loi-marketing-card-blush > .stamp-visual-card{
+ background-image:url("/brand/studio-blush-background.svg");
+ background-size:100% 100%;background-position:center;
+ border-color:#c998ae;
+ box-shadow:0 12px 25px rgba(102,48,72,.15);
+}
+.loi-site .loi-marketing-card-blush .stamp-business-logo{
+ border:1px solid #bc8da1;background:#f9e9df;
+}
+.loi-site .loi-marketing-card-blush .stamp-slot.is-filled{
+ background:#fff4ed;border-color:#c592aa;
+}
+.loi-site .loi-marketing-card-blush .stamp-slot:not(.is-filled){
+ background:rgba(255,250,245,.29);border:1px dashed #92566f;
+}
+.loi-site .loi-marketing-card-blush .stamp-slot img{
+ width:65%;height:65%;object-fit:contain;
+}
+.loi-site .loi-marketing-card-blush .stamp-visual-message{color:#69394f}
+.loi-site .loi-marketing-card-blush .stamp-visual-footer{border-color:rgba(100,45,69,.26)}
+.loi-site .loi-marketing-card-blush .stamp-visual-footer strong{color:#7a3b58}
+.loi-site .loi-marketing-card-blush .stamp-visual-footer .stamp-reward-name{color:#50283e}
