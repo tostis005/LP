@@ -1,4 +1,5 @@
 "use client";
+import {KreyviLoading} from "@/components/KreyviLoading";
 import {Brand} from "@/components/Brand";
 
 import {useEffect,useState,type FormEvent} from "react";
@@ -51,8 +52,9 @@ export default function MiLoyally(){
     // Installation is public, even with an existing business/admin session.
     if(!installing){router.replace("/entrar");return;}
    }
+   if(appMode){router.replace("/acceder");return;}
    setReady(true);
-  }).catch(()=>{if(active)setReady(true);});
+  }).catch(()=>{if(active){if(appMode)router.replace("/acceder");else setReady(true);}});
   return()=>{active=false;window.removeEventListener("beforeinstallprompt",capture);window.removeEventListener("appinstalled",installed);};
  },[router]);
 
@@ -93,6 +95,7 @@ export default function MiLoyally(){
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  const intro=mode==="signup"?"Crea tu espacio":mode==="forgot"?"Recupera tu acceso":"Bienvenido a Kreyvi";
+ if(!ready||standalone)return <KreyviLoading label="Preparando tu espacio"/>;
  return <main className="loyal-app-entry">
   <div className="loyal-app-entry-inner">
    <header className="loyal-app-top">

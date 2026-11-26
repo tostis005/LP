@@ -10,14 +10,15 @@ import "./product-polish.css";
 import "./customer-app.css";
 import "./role-app.css";
 import "./public-pages.css";
+import "./customer-entry.css";
 import {BRAND_NAME, BRAND_THEME} from "@/lib/brand";
 import {PwaSetup} from "@/components/PwaSetup";
 import {AppBottomNav} from "@/components/AppBottomNav";
 import {ActionToast} from "@/components/ActionToast";
 export const metadata: Metadata = {
   metadataBase:new URL("https://kreyvi.com"),
-  title: BRAND_NAME + " — Haz que tus clientes vuelvan",
-  description: "Una plataforma de fidelización simple y poderosa para negocios locales. Sellos, puntos, cashback y tarjetas digitales.",
+  title: BRAND_NAME + " — Tus lugares favoritos, tus próximos premios",
+  description: "Todas tus tarjetas de fidelización, sellos y recompensas en un solo lugar.",
   manifest:"/manifest.webmanifest?v=kreyvi-v1",
   appleWebApp:{capable:true,statusBarStyle:"default",title:BRAND_NAME},
   icons:{

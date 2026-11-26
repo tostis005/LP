@@ -4,7 +4,7 @@ import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronR
 import {AdminCrmPueblaCampaign} from "./AdminCrmPueblaCampaign";
 import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
 import {CrmContactHistory,CrmMailSettings,useCrmMailSync} from "./CrmContactHistory";
-type Prospect={id:string;name:string;phone:string;address:string;website:string;latitude:string;longitude:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string;last_sent_at?:string|null;last_attempt_at?:string|null;last_received_at?:string|null;sent_count?:number};
+type Prospect={id:string;name:string;phone:string;address:string;website:string;latitude:string;longitude:string;neighborhood?:string;postal_code?:string;instagram?:string;email:string|null;public_email:string|null;public_email_source:string|null;public_email_checked_at:string|null;contact_review:string;contact_review_url:string|null;contact_reviewed_at:string|null;state:string;municipality:string;city:string;category:string;activity:string;status:string;notes:string;last_sent_at?:string|null;last_attempt_at?:string|null;last_received_at?:string|null;sent_count?:number};
 type Region={country_code:string;state_code:string;state:string;municipality_code:string;municipality:string;locality_code:string;city:string;total:number};
 type Count={total:number;relevant:number;withEmail:number;missingOrInvalidEmail:number;uniqueEmails:number};
 type Report=Count&{duplicates:number;skipped:number;byCity:Array<Count&{state:string;municipality:string;city:string;state_code:string;municipality_code:string;locality_code:string}>;bySector:Array<Count&{category:string}>};
@@ -84,7 +84,7 @@ export function AdminCrm(){
  const columns=[["name","Negocio"],["state","Estado geográfico"],["municipality","Municipio"],["city","Localidad"],["category","Sector"],["activity","Actividad"],["email","Correo"],["phone","Teléfono"],["address","Dirección"],["website","Web"],["status","Estado comercial"],["review","Revisión"]] as const;
  const textColumns=new Set(["name","activity","email","phone","address","website"]);
  const hasFilters=Boolean(search||state||municipality||city||category||coverage||review||status||Object.keys(columnFilters).length);
- const pendingCities=[{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
+ const pendingCities=[{code:"11020",name:"León"},{code:"14039",name:"Guadalajara"},{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
  return <div className="panel-card crm-workspace">
   <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
   <div className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
@@ -173,8 +173,8 @@ export function AdminCrm(){
    .crm-table-shell td small{display:block}
    .crm-table-loading{position:absolute;inset:0;z-index:2;display:flex;align-items:flex-start;justify-content:center;padding-top:65px;pointer-events:none}
    .crm-table-loading span{display:flex;align-items:center;gap:10px;border:1px solid var(--border,#ddd);border-radius:999px;background:var(--card,#fff);padding:10px 16px;box-shadow:0 4px 18px #0002}
-   .crm-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px}
-   .crm-pagination-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+   .crm-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0 0;padding:16px 12px;border-top:1px solid var(--color-bg-2);border-radius:0 0 16px 16px;background:var(--color-surface);min-width:0;max-width:100%;box-sizing:border-box}
+   .crm-pagination-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;max-width:100%;min-width:0}
    .crm-pagination-group select,.crm-pagination-group input{max-width:100px}
    .crm-pagination-group button{display:inline-flex;align-items:center;gap:4px;min-width:32px;justify-content:center}
   `}</style>

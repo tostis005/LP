@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
  return {
   id:"/app",name:BRAND_NAME,short_name:BRAND_NAME,
   description:"Tus tarjetas, sellos y premios de tus negocios favoritos",
-  start_url:"/mi-loyally",scope:"/",display:"standalone",
+  start_url:"/entrar",scope:"/",display:"standalone",
   background_color:BRAND_THEME==="tinta-maiz"?"#F7F2E8":"#F5EFE6",
   theme_color:BRAND_THEME==="tinta-maiz"?"#1D2340":"#5E1A2B",
   categories:["shopping","lifestyle"],

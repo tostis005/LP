@@ -4,7 +4,8 @@ import {useCallback,useEffect,useState} from "react";
 import Link from "next/link";
 import {ArrowUpRight,Compass,Gift,Plus} from "lucide-react";
 import {AppFrame, type Account} from "@/components/AppFrame";
-import {LoyaltyCard} from "@/components/LoyaltyCard";
+import {CustomerCardDeck} from "@/components/CustomerCardDeck";
+import "../customer-deck.css";
 import {PushWelcomePrompt} from "@/components/PushWelcomePrompt";
 import {db} from "@/lib/supabase";
 import type {MilestoneDetails} from "@/lib/milestones";
@@ -98,9 +99,9 @@ function CustomerHome({account}:{account:Account}){
    <p>{closestProgram.reward_label}</p>
    <div className="customer-spotlight-foot"><span>{Math.min(closest.balance,closestProgram.reward_cost)}/{closestProgram.reward_cost} sellos</span><Link href={"/app?card="+encodeURIComponent(closest.id)} onClick={()=>window.dispatchEvent(new CustomEvent("kreyv:open-card",{detail:closest.id}))}>Ver tarjeta <ArrowUpRight size={17}/></Link></div>
   </section>}
-  <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza para verlas</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
+  <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza hacia arriba o abajo</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
   {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button> · <a href="/offline">Ver tarjetas guardadas</a></div>}
-  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<div className="card-grid" role="region" aria-label="Tus tarjetas, desliza horizontalmente para verlas" tabIndex={0}>{cards.map(c=><LoyaltyCard key={c.id} membership={c} business={c.businesses} program={prog(c.business_id)} offersCount={offerCounts[c.business_id]||0} milestones={milestones[c.id]} compact/>)}</div>}
+  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<CustomerCardDeck cards={cards} programs={programs} milestones={milestones} offerCounts={offerCounts}/>}
 
   {movements.length>0&&<section className="customer-activity-section" aria-label="Últimos movimientos">
    <h2>Actividad reciente</h2>
