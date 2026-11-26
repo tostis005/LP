@@ -26,7 +26,7 @@ ALTER TABLE public.loyalty_transactions DROP CONSTRAINT IF EXISTS loyalty_transa
 ALTER TABLE public.loyalty_transactions ADD CONSTRAINT loyalty_transactions_amount_delta_check CHECK(amount_delta<>0 OR kind IN ('redeem','reversal'));
 
 CREATE OR REPLACE FUNCTION public.manager_stamp_milestones(p_business uuid)
-RETURNS TABLE(id uuid,position integer,cycle_size integer,label text,active boolean)
+RETURNS TABLE(id uuid,"position" integer,cycle_size integer,label text,active boolean)
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public AS $$
 BEGIN
  IF NOT (public.is_business_manager(p_business) OR public.is_platform_admin()) THEN RAISE EXCEPTION 'No autorizado'; END IF;

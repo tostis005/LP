@@ -6,7 +6,7 @@ import {MerchantCard} from "@/components/StampCard";
 import {units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {normalizeToken} from "@/lib/format";
-import {offlineAccount,offlineCards,awards,queueAward,syncAwards,removeAward,clearOfflineAccount,type OfflineAccount,type Snapshot,type Award} from "@/lib/client/offline";
+import {offlineAccount,offlineCards,awards,queueAward,syncAwards,removeAward,clearOfflineAccount,saveAccount,type OfflineAccount,type Snapshot,type Award} from "@/lib/client/offline";
 export default function Offline(){
  const [account,setAccount]=useState<OfflineAccount|null>(null),[snapshot,setSnapshot]=useState<Snapshot|null>(null),[ready,setReady]=useState(false),[selected,setSelected]=useState(""),[business,setBusiness]=useState(""),[token,setToken]=useState(""),[stamps,setStamps]=useState("1"),[amount,setAmount]=useState(""),[ticket,setTicket]=useState(""),[message,setMessage]=useState(""),[pending,setPending]=useState<Award[]>([]),[online,setOnline]=useState(false),[scanning,setScanning]=useState(false),[syncing,setSyncing]=useState(false);
  const video=useRef<HTMLVideoElement>(null),controls=useRef<IScannerControls|null>(null);
@@ -16,7 +16,7 @@ export default function Offline(){
  const program=account?.businesses.find(b=>b.id===business)?.program;
  const card=snapshot?.cards.find(c=>c.id===selected);
  async function sync(){if(!account||syncing)return;setSyncing(true);await syncAwards(account.id);setPending(awards(account.id));setSyncing(false)}
- useEffect(()=>{if(!online||!account)return;let live=true;db().auth.getUser().then(r=>{if(!live||r.error)return;if(r.data?.user?.id!==account.id){clearOfflineAccount();setAccount(null);setSnapshot(null);setPending([]);return}if(account.area==="staff")void sync()});return()=>{live=false}},[online,account]);
+ useEffect(()=>{if(!online||!account)return;let live=true;db().auth.getUser().then(r=>{if(!live||r.error)return;if(r.data?.user?.id!==account.id){clearOfflineAccount();setAccount(null);setSnapshot(null);setPending([]);return}if(account.area==="staff"){void sync();void db().rpc("staff_offline_access").then(v=>{if(!live||v.error)return;const active=(v.data||[]) as {business_id:string;revision:string}[];const allowed=account.businesses.filter(b=>active.some(a=>a.business_id===b.id&&a.revision===b.revision));if(allowed.length!==account.businesses.length){const next={...account,businesses:allowed};saveAccount(next);setAccount(next);setBusiness(allowed[0]?.id||"");setMessage("Los permisos del establecimiento han cambiado. Las compras no autorizadas no se confirmarán.")}})}});return()=>{live=false}},[online,account]);
  function save(){try{if(!account||!program)throw Error("No hay reglas del programa guardadas. Conecta primero.");if(/\/p\//i.test(token))throw Error("No se pueden canjear premios sin conexión.");
  const t=normalizeToken(token);if(!t)throw Error("Identificador de tarjeta no válido.");
  const monetary=program.type!=="stamps"||program.require_purchase_amount;
@@ -43,7 +43,7 @@ export default function Offline(){
  {pending.map(a=><div key={a.id} className="activity-row"><div><strong>{a.error?"Requiere revisión":"Pendiente"}</strong><p>{new Date(a.at).toLocaleString("es-MX")} · {a.ticket||"Sin referencia"}{a.error?" · "+a.error:""}</p></div>{a.error&&<button className="button button-outline" onClick={()=>{if(confirm("¿Descartar esta operación rechazada?")){removeAward(a);setPending(awards(account.id))}}}>Descartar</button>}</div>)}
  <button className="button button-outline" disabled={!online||syncing} onClick={()=>void sync()}>{syncing?"Sincronizando…":"Sincronizar compras"}</button>
  <p className="tiny-note">Las compras se validan al volver a conectar. No se permiten canjes offline.</p>
- </section>:<p>No hay datos guardados o ha caducado el acceso offline. Abre KREYVI con conexión para prepararlo.</p>}
+ </section>:<p>No hay datos guardados. Abre KREYVI con conexión para prepararlo.</p>}
  <p><a className="button button-dark" href={account?.area==="staff"?"/empleado":"/app"}>Volver a mi espacio</a></p>
  {account&&<button className="button button-outline" onClick={()=>{if(confirm("¿Ocultar las tarjetas y cerrar el acceso offline en este dispositivo? Las compras pendientes se conservan para tu cuenta.")){clearOfflineAccount();setAccount(null);setSnapshot(null)}}}>Cerrar acceso offline</button>}</main>
 }

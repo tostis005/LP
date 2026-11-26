@@ -51,8 +51,8 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
      const u=auth.data.user,rs=(members.data||[]) as unknown as BusinessRole[];
      if(area==="customer"&&!admins.data&&rs.length===0)saveAccount({id:u.id,area:"customer",at:Date.now(),businesses:[]});
      else if(area==="staff"&&rs.some(r=>r.role==="employee")){
-      const staff=rs.filter(r=>r.role==="employee"),p=await db().from("loyalty_programs").select("*").in("business_id",staff.map(r=>r.business_id));
-      if(!p.error&&live)saveAccount({id:u.id,area:"staff",at:Date.now(),businesses:staff.map(r=>({id:r.business_id,name:r.businesses?.name||"Negocio",program:(p.data as Program[]||[]).find(x=>x.business_id===r.business_id)}))});
+      const staff=rs.filter(r=>r.role==="employee"),[p,access]=await Promise.all([db().from("loyalty_programs").select("*").in("business_id",staff.map(r=>r.business_id)),db().rpc("staff_offline_access")]);
+      if(!p.error&&!access.error&&live)saveAccount({id:u.id,area:"staff",at:Date.now(),businesses:staff.map(r=>({id:r.business_id,name:r.businesses?.name||"Negocio",program:(p.data as Program[]||[]).find(x=>x.business_id===r.business_id),revision:((access.data||[]) as {business_id:string;revision:string}[]).find(x=>x.business_id===r.business_id)?.revision}))});
       // StaffMain synchronizes the queue and refreshes its visible status.
      }else clearOfflineAccount();
      if(live){setUser(u);setRoles(rs);setAdmin(!!admins.data);setLoading(false)}

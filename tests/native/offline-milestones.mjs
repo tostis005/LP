@@ -16,8 +16,9 @@ try{
  await identity(id.owner);
  const rule=(await q("SELECT public.manager_add_stamp_milestone($1,3,$2) AS id",[id.business,reward])).rows[0].id;
  await identity(id.staff);
- const op=randomUUID(),at=new Date().toISOString(),args=[op,id.staff,id.business,m.card_token,0,3,"ticket-offline",at];
- const award="SELECT public.staff_sync_award($1,$2,$3,$4,$5,$6,$7,$8) AS balance";
+ const access=(await q("SELECT * FROM public.staff_offline_access()")).rows[0];
+ const op=randomUUID(),at=new Date().toISOString(),args=[op,id.staff,id.business,m.card_token,0,3,"ticket-offline",at,access.revision];
+ const award="SELECT public.staff_sync_award($1,$2,$3,$4,$5,$6,$7,$8,$9) AS balance";
  assert.equal((await q(award,args)).rows[0].balance,3);
  assert.equal((await q(award,args)).rows[0].balance,3,"Replay is idempotent");
  await rejected(award,[...args.slice(0,5),4,...args.slice(6)],/Identificador de operación ya utilizado/);
@@ -37,6 +38,10 @@ try{
  await q("SELECT public.staff_award_card($1,0,3,NULL)",[m.card_token]);
  d=await details();assert.equal(d.grants.length,2,"New cycle unlocks another prize");assert.equal(d.grants.filter(g=>g.available).length,1);
  await identity(id.owner);await q("SELECT public.manager_disable_stamp_milestone($1)",[rule]);
+ await identity(id.owner);await q("SELECT public.set_staff_active($1,$2,false)",[id.business,id.staff]);
+ await identity(id.staff);await rejected(award,[randomUUID(),...args.slice(1)],/Permisos revocados/);
+ await identity(id.owner);await q("SELECT public.set_staff_active($1,$2,true)",[id.business,id.staff]);
+ await identity(id.staff);await rejected(award,[randomUUID(),...args.slice(1)],/Permisos revocados/);
  await identity(id.customer);d=await details();assert.equal(d.rules.length,0);assert.equal(d.grants.filter(g=>g.available).length,1,"Already earned prize survives disable");
  await q("ROLLBACK");console.log("OK: offline replay, actor isolation, milestone cycles, costs, one-time redemption and earned rights.");
 }catch(e){await q("ROLLBACK").catch(()=>{});throw e}finally{client.release();await pool.end()}
