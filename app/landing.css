@@ -633,7 +633,7 @@
  gap:8px 8px;
 }
 .loi-site .loi-showcase-phone .stamp-business-logo{width:30px;height:30px;font-size:14px}
-.loi-site .loi-showcase-phone .stamp-visual-name{font-size:16px;line-height:1.15;padding-right:53px}
+.loi-site .loi-showcase-phone .stamp-visual-name{font-size:16px;line-height:1.15;padding-right:53px;box-sizing:border-box;overflow-wrap:anywhere}
 .loi-site .loi-showcase-phone .stamp-visual-side{top:14px;right:13px}
 .loi-site .loi-showcase-phone .stamp-visual-brand img{width:42px!important}
 .loi-site .loi-showcase-phone .stamp-grid,
@@ -645,11 +645,12 @@
 .loi-site .loi-showcase-phone .stamp-visual-message{font-size:8px}
 .loi-site .loi-showcase-phone .stamp-visual-footer{gap:3px;padding-top:8px}
 .loi-site .loi-showcase-phone .stamp-visual-footer .stamp-reward-name{font-size:13px}
-@media(max-width:1100px) and (min-width:901px){
- .loi-hero-callout-discover{left:-10px;top:18%}
- .loi-hero-callout-reward{right:-8px;bottom:10%}
- .loi-hero-callout{max-width:168px;padding:8px}
- .loi-hero-callout small{font-size:8px}
+@media(min-width:901px){
+ .loi-site .loi-hero-showcase{grid-template-rows:auto auto auto}
+ .loi-hero-callouts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(430px,100%)}
+ .loi-hero-callout{position:relative;inset:auto;max-width:none;min-width:0;transform:none}
+ .loi-hero-callout-discover{transform:rotate(-2deg)}
+ .loi-hero-callout-reward{transform:rotate(2deg)}
 }
 @media(max-width:900px){
  .loi-site .loi-hero-layout{min-height:0;padding-block:43px 35px;gap:20px}
