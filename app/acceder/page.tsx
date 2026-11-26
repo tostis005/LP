@@ -19,8 +19,8 @@ export default function Login(){
  const [sessionReady,setSessionReady]=useState(false);
  useEffect(()=>{
   const candidate=new URLSearchParams(window.location.search).get("next")||"";
-  const target=safeJoinTarget(candidate)||(/^\/app\/novedades\/[a-f0-9-]{36}$/i.test(candidate)?candidate:"/entrar");
-  setLoginTarget(target);
+  let target="/entrar";
+  if(safeJoinTarget(candidate)||/^\/app\/novedades\/[a-f0-9-]{36}$/i.test(candidate)){target=candidate;setLoginTarget(candidate);}
   let active=true;
   db().auth.getUser().then(({data})=>{if(!active)return;if(data?.user){router.replace(target);return;}setSessionReady(true);}).catch(()=>{if(active)setSessionReady(true);});
   return()=>{active=false;};
