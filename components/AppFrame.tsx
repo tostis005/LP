@@ -39,6 +39,9 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    try{
     const auth=await db().auth.getUser(); if(auth.error) throw auth.error;
     if(!auth.data.user){clearOfflineAccount();if(live){router.replace("/acceder?next="+encodeURIComponent(pathname))}return}
+    const roleCheck=await fetch("/api/local/admin/marketing-users?self=1",{cache:"no-store"});
+    if(!roleCheck.ok)throw Error("No se pudieron comprobar los permisos.");
+    if((await roleCheck.json()).marketing){if(live)router.replace("/marketing");return;}
     if(area==="customer")void syncExistingPushSubscription(auth.data.user.id);
     try { await db().rpc("claim_invitations"); } catch { /* invitaciones opcionales */ }
     const [members,admins]=await Promise.all([

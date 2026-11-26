@@ -24,10 +24,10 @@ try{
    for(let i=0;i<data.prospects.length;i+=500){
     const batch=data.prospects.slice(i,i+500);
     const r=await c.query(
-     "INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website) "+
-     "SELECT source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website "+
-     "FROM jsonb_to_recordset($1::jsonb) AS x(source_id text,name text,country_code text,state_code text,state text,municipality_code text,municipality text,locality_code text,city text,activity_code text,activity text,category text,email text,website text) "+
-     "ON CONFLICT(source,source_id) DO NOTHING",
+     "INSERT INTO public.crm_prospects(source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website,phone,address,latitude,longitude,neighborhood,postal_code,instagram) "+
+     "SELECT source_id,name,country_code,state_code,state,municipality_code,municipality,locality_code,city,activity_code,activity,category,email,website,phone,address,latitude,longitude,neighborhood,postal_code,instagram "+
+     "FROM jsonb_to_recordset($1::jsonb) AS x(source_id text,name text,country_code text,state_code text,state text,municipality_code text,municipality text,locality_code text,city text,activity_code text,activity text,category text,email text,website text,phone text,address text,latitude text,longitude text,neighborhood text,postal_code text,instagram text) "+
+     "ON CONFLICT(source,source_id) DO UPDATE SET phone=COALESCE(NULLIF(EXCLUDED.phone,''),crm_prospects.phone),address=COALESCE(NULLIF(EXCLUDED.address,''),crm_prospects.address),latitude=COALESCE(NULLIF(EXCLUDED.latitude,''),crm_prospects.latitude),longitude=COALESCE(NULLIF(EXCLUDED.longitude,''),crm_prospects.longitude),neighborhood=COALESCE(NULLIF(EXCLUDED.neighborhood,''),crm_prospects.neighborhood),postal_code=COALESCE(NULLIF(EXCLUDED.postal_code,''),crm_prospects.postal_code),instagram=COALESCE(NULLIF(EXCLUDED.instagram,''),crm_prospects.instagram)",
      [JSON.stringify(batch)]);
     imported+=r.rowCount||0;
    }
