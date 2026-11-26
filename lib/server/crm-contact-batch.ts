@@ -75,6 +75,7 @@ export async function contactBatch(c:PoolClient,candidates:Candidate[],selected:
   }
   await c.query("SELECT pg_advisory_xact_lock(hashtext('kreyvi-crm-web-business'))");
   await c.query("SELECT pg_advisory_xact_lock(hashtext('kreyvi-denue-import'))");
+  await c.query("SELECT pg_advisory_xact_lock(hashtext('crm-sendcorex-send'))");
  }
  if(apply&&library&&(await c.query("SELECT 1 FROM public.crm_import_runs WHERE source='WEB' AND filename=$1 AND report->>'sha256'=$2 LIMIT 1",[library.filename,library.sha256])).rowCount)throw new ApiError("Esta versión del archivo ya se ha importado.",409);
  const geos=(await c.query("SELECT DISTINCT state_code,state,municipality_code,municipality FROM public.crm_prospects WHERE country_code='MX'")).rows;
