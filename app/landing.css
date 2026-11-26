@@ -491,3 +491,50 @@
  .loi-site .loi-showcase-phone .stamp-slot{max-width:42px}
  .loi-site .loi-phone-greeting{font-size:22px}
 }
+
+/* Refinamiento visual de la tarjeta de ejemplo de la portada. */
+.loi-site .loi-showcase-phone .stamp-visual-card.stamp-visual-rebalanced{
+ padding:15px!important;border-radius:15px;
+ background-image:linear-gradient(145deg,rgba(255,255,255,.075),transparent 50%,rgba(35,7,18,.19));
+ border:1px solid rgba(255,255,255,.14);
+ box-shadow:0 10px 25px rgba(60,15,30,.16),inset 0 1px 0 rgba(255,255,255,.1);
+}
+.loi-site .loi-showcase-phone .stamp-visual-main{gap:8px}
+.loi-site .loi-showcase-phone .stamp-business-logo{
+ width:31px;height:31px;border-radius:9px;font-size:15px;
+ border:1px solid rgba(255,255,255,.65);
+}
+.loi-site .loi-showcase-phone .stamp-visual-name{
+ font-size:19px;letter-spacing:-.035em;line-height:1.25;font-weight:750;
+}
+.loi-site .loi-showcase-phone .stamp-visual-side{top:15px;right:15px}
+.loi-site .loi-showcase-phone .stamp-visual-pill.stamp-visual-brand{padding:2px 5px!important}
+.loi-site .loi-showcase-phone .stamp-visual-brand img{width:48px!important;height:auto}
+.loi-site .loi-showcase-phone .stamp-grid{gap:8px 11px;margin:4px 0 3px}
+.loi-site .loi-showcase-phone .stamp-slot{max-width:39px}
+.loi-site .loi-showcase-phone .stamp-slot svg{width:64%;height:64%}
+.loi-site .loi-showcase-phone .stamp-slot.is-filled{
+ border:1px solid rgba(226,192,119,.85);
+ box-shadow:0 2px 5px rgba(32,8,16,.12);
+}
+.loi-site .loi-showcase-phone .stamp-slot:not(.is-filled){
+ border:1px dashed rgba(255,255,255,.58);background:rgba(255,255,255,.035);
+}
+.loi-site .loi-showcase-phone .stamp-visual-message{
+ font-size:8px;letter-spacing:.09em;opacity:.84;
+}
+.loi-site .loi-showcase-phone .stamp-visual-footer{
+ gap:4px;padding-top:8px;border-color:rgba(255,255,255,.22);
+}
+.loi-site .loi-showcase-phone .stamp-visual-footer strong{
+ font-size:11px;font-weight:650;color:#f6dfaf;
+}
+.loi-site .loi-showcase-phone .stamp-visual-footer .stamp-reward-name{
+ font-size:13px;font-weight:750;color:#fff;line-height:1.35;
+}
+@media(max-width:650px){
+ .loi-site .loi-showcase-phone .stamp-visual-card.stamp-visual-rebalanced{padding:13px!important}
+ .loi-site .loi-showcase-phone .stamp-visual-side{top:13px;right:13px}
+ .loi-site .loi-showcase-phone .stamp-slot{max-width:37px}
+ .loi-site .loi-showcase-phone .stamp-grid{gap:7px 9px}
+}
