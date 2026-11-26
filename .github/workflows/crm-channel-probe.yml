@@ -96,22 +96,24 @@ jobs:
           set -euo pipefail
           echo 'CRM_DIAG ssh_connected'
           cd /opt/lp || { echo 'CRM_DIAG project_path_missing'; exit 2; }
+          echo 'CRM_DIAG project_path_ready'
           COMPOSE=(docker compose)
-          if ! test -r .env.production || ! docker info >/dev/null 2>&1; then
-            sudo -n docker info >/dev/null 2>&1 || { echo 'CRM_DIAG docker_access_denied'; exit 2; }
+          if ! test -r .env.production || ! docker info </dev/null >/dev/null 2>&1; then
+            sudo -n docker info </dev/null >/dev/null 2>&1 || { echo 'CRM_DIAG docker_access_denied'; exit 2; }
             COMPOSE=(sudo -n docker compose)
           fi
-          if ! "${COMPOSE[@]}" --env-file .env.production exec -T automation-worker node -e 'const fs=require("fs"); if(!fs.existsSync("scripts/crm-github-command.mjs"))process.exit(2); if(process.env.PGUSER!=="lp_auth"||!process.env.PGPASSWORD)process.exit(3);' >/dev/null 2>&1; then
+          echo 'CRM_DIAG docker_ready'
+          if ! "${COMPOSE[@]}" --env-file .env.production exec -T automation-worker node -e 'const fs=require("fs"); if(!fs.existsSync("scripts/crm-github-command.mjs"))process.exit(2); if(process.env.PGUSER!=="lp_auth"||!process.env.PGPASSWORD)process.exit(3);' </dev/null >/dev/null 2>&1; then
             echo 'CRM_DIAG worker_unavailable_or_stale'; exit 2
           fi
           echo 'CRM_DIAG worker_ready'
-          "${COMPOSE[@]}" --env-file .env.production exec -T automation-worker node scripts/crm-github-command.mjs "$1" "$2" "$3"
+          "${COMPOSE[@]}" --env-file .env.production exec -T automation-worker node scripts/crm-github-command.mjs "$1" "$2" "$3" </dev/null
           REMOTE
           )
           rc=$?
           set -e
           result=$(printf '%s\n' "$output" | grep -E '^CRM_RESULT (enabled|disabled|not_ready|completed|stopped|already_processed|unauthorized|invalid|error) [0-9]{1,10} [0-9]{1,10}$' | tail -1 || true)
-          printf '%s\n' "$output" | grep -E '^CRM_DIAG (ssh_connected|project_path_missing|docker_access_denied|worker_unavailable_or_stale|worker_ready)$' || true
+          printf '%s\n' "$output" | grep -E '^CRM_DIAG (ssh_connected|project_path_missing|project_path_ready|docker_access_denied|docker_ready|worker_unavailable_or_stale|worker_ready)$' || true
           if [[ -z "$result" ]]; then
             if grep -Eqi 'host key verification failed|REMOTE HOST IDENTIFICATION HAS CHANGED|No .* host key is known' "$HOME/.ssh/crm-stderr"; then echo 'CRM_DIAG host_key_verification_failed'
             elif grep -Eqi 'Permission denied|Authentication failed' "$HOME/.ssh/crm-stderr"; then echo 'CRM_DIAG ssh_authentication_denied'
