@@ -1,7 +1,8 @@
+import {PUBLIC_BUSINESS_SECTORS} from "@/lib/public-business-sectors";
 import {authPool,ApiError,checkOrigin,responseError} from "@/lib/server/db";
 export const runtime="nodejs";
 const validEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const validCategories=new Set(["Cafetería","Restaurante","Barbería","Belleza","Tienda","Salud y bienestar","Otros"]);
+const validCategories=new Set<string>([...PUBLIC_BUSINESS_SECTORS.map(c=>c.value),"Belleza","Salud y bienestar"]);
 export async function POST(request:Request){
  try{
   checkOrigin(request);
