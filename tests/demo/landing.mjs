@@ -98,7 +98,7 @@ assert.match(landingCss,/@media\(max-width:650px\)\{\s*\.loi-site \.loi-feature-
 assert.match(landingCss,/\.loi-site \.loi-feature\{display:grid;[^}]*min-height:0/,"Mobile feature height follows content");
 assert.match(landingCss,/\.loi-site \.loi-showcase-caption\{position:relative/,"Preview caption has a separate row");
 assert.match(landingUi,/stampColor="#5E1A2B"/,"Coffee stamps use the wine palette");
-assert.match(landingCss,/\.loi-site \.loi-install-app-stamps span\.filled\{background:var\(--color-bg\);border-color:var\(--color-bg\);color:var\(--color-brand\)/,"Install preview coffee stamps are high contrast");
+assert.match(landingCss,/\.loi-site \.loi-marketing-card-noma \.stamp-slot\.is-filled\{background:#e9f2f4;border-color:#c8e1e7\}/,"Café Noma stamps have high contrast");
 const brandText=readFileSync(new URL("../../components/BrandText.tsx",import.meta.url),"utf8");
 assert.match(brandText,/className="loi-brand-text"/,"Brand copy has its own inline text wrapper");
 assert.doesNotMatch(landingCss,/\.loi-audience-strip\s+span(?:[:\s{])/,"Category styles must never apply to spans inside body copy");
@@ -110,10 +110,10 @@ assert.match(landingCss,/\.loi-site \.loi-feature\{display:grid;grid-template-co
 assert.match(landingCss,/\.loi-site \.loi-feature \.loi-feature-icon\{grid-column:1;grid-row:1 \/ 3;width:44px;height:44px/,"Mobile icon fits its 44px grid column");
 console.log("Commercial landing: ES/EN copy parity, filled business icon collection and KREYVI mark verified.");
 
-assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-visual-card\.stamp-visual-rebalanced\{\s*display:block;position:relative;aspect-ratio:auto;height:auto;min-height:0!important/,"Preview does not inherit a fixed card aspect ratio");
-assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-visual-main\{[^}]*overflow:visible/,"No clipped card content");
-assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-grid\{\s*grid-template-columns:repeat\(var\(--stamp-columns\),minmax\(0,1fr\)\)/,"Stamps span the full preview width");
-assert.match(landingCss,/\.loi-site \.loi-showcase-phone \.stamp-visual-footer \.stamp-reward-name\{[^}]*white-space:normal;overflow:visible/,"Reward text wraps and remains readable");
+assert.match(landingCss,/\.loi-site \.loi-marketing-card\{[^}]*aspect-ratio:85\.6\/54/,"Every commercial preview uses credit card proportions");
+assert.match(landingCss,/\.loi-site \.loi-marketing-card \.stamp-visual-main\{[^}]*grid-template-rows:10cqw minmax\(0,1fr\) auto auto[^}]*overflow:visible/,"The card content adapts to its fixed proportions");
+assert.match(landingCss,/\.loi-site \.loi-marketing-card \.stamp-grid\{[^}]*grid-template-columns:repeat\(var\(--stamp-columns\),minmax\(0,10\.4cqw\)\)/,"Stamps scale proportionally to the card");
+assert.match(landingCss,/\.loi-site \.loi-marketing-card \.stamp-visual-footer \.stamp-reward-name\{[^}]*white-space:normal[^}]*overflow:visible/,"Reward text wraps and remains readable");
 assert.match(landingCss,/\.loi-site \.loi-showcase-phone\{\s*display:flex;flex-direction:column;align-items:stretch;\s*width:min\(340px,100%\);max-width:100%;height:auto;min-height:0/,"Phone height follows its content");
 
 const posterUi=readFileSync(new URL("../../components/CounterPoster.tsx",import.meta.url),"utf8");
@@ -155,3 +155,10 @@ assert.match(sharedStampCard,/alt=\{BRAND_NAME\}/);
 const customerCard=readFileSync(new URL("../../components/LoyaltyCard.tsx",import.meta.url),"utf8");
 assert.match(customerCard,/<MerchantCard business=\{business\}/);
 console.log("Shared cards: KREYVI brand capsule on a translucent neutral background.");
+
+assert.match(landingUi,/loi-marketing-card-wine/);
+assert.match(landingUi,/loi-marketing-card-noma/);
+assert.match(installUi,/loi-marketing-card-noma/);
+assert.match(landingUi,/name="Café Noma"/);
+assert.doesNotMatch(landingUi,/loi-hero-spark|✦/);
+assert.match(landingCss,/cafe-noma-beans\.svg/);
