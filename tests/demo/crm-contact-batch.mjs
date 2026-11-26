@@ -88,13 +88,14 @@ assert.match(crmRoute,/Object\.prototype\.hasOwnProperty\.call\(sortColumns,requ
 const queries=[];
 const fakeClient={query:async(sql,params=[])=>{
  queries.push({sql,params:Array.from(params)});
- if(sql.includes("is_platform_admin"))return {rows:[{allowed:true}]};
- if(sql.startsWith("SELECT count(*)::int AS total"))return {rows:[{total:521,with_email:100,unique_emails:95,missing_email:421,reviewed:0}]};
+ if(sql.includes("is_platform_admin"))return {rows:[{allowed:true,admin:true,marketing:false}]};
+ if(sql.startsWith("WITH filtered AS"))return {rows:[{total:521,with_email:100,unique_emails:95,missing_email:421,reviewed:0}]};
  return {rows:[]};
 }};
 const crm=load(crmRoute,{
  "@/lib/server/db":{actorFromRequest:async()=>({id:"admin"}),asActor:async(_actor,fn)=>fn(fakeClient),responseError:e=>{throw e;},ApiError:class extends Error{}},
  "@/lib/server/denue":denue,
+ "@/lib/server/crm-directory-metrics":load(read("lib/server/crm-directory-metrics.ts")),
  "@/lib/server/denue-download":{downloadOfficialCsv:async()=>"",officialCities:{}}
 },{Response});
 const result=await crm.GET({url:"https://example.com/api/local/admin/crm?country_code=MX&filter_name=cafe&filter_email=example.com&has_phone=yes&sort=email&direction=desc&page=999&page_size=100"});
