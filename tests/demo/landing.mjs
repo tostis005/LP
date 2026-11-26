@@ -77,7 +77,9 @@ assert.match(installUi,/beforeinstallprompt/,"Native browser install prompts sti
 assert.match(installUi,/mi-loyally\?instalar=1/,"Installation leads to customer app entry");
 assert.match(installUi,/QRCodeSVG/,"QR code opens the customer-first app");
 for(const copy of [/"APK"/,/sin App Store/i,/sin Google Play/i,/sin coste/i,/PWA/i,/No APK/i,/gratis/i,/una aplicación web/i]){
- assert.doesNotMatch(installUi,copy,"Technical/commercial language must not appear in consumer installation copy");
+ // A free coffee is a reward on the sample card, not a claim about app installation.
+ const installationCopy=installUi.replace(/<StampCard[^>]*\/>/g,"");
+ assert.doesNotMatch(installationCopy,copy,"Technical/commercial language must not appear in consumer installation copy");
 }
 assert.match(appEntry,/display-mode: standalone/,"Installed app must detect standalone mode");
 assert.match(appEntry,/Abrir como app web/,"iPhone must enable the app launch mode");
