@@ -1,7 +1,8 @@
 import {actorFromRequest,asActor,checkOrigin,ApiError,responseError} from "@/lib/server/db";
-import {listCityCsvs,readCityCsv} from "@/lib/server/crm-csv-library";
+import {listCityCsvs,readCityCsv,maxLibraryBytes} from "@/lib/server/crm-csv-library";
 import {parseContactCsv,contactBatch} from "@/lib/server/crm-contact-batch";
 import {compatibleDenueImport,decodeDenue} from "@/lib/server/denue";
+import {osmFilename,parseOsmCsv,importOsm} from "@/lib/server/crm-osm";
 import {createHash} from "node:crypto";
 import type {PoolClient} from "pg";
 export const runtime="nodejs";
@@ -19,7 +20,9 @@ export async function GET(request:Request){
  try{
   return Response.json(await admin(request,async c=>{
    const files=await listCityCsvs();
-   const history=(await c.query("SELECT filename,created_at,report FROM public.crm_import_runs WHERE source IN ('WEB','DENUE') AND report ? 'sha256' ORDER BY created_at DESC")).rows;
+   const staged=(await c.query("SELECT filename,octet_length(data) AS size,sha256 FROM public.crm_staged_csv ORDER BY filename")).rows;
+   for(const f of staged)files.push({filename:f.filename,size:f.size,sha256:f.sha256,error:null});
+   const history=(await c.query("SELECT filename,created_at,report FROM public.crm_import_runs WHERE source IN ('WEB','DENUE','OSM') AND report ? 'sha256' ORDER BY created_at DESC")).rows;
    return {files:files.map(f=>{
     const latest=history.find(h=>h.filename===f.filename);
     const exact=history.find(h=>h.filename===f.filename&&h.report.sha256===f.sha256);
@@ -32,10 +35,25 @@ export async function POST(request:Request){
  try{
   checkOrigin(request);
   return await admin(request,async c=>{
+   if(request.headers.get("content-type")?.startsWith("application/octet-stream")){
+    const filename=new URL(request.url).searchParams.get("filename")||"";
+    if(!osmFilename(filename))throw new ApiError("Nombre inválido. Usa osm-venezuela-AAAAMMDD.csv.");
+    if(Number(request.headers.get("content-length"))>maxLibraryBytes)throw new ApiError("El CSV supera 20 MB.",413);
+    const data=Buffer.from(await request.arrayBuffer());
+    if(!data.length||data.length>maxLibraryBytes)throw new ApiError("Tamaño de CSV no permitido.",413);
+    const parsed=parseOsmCsv(data),sha256=createHash("sha256").update(data).digest("hex");
+    await c.query("INSERT INTO public.crm_staged_csv(filename,sha256,data) VALUES($1,$2,$3) ON CONFLICT(filename) DO UPDATE SET sha256=EXCLUDED.sha256,data=EXCLUDED.data,created_at=now()",[filename,sha256,data]);
+    return Response.json({filename,sha256,total:parsed.prospects.length,skipped:parsed.skipped},{headers});
+   }
    const raw=await request.text();if(raw.length>8192)throw new ApiError("Solicitud demasiado larga.",413);
    const v=JSON.parse(raw);
    if(!v||typeof v.filename!=="string"||typeof v.sha256!=="string"||!/^[a-f0-9]{64}$/.test(v.sha256)||!["preview","apply"].includes(v.mode))throw new ApiError("Solicitud inválida.");
    if(v.mode==="apply"&&(v.confirm!==true||typeof v.plan!=="string"||!/^[a-f0-9]{64}$/.test(v.plan)))throw new ApiError("Confirma la vista previa de esta versión.");
+   if(osmFilename(v.filename)){
+    const staged=(await c.query("SELECT filename,sha256,data FROM public.crm_staged_csv WHERE filename=$1",[v.filename])).rows[0];
+    if(!staged||staged.sha256!==v.sha256)throw new ApiError("El archivo ha cambiado. Actualiza la biblioteca.",409);
+    return Response.json(await importOsm(c,staged,v.mode,v.plan),{headers});
+   }
    const file=await readCityCsv(v.filename);
    if(file.sha256!==v.sha256)throw new ApiError("El archivo ha cambiado. Actualiza la biblioteca.",409);
    const officialName=/^denue-(\d{5})\.csv$/i.exec(file.filename);

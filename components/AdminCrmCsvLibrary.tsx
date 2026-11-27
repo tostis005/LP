@@ -23,9 +23,14 @@ export function AdminCrmCsvLibrary({onSaved}:{onSaved:()=>void}){
    else{setNotice(j.updated+" actualizados · "+j.created+" nuevos · "+j.skipped+" omitidos. No se enviaron correos.");setFocus(null);setPreview(null);setConfirmed(false);onSaved();await reload();}
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
- if(!files.length&&!error&&!focus)return null;
+ async function stage(file:File){
+  setError("");setNotice("");setBusy(true);
+  try{const r=await fetch(endpoint+"?filename="+encodeURIComponent(file.name),{method:"POST",headers:{"Content-Type":"application/octet-stream"},body:file}),j=await r.json();if(!r.ok)throw Error(j.error||"No se pudo cargar el CSV.");setNotice(j.total+" negocios preparados. Pulsa Importar para revisar y confirmar.");await reload();}
+  catch(e){setError((e as Error).message);}finally{setBusy(false);}
+ }
  return <section className="admin-inspector">
   <div className="content-heading"><div><h3>Actualizaciones pendientes</h3><p>Importa solo los archivos nuevos o modificados.</p></div><button type="button" className="button button-outline button-sm" onClick={()=>void reload()} disabled={busy}>Actualizar lista</button></div>
+  <label className="form-stack">Preparar fichero de Venezuela (OpenStreetMap)<input type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value="";if(file)void stage(file);}}/></label>
   {error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
   
   {!!files.length&&<div className="table-wrap"><table className="data-table"><thead><tr><th>Archivo</th><th>Estado</th><th></th></tr></thead><tbody>
@@ -35,7 +40,7 @@ export function AdminCrmCsvLibrary({onSaved}:{onSaved:()=>void}){
    <h4>Revisar {focus.filename}</h4><p>{preview.total} registros · {preview.counts.update} actualizaciones · {preview.counts.create} altas · {preview.counts.skip} omitidos.</p>
    {Object.entries(preview.reasons).map(([reason,n])=><p className="muted" key={reason}>{n} · {reason}</p>)}
    <details><summary>Vista previa de las primeras {preview.decisions.length} filas de {preview.total}</summary><div className="table-wrap"><table className="data-table"><thead><tr><th>Negocio</th><th>Contacto</th><th>Acción</th></tr></thead><tbody>{preview.decisions.map(d=><tr key={d.row}><td>{d.name}<small>{d.city} {d.address}</small></td><td>{d.email}<small><a href={d.source} target="_blank" rel="noreferrer">Fuente pública</a></small></td><td>{d.action==="create"?"Crear":d.action==="update"?"Actualizar":"Omitir"}<small>{d.reason}</small></td></tr>)}</tbody></table></div></details>
-   <label><input type="checkbox" checked={confirmed} disabled={busy} onChange={e=>setConfirmed(e.target.checked)}/> Confirmo la importación del archivo completo, incluidas las altas nuevas con dirección publicada. He comprobado las fuentes y la identidad de los negocios.</label>
+   <label><input type="checkbox" checked={confirmed} disabled={busy} onChange={e=>setConfirmed(e.target.checked)}/> {focus.filename.startsWith("osm-venezuela-")?"Confirmo la importación de los negocios y sus coordenadas. Los contactos de OpenStreetMap aún no están verificados externamente.":"Confirmo la importación del archivo completo, incluidas las altas nuevas con dirección publicada. He comprobado las fuentes y la identidad de los negocios."}</label>
    <div className="content-heading"><button type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>{setFocus(null);setPreview(null);setConfirmed(false);}}>Cancelar</button><button type="button" className="button button-dark button-sm" disabled={busy||!confirmed} onClick={()=>void run(focus,"apply")}>{busy?"Procesando…":"Confirmar importación"}</button></div>
   </div>}
  </section>;

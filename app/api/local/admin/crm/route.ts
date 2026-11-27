@@ -42,7 +42,7 @@ export async function GET(request:Request){
    if(p.get("view")==="contact"){
     const id=p.get("id")||"";
     if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))throw new ApiError("Negocio no válido.",400);
-    const contact=(await c.query("SELECT id,name,category,activity,address,neighborhood,city,municipality,state,postal_code,phone,email,public_email,website,instagram,status,notes,origin,closed_at FROM public.crm_prospects WHERE id=$1::uuid",[id])).rows[0];
+    const contact=(await c.query("SELECT id,name,category,activity,address,neighborhood,city,municipality,state,postal_code,phone,email,public_email,website,instagram,status,notes,origin,closed_at,facebook,whatsapp,source_url,source_data FROM public.crm_prospects WHERE id=$1::uuid",[id])).rows[0];
     if(!contact)throw new ApiError("Negocio no disponible en tu zona.",404);
     return {contact};
    }
@@ -60,18 +60,18 @@ export async function GET(request:Request){
    if(p.get("show_closed")!=="1")where.push("closed_at IS NULL");
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
-    const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR (source='WEB' AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
+    const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR ((source='WEB' OR source='OSM') AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
    }
    const neighborhood=p.get("neighborhood")?.trim();if(neighborhood){args.push("%"+neighborhood.slice(0,200)+"%");where.push("neighborhood ILIKE $"+args.length);}
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
    const review=p.get("review");if(review&&reviewStates.includes(review))add("contact_review",review);
-   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","neighborhood","postal_code","instagram","city","municipality","state","category","activity","origin"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
+   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","neighborhood","postal_code","instagram","facebook","whatsapp","city","municipality","state","category","activity","origin"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
    const textFilters:Record<string,string>={origin:"origin",name:"name",email:"COALESCE(NULLIF(public_email,''),email)",phone:"phone",address:"address",website:"website",activity:"activity"};
    for(const [key,expression] of Object.entries(textFilters)){
     const value=p.get("filter_"+key)?.trim().slice(0,120);
     if(value){args.push("%"+value+"%");where.push(expression+" ILIKE $"+args.length);}
    }
-   const presence:Record<string,string>={phone:"phone",website:"website"};
+   const presence:Record<string,string>={phone:"phone",website:"website",instagram:"instagram",facebook:"facebook",whatsapp:"whatsapp"};
    for(const [key,column] of Object.entries(presence)){
     const value=p.get("has_"+key);
     if(value==="yes")where.push("NULLIF(trim("+column+"),'') IS NOT NULL");
@@ -81,13 +81,13 @@ export async function GET(request:Request){
    if(p.get("view")==="map"){
     // Availability is measured over all matching geocoded rows, before the marker cap.
     // Fixed SQL predicates only; selected channels are allowlisted and combined with OR.
-    const channels=["email","phone","website","instagram"] as const;
+    const channels=["email","phone","website","instagram","facebook","whatsapp"] as const;
     const requested=(p.get("map_channels")||"").split(",");
     const chosen=channels.filter(key=>requested.includes(key)||requested.includes("any"));
     const contactFilter=chosen.length?" WHERE "+chosen.map(key=>"has_"+key).join(" OR "):"";
-    const sql="WITH raw AS MATERIALIZED (SELECT id,name,address,category,latitude,longitude,status,email,public_email,phone,website,instagram,closed_at FROM public.crm_prospects"+filter+"), coords AS MATERIALIZED (SELECT id,name,address,category,CASE WHEN latitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN latitude::double precision END AS lat,CASE WHEN longitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN longitude::double precision END AS lng, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND (NULLIF(btrim(public_email),'') IS NOT NULL OR NULLIF(btrim(email),'') IS NOT NULL) AS has_email, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(phone),'') IS NOT NULL AS has_phone, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(website),'') IS NOT NULL AS has_website, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(instagram),'') IS NOT NULL AS has_instagram FROM raw), available AS MATERIALIZED (SELECT * FROM coords WHERE lat BETWEEN -90 AND 90 AND lng BETWEEN -180 AND 180 AND NOT(lat=0 AND lng=0)), selected AS MATERIALIZED (SELECT id,name,address,category,lat,lng FROM available"+contactFilter+"), visible AS (SELECT * FROM selected ORDER BY name,id LIMIT 5000) SELECT (SELECT count(*)::int FROM selected) AS total, (SELECT jsonb_build_object('email',count(*) FILTER (WHERE has_email),'phone',count(*) FILTER (WHERE has_phone),'website',count(*) FILTER (WHERE has_website),'instagram',count(*) FILTER (WHERE has_instagram),'any',count(*) FILTER (WHERE has_email OR has_phone OR has_website OR has_instagram)) FROM available) AS channels, COALESCE((SELECT jsonb_agg(to_jsonb(v) ORDER BY v.name,v.id) FROM visible v),'[]'::jsonb) AS points";
+    const sql="WITH raw AS MATERIALIZED (SELECT id,name,address,category,latitude,longitude,status,email,public_email,phone,website,instagram,facebook,whatsapp,closed_at FROM public.crm_prospects"+filter+"), coords AS MATERIALIZED (SELECT id,name,address,category,CASE WHEN latitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN latitude::double precision END AS lat,CASE WHEN longitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN longitude::double precision END AS lng, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND (NULLIF(btrim(public_email),'') IS NOT NULL OR NULLIF(btrim(email),'') IS NOT NULL) AS has_email, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(phone),'') IS NOT NULL AS has_phone, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(website),'') IS NOT NULL AS has_website, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(instagram),'') IS NOT NULL AS has_instagram, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(facebook),'') IS NOT NULL AS has_facebook, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(whatsapp),'') IS NOT NULL AS has_whatsapp FROM raw), available AS MATERIALIZED (SELECT * FROM coords WHERE lat BETWEEN -90 AND 90 AND lng BETWEEN -180 AND 180 AND NOT(lat=0 AND lng=0)), selected AS MATERIALIZED (SELECT id,name,address,category,lat,lng FROM available"+contactFilter+"), visible AS (SELECT * FROM selected ORDER BY name,id LIMIT 5000) SELECT (SELECT count(*)::int FROM selected) AS total, (SELECT jsonb_build_object('email',count(*) FILTER (WHERE has_email),'phone',count(*) FILTER (WHERE has_phone),'website',count(*) FILTER (WHERE has_website),'instagram',count(*) FILTER (WHERE has_instagram),'facebook',count(*) FILTER (WHERE has_facebook),'whatsapp',count(*) FILTER (WHERE has_whatsapp),'any',count(*) FILTER (WHERE has_email OR has_phone OR has_website OR has_instagram OR has_facebook OR has_whatsapp)) FROM available) AS channels, COALESCE((SELECT jsonb_agg(to_jsonb(v) ORDER BY v.name,v.id) FROM visible v),'[]'::jsonb) AS points";
     const row=(await c.query(sql,args)).rows[0];
-    return {points:row?.points||[],total:row?.total||0,channels:row?.channels||{email:0,phone:0,website:0,instagram:0,any:0}};
+    return {points:row?.points||[],total:row?.total||0,channels:row?.channels||{email:0,phone:0,website:0,instagram:0,facebook:0,whatsapp:0,any:0}};
    }
    const requestedPage=Math.max(0,Math.min(100000,Math.floor(Number(p.get("page"))||0)));
    const requestedSize=Number(p.get("page_size")),pageSize=pageSizes.includes(requestedSize)?requestedSize:50;
