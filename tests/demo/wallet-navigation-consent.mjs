@@ -73,3 +73,9 @@ assert.match(phoneInput,/find\(c=>c.iso==="MX"\)/,"Mexico is the default");
 assert.match(phoneInput,/autoComplete="tel-national"/,"Only national digits are entered");
 assert.match(phoneInput,/onChange\(digits\?"\+"\+next.dial\+digits:""\)/,"Store the complete international number");
 assert.match(read("app/app/perfil/page.tsx"),/<InternationalPhoneInput/);
+
+assert.doesNotMatch(phoneInput,/international-phone-chevron|<select/,"No native dropdown arrow");
+assert.match(phoneInput,/type="search"/,"Searchable country picker");
+assert.match(phoneInput,/normalize\("NFD"\)/,"Search ignores accents");
+assert.match(phoneInput,/c\.name,c\.otherName,c\.iso,"\+"\+c\.dial,c\.dial/,"Search country in either language or by prefix");
+assert.match(phoneInput,/modal\.showModal\(\)/,"Accessible native dialog");

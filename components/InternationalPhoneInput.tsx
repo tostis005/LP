@@ -1,5 +1,5 @@
 "use client";
-import {useId,useMemo,useState} from "react";
+import {useId,useMemo,useRef,useState} from "react";
 
 // ISO 3166 territories with public international calling codes.
 // Shared numbering plans (e.g. +1 and +7) intentionally retain their shared prefix.
@@ -7,6 +7,7 @@ const dialing="MX:52 US:1 CA:1 AG:1 AI:1 AS:1 BB:1 BM:1 BS:1 DM:1 DO:1 GD:1 GU:1
 const countries=dialing.split(" ").map(entry=>{const [iso,dial]=entry.split(":");return {iso,dial};});
 type Country=(typeof countries)[number];
 const mexico=countries.find(c=>c.iso==="MX")!;
+const searchKey=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 const flag=(iso:string)=>String.fromCodePoint(...[...iso].map(c=>0x1f1e6+c.charCodeAt(0)-65));
 function matchingCountry(value:string,preferred:Country){
  if(!value||value.startsWith("+"+preferred.dial))return preferred;
@@ -14,15 +15,23 @@ function matchingCountry(value:string,preferred:Country){
 }
 export function InternationalPhoneInput({value,onChange,label,required=false,language="es"}:{value:string;onChange:(value:string)=>void;label:string;required?:boolean;language?:"es"|"en"}){
  const id=useId();
+ const dialog=useRef<HTMLDialogElement>(null),trigger=useRef<HTMLButtonElement>(null),searchInput=useRef<HTMLInputElement>(null);
+ const [open,setOpen]=useState(false),[query,setQuery]=useState("");
  const [preferred,setPreferred]=useState<Country>(()=>matchingCountry(value,mexico));
  const country=matchingCountry(value,preferred);
  const national=value.startsWith("+"+country.dial)?value.slice(country.dial.length+1):value.replace(/\D/g,"");
  const options=useMemo(()=>{
   const names=new Intl.DisplayNames([language],{type:"region"});
+  const otherNames=new Intl.DisplayNames([language==="es"?"en":"es"],{type:"region"});
   const collator=new Intl.Collator(language);
-  return countries.map(c=>({...c,name:names.of(c.iso)||c.iso})).sort((a,b)=>a.iso==="MX"?-1:b.iso==="MX"?1:collator.compare(a.name,b.name));
+  return countries.map(c=>({...c,name:names.of(c.iso)||c.iso,otherName:otherNames.of(c.iso)||c.iso})).sort((a,b)=>a.iso==="MX"?-1:b.iso==="MX"?1:collator.compare(a.name,b.name));
  },[language]);
  const currentName=options.find(c=>c.iso===country.iso)?.name||country.iso;
+ const term=searchKey(query);
+ const filtered=options.filter(c=>!term||[c.name,c.otherName,c.iso,"+"+c.dial,c.dial].some(v=>searchKey(v).includes(term)));
+ function openPicker(){setQuery("");const modal=dialog.current;if(!modal||modal.open)return;modal.showModal();setOpen(true);searchInput.current?.focus();}
+ function closePicker(){dialog.current?.close();}
+ function pickerClosed(){setOpen(false);setQuery("");trigger.current?.focus();}
  function changeCountry(iso:string){
   const next=countries.find(c=>c.iso===iso)||mexico;
   setPreferred(next);
@@ -41,24 +50,44 @@ export function InternationalPhoneInput({value,onChange,label,required=false,lan
  return <div className="international-phone" role="group" aria-labelledby={id+"-label"}>
   <label id={id+"-label"} htmlFor={id}>{label}</label>
   <div className="international-phone-row">
-   <div className="international-phone-country">
-    <span aria-hidden="true" className="international-phone-prefix"><span className="international-phone-flag">{flag(country.iso)}</span><span>+{country.dial}</span><span className="international-phone-chevron">⌄</span></span>
-    <select aria-label={language==="en"?"Country calling code":"País y prefijo telefónico"} title={currentName+" (+"+country.dial+")"} value={country.iso} onChange={e=>changeCountry(e.target.value)}>
-     {options.map(c=><option key={c.iso} value={c.iso}>{flag(c.iso)} {c.name} (+{c.dial})</option>)}
-    </select>
-   </div>
+   <button ref={trigger} type="button" className="international-phone-country" aria-haspopup="dialog" aria-expanded={open} aria-controls={id+"-countries"} aria-label={(language==="en"?"Change country: ":"Cambiar país: ")+currentName+" (+"+country.dial+")"} onClick={openPicker}>
+    <span aria-hidden="true" className="international-phone-prefix"><span className="international-phone-flag">{flag(country.iso)}</span><span>+{country.dial}</span></span>
+   </button>
    <input id={id} type="tel" inputMode="tel" autoComplete="tel-national" required={required} value={national} onChange={e=>changeNumber(e.target.value)} placeholder={country.iso==="MX"?"55 1234 5678":language==="en"?"Phone number":"Número de teléfono"} pattern={`[0-9]{${Math.max(1,8-country.dial.length)},${15-country.dial.length}}`} />
   </div>
+  <dialog ref={dialog} id={id+"-countries"} className="international-phone-dialog" aria-labelledby={id+"-country-title"} onClose={pickerClosed} onClick={e=>{if(e.target===e.currentTarget)closePicker();}}>
+   <div className="international-phone-picker">
+    <div className="international-phone-picker-header"><h2 id={id+"-country-title"}>{language==="en"?"Select country":"Selecciona tu país"}</h2><button type="button" className="international-phone-close" onClick={closePicker} aria-label={language==="en"?"Close":"Cerrar"}>×</button></div>
+    <input ref={searchInput} className="international-phone-search" type="search" autoComplete="off" aria-label={language==="en"?"Search country or calling code":"Buscar país o prefijo"} placeholder={language==="en"?"Search country or calling code":"Buscar país o prefijo"} value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();if(filtered.length===1){changeCountry(filtered[0].iso);closePicker();}}}}/>
+    <div className="international-phone-options" role="group" aria-label={language==="en"?"Countries":"Países"}>
+     {filtered.map(c=><button key={c.iso} type="button" className={"international-phone-option"+(c.iso===country.iso?" selected":"")} aria-pressed={c.iso===country.iso} onClick={()=>{changeCountry(c.iso);closePicker();}}><span className="international-phone-flag" aria-hidden="true">{flag(c.iso)}</span><span className="international-phone-name">{c.name}</span><span className="international-phone-dial">+{c.dial}</span>{c.iso===country.iso&&<span aria-hidden="true" className="international-phone-check">✓</span>}</button>)}
+     {!filtered.length&&<p className="international-phone-no-results" role="status">{language==="en"?"No countries found":"No se encontraron países"}</p>}
+    </div>
+   </div>
+  </dialog>
   <style jsx>{`
    .international-phone{display:grid;gap:7px;min-width:0}
    .international-phone-row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:stretch;gap:8px}
    .international-phone-row>input{min-width:0;width:100%;margin:0}
-   .international-phone-country{position:relative;display:flex;align-items:center;border:1.5px solid var(--color-bg-2,#e4dce0);border-radius:12px;background:#fff;color:var(--color-text,#231b20);min-width:100px;cursor:pointer}
+   .international-phone-country{position:relative;display:flex;align-items:center;border:1.5px solid var(--color-bg-2,#e4dce0);border-radius:12px;background:#fff;color:var(--color-text,#231b20);min-width:82px;cursor:pointer;padding:0;justify-content:center;font:inherit;box-shadow:none}
    .international-phone-prefix{display:flex;align-items:center;gap:7px;padding:0 10px;white-space:nowrap;font-size:14px;font-weight:600}
    .international-phone-flag{font-size:20px;line-height:1}
-   .international-phone-chevron{font-size:16px;line-height:1}
-   .international-phone-country>select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0}
-   .international-phone-country:focus-within{outline:2px solid var(--color-brand,#79243f);outline-offset:2px}
+   .international-phone-country:focus-visible{outline:2px solid var(--color-brand,#79243f);outline-offset:2px}
+   .international-phone-dialog{position:fixed;inset:0;margin:auto;width:min(420px,calc(100vw - 24px));max-width:calc(100vw - 24px);max-height:85dvh;padding:0;border:1px solid #e4dce0;border-radius:18px;background:#fff;color:#231b20;box-shadow:0 18px 60px #0004;overflow:hidden}
+   .international-phone-dialog::backdrop{background:#17101980}
+   .international-phone-picker{display:flex;flex-direction:column;gap:12px;padding:18px;max-height:85dvh;box-sizing:border-box}
+   .international-phone-picker-header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+   .international-phone-picker-header h2{margin:0;color:#231b20;font-size:18px;font-weight:700}
+   .international-phone-close{border:0;background:transparent;color:#231b20;font-size:28px;line-height:1;padding:4px 10px;cursor:pointer;box-shadow:none}
+   .international-phone-search{flex:none;width:100%;min-width:0;margin:0;padding:11px 12px;border:1px solid #cfc6cb;border-radius:10px;background:#fff;color:#231b20;font-size:16px;box-sizing:border-box}
+   .international-phone-options{min-height:0;max-height:52dvh;overflow-y:auto;overscroll-behavior:contain;display:grid;gap:2px}
+   .international-phone-option{display:flex;align-items:center;text-align:left;gap:10px;width:100%;min-height:44px;padding:10px 8px;border:0;border-radius:8px;background:#fff;color:#231b20;cursor:pointer;font:inherit;box-shadow:none}
+   .international-phone-option:hover,.international-phone-option:focus-visible,.international-phone-option.selected{background:#f3eaf0}
+   .international-phone-name{flex:1;min-width:0;overflow-wrap:anywhere}
+   .international-phone-dial{white-space:nowrap;color:#65525c;font-size:14px}
+   .international-phone-check{color:#79243f;font-weight:700}
+   .international-phone-no-results{padding:12px 4px;margin:0;color:#65525c}
+   @media(max-width:480px){.international-phone-dialog{max-height:78dvh}.international-phone-picker{max-height:78dvh;padding:14px}.international-phone-options{max-height:48dvh}}
   `}</style>
  </div>;
 }
