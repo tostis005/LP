@@ -22,7 +22,7 @@ export function AdminMarketingUsers({editId}:{editId?:string}={}){
  const [editingUser,setEditingUser]=useState<User|null>(null),[whatsapp,setWhatsapp]=useState(""),[birthDate,setBirthDate]=useState(""),[gender,setGender]=useState("");
  const [regionsReady,setRegionsReady]=useState(false),[regionsError,setRegionsError]=useState(""),[newPassword,setNewPassword]=useState(""),[confirmPassword,setConfirmPassword]=useState(""),[resetVisible,setResetVisible]=useState(false),[passwordError,setPasswordError]=useState("");
  async function load(){setLoading(true);setError("");try{const r=await fetch("/api/local/admin/marketing-users?view=users"+(editId?"&userId="+encodeURIComponent(editId):""),{cache:"no-store"}),j=await r.json();if(!r.ok)throw Error(j.error);const list:User[]=j.users.map((u:User)=>({...u,scopes:Array.isArray(u.scopes)?u.scopes.map(s=>({...blank,...s})):[]}));setUsers(list);if(editId){const target=list.find(u=>u.id===editId);if(!target)throw Error("No se ha encontrado el usuario.");open(target);}}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
- useEffect(()=>{void load();},[editId]);
+ useEffect(()=>{void load();if(!editId&&new URLSearchParams(window.location.search).get("updated")==="1")setNotice("Usuario actualizado correctamente.");},[editId]);
  const marketingEditor=!existing||editingUser?.role==="marketing";
  const needsRegions=(editing&&marketingEditor)||users.some(u=>u.role==="marketing");
  useEffect(()=>{if(!needsRegions||regionsReady)return;const controller=new AbortController();setRegionsError("");fetch("/api/local/admin/marketing-users?view=regions",{cache:"no-store",signal:controller.signal}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.error);if(!controller.signal.aborted){setRegions(j.regions.map((r:Region)=>({...r,neighborhood:r.neighborhood||"",locality_code:r.locality_code||""})));setRegionsReady(true);}}).catch(e=>{if(!controller.signal.aborted)setRegionsError(e.message);});return()=>controller.abort();},[needsRegions,regionsReady]);
@@ -43,7 +43,7 @@ export function AdminMarketingUsers({editId}:{editId?:string}={}){
    const r=await fetch("/api/local/admin/marketing-users",{method:existing?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}),j=await r.json();
    if(!r.ok)throw Error(j.error);
    if(j.relogin){clearPassword();window.alert("Cuenta actualizada. "+(j.invitation||"Inicia sesión con tus credenciales actualizadas."));window.location.assign("/acceder");return;}
-   setInitialPassword("");setDraft(blank);setNotice((existing?"Usuario actualizado. ":"Usuario creado. ")+(j.passwordChanged?"Contraseña actualizada y sesiones anteriores cerradas. ":"")+(j.invitation||""));clearPassword();if(editId){router.push("/admin/usuarios?updated=1");return;}setEditing(false);await load();
+   setInitialPassword("");setDraft(blank);setNotice((existing?"Usuario actualizado. ":"Usuario creado. ")+(j.passwordChanged?"Contraseña actualizada y sesiones anteriores cerradas. ":"")+(j.invitation||""));clearPassword();if(editId){if(j.invitation)window.alert(j.invitation);router.push("/admin/usuarios?updated=1");return;}setEditing(false);await load();
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  const fields:[keyof Scope,string][]=[["country_code","País"],["state_code","Estado"],["municipality_code","Municipio"],["locality_code","Localidad"],["neighborhood","Colonia"]];
