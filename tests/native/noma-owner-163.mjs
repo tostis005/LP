@@ -6,8 +6,8 @@ const db=await p.connect();
 const q=(sql,args=[])=>db.query(sql,args);
 try{
  await q("BEGIN");
- const owner=(await q("SELECT id FROM auth.users WHERE lower(email)='owner@kreyviapp.com'")).rows[0]?.id;
- const admin=(await q("SELECT id FROM auth.users WHERE lower(email)='administrador@kreyviapp.com'")).rows[0]?.id;
+ const owner=(await q("SELECT id FROM auth.users WHERE lower(email)='owner@kreyvi.com'")).rows[0]?.id;
+ const admin=(await q("SELECT id FROM auth.users WHERE lower(email)='administrador@kreyvi.com'")).rows[0]?.id;
  const cafe=(await q("SELECT id FROM public.businesses WHERE slug='interno-cafe-noma'")).rows[0]?.id;
  assert.ok(owner&&admin&&cafe,"The provisioned Café Noma, owner and admin must exist");
  const roles=await q("SELECT business_id FROM public.business_members WHERE user_id=$1 AND active AND role IN ('owner','manager')",[owner]);

@@ -81,7 +81,8 @@ export async function POST(request:Request) {
       if(!validateEmail(email))throw new ApiError("Email no válido.");
       if(!smtpReady())throw new ApiError("El servidor SMTP no está configurado.",503);
       await rateLimit("reset:"+email,4,60);
-      const r=await authPool.query("SELECT id,email FROM auth.users WHERE lower(email)=$1 AND email_confirmed_at IS NOT NULL",[email]);
+      // Internal QA accounts are maintained by Administration, not email recovery.
+      const r=await authPool.query("SELECT u.id,u.email FROM auth.users u WHERE lower(u.email)=$1 AND u.email_confirmed_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM auth.qa_profile_accounts q WHERE q.user_id=u.id)",[email]);
       if(r.rowCount)await emailToken(r.rows[0].id,"reset",r.rows[0].email);
       return Response.json({data:{},error:null});
     }

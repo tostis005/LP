@@ -4,10 +4,10 @@ import {promisify} from "node:util";
 const scrypt=promisify(scryptCallback);
 
 const people=[
- {role:"ADMIN",email:"administrador@kreyviapp.com",name:"Administración Loyally"},
- {role:"BUSINESS",email:"owner@kreyviapp.com",name:"Responsable de negocio"},
- {role:"STAFF",email:"empleado@kreyviapp.com",name:"Personal de tienda"},
- {role:"CUSTOMER",email:"cliente@kreyviapp.com",name:"Cliente Loyally"}
+ {role:"ADMIN",email:"administrador@kreyvi.com",name:"Administración Loyally"},
+ {role:"BUSINESS",email:"owner@kreyvi.com",name:"Responsable de negocio"},
+ {role:"STAFF",email:"empleado@kreyvi.com",name:"Personal de tienda"},
+ {role:"CUSTOMER",email:"cliente@kreyvi.com",name:"Cliente Loyally"}
 ];
 for(const u of people){
  const password=process.env["LP_SHOWCASE_"+u.role+"_PASSWORD"]||"";

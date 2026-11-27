@@ -6,7 +6,7 @@ const db=await pool.connect();
 try{
  const names=["admin","gestor","empleado","cliente"];
  const mapping={admin:"ADMIN",gestor:"BUSINESS",empleado:"STAFF",cliente:"CUSTOMER"};
- const addresses={ADMIN:"administrador@kreyviapp.com",BUSINESS:"owner@kreyviapp.com",STAFF:"empleado@kreyviapp.com",CUSTOMER:"cliente@kreyviapp.com"};
+ const addresses={ADMIN:"administrador@kreyvi.com",BUSINESS:"owner@kreyvi.com",STAFF:"empleado@kreyvi.com",CUSTOMER:"cliente@kreyvi.com"};
  const rows=(await db.query("SELECT q.role,u.id,u.email FROM auth.qa_profile_accounts q JOIN auth.users u ON u.id=q.user_id")).rows;
  for(const row of rows)assert.equal(row.email,addresses[row.role]);
  const users=Object.fromEntries(names.map(name=>[name,rows.find(row=>row.role===mapping[name])?.id]));
