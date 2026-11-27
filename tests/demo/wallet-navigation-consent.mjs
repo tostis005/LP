@@ -53,7 +53,7 @@ for(const screen of [access,entry]){
  assert.match(screen,/Tú decides qué quieres recibir/);
  assert.match(screen,/birth_date:birthDate,gender/);
  assert.match(screen,/type="date" required/);
- assert.match(screen,/type="tel" inputMode="tel" autoComplete="tel" required/);
+ assert.match(screen,/<InternationalPhoneInput[^>]*\brequired\b/);
  assert.match(screen,/Prefiero no indicarlo/);
 }
 assert.match(auth,/birthDate:|birth_date:birthDate/);
@@ -66,3 +66,10 @@ assert.match(join,/lp_pending_join/,"Preserve the explicit join action through l
 assert.match(access,/return_to:safeJoinTarget\(loginTarget\)/,"Preserve the business in verification links");
 assert.match(read("lib/server/auth.ts"),/safeJoinTarget\(returnTo\)/);
 assert.match(read("app/api/local/auth/verify/route.ts"),/safeJoinTarget\(request.nextUrl.searchParams.get\("next"\)\)/);
+
+const phoneInput=read("components/InternationalPhoneInput.tsx");
+assert.match(phoneInput,/MX:52/,"Mexico is available");
+assert.match(phoneInput,/find\(c=>c.iso==="MX"\)/,"Mexico is the default");
+assert.match(phoneInput,/autoComplete="tel-national"/,"Only national digits are entered");
+assert.match(phoneInput,/onChange\(digits\?"\+"\+next.dial\+digits:""\)/,"Store the complete international number");
+assert.match(read("app/app/perfil/page.tsx"),/<InternationalPhoneInput/);

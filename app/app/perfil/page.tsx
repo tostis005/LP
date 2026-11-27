@@ -1,4 +1,5 @@
 "use client";
+import {InternationalPhoneInput} from "@/components/InternationalPhoneInput";
 import {useEffect,useState} from "react";
 import {CheckCircle2,UserRound,LogOut} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
@@ -31,7 +32,7 @@ function Profile({account}:{account:Account}){
    <label>Fecha de nacimiento<input type="date" required min="1900-01-01" max={new Date().toISOString().slice(0,10)} value={birthDate} onChange={e=>setBirthDate(e.target.value)}/></label>
    <label>Género (opcional)<select value={gender} onChange={e=>setGender(e.target.value)}><option value="">Prefiero no indicarlo</option><option value="man">Hombre</option><option value="woman">Mujer</option><option value="other">Otro</option></select></label>
    <label>Correo electrónico<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>
-   <label>WhatsApp (opcional)<input type="tel" inputMode="tel" value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>Incluye el prefijo del país para recibir mensajes.</small></label>
+   <InternationalPhoneInput label="Teléfono (opcional)" value={whatsapp} onChange={setWhatsapp}/>
    {msg&&<div className="alert success"><CheckCircle2 size={17}/>{msg}</div>}
    {error&&<div className="alert error">{error}</div>}
    <button disabled={busy||!ready} type="submit" className="button button-dark">{busy?"Guardando...":"Guardar cambios"}</button>
