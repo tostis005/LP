@@ -11,7 +11,7 @@ const statuses=["pending_review","qualified","contacted","interested","trial","c
 const reviewStates=["pending","source_found","no_contact_found","ambiguous","not_relevant"];
 // Public sort keys are mapped to fixed SQL expressions; no request text is interpolated.
 const sortColumns:Record<string,string>={
- name:"lower(name)",state:"lower(state)",municipality:"lower(municipality)",city:"lower(city)",
+ name:"lower(name)",state:"lower(state)",municipality:"lower(municipality)",city:"lower(city)",neighborhood:"lower(neighborhood)",
  category:"lower(category)",activity:"lower(activity)",email:"lower(COALESCE(NULLIF(public_email,''),NULLIF(email,'')))",
  phone:"NULLIF(phone,'')",address:"lower(NULLIF(address,''))",website:"lower(NULLIF(website,''))",
  status:"CASE status WHEN 'pending_review' THEN 'Sin contactar' WHEN 'qualified' THEN 'Sin contactar revisado' WHEN 'contacted' THEN 'Contactado' WHEN 'interested' THEN 'Interesado' WHEN 'trial' THEN 'En prueba' WHEN 'converted' THEN 'Cliente' WHEN 'discarded' THEN 'No interesado' WHEN 'do_not_contact' THEN 'No contactar' ELSE status END",
@@ -48,7 +48,7 @@ export async function GET(request:Request){
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
     const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR (source='WEB' AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
    }
-   const neighborhood=p.get("neighborhood")?.trim();if(neighborhood)add("neighborhood",neighborhood.slice(0,200));
+   const neighborhood=p.get("neighborhood")?.trim();if(neighborhood){args.push("%"+neighborhood.slice(0,200)+"%");where.push("neighborhood ILIKE $"+args.length);}
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
    const review=p.get("review");if(review&&reviewStates.includes(review))add("contact_review",review);
    const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","neighborhood","postal_code","instagram","city","municipality","state","category","activity"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
@@ -60,8 +60,8 @@ export async function GET(request:Request){
    const presence:Record<string,string>={phone:"phone",website:"website"};
    for(const [key,column] of Object.entries(presence)){
     const value=p.get("has_"+key);
-    if(value==="yes")where.push("NULLIF("+column+",'') IS NOT NULL");
-    if(value==="no")where.push("NULLIF("+column+",'') IS NULL");
+    if(value==="yes")where.push("NULLIF(trim("+column+"),'') IS NOT NULL");
+    if(value==="no")where.push("NULLIF(trim("+column+"),'') IS NULL");
    }
    const filter=where.length?" WHERE "+where.join(" AND "):"";
    if(p.get("view")==="map"){
