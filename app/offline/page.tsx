@@ -10,6 +10,23 @@ export default function Offline(){
  const video=useRef<HTMLVideoElement>(null),controls=useRef<IScannerControls|null>(null);
  useEffect(()=>{const a=offlineAccount();setAccount(a);setBusiness(a?.businesses[0]?.id||"");setPending(a?awards(a.id):[]);setOnline(navigator.onLine);try{const scanned=sessionStorage.getItem("kreyvi-offline-scan");if(scanned&&a?.area==="staff")setToken(scanned);sessionStorage.removeItem("kreyvi-offline-scan")}catch{}setReady(true);
  const change=()=>setOnline(navigator.onLine);window.addEventListener("online",change);window.addEventListener("offline",change);return()=>{window.removeEventListener("online",change);window.removeEventListener("offline",change)}},[]);
+ // An installation without a saved account must never remain in the offline shell.
+ useEffect(()=>{
+  if(!ready||account)return;
+  let live=true,running=false;
+  const recover=async()=>{
+   if(!live||running||!navigator.onLine||document.visibilityState==="hidden")return;
+   running=true;
+   try{
+    const res=await fetch("/entrar",{cache:"no-store",credentials:"same-origin"});
+    if(live&&res.ok&&res.headers.get("Content-Type")?.includes("text/html"))window.location.replace("/entrar");
+   }catch{}finally{running=false}
+  };
+  void recover();window.addEventListener("online",recover);window.addEventListener("focus",recover);
+  document.addEventListener("visibilitychange",recover);
+  const timer=window.setInterval(recover,10000);
+  return()=>{live=false;window.removeEventListener("online",recover);window.removeEventListener("focus",recover);document.removeEventListener("visibilitychange",recover);window.clearInterval(timer)};
+ },[ready,account]);
  useEffect(()=>{if(!scanning||!video.current)return;let cancelled=false;new BrowserQRCodeReader().decodeFromVideoDevice(undefined,video.current,result=>{if(result&&!cancelled){setToken(result.getText());setScanning(false)}}).then(c=>{if(cancelled)c.stop();else controls.current=c}).catch(()=>{setScanning(false);setMessage("No se pudo abrir la cámara. Introduce el identificador.")});return()=>{cancelled=true;controls.current?.stop();controls.current=null}},[scanning]);
  const program=account?.businesses.find(b=>b.id===business)?.program;
  async function sync(){if(!account||syncing)return;setSyncing(true);await syncAwards(account.id);setPending(awards(account.id));setSyncing(false)}
@@ -26,6 +43,7 @@ export default function Offline(){
  }catch(e){setMessage((e as Error).message)}}
  if(!ready)return <main className="empty-page">Preparando tu espacio…</main>;
  if(account?.area==="customer")return <CachedCustomerSpace recover/>;
+ if(!account)return <main className="empty-page"><h1>Bienvenido a KREYVI</h1><p>Accede a tu cuenta para ver tus tarjetas.</p><a className="button button-dark" href="/entrar">Iniciar sesión</a></main>;
  return <main style={{maxWidth:680,margin:"auto",padding:"24px 16px 96px"}}><h1>{account?.area==="staff"?"Caja sin conexión":"Mis tarjetas"}</h1>
 
  {account?.area==="staff"?<section className="panel-card form-stack">

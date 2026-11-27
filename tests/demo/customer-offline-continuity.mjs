@@ -13,3 +13,8 @@ assert.match(frame,/cached\)return <CachedCustomerSpace/);
 assert.match(home,/if\(cached\)return <CachedCustomerSpace embedded/);
 assert.match(read("lib/client/offline.ts"),/s\?\.id===a.id/,"Cache belongs to the current saved account");
 console.log("Customer app cache continuity and QR access");
+
+assert.match(shell,/if\(!ready\|\|account\)return/,"Recover the login even when no account has been cached");
+assert.match(shell,/window.location.replace\("\/entrar"\)/);
+assert.match(shell,/href="\/entrar">Iniciar sesión/);
+assert.match(read("components/PwaSetup.tsx"),/addEventListener\("visibilitychange",update\)/);

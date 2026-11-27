@@ -1,5 +1,5 @@
 /* KREYVI PWA: shell público y recursos estáticos; no se guardan respuestas privadas de API. */
-const CACHE="kreyv-offline-v10";
+const CACHE="kreyv-offline-v11";
 const PUSH_ICON="/kreyv-notification-icon-v2-192.png";
 const PUSH_BADGE="/kreyv-notification-badge-v2-96.png";
 self.addEventListener("install",event=>{
