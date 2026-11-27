@@ -106,7 +106,7 @@ assert.equal(body.totalPages,6);
 const select=queries.find(q=>q.sql.startsWith("SELECT * FROM public.crm_prospects"));
 assert.ok(select.sql.includes("name ILIKE $2"));
 assert.ok(select.sql.includes("COALESCE(NULLIF(public_email,''),email) ILIKE $3"));
-assert.ok(select.sql.includes("NULLIF(phone,'') IS NOT NULL"));
+assert.ok(select.sql.includes("NULLIF(trim(phone),'') IS NOT NULL"));
 assert.ok(select.sql.includes("ORDER BY lower(COALESCE(NULLIF(public_email,''),NULLIF(email,''))) DESC NULLS LAST,id ASC LIMIT $4 OFFSET $5"));
 assert.deepEqual(select.params,["MX","%cafe%","%example.com%",100,500]);
 queries.length=0;
@@ -117,3 +117,9 @@ const safeSelect=queries.find(q=>q.sql.startsWith("SELECT * FROM public.crm_pros
 assert.ok(safeSelect.sql.includes("ORDER BY lower(name) ASC NULLS LAST,id ASC LIMIT $1 OFFSET $2"));
 assert.deepEqual(safeSelect.params,[50,0]);
 console.log("CRM list: server-side filters, pagination clamping, safe sorting and pending-file UI regression checks.");
+
+assert.match(crmUi,/\[category,setCategory\]=useState\("pilot_food"\)/);
+assert.match(crmUi,/\["neighborhood","Colonia o barrio"\]/);
+assert.match(crmUi,/crm-table-top-scroll/);
+assert.match(crmUi,/with_phone/);assert.match(crmUi,/with_website/);
+assert.match(crmRoute,/neighborhood ILIKE/);

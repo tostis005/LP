@@ -50,8 +50,9 @@ try{
   await msg("4",address("b"),"received","inbound");
   await msg("5",address("d"),"delivered","outbound","2 days");
   await msg("6",address("e"),"delivered");
+  await fixture.query("UPDATE public.crm_prospects SET phone=$2,website=$3 WHERE source_id=$1",[marker+"a","12345","https://example.test"]);
   const metrics=await crmDirectoryCount(fixture," WHERE source_id LIKE $1 AND city=$2",[marker+"%","Metric City"]);
-  assert.equal(metrics.total,4);assert.equal(metrics.contacted,3);
+  assert.equal(metrics.total,4);assert.equal(metrics.with_phone,1);assert.equal(metrics.with_website,1);assert.equal(metrics.contacted,3);
   assert.equal(metrics.confirmed_email,2);assert.equal(metrics.confirmed_24h,1);assert.equal(metrics.pending_contact,1);
  }finally{await fixture.query("ROLLBACK");fixture.release();}
  const verifier=randomBytes(32).toString("base64url");

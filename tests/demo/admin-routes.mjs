@@ -73,3 +73,8 @@ const crm=read("components/AdminCrm.tsx");
 assert.match(crm,/importOfficial\("11020","León"\)/);
 assert.match(crm,/importOfficial\("11020","León",leonFile\)/);
 assert.match(read("lib/server/denue-download.ts"),/11020.*denue_11_0525_csv.zip/);
+
+assert.match(directory,/marketing-users\?view=users/);
+assert.match(directory,/marketing-users\?view=regions/);
+assert.match(directory,/Cambiar contraseña/);
+assert.match(api,/admin_reset_staff_password/);

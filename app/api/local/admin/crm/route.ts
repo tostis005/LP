@@ -11,7 +11,7 @@ const statuses=["pending_review","qualified","contacted","interested","trial","c
 const reviewStates=["pending","source_found","no_contact_found","ambiguous","not_relevant"];
 // Public sort keys are mapped to fixed SQL expressions; no request text is interpolated.
 const sortColumns:Record<string,string>={
- name:"lower(name)",state:"lower(state)",municipality:"lower(municipality)",city:"lower(city)",
+ name:"lower(name)",state:"lower(state)",municipality:"lower(municipality)",city:"lower(city)",neighborhood:"lower(neighborhood)",
  category:"lower(category)",activity:"lower(activity)",email:"lower(COALESCE(NULLIF(public_email,''),NULLIF(email,'')))",
  phone:"NULLIF(phone,'')",address:"lower(NULLIF(address,''))",website:"lower(NULLIF(website,''))",
  status:"CASE status WHEN 'pending_review' THEN 'Sin contactar' WHEN 'qualified' THEN 'Sin contactar revisado' WHEN 'contacted' THEN 'Contactado' WHEN 'interested' THEN 'Interesado' WHEN 'trial' THEN 'En prueba' WHEN 'converted' THEN 'Cliente' WHEN 'discarded' THEN 'No interesado' WHEN 'do_not_contact' THEN 'No contactar' ELSE status END",
@@ -22,7 +22,8 @@ const pageSizes=[25,50,100,200];
 // Cache compact aggregate data, not prospect rows. Expire quickly to pick up external imports.
 type Aggregate=CrmDirectoryCount;
 const countCache=new Map<string,{expires:number;data:Aggregate}>();
-function clearCounts(){countCache.clear();}
+let optionsCache:{expires:number;data:{regions:Record<string,unknown>[];categories:Record<string,unknown>[];officialImports:unknown[]}}|undefined;
+function clearCounts(){countCache.clear();optionsCache=undefined;}
 
 async function admin<T>(request:Request,fn:(c:PoolClient,actor:Actor)=>Promise<T>){
  const actor=await actorFromRequest(request);
@@ -38,17 +39,18 @@ export async function GET(request:Request){
   const result=await crmReader(request,async (c,restricted)=>{
    const p=new URL(request.url).searchParams;
    if(p.get("view")==="options"){
+    if(!restricted&&optionsCache&&optionsCache.expires>Date.now()&&p.get("refresh")!=="1")return optionsCache.data;
     const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
     const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
     const officialImports=restricted?[]:(await c.query("SELECT DISTINCT report->>\x27scope\x27 AS scope FROM public.crm_import_runs WHERE filename IN (\x27DENUE León 2025-05\x27)")).rows.map(r=>r.scope);
-    return {regions,categories,officialImports};
+    const options={regions,categories,officialImports};if(!restricted)optionsCache={expires:Date.now()+60000,data:options};return options;
    }
    const where:string[]=[],args:unknown[]=[];
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
     const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR (source='WEB' AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
    }
-   const neighborhood=p.get("neighborhood")?.trim();if(neighborhood)add("neighborhood",neighborhood.slice(0,200));
+   const neighborhood=p.get("neighborhood")?.trim();if(neighborhood){args.push("%"+neighborhood.slice(0,200)+"%");where.push("neighborhood ILIKE $"+args.length);}
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
    const review=p.get("review");if(review&&reviewStates.includes(review))add("contact_review",review);
    const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","neighborhood","postal_code","instagram","city","municipality","state","category","activity"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
@@ -60,8 +62,8 @@ export async function GET(request:Request){
    const presence:Record<string,string>={phone:"phone",website:"website"};
    for(const [key,column] of Object.entries(presence)){
     const value=p.get("has_"+key);
-    if(value==="yes")where.push("NULLIF("+column+",'') IS NOT NULL");
-    if(value==="no")where.push("NULLIF("+column+",'') IS NULL");
+    if(value==="yes")where.push("NULLIF(trim("+column+"),'') IS NOT NULL");
+    if(value==="no")where.push("NULLIF(trim("+column+"),'') IS NULL");
    }
    const filter=where.length?" WHERE "+where.join(" AND "):"";
    if(p.get("view")==="map"){

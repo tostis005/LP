@@ -41,6 +41,17 @@ try{
  const credential=(await c.query("SELECT password_hash,email_confirmed_at FROM auth.users WHERE id=$1",[provisioned.id])).rows[0];
  assert.equal(credential.password_hash,initialHash,"Editing permissions never replaces the password");
  assert.ok(credential.email_confirmed_at,"Admin-provisioned account can sign in immediately");
+ const replacementHash="scrypt$"+"a".repeat(32)+"$"+"b".repeat(128);
+ await c.query("INSERT INTO auth.sessions(user_id,token_hash,expires_at) VALUES($1,$2,now()+interval '1 day')",[marketing,tag.replace(/-/g,"")+"a".repeat(32)]);
+ await c.query("UPDATE auth.users SET email_confirmed_at=NULL WHERE id=$1",[marketing]);
+ await assume(marketing);await denied(()=>c.query("SELECT public.admin_reset_staff_password($1,$2)",[marketing,replacementHash]));
+ await assume(admin);await denied(()=>c.query("SELECT public.admin_reset_staff_password($1,$2)",[customer,replacementHash]));
+ await denied(()=>c.query("SELECT public.admin_reset_staff_password($1,$2)",[admin,replacementHash]));
+ await c.query("SELECT public.admin_reset_staff_password($1,$2)",[marketing,replacementHash]);
+ await c.query("RESET ROLE");
+ const changed=(await c.query("SELECT password_hash,email_confirmed_at FROM auth.users WHERE id=$1",[marketing])).rows[0];
+ assert.equal(changed.password_hash,replacementHash);assert.ok(changed.email_confirmed_at);
+ assert.equal((await c.query("SELECT count(*)::int AS n FROM auth.sessions WHERE user_id=$1",[marketing])).rows[0].n,0);
  await assume(customer);assert.deepEqual(await visible(),[]);await denied(()=>c.query("SELECT public.crm_marketing_save_contact($1,'qualified','customer')",[allowed]));
  await c.query("RESET ROLE");await c.query("UPDATE public.crm_marketing_users SET scopes='[]' WHERE user_id=$1",[marketing]);await assume(marketing);assert.deepEqual(await visible(),[]);
  await c.query("RESET ROLE");await c.query("UPDATE public.crm_marketing_users SET scopes=$2::jsonb,active=false WHERE user_id=$1",[marketing,JSON.stringify([scope])]);await assume(marketing);assert.deepEqual(await visible(),[]);await denied(()=>c.query("SELECT public.crm_marketing_save_contact($1,'contacted','disabled')",[allowed]));
