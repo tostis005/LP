@@ -1232,3 +1232,18 @@
 .milestone-settings-preview{background:var(--color-brand);color:#fff;padding:14px 16px;border-radius:14px;margin:14px 0;max-width:390px}.milestone-settings-preview .stamp-grid{margin:0 0 10px;grid-template-columns:repeat(var(--stamp-columns),minmax(0,32px));gap:6px}.milestone-settings-preview small{font-size:12px;color:#fff;opacity:.9}
 
 .marketing-password-field{display:grid;gap:7px}.marketing-password-field .password-input{display:flex;align-items:center;position:relative}.marketing-password-field .password-input input{width:100%;padding-right:45px}.marketing-password-field .password-input button{position:absolute;right:9px;border:0;background:transparent;color:var(--color-brand);display:grid;place-items:center;padding:8px}.marketing-password-field small{line-height:1.55}
+
+/* Compact actions and inline program disclosure in the admin user directory. */
+.admin-users-directory .admin-user-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+.admin-users-directory .admin-user-action{display:inline-flex;align-items:center;justify-content:center;flex:0 0 34px;width:34px;height:34px;border:1px solid var(--color-bg-2);border-radius:9px;background:#fff;color:var(--color-brand);text-decoration:none;cursor:pointer;box-sizing:border-box}
+.admin-users-directory .admin-user-action:hover,.admin-users-directory .admin-user-action[aria-expanded=true]{background:var(--color-brand-100);border-color:var(--color-brand-300)}
+.admin-users-directory .admin-user-action:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
+.admin-user-chevron{transition:transform .16s ease}
+.admin-user-chevron.expanded{transform:rotate(180deg)}
+.admin-users-directory .admin-user-program-row>td{padding:0!important;background:var(--color-bg)!important}
+.admin-user-programs{padding:13px 18px 16px;display:grid;gap:10px}
+.admin-user-program-list{display:flex;flex-wrap:wrap;gap:8px}
+.admin-user-program{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 11px;border:1px solid var(--color-bg-2);border-radius:10px;background:#fff;color:var(--color-brand-900)}
+.admin-user-program small{color:var(--color-text-2)}
+.admin-user-programs p{margin:0}
+@media(prefers-reduced-motion:reduce){.admin-user-chevron{transition:none}}

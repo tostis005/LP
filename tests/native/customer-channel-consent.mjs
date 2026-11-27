@@ -9,7 +9,7 @@ const client=await pool.connect();
 let transaction=false;
 try{
  const user=(await client.query(
-  "SELECT id,email FROM auth.users WHERE email='cliente@loyally.local'"
+  "SELECT id,email FROM auth.users WHERE email='cliente@kreyvi.com'"
  )).rows[0];
  assert.ok(user,"A real customer account exists");
  const business=(await client.query(`

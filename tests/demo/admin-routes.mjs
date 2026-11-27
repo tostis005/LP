@@ -92,7 +92,6 @@ assert.match(api,/passwordChanged:!!newPassword/);
 assert.match(api,/if\(!initialPassword&&!newPassword&&v\.invite===true\)/);
 
 assert.match(directory,/method:existing\?"PUT":"POST"/);
-assert.match(directory,/onClick=\{\(\)=>open\(u\)\} disabled=\{busy\}>Editar usuario/);
 assert.match(directory,/key:"business",label:"Negocio"/);
 assert.match(directory,/matches:\(u,id\)=>\(u.business_links\|\|\[\]\).some\(b=>b.id===id\)/);
 assert.match(api,/public.admin_account_details\(\)/);
@@ -102,3 +101,14 @@ const businessCol=[{key:"business",value:r=>r.ids.join(","),filter:"select",matc
 assert.equal(selectDirectoryRows(people,businessCol,{business:"b1"},{key:"business",direction:"asc"}).length,2);
 assert.equal(selectDirectoryRows(people,businessCol,{business:"b2"},{key:"business",direction:"asc"}).length,2);
 assert.equal(selectDirectoryRows(people,businessCol,{business:"b"},{key:"business",direction:"asc"}).length,0);
+
+const userPage=read("app/admin/usuarios/[id]/page.tsx");
+const userFrame=read("components/AdminUserPage.tsx");
+assert.match(userPage,/AdminUserPage id=\{id\}/);
+assert.match(userFrame,/AppFrame area="admin"/);
+assert.match(directory,/href=\{"\/admin\/usuarios\/"\+encodeURIComponent\(u.id\)\}/);
+assert.match(directory,/hasPrograms&&<button/);
+assert.match(directory,/aria-expanded=\{expanded\}/);
+assert.match(directory,/expanded&&hasPrograms&&<tr className="admin-user-program-row"/);
+assert.doesNotMatch(directory,/focusUser&&<div className="admin-inspector"/);
+assert.match(read("app/workspace.css"),/admin-user-row-actions\{display:flex;align-items:center;justify-content:flex-end/);

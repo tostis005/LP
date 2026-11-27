@@ -20,10 +20,10 @@ async function asUser(id,fn){
 try{
  const owner=(await admin.query(
   "SELECT u.id AS user_id,m.business_id FROM auth.users u JOIN public.business_members m "+
-  "ON m.user_id=u.id WHERE u.email='gestor@loyally.local' AND m.active AND m.role='owner' "+
+  "ON m.user_id=u.id WHERE u.email='owner@kreyvi.com' AND m.active AND m.role='owner' "+
   "ORDER BY m.business_id LIMIT 1")).rows[0];
  const customer=(await admin.query(
-  "SELECT id FROM auth.users WHERE email='cliente@loyally.local' LIMIT 1")).rows[0];
+  "SELECT id FROM auth.users WHERE email='cliente@kreyvi.com' LIMIT 1")).rows[0];
  assert.ok(owner?.user_id&&owner?.business_id,"Missing business owner fixture");
  assert.ok(customer?.id,"Missing customer fixture");
  await asUser(owner.user_id,async client=>{
