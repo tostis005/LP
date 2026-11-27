@@ -78,3 +78,13 @@ assert.match(directory,/marketing-users\?view=users/);
 assert.match(directory,/marketing-users\?view=regions/);
 assert.match(directory,/Cambiar contraseña/);
 assert.match(api,/admin_reset_staff_password/);
+
+
+// Existing marketing accounts can set a password within the editor itself.
+assert.match(directory,/existing&&<form className="marketing-editor-section form-stack" aria-label="Contraseña de acceso"/);
+assert.match(directory,/const target=editing&&existing\?userId:passwordUser\?\.id/);
+assert.match(directory,/method:"PATCH".*userId:target,password:newPassword/);
+assert.match(directory,/Confirmar contraseña/);
+assert.match(directory,/Guardar contraseña/);
+assert.match(directory,/passwordNotice&&<p role="status"/);
+assert.match(directory,/if\(u\.role==="marketing"\)\{open\(u\);return;\}/);
