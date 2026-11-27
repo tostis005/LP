@@ -123,3 +123,23 @@ assert.match(crmUi,/\["neighborhood","Colonia o barrio"\]/);
 assert.match(crmUi,/crm-table-top-scroll/);
 assert.match(crmUi,/with_phone/);assert.match(crmUi,/with_website/);
 assert.match(crmRoute,/neighborhood ILIKE/);
+
+
+// The open directory is stable until an explicit action changes the query.
+assert.doesNotMatch(crmUi,/setInterval|activityRevision|addEventListener\("focus"/);
+assert.match(crmUi,/useCrmMailSync\(\(\)=>\{\},!marketingOnly&&tab==="mail"\)/);
+assert.doesNotMatch(read("components/CrmContactHistory.tsx"),/setInterval/);
+assert.match(crmUi,/crm-map-toggle/);
+assert.match(crmUi,/Ver mapa de negocios/);
+const mapUi=read("components/CrmMap.tsx");
+assert.match(mapUi,/radius=\{4\}/);
+assert.match(mapUi,/color:"#ffffff",weight:1\.5/);
+assert.match(mapUi,/fillColor:"#a9213d"/);
+assert.match(crmUi,/Datos de contacto/);
+assert.match(crmUi,/Seguimiento comercial/);
+assert.match(crmUi,/Llamar/);
+assert.match(crmUi,/Enviar correo/);
+assert.match(crmUi,/Guardar cambios/);
+assert.match(crmUi,/JSON\.stringify\(\{id:focus\.id,status:focus\.status,notes:focus\.notes\|\|""\}\)/);
+assert.doesNotMatch(crmUi,/URL de la fuente pública|Fuente revisada \(URL\)|Coordenadas:/);
+assert.match(crmUi,/historyOpen&&<CrmContactHistory/);
