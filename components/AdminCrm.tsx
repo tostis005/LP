@@ -17,7 +17,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const [showMap,setShowMap]=useState(false);
  const [data,setData]=useState<Data|null>(null);
  const [tab,setTab]=useState<"directory"|"mail"|"imports">("directory");
- const [options,setOptions]=useState<{regions:Region[];categories:Data["categories"]}>({regions:[],categories:[]});
+ const [options,setOptions]=useState<{regions:Region[];categories:Data["categories"];officialImports?:string[]}>({regions:[],categories:[]});
  const [optionsError,setOptionsError]=useState("");
  const [optionsLoading,setOptionsLoading]=useState(true);
 
@@ -27,7 +27,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const [columnFilters,setColumnFilters]=useState<Record<string,string>>({}),[loading,setLoading]=useState(true),[jump,setJump]=useState("");
  const requestVersion=useRef(0),lastRevision=useRef(-1),lastText=useRef("");
  const [activityRevision,setActivityRevision]=useState(0);
- const [busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
+ const [leonFile,setLeonFile]=useState<File|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
  const mailSync=useCrmMailSync(()=>setActivityRevision(v=>v+1),!marketingOnly);
  useEffect(()=>{if(tab!=="directory")return;const refresh=()=>{if(!document.hidden)setActivityRevision(v=>v+1);};const timer=setInterval(refresh,60000);window.addEventListener("focus",refresh);return()=>{clearInterval(timer);window.removeEventListener("focus",refresh);};},[tab]);
  useEffect(()=>{
@@ -60,13 +60,13 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  useEffect(()=>{if(!focus)return;const handler=(e:KeyboardEvent)=>{if(e.key==="Escape"&&!busy)setFocus(null);};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler);},[focus,busy]);
  const regions=options.regions,states=[...new Map(regions.filter(r=>!country||r.country_code===country).map(r=>[r.state_code,r.state])).entries()];
  const municipalities=[...new Map(regions.filter(r=>r.state_code===state).map(r=>[r.municipality_code,r.municipality])).entries()];
- async function importOfficial(code:string,name:string){
-  setBusy(true);setError("");setNotice("Descargando y procesando el directorio oficial del INEGI…");
+ async function importOfficial(code:string,name:string,file?:File){
+  setBusy(true);setError("");setNotice(file?"Procesando el CSV de León…":"Descargando y procesando el directorio oficial del INEGI…");
   try{
-   const body=new FormData();body.append("mode","official");body.append("municipality",code);
+   const body=new FormData();body.append("mode",file?"import":"official");body.append("municipality",code);if(file)body.append("file",file);
    const r=await fetch("/api/local/admin/crm",{method:"POST",body}),j=await r.json();
    if(!r.ok)throw new Error(j.error||"No se pudo importar "+name+".");
-   setColumnFilters({});setCountry("MX");setState(code.slice(0,2));setMunicipality(code.slice(2));setCity("");setCategory("");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);
+   setColumnFilters({});setCountry("MX");setState(code.slice(0,2));setMunicipality(code.slice(2));setCity("");setCategory("");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);setTab("directory");setLeonFile(null);
    setNotice(j.alreadyImported?"El directorio de "+name+" ya está cargado.":name+": "+j.report.relevant+" negocios del sector y "+j.report.withEmail+" con correo DENUE. No se ha enviado ningún correo.");
   }catch(e){setNotice("");setError(e instanceof Error?e.message:"Error de importación oficial.");}finally{setBusy(false);}
  }
@@ -87,7 +87,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const columns=[["name","Negocio"],["state","Estado geográfico"],["municipality","Municipio"],["city","Localidad"],["category","Sector"],["activity","Actividad"],["email","Correo"],["phone","Teléfono"],["address","Dirección"],["website","Web"],["status","Estado comercial"],["review","Revisión"]] as const;
  const textColumns=new Set(["name","activity","email","phone","address","website"]);
  const hasFilters=Boolean(search||state||municipality||city||category||coverage||review||status||Object.keys(columnFilters).length);
- const pendingCities=[{code:"11020",name:"León"},{code:"14039",name:"Guadalajara"},{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
+ const pendingCities=[{code:"14039",name:"Guadalajara"},{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
  return <div className="panel-card crm-workspace">
   <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
   <div style={marketingOnly?{display:"none"}:undefined} className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
@@ -98,7 +98,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    {([{label:"Negocios",n:data?.count.total,icon:Building2,hint:"Total con los filtros actuales"},{label:"Contactados",n:data?.count.contacted,icon:Users,hint:"Envío confirmado o contacto registrado comercialmente"},{label:"Por contactar",n:data?.count.pending_contact,icon:Clock3,hint:"Con correo y estado pendiente; no implica elegibilidad para una campaña"},{label:"Con envío confirmado",n:data?.count.confirmed_email,icon:Send,hint:"Negocios con al menos un correo aceptado por el destinatario"},{label:"Confirmados últimas 24 h",n:data?.count.confirmed_24h,icon:CheckCircle2,hint:"Negocios distintos con envío confirmado en las últimas 24 horas"},{label:"Con correo",n:data?.count.with_email,icon:Mail,hint:"Negocios con dirección registrada"},{label:"Correos únicos",n:data?.count.unique_emails,icon:Mail,hint:"Direcciones de correo distintas"},{label:"Revisados",n:data?.count.reviewed,icon:CheckCircle2,hint:"Contactos con revisión registrada"}] as const).map(m=><div className="crm-metric" key={m.label} title={m.hint}><span><m.icon size={16}/>{m.label}</span><strong>{m.n===undefined?"—":format(m.n)}</strong></div>)}
   </div><p className="crm-metrics-note muted">Indicadores de todos los resultados filtrados, no solo de esta página. Los envíos en cola, fallidos o rebotados no cuentan como confirmados.</p></>}
   {tab==="mail"&&<><CrmMailSettings sync={mailSync}/><AdminCrmPueblaCampaign onChange={()=>setRevision(v=>v+1)}/></>}
-  {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{pendingCities.length>0&&options.regions.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/></section>}
+  {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{!marketingOnly&&<div className="admin-inspector"><div className="content-heading"><div><h3>León · Guanajuato</h3><p className="muted">DENUE INEGI · municipio 11020 · edición oficial 2025-05. Incluye sectores compatibles, con y sin correo.</p></div></div><p>{optionsLoading?"Consultando importaciones…":options.officialImports?.includes("11020")?"Carga oficial registrada.":regions.some(r=>r.state_code+r.municipality_code==="11020")?"Hay negocios de León, pero no consta la carga oficial completa.":"Carga oficial pendiente."}</p><button type="button" className="button button-dark button-sm" disabled={busy||optionsLoading} onClick={()=>void importOfficial("11020","León")}><Upload size={16}/> {options.officialImports?.includes("11020")?"Consultar carga de León":"Cargar León desde INEGI"}</button><details><summary>Importar un CSV oficial manualmente</summary><p className="muted">Alternativa si INEGI no responde. Selecciona un CSV descomprimido de Guanajuato (máximo 40 MB). Solo se incorporarán los negocios de León.</p><a href="https://www.inegi.org.mx/app/descarga/" target="_blank" rel="noreferrer">Descarga oficial DENUE</a><label className="file-input"><Upload size={16}/> Elegir CSV <input type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>setLeonFile(e.target.files?.[0]||null)}/></label>{leonFile&&<p>{leonFile.name}</p>}<button type="button" className="button button-outline button-sm" disabled={busy||!leonFile} onClick={()=>{if(leonFile&&confirm("¿Importar los negocios compatibles de León de este CSV? No se enviarán correos."))void importOfficial("11020","León",leonFile);}}>Importar CSV de León</button></details></div>}{!marketingOnly&&pendingCities.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/></section>}
   <style>{`
    .crm-workspace{min-width:0}
    .crm-hero{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:4px 0 16px}

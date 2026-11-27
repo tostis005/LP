@@ -40,7 +40,8 @@ export async function GET(request:Request){
    if(p.get("view")==="options"){
     const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
     const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
-    return {regions,categories};
+    const officialImports=restricted?[]:(await c.query("SELECT DISTINCT report->>\x27scope\x27 AS scope FROM public.crm_import_runs WHERE filename IN (\x27DENUE León 2025-05\x27)")).rows.map(r=>r.scope);
+    return {regions,categories,officialImports};
    }
    const where:string[]=[],args:unknown[]=[];
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
