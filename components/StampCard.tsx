@@ -17,7 +17,7 @@ type StampCardProps={
 export function StampCard({name,color,reward,total,earned,icon,imageUrl,logoUrl,logoScale=100,logoX=0,logoY=0,backgroundUrl,message,qrValue,textColor,stampColor,balanceLabel,locale="es",milestones}:StampCardProps){
  const complete=earned>=total;
  return <div className={"stamp-visual-card stamp-visual-rebalanced"+(qrValue?" has-qr":"")+(total>=21?" is-very-dense":total>12?" is-dense":"")}
-  style={{backgroundColor:color,color:textColor||"#ffffff",backgroundImage:backgroundUrl?(backgroundUrl.startsWith("/brand/card-designs/showcase-")?"linear-gradient(120deg,rgba(0,0,0,.12),rgba(0,0,0,.06))":"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20))")+",url("+cardBackgroundUrl(backgroundUrl,1200)+")":undefined}}>
+  style={{backgroundColor:color,color:textColor||"#ffffff",backgroundImage:backgroundUrl?(/^\/brand\/card-designs\/(showcase|gallery)-/.test(backgroundUrl)?"linear-gradient(120deg,rgba(0,0,0,.12),rgba(0,0,0,.06))":"linear-gradient(120deg,rgba(0,0,0,.44),rgba(0,0,0,.20))")+",url("+cardBackgroundUrl(backgroundUrl,1200)+")":undefined}}>
   <div className="stamp-visual-main">
    <span className="stamp-business-logo">{logoUrl?<img src={logoImageUrl(logoUrl,512)} alt="" decoding="async" style={{transform:`translate(${logoX}%, ${logoY}%) scale(${logoScale/100})`,transformOrigin:"center"}}/>:name.slice(0,1).toUpperCase()}</span>
    <strong className="stamp-visual-name">{name}</strong>
