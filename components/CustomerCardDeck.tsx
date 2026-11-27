@@ -53,7 +53,9 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
  function pointerMove(e:ReactPointerEvent<HTMLDivElement>){
   const d=drag.current;if(!d||d.id!==e.pointerId)return;
   const dy=e.clientY-d.y,dx=e.clientX-d.x;
-  if(!d.moved){if(Math.abs(dy)<5||Math.abs(dy)<Math.abs(dx))return;d.moved=true;setDragging(true);}
+  if(!d.moved){if(Math.abs(dy)<5||Math.abs(dy)<Math.abs(dx))return;d.moved=true;setDragging(true);
+   // The pressed card can leave the rendered wheel during a long drag.
+   if(d.capture!==e.currentTarget){d.capture=e.currentTarget;d.capture.setPointerCapture(e.pointerId);}}
   if(e.cancelable)e.preventDefault();
   const now=performance.now(),elapsed=Math.max(8,now-d.time),v=-(e.clientY-d.last)/wheelStep/elapsed;
   d.velocity=d.velocity*.55+v*.45;d.last=e.clientY;d.time=now;
@@ -69,7 +71,7 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
  const selected=cards.find(c=>c.id===openId);
  return <section className="customer-wallet-deck" aria-label="Rueda vertical de tarjetas">
   <div className="customer-wallet-controls"><span aria-live={dragging?"off":"polite"}>{current+1} de {count} tarjetas</span><div><button type="button" aria-label="Tarjeta anterior" onClick={()=>move(-1)} disabled={count<2}><ChevronUp size={21}/></button><button type="button" aria-label="Siguiente tarjeta" onClick={()=>move(1)} disabled={count<2}><ChevronDown size={21}/></button></div></div>
-  <div ref={stage} className={"customer-wallet-stack"+(dragging?" is-dragging":"")+(count===1?" is-single":"")} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={e=>pointerEnd(e)} onPointerCancel={e=>pointerEnd(e,true)} onLostPointerCapture={e=>pointerEnd(e,true)} onDragStart={e=>e.preventDefault()} onClickCapture={e=>{if(e.detail!==0&&Date.now()<suppress.current){e.preventDefault();e.stopPropagation();}}} onKeyDown={e=>{if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();move(e.key==="ArrowDown"?1:-1);}}}>
+  <div ref={stage} className={"customer-wallet-stack"+(dragging?" is-dragging":"")+(count===1?" is-single":"")} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={e=>pointerEnd(e)} onPointerCancel={e=>pointerEnd(e,true)} onLostPointerCapture={e=>{if(drag.current?.capture===e.target)pointerEnd(e,true);}} onDragStart={e=>e.preventDefault()} onClickCapture={e=>{if(e.detail!==0&&Date.now()<suppress.current){e.preventDefault();e.stopPropagation();}}} onKeyDown={e=>{if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();move(e.key==="ArrowDown"?1:-1);}}}>
    {wheelSlots(position,count).map(({index,offset})=>{
     const card=cards[index],b=card.businesses,p=program(card),g=wheelTransform(offset),color=b.accent_color||"#5e1a2b",photo=cardBackgroundUrl(b.card_background);
     const text=readableCardText(color,b.card_text_color||"#fff",!!photo),stamps=p?.type==="stamps";
