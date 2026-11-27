@@ -68,8 +68,8 @@ export async function PUT(request:Request){
   let scopes:MarketingScope[]|null=null;
   if(v.scopes!==undefined){
    if(!Array.isArray(v.scopes)||v.scopes.length>100||typeof v.active!=="boolean")throw new ApiError("Ámbitos no válidos.");
-   scopes=v.scopes.map((s:Record<string,unknown>)=>{const result={} as MarketingScope;let empty=false;for(const k of scopeKeys){const value=s?.[k];if(typeof value!=="string"||value.length>200||(empty&&value))throw new ApiError("Ámbito geográfico no válido.");result[k]=value;empty=empty||!value;}return result;});
-   scopes=[...new Map(scopes.map(s=>[scopeKey(s),s])).values()];
+   const checkedScopes:MarketingScope[]=v.scopes.map((s:Record<string,unknown>)=>{const result={} as MarketingScope;let empty=false;for(const k of scopeKeys){const value=s?.[k];if(typeof value!=="string"||value.length>200||(empty&&value))throw new ApiError("Ámbito geográfico no válido.");result[k]=value;empty=empty||!value;}return result;});
+   scopes=[...new Map(checkedScopes.map(s=>[scopeKey(s),s])).values()];
   }
   const hash=password?await hashPassword(password):null;
   const saved=await asActor(actor,async c=>(await c.query("SELECT public.admin_edit_account($1::uuid,$2,$3,$4,$5::date,$6,$7,$8,$9::jsonb) AS saved",[id,name,email,phone,dob||null,gender,hash,scopes===null?null:v.active,scopes===null?null:JSON.stringify(scopes)])).rows[0].saved as {verify:boolean;relogin:boolean;passwordChanged:boolean});
