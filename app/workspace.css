@@ -1196,3 +1196,35 @@
 .workspace-admin .workspace-section-menu>a svg{flex:none}
 .workspace-admin .workspace-section-menu>a:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
 @media(max-width:760px){.workspace-admin .workspace-section-menu>a{white-space:nowrap;flex:none}}
+
+/* Shared sortable directory headers with a dedicated filter row. */
+.workspace .directory-table{min-width:780px}
+.workspace .admin-users-directory .directory-table{min-width:1050px}
+.workspace .directory-table thead th{background:var(--color-brand-100);padding:12px 10px 7px;vertical-align:middle;letter-spacing:normal;font-size:12px}
+.workspace .directory-table thead tr:first-child th:first-child{border-radius:10px 0 0 0}
+.workspace .directory-table thead tr:first-child th:last-child{border-radius:0 10px 0 0}
+.workspace .directory-table .directory-filter-row th{padding:0 10px 10px;border-radius:0}
+.workspace .directory-sort,.workspace .directory-clear{display:flex;align-items:center;gap:6px;text-align:left;font:inherit;color:var(--color-brand-900);background:none;border:0;padding:0;cursor:pointer;white-space:nowrap;font-weight:800}
+.workspace .directory-sort svg{flex:none;color:var(--color-brand-500)}
+.workspace .directory-filter-row :is(input,select){width:100%;min-width:98px;max-width:100%;height:35px;border:1px solid var(--color-brand-300);border-radius:8px;background:#fff;color:var(--color-brand-900);font-size:12px;padding:6px 8px;box-sizing:border-box}
+.workspace .directory-filter-row input[type=number]{min-width:76px}
+.workspace .directory-table th[aria-sort="ascending"] .directory-sort,.workspace .directory-table th[aria-sort="descending"] .directory-sort{color:var(--color-brand)}
+.workspace .directory-clear{font-size:11px;font-weight:700}
+.workspace .directory-table td.directory-visibility{white-space:normal;min-width:150px;max-width:250px;overflow-wrap:anywhere}
+.directory-row-actions{display:flex;align-items:flex-start;gap:7px;flex-direction:column}
+.directory-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:15px;font-size:12px;color:var(--color-text-2)}
+.directory-pager>div{display:flex;gap:7px}
+.marketing-user-editor{width:min(100%,920px);margin:0 auto}
+.marketing-user-editor .campaign-editor-back{display:inline-flex;align-items:center;gap:7px;margin-bottom:18px}
+.marketing-editor-icon{display:grid;place-items:center;width:48px;height:48px;background:var(--color-brand-100);color:var(--color-brand);border-radius:14px;flex:none}
+.marketing-editor-section{border:1px solid var(--color-bg-2);background:var(--color-surface,#fff);border-radius:16px;padding:20px;display:grid;gap:14px}
+.marketing-editor-section h3{margin:0;color:var(--color-brand-900);font-size:17px}
+.marketing-editor-section .muted{margin:0;line-height:1.5}
+.marketing-editor-fields,.marketing-scope-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.marketing-scope-fields{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.marketing-user-editor .form-stack .marketing-active-control{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;padding:12px;background:var(--color-bg);border-radius:12px;cursor:pointer}
+.marketing-user-editor .marketing-active-control input[type=checkbox]{width:20px;height:20px;min-height:20px;min-width:20px;flex:0 0 20px;margin:0;padding:0;accent-color:var(--color-brand)}
+.marketing-active-control span{display:grid;gap:4px}.marketing-active-control small{font-size:12px;font-weight:400;color:var(--color-text-2)}
+.marketing-scope-list{display:grid;gap:8px}.marketing-scope-list>div{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--color-bg);padding:10px 12px;border-radius:10px;font-size:13px;overflow-wrap:anywhere}
+.marketing-editor-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+@media(max-width:620px){.marketing-editor-fields,.marketing-scope-fields{grid-template-columns:1fr}.marketing-editor-section{padding:15px}.marketing-editor-actions .button{flex:1}}

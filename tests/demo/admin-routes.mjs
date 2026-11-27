@@ -34,3 +34,25 @@ assert.equal(managedBusinessHref(undefined,"/negocio/poster"),"/negocio/poster")
 assert.match(read("components/AdminBusinessWorkspace.tsx"),/AppFrame area="admin"/);
 assert.match(read("components/BusinessWorkspace.tsx"),/account.admin&&!!adminBusinessId/);
 assert.match(read("components/BusinessWorkspace.tsx"),/managedBusinessHref/);
+
+const directory=read("components/AdminMarketingUsers.tsx"),header=read("components/DirectoryTable.tsx"),api=read("app/api/local/admin/marketing-users/route.ts");
+assert.equal((workspace.match(/<AdminMarketingUsers\/>/g)||[]).length,1);
+assert.doesNotMatch(workspace,/Directorio global de usuarios/);
+assert.match(directory,/if\(editing\)return <section className="panel-card marketing-user-editor"/);
+assert.match(directory,/className="marketing-active-control"/);
+assert.match(directory,/filter:"select",options:Object.entries\(roles\)/);
+assert.match(directory,/Ver programas/);
+assert.match(directory,/Editar permisos/);
+assert.match(header,/aria-sort/);
+assert.match(header,/directory-filter-row/);
+assert.match(api,/admin_user_directory\(\)/);
+assert.match(api,/byId.get\(u.id\)/);
+assert.match(workspace,/<DirectoryHead columns=\{businessColumns\}/);
+assert.match(workspace,/<DirectoryHead columns=\{leadColumns\}/);
+const {selectDirectoryRows}=await import("../../lib/table-directory.ts");
+const sample=[{name:"Álvaro",role:"customer",n:10},{name:"Ana",role:"marketing",n:2},{name:"Ángel",role:"marketing",n:3}];
+const cols=[{key:"name",value:r=>r.name},{key:"role",value:r=>r.role,filter:"select"},{key:"n",value:r=>r.n,filter:"number"}];
+assert.deepEqual(selectDirectoryRows(sample,cols,{name:"alvaro"},{key:"name",direction:"asc"}).map(r=>r.n),[10]);
+assert.deepEqual(selectDirectoryRows(sample,cols,{role:"marketing"},{key:"n",direction:"desc"}).map(r=>r.n),[3,2]);
+assert.deepEqual(selectDirectoryRows(sample,cols,{n:"2"},{key:"n",direction:"asc"}).map(r=>r.name),["Ana"]);
+assert.deepEqual(selectDirectoryRows(sample,cols,{},{key:"n",direction:"asc"}).map(r=>r.n),[2,3,10]);

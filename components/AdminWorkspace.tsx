@@ -2,7 +2,7 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import {adminSections,adminBusinessHref,type AdminSection,type AdminTab} from "@/lib/admin-sections";
-import {Activity,ArrowUpRight,Check,ChevronDown,FileText,Mail,Plus,Search,Shield,Store,Users} from "lucide-react";
+import {Activity,ArrowUpRight,Check,ChevronDown,FileText,Mail,Plus,Shield,Store,Users} from "lucide-react";
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {AddressPicker} from "@/components/AddressPicker";
 import {db} from "@/lib/supabase";
@@ -11,19 +11,20 @@ import {CURRENCIES} from "@/lib/currency";
 import {AdminCampaignCharges} from "@/components/AdminCampaignCharges";
 import {AdminSupportRequests} from "./AdminSupportRequests";
 import {AdminMarketingUsers} from "./AdminMarketingUsers";
+import {DirectoryHead,DirectoryPager,useDirectoryTable} from "./DirectoryTable";
+import type {TableColumn} from "@/lib/table-directory";
 import {AdminCrm} from "@/components/AdminCrm";
 type Biz={id:string;name:string;slug:string;currency:string;category:string|null;parent_business_id:string|null;active:boolean;public_listing:boolean;created_at:string};
 type Person={user_id:string;full_name:string;email:string;businesses:number;joined_at:string};
 type Lead={id:string;business_name:string;contact_name:string;contact_email:string;category:string|null;city:string;message:string|null;status:"new"|"contacted"|"converted"|"archived";created_at:string};
 type RecentOperation={business_id:string;kind:string;created_at:string};
 function AdminContent({account,tab}:{account:Account;tab:AdminTab}){
- const [businesses,setBusinesses]=useState<Biz[]>([]),[users,setUsers]=useState<Person[]>([]),[transactionCount,setTransactionCount]=useState(0),[membershipCount,setMembershipCount]=useState(0),[search,setSearch]=useState("");
+ const [businesses,setBusinesses]=useState<Biz[]>([]),[users,setUsers]=useState<Person[]>([]),[transactionCount,setTransactionCount]=useState(0),[membershipCount,setMembershipCount]=useState(0);
  const [leads,setLeads]=useState<Lead[]>([]);
  const [businessView,setBusinessView]=useState<"list"|"create">("list"),[newCurrency,setNewCurrency]=useState("MXN");
  const [recentOperations,setRecentOperations]=useState<RecentOperation[]>([]);
  const [focusRate,setFocusRate]=useState("0.01"),[focusWhatsappRate,setFocusWhatsappRate]=useState(""),[focusPushRate,setFocusPushRate]=useState("0.00"),[focusCurrency,setFocusCurrency]=useState("MXN"),[hasFocusRate,setHasFocusRate]=useState(false);
  const [focusBiz,setFocusBiz]=useState<Biz|null>(null),[focusCustomers,setFocusCustomers]=useState(0),[focusStaff,setFocusStaff]=useState(0),[focusTx,setFocusTx]=useState(0),[focusLocations,setFocusLocations]=useState(0),[focusProgram,setFocusProgram]=useState("");
- const [focusUser,setFocusUser]=useState<Person|null>(null),[focusCards,setFocusCards]=useState<{business_id:string;balance:number;businesses:{name:string;slug:string}|null}[]>([]);
  const [parentBusiness,setParentBusiness]=useState(""),[existingProgram,setExistingProgram]=useState(""),[contractPrice,setContractPrice]=useState("");
  const [locName,setLocName]=useState(""),[locAddress,setLocAddress]=useState(""),[locCity,setLocCity]=useState(""),[locCountry,setLocCountry]=useState("México"),[locLat,setLocLat]=useState(""),[locLng,setLocLng]=useState("");
  const [focusContractPrice,setFocusContractPrice]=useState(""),[focusOwner,setFocusOwner]=useState("");
@@ -92,11 +93,7 @@ function AdminContent({account,tab}:{account:Account;tab:AdminTab}){
   setFocusContractPrice(contract.data?.agreed_monthly_cents==null?"":String(Number(contract.data.agreed_monthly_cents)/100));
   setFocusOwner((pending.data||[]).map((x:{email:string})=>x.email).join(", ")||(owners.data?.length?"Propietario registrado":"Invitación pendiente"));
  }
- async function inspectUser(u:Person){setFocusUser(u);setError("");
-  const {data,error}=await db().from("loyalty_memberships").select("business_id,balance,businesses(name,slug)").eq("customer_id",u.user_id);
-  if(error){setError(error.message);return}
-  setFocusCards((data||[]) as unknown as {business_id:string;balance:number;businesses:{name:string;slug:string}|null}[]);
- }
+
  async function saveBusinessLocation(e:React.FormEvent){
   e.preventDefault();
   if(!focusBiz)return;
@@ -160,12 +157,28 @@ function AdminContent({account,tab}:{account:Account;tab:AdminTab}){
   setSuccess("Negocio creado e invitación preparada para "+lead.contact_email+". El email se verificará cuando el responsable entre; no se ha enviado automáticamente una invitación.");
   await load();
  }
- const list=businesses.filter(b=>(b.name+" "+b.slug).toLowerCase().includes(search.toLowerCase()));
+ const businessColumns:TableColumn<Biz,"name"|"active"|"directory"|"created_at">[]=[
+  {key:"name",label:"Negocio",value:b=>b.name,search:b=>b.name+" "+b.slug},
+  {key:"active",label:"Estado",value:b=>b.active?"Activo":"Inactivo",filter:"select",options:[["Activo","Activo"],["Inactivo","Inactivo"]]},
+  {key:"directory",label:"Directorio",value:b=>b.public_listing?"Visible":"Oculto",filter:"select",options:[["Visible","Visible"],["Oculto","Oculto"]]},
+  {key:"created_at",label:"Fecha",value:b=>b.created_at,search:b=>b.created_at.slice(0,10),filter:"date"}
+ ];
+ const leadLabels:Record<Lead["status"],string>={new:"Nueva",contacted:"Contactado",converted:"Convertida",archived:"Archivada"};
+ const leadColumns:TableColumn<Lead,"business"|"person"|"city"|"created_at"|"status">[]=[
+  {key:"business",label:"Negocio",value:l=>l.business_name,search:l=>l.business_name+" "+(l.category||"")},
+  {key:"person",label:"Persona",value:l=>l.contact_name,search:l=>l.contact_name+" "+l.contact_email},
+  {key:"city",label:"Ubicación",value:l=>l.city},
+  {key:"created_at",label:"Fecha",value:l=>l.created_at,search:l=>l.created_at.slice(0,10),filter:"date"},
+  {key:"status",label:"Estado",value:l=>leadLabels[l.status],search:l=>l.status,filter:"select",options:Object.entries(leadLabels)}
+ ];
+ const businessTable=useDirectoryTable(businesses,businessColumns,{key:"created_at",direction:"desc"});
+ const leadTable=useDirectoryTable(leads,leadColumns,{key:"created_at",direction:"desc"});
+ const list=businessTable.visible;
  return <>{(tab==="business"||tab==="reports")&&<div className="kpi-grid"><div className="kpi-card"><div className="kpi-symbol green"><Store/></div><span>Negocios registrados</span><strong>{businesses.length}</strong><small>{businesses.filter(b=>b.active).length} activos</small></div><div className="kpi-card"><div className="kpi-symbol peach"><Users/></div><span>Usuarios</span><strong>{users.length}</strong><small>Cuentas de la plataforma</small></div><div className="kpi-card"><div className="kpi-symbol purple"><Activity/></div><span>Tarjetas creadas</span><strong>{membershipCount}</strong><small>En todos los negocios</small></div><div className="kpi-card"><div className="kpi-symbol pink"><Shield/></div><span>Operaciones registradas</span><strong>{transactionCount}</strong><small>Historial global</small></div></div>}
  <div className="admin-section-content"><div className="workspace-section-body">
  {error&&<div className="alert error">{error}</div>}{success&&<div className="alert success"><Check size={17}/>{success}</div>}
  {tab==="crm"&&<AdminCrm/>}
- {tab==="business"&&<div className="admin-grid admin-business-full">{businessView==="list"?<div className="panel-card admin-business-list"><div className="content-heading"><div><h2>Red de negocios</h2><p>Todos los establecimientos registrados.</p></div><button type="button" className="button button-dark button-sm" onClick={()=>{setBusinessView("create");setFocusBiz(null);setError("");setSuccess("")}}><Plus size={17}/> Crear negocio</button></div><div className="search-box small-search"><Search size={17}/><input placeholder="Buscar negocio..." value={search} onChange={e=>setSearch(e.target.value)}/></div><div className="table-wrap"><table className="data-table"><thead><tr><th>Negocio</th><th>Estado</th><th>Directorio</th><th>Fecha</th><th></th></tr></thead><tbody>{list.map(b=><tr key={b.id}><td><strong>{b.name}</strong><small>/{b.slug}</small></td><td><span className={"table-pill "+(b.active?"":"inactive")}>{b.active?"Activo":"Inactivo"}</span></td><td>{b.public_listing?"Visible":"Oculto"}</td><td>{dateShort(b.created_at)}</td><td><div className="admin-business-actions"><Link className="button button-dark button-sm" href={adminBusinessHref(b.id)}>Gestionar</Link><button className="inline-table-button" onClick={()=>inspectBusiness(b)}>Contrato y precios</button></div></td></tr>)}</tbody></table></div>{!list.length&&<p className="muted">No hay negocios con ese filtro.</p>}
+ {tab==="business"&&<div className="admin-grid admin-business-full">{businessView==="list"?<div className="panel-card admin-business-list"><div className="content-heading"><div><h2>Red de negocios</h2><p>Todos los establecimientos registrados.</p></div><button type="button" className="button button-dark button-sm" onClick={()=>{setBusinessView("create");setFocusBiz(null);setError("");setSuccess("")}}><Plus size={17}/> Crear negocio</button></div><div className="table-wrap"><table className="data-table directory-table"><DirectoryHead columns={businessColumns} table={businessTable}/><tbody>{list.map(b=><tr key={b.id}><td><strong>{b.name}</strong><small>/{b.slug}</small></td><td><span className={"table-pill "+(b.active?"":"inactive")}>{b.active?"Activo":"Inactivo"}</span></td><td>{b.public_listing?"Visible":"Oculto"}</td><td>{dateShort(b.created_at)}</td><td><div className="admin-business-actions"><Link className="button button-dark button-sm" href={adminBusinessHref(b.id)}>Gestionar</Link><button className="inline-table-button" onClick={()=>inspectBusiness(b)}>Contrato y precios</button></div></td></tr>)}</tbody></table></div><DirectoryPager table={businessTable}/>{!list.length&&<p className="muted">No hay negocios con ese filtro.</p>}
  {focusBiz&&<div className="admin-inspector"><div className="inspector-head"><div><strong>{focusBiz.name}</strong><small>/{focusBiz.slug}</small></div><button onClick={()=>setFocusBiz(null)} className="inline-table-button">Cerrar</button></div><Link className="button button-dark button-full" href={adminBusinessHref(focusBiz.id)}>Gestionar tarjeta, campañas y negocio <ArrowUpRight size={16}/></Link><div className="inspector-stats"><div><strong>{focusCustomers}</strong><span>Clientes</span></div><div><strong>{focusStaff}</strong><span>Equipo</span></div><div><strong>{focusTx}</strong><span>Operaciones</span></div><div><strong>{focusLocations}</strong><span>Locales</span></div></div><p className="muted">Programa: <strong>{focusProgram}</strong> · Directorio: {focusBiz.public_listing?"Visible":"Oculto"}</p>
  <div className="admin-ownership-contract"><p><strong>Propietario:</strong> {focusOwner}</p><p><strong>Grupo:</strong> {focusBiz.parent_business_id?businesses.find(x=>x.id===focusBiz.parent_business_id)?.name||"Franquicia":"Independiente"}</p>
   <div className="form-stack"><label>Precio mensual acordado (en {focusCurrency})<input type="number" step="0.01" min="0" value={focusContractPrice} onChange={e=>setFocusContractPrice(e.target.value)} placeholder="Sin precio acordado"/></label><button type="button" className="button button-outline button-sm" disabled={busy} onClick={saveBusinessContract}>Guardar precio del establecimiento</button><small>Este importe es un acuerdo comercial, no genera por sí mismo ningún cargo ni modifica Stripe.</small></div>
@@ -197,14 +210,10 @@ function AdminContent({account,tab}:{account:Account;tab:AdminTab}){
  <label>Usar el diseño de una tarjeta existente (opcional)<select value={existingProgram} onChange={e=>setExistingProgram(e.target.value)}><option value="">Crear programa independiente</option>{businesses.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><small>Copia diseño y reglas iniciales; los saldos de los clientes permanecen independientes en cada negocio.</small></label>
  <label>Moneda del negocio<select value={newCurrency} onChange={e=>setNewCurrency(e.target.value)}>{CURRENCIES.map(({code,label})=><option value={code} key={code}>{label} ({code})</option>)}</select></label><label>Nombre del establecimiento<input required minLength={2} value={newLocName} onChange={e=>setNewLocName(e.target.value)} placeholder="Ej. Local principal"/></label><AddressPicker address={newLocAddress} city={newLocCity} country={newLocCountry} lat={newLocLat} lng={newLocLng} onAddressChange={setNewLocAddress} onCityChange={setNewLocCity} onCountryChange={setNewLocCountry} onCoordinatesChange={(lat,lng)=>{setNewLocLat(lat);setNewLocLng(lng)}}/><label>Precio mensual pactado ({newCurrency})<input type="number" min="0" step="0.01" value={contractPrice} onChange={e=>setContractPrice(e.target.value)} placeholder="Se acuerda individualmente"/><small>Se pueden aplicar condiciones especiales por volumen. Este registro no genera cargos automáticamente.</small></label><button className="button button-dark button-full" disabled={busy}>{busy?"Creando...":"Crear negocio"} <ArrowUpRight size={17}/></button></div></form>}</div>}
  {tab==="users"&&<AdminMarketingUsers/>}
- {tab==="users"&&<div className="panel-card"><h2>Directorio global de usuarios</h2><p className="muted">Visión administrativa de cuentas y programas a los que están vinculadas.</p><div className="table-wrap"><table className="data-table"><thead><tr><th>Nombre</th><th>Email</th><th>Programas</th><th>Alta</th><th></th></tr></thead><tbody>{users.map(u=><tr key={u.user_id}><td><strong>{u.full_name||"Sin nombre"}</strong></td><td>{u.email}</td><td>{u.businesses}</td><td>{dateShort(u.joined_at)}</td><td><button className="inline-table-button" onClick={()=>inspectUser(u)}>Ver programas</button></td></tr>)}</tbody></table></div>
- {focusUser&&<div className="admin-inspector"><div className="inspector-head"><div><strong>{focusUser.full_name||focusUser.email}</strong><small>{focusUser.email}</small></div><button onClick={()=>setFocusUser(null)} className="inline-table-button">Cerrar</button></div>
- {focusCards.length?focusCards.map(c=><div className="activity-row" key={c.business_id}><div className="activity-icon positive"><Store size={17}/></div><div><strong>{c.businesses?.name||c.business_id}</strong><span>Saldo: {c.balance}</span></div></div>):<p className="muted">No figura en ningún programa.</p>}</div>}
- </div>}
  {tab==="leads"&&<AdminSupportRequests/>}
  {tab==="leads"&&<div className="panel-card"><div className="content-heading"><div><h2>Solicitudes de acceso</h2><p>Revisa cada negocio y conviértelo manualmente en cliente cuando proceda.</p></div><span className="table-pill">{leads.length} solicitudes</span></div>
- <div className="table-wrap"><table className="data-table"><thead><tr><th>Negocio</th><th>Persona</th><th>Ubicación</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
- <tbody>{leads.map(l=><tr key={l.id}>
+ <div className="table-wrap"><table className="data-table directory-table"><DirectoryHead columns={leadColumns} table={leadTable}/>
+ <tbody>{leadTable.visible.map(l=><tr key={l.id}>
   <td><strong>{l.business_name}</strong><small>{l.category||"Sector no indicado"}</small></td>
   <td><strong>{l.contact_name}</strong><small>{l.contact_email}</small></td>
   <td>{l.city}</td><td>{dateShort(l.created_at)}</td>
@@ -215,7 +224,7 @@ function AdminContent({account,tab}:{account:Account;tab:AdminTab}){
    {l.status!=="archived"&&l.status!=="converted"&&<button disabled={busy} type="button" className="inline-table-button" onClick={()=>updateLead(l,"archived")}>Archivar</button>}
   </div></td>
  </tr>)}</tbody></table></div>
- {!leads.length&&<p className="muted">Todavía no se han recibido solicitudes.</p>}
+ <DirectoryPager table={leadTable}/>{!leadTable.filtered.length&&<p className="muted">No hay solicitudes con esos filtros.</p>}
  <p className="tiny-note">Las solicitudes no activan cuentas ni cobran automáticamente. Antes de crear un negocio, comprueba sus datos y acuerda las condiciones.</p>
  </div>}
  {tab==="invoices"&&<AdminCampaignCharges/>}
