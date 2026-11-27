@@ -37,3 +37,51 @@
 /* Legacy installed icons only; normal browser HTML is always visible. */
 .installed-root-loading{display:none}
 @media (display-mode: standalone){.installed-root-loading{display:block}.installed-root-loading+.customer-public{display:none}}
+
+/* Cross-browser form sizing: WebKit date controls have an intrinsic minimum
+   width, which must not expand a grid track or its parent on small iPhones. */
+.form-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.form-two>*,.form-stack label,.loyal-app-form,.loyal-app-form label,
+.auth-login-form,.auth-login-form label,.loyal-app-auth{min-width:0;max-width:100%;box-sizing:border-box}
+.form-stack :is(input,select,textarea):not([type=checkbox]):not([type=radio]),
+.loyal-app-form :is(input,select,textarea):not([type=checkbox]):not([type=radio]){
+ min-width:0;max-width:100%;width:100%;box-sizing:border-box
+}
+input[type=date],input[type=time],input[type=datetime-local]{
+ display:block;min-width:0;max-width:100%;box-sizing:border-box;
+ -webkit-appearance:auto;appearance:auto
+}
+input[type=date]::-webkit-date-and-time-value,
+input[type=time]::-webkit-date-and-time-value,
+input[type=datetime-local]::-webkit-date-and-time-value{
+ min-width:0;text-align:left
+}
+@media(max-width:600px){
+ .form-two{grid-template-columns:minmax(0,1fr)}
+ .auth-login-form :is(input,select,textarea):not([type=checkbox]):not([type=radio]),
+ .loyal-app-form :is(input,select,textarea):not([type=checkbox]):not([type=radio]){font-size:16px}
+}
+
+/* Center the fixed pill without transform: avoid a WebKit compositing layer
+   that can become detached from the viewport during Safari toolbar changes. */
+.loyalty-global-bottom-nav.loyalty-nav-customer,
+.loyalty-global-bottom-nav.loyalty-nav-business,
+.loyalty-global-bottom-nav.loyalty-nav-staff{
+ left:0;right:0;margin-inline:auto;transform:none;box-sizing:border-box
+}
+.loyalty-global-bottom-nav.loyalty-nav-customer{bottom:calc(13px + var(--kreyvi-viewport-bottom,0px))}
+.loyalty-global-bottom-nav.loyalty-nav-business,
+.loyalty-global-bottom-nav.loyalty-nav-staff{bottom:calc(12px + var(--kreyvi-viewport-bottom,0px))}
+@media(max-width:600px){
+ .loyalty-global-bottom-nav.loyalty-nav-customer{bottom:calc(8px + var(--kreyvi-viewport-bottom,0px))}
+ .loyalty-global-bottom-nav.loyalty-nav-business,
+ .loyalty-global-bottom-nav.loyalty-nav-staff{bottom:calc(7px + var(--kreyvi-viewport-bottom,0px))}
+ .loyalty-global-bottom-nav.loyalty-nav-admin{bottom:var(--kreyvi-viewport-bottom,0px)}
+}
+@supports (-webkit-touch-callout:none){
+ .loyalty-global-bottom-nav{
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  background:var(--color-surface,#fff)
+ }
+ .public-login.kreyvi-simple-login,.loyal-app-entry{min-width:0;max-width:100%}
+}
