@@ -341,7 +341,7 @@ jobs:
                 echo "ERROR: no se ha podido verificar Web Push por HTTPS público con certificado válido."
                 exit 1
               fi
-              bash scripts/check-public-pages.sh "https://kreyvi.com"
+              bash scripts/check-public-pages.sh "$SITE"
               echo "Kreyv responde correctamente: home ES/EN, negocio, campañas, Wallet y Web Push HTTPS activo."
               exit 0
             fi

@@ -5,14 +5,14 @@ import type {PoolClient} from "pg";
 // This connector is deliberately restricted to a single registered public client,
 // one callback, one audience and one scope. No dynamic redirect registration.
 export const crmOAuth={
- issuer:"https://kreyvi.com",
+ issuer:"https://kreyviapp.com",
  clientId:"kreyvi-crm-chatgpt",
  redirectUri:"https://chatgpt.com/connector_platform_oauth_redirect",
- resource:"https://kreyvi.com/api/mcp/crm",
+ resource:"https://kreyviapp.com/api/mcp/crm",
  scope:"crm:research",
- authorize:"https://kreyvi.com/api/crm-connect/authorize",
- token:"https://kreyvi.com/api/crm-connect/token",
- metadata:"https://kreyvi.com/.well-known/oauth-protected-resource/api/mcp/crm"
+ authorize:"https://kreyviapp.com/api/crm-connect/authorize",
+ token:"https://kreyviapp.com/api/crm-connect/token",
+ metadata:"https://kreyviapp.com/.well-known/oauth-protected-resource/api/mcp/crm"
 } as const;
 
 export const oauthMetadata={

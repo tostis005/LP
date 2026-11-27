@@ -16,7 +16,7 @@ import {PwaSetup} from "@/components/PwaSetup";
 import {AppBottomNav} from "@/components/AppBottomNav";
 import {ActionToast} from "@/components/ActionToast";
 export const metadata: Metadata = {
-  metadataBase:new URL("https://kreyvi.com"),
+  metadataBase:new URL("https://kreyviapp.com"),
   title: BRAND_NAME + " — Tus lugares favoritos, tus próximos premios",
   description: "Todas tus tarjetas de fidelización, sellos y recompensas en un solo lugar.",
   manifest:"/manifest.webmanifest?v=kreyvi-v3",

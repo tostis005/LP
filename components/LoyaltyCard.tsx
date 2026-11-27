@@ -88,7 +88,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    window.setTimeout(()=>URL.revokeObjectURL(downloadUrl),1500);
   }catch{setConsentError("No se pudo guardar la imagen. Puedes seguir utilizando el QR desde la app.");}
  }
- const origin="https://kreyvi.com";
+ const origin="https://kreyviapp.com";
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
  const cardVisual=<MerchantCard business={business} program={program} balance={membership.balance} qrValue={qrUrl} milestones={milestones.rules}/>;

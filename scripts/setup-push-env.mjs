@@ -17,10 +17,10 @@ function put(key,value){
 }
 // Only the production deployment invokes this flag; local/test configuration is untouched.
 if(process.argv.includes("--kreyvi-production")){
- put("NEXT_PUBLIC_SITE_URL","https://kreyvi.com");
- put("LP_ALLOWED_ORIGINS","https://kreyvi.com,https://www.kreyvi.com");
+ put("NEXT_PUBLIC_SITE_URL","https://kreyviapp.com");
+ put("LP_ALLOWED_ORIGINS","https://kreyviapp.com,https://www.kreyviapp.com");
  const subject=get("VAPID_SUBJECT");
- if(/^https?:\/\/\d+\.\d+\.\d+\.\d+/.test(subject))put("VAPID_SUBJECT","https://kreyvi.com");
+ if(/^https?:\/\/\d+\.\d+\.\d+\.\d+/.test(subject)||/^https?:\/\/(?:www\.)?kreyvi\.com\/?$/.test(subject))put("VAPID_SUBJECT","https://kreyviapp.com");
 }
 const url=new URL(get("NEXT_PUBLIC_SITE_URL"));
 if(url.protocol!=="https:"||url.username||url.password)

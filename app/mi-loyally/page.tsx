@@ -84,14 +84,14 @@ export default function MiLoyally(){
   try{
    if(mode==="forgot"){
     const {error}=await db().auth.resetPasswordForEmail(email,{
-     redirectTo:"https://kreyvi.com/auth/callback?next=password"
+     redirectTo:"https://kreyviapp.com/auth/callback?next=password"
     });
     if(error)throw error;
     setMessage("Te hemos enviado un correo para recuperar tu acceso.");
    }else if(mode==="signup"){
     const {data,error}=await db().auth.signUp({
      email,password,
-     options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim(),birth_date:birthDate,gender,platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn},emailRedirectTo:"https://kreyvi.com/auth/callback"}
+     options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim(),birth_date:birthDate,gender,platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn},emailRedirectTo:"https://kreyviapp.com/auth/callback"}
     });
     if(error)throw error;
     if(data.session)router.replace("/entrar");

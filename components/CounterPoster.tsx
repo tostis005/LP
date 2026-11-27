@@ -43,7 +43,7 @@ export function CounterPoster({business}:{business:Business;program:Program}){
    <svg x="22.5" y={showTitle||showSubtitle?68:(height-60)/2} width="60" height="60" viewBox="0 0 360 360"><QRCodeSVG value={url} size={360} level="M" marginSize={4} fgColor="#000000" bgColor="#ffffff"/></svg>
    {showFooter&&<g textAnchor="middle" fill={wine}>
     <text x="52.5" y="135" fontSize="4.3" fontWeight="800">Escanea y empieza</text>
-    <text x="52.5" y="141" fontSize="2.9">Sin descargar ninguna app · kreyvi.com</text>
+    <text x="52.5" y="141" fontSize="2.9">Sin descargar ninguna app · kreyviapp.com</text>
    </g>}
   </svg></div>
  </section>;

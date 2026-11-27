@@ -16,7 +16,7 @@ jobs:
         shell: bash
         run: |
           set -u
-          for url in "https://kreyvi.com/" "https://kreyvi.com/" "https://kreyvi.com/acceder"; do
+          for url in "https://kreyviapp.com/" "https://kreyviapp.com/" "https://kreyviapp.com/acceder"; do
             echo "===== $url ====="
             headers="$(mktemp)"
             body="$(mktemp)"
