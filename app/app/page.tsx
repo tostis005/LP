@@ -69,7 +69,7 @@ function CustomerHome({account}:{account:Account}){
     setPrograms((p.data||[]) as Program[]);
     setMovements((m.data||[]) as Movement[]);
     const md:Record<string,MilestoneDetails>=Object.fromEntries(((ms.data||[]) as {membership_id:string;details:MilestoneDetails}[]).map(x=>[x.membership_id,x.details]));setMilestones(md);
-    if(!p.error&&complete.length===rows.length)saveCards({id:account.user.id,at:Date.now(),cards:complete,programs:(p.data||[]) as Program[],milestones:md,movements:(m.data||[]) as Movement[]});
+    if(!p.error&&!m.error&&!ms.error&&complete.length===rows.length)saveCards({id:account.user.id,at:Date.now(),cards:complete,programs:(p.data||[]) as Program[],milestones:md,movements:(m.data||[]) as Movement[]});
     if(p.error||m.error)setError("Algunas operaciones no están disponibles. Puedes actualizar para intentarlo de nuevo.");
    }else{
     setPrograms([]);setMovements([]);setMilestones({});if(!rows.length)saveCards({id:account.user.id,at:Date.now(),cards:[],programs:[]});

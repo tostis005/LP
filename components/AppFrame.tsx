@@ -41,11 +41,11 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
    if(!configured()){if(live){setError("No podemos abrir tu cuenta ahora mismo. Inténtalo de nuevo.");setLoading(false)}return}
    try{
     const auth=await db().auth.getUser(); if(auth.error) throw auth.error;
-    if(!auth.data.user){clearOfflineAccount();if(live){router.replace("/acceder?next="+encodeURIComponent(pathname))}return}
-    if(saved&&saved.id!==auth.data.user.id)clearOfflineAccount();
+    if(!auth.data.user){clearOfflineAccount();if(live){setCached(false);setUser(null);setLoading(true);router.replace("/acceder?next="+encodeURIComponent(pathname))}return}
+    if(saved&&saved.id!==auth.data.user.id){clearOfflineAccount();if(live){setCached(false);setUser(null);setLoading(true);}}
     const roleCheck=await fetch("/api/local/admin/marketing-users?self=1",{cache:"no-store"});
     if(!roleCheck.ok)throw Error("No se pudieron comprobar los permisos.");
-    if((await roleCheck.json()).marketing){clearOfflineAccount();if(live)router.replace("/marketing");return;}
+    if((await roleCheck.json()).marketing){clearOfflineAccount();if(live){setCached(false);setUser(null);setLoading(true);router.replace("/marketing");}return;}
     if(area==="customer")void syncExistingPushSubscription(auth.data.user.id);
     try { await db().rpc("claim_invitations"); } catch { /* invitaciones opcionales */ }
     const [members,admins]=await Promise.all([

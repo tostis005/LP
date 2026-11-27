@@ -75,7 +75,9 @@ jobs:
       - name: Comprobar limites de acceso legitimos y proteccion antiabuso
         run: node tests/demo/auth-rate-limits.mjs
       - name: Evitar caída del cliente cuando faltan detalles de una tarjeta
-        run: node tests/demo/customer-resilience.mjs
+        run: |
+          node tests/demo/customer-resilience.mjs
+          node tests/demo/customer-offline-continuity.mjs
       - name: Validar app simplificada, confirmaciones y tres canales de avisos
         run: node tests/demo/simplified-business-app.mjs
       - name: Validar inscripción con único permiso y ajustes individuales por tarjeta

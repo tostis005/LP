@@ -42,7 +42,7 @@ self.addEventListener("fetch",event=>{
  }
  if(event.request.mode!=="navigate"||path.origin!==self.location.origin)return;
  // Never change the customer URL to /offline; the cached shell is only a fallback.
- const privateSpace=path.pathname==="/entrar"||path.pathname==="/offline"||path.pathname==="/app"||path.pathname.startsWith("/app/")||path.pathname==="/empleado"||path.pathname.startsWith("/empleado/")||path.pathname.startsWith("/t/");
+ const privateSpace=path.pathname==="/entrar"||path.pathname==="/offline"||path.pathname==="/app"||path.pathname.startsWith("/app/")||path.pathname==="/empleado"||path.pathname.startsWith("/empleado/")||path.pathname.startsWith("/t/")||path.pathname.startsWith("/p/");
  if(!privateSpace)return;
  event.respondWith((async()=>{try{const response=await fetch(event.request,{cache:"no-store"});if(response.status<500)return response;}catch{}const shell=await caches.match("/offline");if(!shell)return Response.error();return new Response(shell.body,{status:200,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});})());
 });

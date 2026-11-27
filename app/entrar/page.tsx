@@ -14,7 +14,7 @@ useEffect(()=>{async function route(){try{
  const user=auth.data.user;
  if(!user){clearOfflineAccount();router.replace("/acceder");return}
  if(offlineAccount()?.id!==user.id)clearOfflineAccount();
- const role=await fetch("/api/local/admin/marketing-users?self=1",{cache:"no-store"});if(!role.ok)throw Error("No se pudo comprobar el acceso.");if((await role.json()).marketing){router.replace("/marketing");return;}
+ const role=await fetch("/api/local/admin/marketing-users?self=1",{cache:"no-store"});if(!role.ok)throw Error("No se pudo comprobar el acceso.");if((await role.json()).marketing){clearOfflineAccount();router.replace("/marketing");return;}
  await db().rpc("claim_invitations");
  const pendingJoin=window.localStorage.getItem("lp_pending_join");
  if(pendingJoin && /^[a-f0-9-]{36}$/i.test(pendingJoin)){
