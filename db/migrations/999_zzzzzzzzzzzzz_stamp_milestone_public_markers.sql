@@ -1,7 +1,7 @@
 -- Public card previews expose only the configured reward position and label.
 -- Match the existing public_business_details slug visibility; no customer data.
 CREATE OR REPLACE FUNCTION public.public_stamp_milestones(p_slug text)
-RETURNS TABLE(position integer,label text)
+RETURNS TABLE("position" integer,label text)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
  SELECT r.position,o.label
  FROM public.businesses b
