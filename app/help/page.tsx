@@ -1,6 +1,7 @@
 import type {Metadata} from "next";
 import Link from "next/link";
 import {PublicHeader} from "@/components/PublicHeader";
+import {PublicFooter} from "@/components/PublicFooter";
 import {LandingLanguageSync} from "@/components/LandingLanguageSync";
 import {SupportForm} from "@/components/SupportForm";
 import {LifeBuoy,WalletCards,ShieldCheck,ArrowUpRight} from "lucide-react";
@@ -22,5 +23,5 @@ export default async function HelpPage({searchParams}:{searchParams:Promise<{lan
  <main className="help-main"><section className="help-hero"><span className="help-kicker"><LifeBuoy size={18}/> {en?"CUSTOMER SUPPORT":"CENTRO DE AYUDA"}</span><h1>{en?"How can we help?":"¿En qué podemos ayudarte?"}</h1><p>{en?"Official Kreyvi support for your loyalty cards, Google Wallet, rewards and account.":"Soporte oficial de Kreyvi para tus tarjetas de fidelización, Google Wallet, recompensas y cuenta."}</p><a className="button button-dark" href="#contact">{en?"Contact support":"Contactar con soporte"} <ArrowUpRight size={17}/></a></section>
  <div className="help-grid"><section className="help-faq" aria-label={en?"Frequently asked questions":"Preguntas frecuentes"}><h2>{en?"Frequently asked questions":"Preguntas frecuentes"}</h2>{faq.map(([q,a,eq,ea])=><details key={q}><summary>{en?eq:q}</summary><p>{en?ea:a}</p></details>)}<article className="help-info"><WalletCards size={24}/><div><h3>{en?"Google Wallet support":"Ayuda de Google Wallet"}</h3><p>{en?"For issues with the Google Wallet app itself, consult Google's official help. For Kreyvi passes and rewards, contact us here.":"Para problemas de la aplicación Google Wallet, consulta la ayuda oficial de Google. Para tarjetas y recompensas de Kreyvi, escríbenos aquí."}</p><a href="https://support.google.com/wallet/" target="_blank" rel="noopener noreferrer">{en?"Google Wallet Help":"Ayuda oficial de Google Wallet"} <ArrowUpRight size={15}/></a></div></article></section>
  <div><SupportForm lang={lang}/><article className="help-info"><ShieldCheck size={24}/><div><h3>{en?"Your privacy":"Tu privacidad"}</h3><p>{en?"We use the information you send to manage and respond to your support request. We do not request your password or payment information.":"Utilizamos los datos que envías para gestionar y responder a tu consulta. No solicitamos contraseñas ni información de pago."}</p></div></article></div></div></main>
- <footer className="help-footer"><span>© {new Date().getFullYear()} Kreyvi</span><nav><Link href="/">{en?"Home":"Inicio"}</Link><Link href={en?"/para-negocios?lang=en":"/para-negocios"}>{en?"For businesses":"Para negocios"}</Link></nav></footer></div>;
+ <PublicFooter lang={lang} page="help"/></div>;
 }

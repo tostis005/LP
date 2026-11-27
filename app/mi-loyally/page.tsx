@@ -1,11 +1,16 @@
 "use client";
 import {KreyviLoading} from "@/components/KreyviLoading";
-import {Brand} from "@/components/Brand";
+import {PublicHeader} from "@/components/PublicHeader";
+import {PublicFooter} from "@/components/PublicFooter";
+import {LandingLanguageSync} from "@/components/LandingLanguageSync";
+import {StampCard} from "@/components/StampCard";
+import {CARD_DESIGNS} from "@/lib/card-designs";
+import type {LandingLanguage} from "@/lib/landing-copy";
 
 import {useEffect,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import Link from "next/link";
-import {ArrowRight,Check,ChevronLeft,Gift,Heart,LockKeyhole,Share2,Smartphone,Sparkles,Ticket,X} from "lucide-react";
+import {ArrowRight,Check,ChevronLeft,Gift,Heart,LockKeyhole,Share2,Smartphone,Ticket,X} from "lucide-react";
 import {db} from "@/lib/supabase";
 import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import "./mi-loyally.css";
@@ -20,6 +25,7 @@ function isStandalone(){
 }
 export default function MiLoyally(){
  const router=useRouter();
+ const [lang,setLang]=useState<LandingLanguage>("es");
  const [mode,setMode]=useState<Mode>("login");
  const [platform,setPlatform]=useState<Platform>("other");
  const [standalone,setStandalone]=useState(false);
@@ -31,6 +37,7 @@ export default function MiLoyally(){
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
 
  useEffect(()=>{
+  setLang(new URLSearchParams(window.location.search).get("lang")==="en"?"en":"es");
   const appMode=isStandalone();
   setStandalone(appMode);
   const ua=navigator.userAgent;
@@ -96,23 +103,17 @@ export default function MiLoyally(){
  }
  const intro=mode==="signup"?"Crea tu espacio":mode==="forgot"?"Recupera tu acceso":"Bienvenido a Kreyvi";
  if(!ready||standalone)return <KreyviLoading label="Preparando tu espacio"/>;
- return <main className="loyal-app-entry">
+ return <div className="loyal-app-public"><LandingLanguageSync lang={lang}/><PublicHeader lang={lang} page="app"/><main className="loyal-app-entry">
   <div className="loyal-app-entry-inner">
-   <header className="loyal-app-top">
-    <div className="loyal-app-logo"><Brand/></div>
-    {!standalone&&<button type="button" className="loyal-app-add" onClick={addToHome}><Smartphone size={16}/> Añadir a mi móvil</button>}
-   </header>
+
    <div className="loyal-app-hero">
-    <span className="loyal-app-eyebrow"><Sparkles size={14}/> CADA VISITA CUENTA</span>
-    <h1>Tus lugares favoritos.<br/><em>Tus próximos premios.</em></h1>
-    <p>Todos tus sellos, tarjetas y sorpresas, siempre contigo.</p>
+    <span className="loyal-app-eyebrow">{lang==="en"?"EVERY VISIT COUNTS":"CADA VISITA CUENTA"}</span>
+    <h1>{lang==="en"?"Your favorite places.":"Tus lugares favoritos."}<br/><em>{lang==="en"?"Your next rewards.":"Tus próximos premios."}</em></h1>
+    <p>{lang==="en"?"All your stamps, cards and rewards, always with you.":"Todos tus sellos, tarjetas y sorpresas, siempre contigo."}</p><button type="button" className="loyal-app-add" onClick={addToHome}><Smartphone size={19}/> {lang==="en"?"Add to my phone":"Añadir a mi móvil"}</button>
     <div className="loyal-app-visual" aria-hidden="true">
      <div className="loyal-app-card-backing"></div>
-     <div className="loyal-app-card"><div className="loyal-app-card-head"><span><Heart size={17}/> Mi rincón favorito</span><Gift size={23}/></div>
-      <div className="loyal-app-stamps">{Array.from({length:8},(_,i)=><span key={i} className={i<5?"filled":""}><Heart size={14}/></span>)}</div>
-      <strong>¡Cada vez más cerca!</strong><small>5 de 8 visitas</small>
-     </div>
-     <span className="loyal-app-floating"><Ticket size={16}/> Tu próxima recompensa ♡</span>
+     <div className="loyal-app-card"><StampCard {...CARD_DESIGNS[0].preview} locale={lang} name={lang==="en"?"Your favorite café":"Mi cafetería favorita"} reward={lang==="en"?"A coffee on us":"Tu próximo café gratis"} total={8} earned={5}/></div>
+     <span className="loyal-app-floating"><Ticket size={16}/> {lang==="en"?"Your next reward":"Tu próxima recompensa"}</span>
     </div>
    </div>
    <section className="loyal-app-auth" aria-labelledby="loyal-app-auth-title">
@@ -136,7 +137,6 @@ export default function MiLoyally(){
     {mode==="login"?<div className="loyal-app-links"><button type="button" onClick={()=>{setMode("signup");setError("");setMessage("");}}>Quiero crear una cuenta</button><button type="button" onClick={()=>{setMode("forgot");setError("");setMessage("");}}>Olvidé mi contraseña</button></div>:<button type="button" className="loyal-app-back" onClick={()=>{setMode("login");setError("");setMessage("");}}><ChevronLeft size={16}/> Ya tengo cuenta</button>}
     </>}
    </section>
-   {!standalone&&<footer className="loyal-app-footer"><span>Hecho para volver ♡</span><Link href="/">Conocer Kreyvi</Link></footer>}
   </div>
   {showInstall&&!standalone&&<div className="loyal-app-sheet-overlay" role="presentation">
    <div className="loyal-app-sheet" role="dialog" aria-modal="true" aria-labelledby="loyal-app-install-title">
@@ -162,5 +162,5 @@ export default function MiLoyally(){
     <button type="button" className="loyal-app-sheet-secondary" onClick={()=>setShowInstall(false)}><Check size={15}/> Entendido</button>
    </div>
   </div>}
- </main>;
+ </main><PublicFooter lang={lang} page="app"/></div>;
 }

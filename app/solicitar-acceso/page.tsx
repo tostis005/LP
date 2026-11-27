@@ -4,6 +4,7 @@ import {PUBLIC_BUSINESS_SECTORS} from "@/lib/public-business-sectors";
 import Link from "next/link";
 import {ArrowUpRight,CheckCircle2,Heart,Mail,Store,MapPin,ShieldCheck} from "lucide-react";
 import {PublicHeader} from "@/components/PublicHeader";
+import {PublicFooter} from "@/components/PublicFooter";
 export default function RequestAccess(){
  const [business_name,setBusiness]=useState(""),[contact_name,setName]=useState(""),[contact_email,setEmail]=useState(""),[category,setCategory]=useState("Cafetería"),[city,setCity]=useState(""),[message,setMessage]=useState(""),[consent_contact,setConsent]=useState(false),[website,setWebsite]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[sent,setSent]=useState(false);
  async function submit(e:React.FormEvent){e.preventDefault();setError("");setBusy(true);
@@ -16,7 +17,7 @@ export default function RequestAccess(){
    setSent(true);
   }catch(e){setError((e as Error).message)}finally{setBusy(false)}
  }
- return <><PublicHeader/><main className="request-page"><div className="container request-grid">
+ return <><PublicHeader page="contact"/><main className="request-page"><div className="container request-grid">
   <section className="request-copy"><div className="request-kicker"><span aria-hidden="true"/> HABLEMOS DE TU NEGOCIO</div>
    <h1>Hagamos que tus clientes <em>quieran volver.</em></h1>
    <p>Cuéntanos qué quieres conseguir. Te ayudaremos a descubrir cómo Kreyvi puede encajar en tu negocio y a dar el primer paso con tu propio programa de recompensas.</p>
@@ -43,5 +44,5 @@ export default function RequestAccess(){
    <p className="tiny-note">El acceso a la plataforma se concede manualmente. No se realiza ningún cobro al enviar esta solicitud.</p>
   </form></>}
   </section>
- </div></main></>;
+ </div></main><PublicFooter page="contact"/></>;
 }

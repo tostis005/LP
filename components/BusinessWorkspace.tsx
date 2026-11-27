@@ -13,6 +13,7 @@ import {db} from "@/lib/supabase";
 import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {MerchantCard} from "@/components/StampCard";
+import {CARD_DESIGNS} from "@/lib/card-designs";
 import type {MilestoneRule} from "@/lib/milestones";
 import {CounterPoster} from "@/components/CounterPoster";
 import {adminBusinessHref,adminBusinessSections,managedBusinessHref,type AdminBusinessSection} from "@/lib/admin-sections";
@@ -370,6 +371,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
       {biz.logo_url&&<div className="logo-adjust-controls"><strong>Ajustar logotipo</strong><label>Tamaño · {biz.card_logo_scale??100}%<input type="range" min={50} max={220} value={biz.card_logo_scale??100} onChange={e=>setBiz({...biz,card_logo_scale:Number(e.target.value)})}/></label><label>Posición horizontal<input type="range" min={-50} max={50} value={biz.card_logo_x??0} onChange={e=>setBiz({...biz,card_logo_x:Number(e.target.value)})}/></label><label>Posición vertical<input type="range" min={-50} max={50} value={biz.card_logo_y??0} onChange={e=>setBiz({...biz,card_logo_y:Number(e.target.value)})}/></label><button type="button" className="button button-outline button-sm" onClick={()=>setBiz({...biz,card_logo_scale:100,card_logo_x:0,card_logo_y:0})}>Restablecer ajuste</button><small>Comprueba el resultado en la vista previa y guarda el diseño.</small></div>}
       <label>Mensaje en la tarjeta<input value={biz.card_text||""} maxLength={60} placeholder="GRACIAS POR VOLVER" onChange={e=>setBiz({...biz,card_text:e.target.value})}/></label>
 
+      <div className="card-design-library"><strong>Diseños prediseñados</strong><p className="muted">Elige un estilo y personalízalo. Se aplica únicamente al guardar el diseño.</p><div className="card-design-options">{CARD_DESIGNS.map(design=><button type="button" key={design.id} aria-pressed={biz.card_background===design.business.card_background} onClick={()=>setBiz(old=>old?{...old,...design.business}:old)}><span style={{backgroundColor:design.preview.color,backgroundImage:"url("+design.preview.backgroundUrl+")"}}><StampMark kind={design.preview.icon} size={23}/></span><strong>{design.label}</strong><small>{design.description}</small></button>)}</div></div>
       <label className="color-input-label">Fondo de la tarjeta <span><input aria-label="Elegir color de fondo" type="color" value={biz.accent_color} onChange={e=>setBiz({...biz,accent_color:e.target.value})}/><code>{biz.accent_color}</code></span></label>
       <div className="preset-palette">{COLOR_PRESETS.map(color=><button type="button" title={color} aria-label={"Elegir color "+color} onClick={()=>setBiz({...biz,accent_color:color})} style={{background:color}} key={color}/>)}</div>
       <label className="color-input-label">Color de las letras <span><input aria-label="Elegir color de las letras" type="color" value={biz.card_text_color||"#ffffff"} onChange={e=>setBiz({...biz,card_text_color:e.target.value})}/><code>{biz.card_text_color||"#ffffff"}</code></span></label>
