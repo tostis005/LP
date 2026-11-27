@@ -17,6 +17,10 @@ try{
  const visible=async()=>(await c.query("SELECT id FROM public.crm_prospects WHERE source_id LIKE $1 ORDER BY id",[tag+"%"])).rows.map(x=>x.id);
  const denied=async(fn)=>{await c.query("SAVEPOINT denied");await assert.rejects(fn);await c.query("ROLLBACK TO SAVEPOINT denied");};
  await assume(marketing);assert.deepEqual(await visible(),[allowed]);assert.equal((await c.query("SELECT public.is_platform_admin() AS v")).rows[0].v,false);
+ const mapContact=async(id)=>(await c.query("SELECT id,name,category,activity,address,neighborhood,city,municipality,state,postal_code,phone,email,public_email,website,instagram,status,notes FROM public.crm_prospects WHERE id=$1::uuid",[id])).rows;
+ assert.equal((await mapContact(allowed))[0].email,shared);
+ assert.equal((await mapContact(outside)).length,0,"Map detail cannot bypass marketing geographical scope");
+ assert.equal((await mapContact(otherColony)).length,0,"Map detail respects neighbourhood scope");
  await denied(()=>c.query("SELECT public.crm_marketing_save_contact($1,'contacted','outside')",[outside]));
  await denied(()=>c.query("SELECT public.crm_admin_marketing_users()"));
  await denied(()=>c.query("SELECT * FROM public.crm_marketing_users"));
