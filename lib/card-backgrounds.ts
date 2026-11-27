@@ -335,6 +335,78 @@ export const CARD_BACKGROUNDS = [
     "color": "#28463f",
     "textColor": "#ffffff",
     "url": "/brand/card-designs/gallery-food-sushi-pop.svg"
+  },
+  {
+    "id": "vivid-brunch-club",
+    "label": "Brunch · Sunny Side",
+    "group": "Temáticos coloridos",
+    "color": "#ffdb58",
+    "textColor": "#3d2b22",
+    "url": "/brand/card-designs/gallery-vivid-brunch-club.svg"
+  },
+  {
+    "id": "vivid-barba-norte",
+    "label": "Barbería · Midnight Club",
+    "group": "Cuidado personal",
+    "color": "#122d52",
+    "textColor": "#ffffff",
+    "url": "/brand/card-designs/gallery-vivid-barba-norte.svg"
+  },
+  {
+    "id": "vivid-studio-verde",
+    "label": "Belleza · Botanical Bloom",
+    "group": "Cuidado personal",
+    "color": "#e8f4b1",
+    "textColor": "#214d40",
+    "url": "/brand/card-designs/gallery-vivid-studio-verde.svg"
+  },
+  {
+    "id": "vivid-taco-lumbre",
+    "label": "Taquería · Fiesta",
+    "group": "Temáticos coloridos",
+    "color": "#c42d46",
+    "textColor": "#ffffff",
+    "url": "/brand/card-designs/gallery-vivid-taco-lumbre.svg"
+  },
+  {
+    "id": "vivid-pan-mar",
+    "label": "Panadería · Golden Morning",
+    "group": "Temáticos coloridos",
+    "color": "#fff0ca",
+    "textColor": "#64351e",
+    "url": "/brand/card-designs/gallery-vivid-pan-mar.svg"
+  },
+  {
+    "id": "vivid-dulce-frontera",
+    "label": "Heladería · Candy Pop",
+    "group": "Temáticos coloridos",
+    "color": "#f9b4d7",
+    "textColor": "#562258",
+    "url": "/brand/card-designs/gallery-vivid-dulce-frontera.svg"
+  },
+  {
+    "id": "vivid-punto-fit",
+    "label": "Fitness · Electric Motion",
+    "group": "Fitness y deporte",
+    "color": "#19205e",
+    "textColor": "#ffffff",
+    "url": "/brand/card-designs/gallery-vivid-punto-fit.svg"
+  },
+  {
+    "id": "vivid-lavanda-spa",
+    "label": "Spa · Lavender Ritual",
+    "group": "Bienestar y spa",
+    "color": "#e6d9ff",
+    "textColor": "#493063",
+    "url": "/brand/card-designs/gallery-vivid-lavanda-spa.svg"
+  },
+  {
+    "id": "vivid-marea-pets",
+    "label": "Mascotas · Happy Paws",
+    "group": "Mascotas",
+    "color": "#a9e8df",
+    "textColor": "#214b58",
+    "url": "/brand/card-designs/gallery-vivid-marea-pets.svg"
   }
 ] as const;
 export const CARD_BACKGROUND_GROUPS=["Todos",...new Set(CARD_BACKGROUNDS.map(d=>d.group))];
