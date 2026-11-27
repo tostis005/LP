@@ -17,7 +17,7 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
 # Comprobar en la imagen (no solo en el checkout) que se incluye la portada publica.
-RUN node -e 'const fs=require("fs"),s=fs.readFileSync("lib/landing-copy.ts","utf8"),home=fs.readFileSync("app/page.tsx","utf8"),business=fs.readFileSync("app/para-negocios/page.tsx","utf8");const es=s.includes("Más clientes. Más visitas.")&&s.includes("Más ventas."),en=s.includes("More customers. More visits.")&&s.includes("More sales."),present=business.includes("LandingHome"),customer=home.includes("Tus lugares favoritos.")&&home.includes("/para-negocios")&&home.includes("/entrar");console.log("Docker public routes:",{es,en,present,customer});if(!es||!en||!present||!customer)process.exit(1)'
+RUN node -e 'const fs=require("fs"),s=fs.readFileSync("lib/landing-copy.ts","utf8"),home=fs.readFileSync("app/page.tsx","utf8"),business=fs.readFileSync("app/para-negocios/page.tsx","utf8");const es=s.includes("Más clientes. Más visitas.")&&s.includes("Más ventas."),en=s.includes("More customers. More visits.")&&s.includes("More sales."),present=business.includes("LandingHome"),customer=home.includes("Tus lugares favoritos.")&&home.includes("PublicHeader")&&fs.readFileSync("lib/public-navigation.ts","utf8").includes("/para-negocios")&&home.includes("/entrar");console.log("Docker public routes:",{es,en,present,customer});if(!es||!en||!present||!customer)process.exit(1)'
 ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 RUN mkdir -p public && npm run build && node scripts/verify-kreyv-brand-assets.mjs
