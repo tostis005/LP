@@ -14,8 +14,16 @@ try{
  const cafe=sites.find(s=>s.slug==="interno-cafe-noma");assert.ok(cafe);
  const designed=sites.filter(s=>s.slug!=="interno-cafe-noma");
  assert.equal(new Set(designed.map(s=>s.card_background)).size,9);
- assert.ok(designed.every(s=>s.card_background==="/brand/card-designs/showcase-"+s.slug.slice(8)+".svg"));
+ assert.ok(designed.every(s=>s.card_background==="/brand/card-designs/gallery-vivid-"+s.slug.slice(8)+".svg"));
  assert.equal((await db.query("SELECT public.apply_internal_showcase_card_designs() AS changed")).rows[0].changed,0,"Do not overwrite existing designs");
+ // The upgrade must never override a separately customized internal card.
+ await db.query("BEGIN");
+ try{
+  const fixture=designed[0].id;
+  await db.query("UPDATE public.businesses SET card_background='/brand/card-designs/coffee.svg' WHERE id=$1",[fixture]);
+  assert.equal((await db.query("SELECT public.apply_internal_showcase_card_designs() AS changed")).rows[0].changed,0);
+  assert.equal((await db.query("SELECT card_background FROM public.businesses WHERE id=$1",[fixture])).rows[0].card_background,"/brand/card-designs/coffee.svg");
+ }finally{await db.query("ROLLBACK");}
  const owned=await db.query("SELECT count(*)::int n FROM public.business_members WHERE user_id=$1 AND role='owner' AND active",[users.gestor]);
  assert.equal(owned.rows[0].n,1,"Business owner manages only Café Noma; superadmin sees all shops separately");
  const cards=await db.query("SELECT m.id,m.card_token,m.balance FROM public.loyalty_memberships m WHERE m.customer_id=$1",[users.cliente]);
