@@ -1,0 +1,16 @@
+.waitlist-page{min-height:100dvh;background:var(--color-bg);padding:28px 16px 48px;display:flex;justify-content:center;align-items:flex-start;color:var(--color-text);font-family:var(--font-body)}
+.waitlist-card{width:min(100%,500px);background:var(--color-surface);padding:clamp(22px,5vw,38px);border:1px solid var(--color-bg-2);border-radius:24px;box-shadow:0 14px 45px #3d0f1b0b}
+.waitlist-logo{display:block;width:140px;height:auto;margin:0 auto 24px}
+.waitlist-intro{text-align:center;margin-bottom:24px}.waitlist-intro span{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--color-accent-600)}
+.waitlist-card h1{font:800 clamp(28px,6vw,38px)/1.08 var(--font-heading);color:var(--color-brand);margin:9px 0 12px;letter-spacing:-.035em}
+.waitlist-card p{line-height:1.5;color:var(--color-text-2);margin:0}
+.waitlist-form,.waitlist-business{display:grid;gap:15px}.waitlist-form label,.waitlist-form legend{font-size:14px;font-weight:700}.waitlist-form label:not(.waitlist-consent){display:grid;gap:6px}.waitlist-form small{font-weight:400;color:var(--color-text-2)}
+.waitlist-form input:not([type=radio]):not([type=checkbox]),.waitlist-form select{width:100%;min-height:48px;border:1px solid var(--color-bg-2);border-radius:10px;background:#fff;color:#22201f;padding:10px 12px;font-size:16px;box-sizing:border-box}
+.waitlist-phone{display:grid;grid-template-columns:105px minmax(0,1fr);gap:8px;margin-top:-9px}.waitlist-form fieldset{border:0;padding:0;margin:0;min-width:0}.waitlist-form legend{margin-bottom:9px}
+.waitlist-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}.waitlist-choices label{display:flex!important;align-items:center;gap:8px!important;border:1px solid var(--color-bg-2);padding:12px 9px;border-radius:10px;cursor:pointer}
+.waitlist-choices label:has(input:checked){border-color:var(--color-brand);background:var(--color-brand-100);color:var(--color-brand)}
+.waitlist-form input[type=radio],.waitlist-form input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--color-brand);margin:0}
+.waitlist-business{padding:14px;background:var(--color-bg);border-radius:12px}.waitlist-consent{display:flex;align-items:flex-start;gap:10px;font-weight:400!important;line-height:1.45}.waitlist-card a{text-decoration:underline;color:var(--color-brand)}
+.waitlist-primary,.waitlist-secondary{width:100%;min-height:48px;border-radius:12px;font-weight:700;font-size:16px;cursor:pointer}.waitlist-primary{background:var(--color-brand);color:white;border:0}.waitlist-primary:disabled{opacity:.6}.waitlist-secondary{border:1px solid var(--color-brand);background:transparent;color:var(--color-brand);margin-top:10px}
+.waitlist-privacy{font-size:12px;color:var(--color-text-2);line-height:1.5}.waitlist-privacy summary{cursor:pointer}.waitlist-privacy p{margin-top:8px}.waitlist-error{color:var(--color-error)!important}.waitlist-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.waitlist-success{text-align:center;padding:20px 0}.waitlist-success p{margin-bottom:24px}.waitlist-check{display:inline-grid;place-items:center;width:60px;height:60px;border-radius:50%;background:var(--color-brand-100);color:var(--color-brand);font-size:30px}

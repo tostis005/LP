@@ -17,6 +17,7 @@ export const adminDefaultHref = "/admin/negocios";
 export const adminNavigation = Object.entries(adminSections).map(([slug,section])=>({href:"/admin/"+slug,label:section.title,short:section.short,icon:section.icon}));
 export function adminActiveHref(path:string){
  const section=path.split("/")[2]||"negocios";
+ if(section==="lista-espera")return "/admin/solicitudes";
  return isAdminSection(section)?"/admin/"+section:adminDefaultHref;
 }
 export const adminBusinessSections = {overview:"Tarjeta actual",tarjeta:"Diseñar tarjeta",poster:"QR para mostrador",marketing:"Campañas",team:"Empleados",settings:"Información",locations:"Ubicación",reports:"Datos",customers:"Clientes",transactions:"Transacciones"} as const;

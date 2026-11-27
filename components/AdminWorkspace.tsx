@@ -10,6 +10,7 @@ import {dateShort} from "@/lib/format";
 import {CURRENCIES} from "@/lib/currency";
 import {AdminCampaignCharges} from "@/components/AdminCampaignCharges";
 import {AdminSupportRequests} from "./AdminSupportRequests";
+import {AdminWaitlist} from "./AdminWaitlist";
 import {AdminMarketingUsers} from "./AdminMarketingUsers";
 import {DirectoryHead,DirectoryPager,useDirectoryTable} from "./DirectoryTable";
 import type {TableColumn} from "@/lib/table-directory";
@@ -210,6 +211,7 @@ function AdminContent({account,tab}:{account:Account;tab:AdminTab}){
  <label>Usar el diseño de una tarjeta existente (opcional)<select value={existingProgram} onChange={e=>setExistingProgram(e.target.value)}><option value="">Crear programa independiente</option>{businesses.filter(x=>x.active).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select><small>Copia diseño y reglas iniciales; los saldos de los clientes permanecen independientes en cada negocio.</small></label>
  <label>Moneda del negocio<select value={newCurrency} onChange={e=>setNewCurrency(e.target.value)}>{CURRENCIES.map(({code,label})=><option value={code} key={code}>{label} ({code})</option>)}</select></label><label>Nombre del establecimiento<input required minLength={2} value={newLocName} onChange={e=>setNewLocName(e.target.value)} placeholder="Ej. Local principal"/></label><AddressPicker address={newLocAddress} city={newLocCity} country={newLocCountry} lat={newLocLat} lng={newLocLng} onAddressChange={setNewLocAddress} onCityChange={setNewLocCity} onCountryChange={setNewLocCountry} onCoordinatesChange={(lat,lng)=>{setNewLocLat(lat);setNewLocLng(lng)}}/><label>Precio mensual pactado ({newCurrency})<input type="number" min="0" step="0.01" value={contractPrice} onChange={e=>setContractPrice(e.target.value)} placeholder="Se acuerda individualmente"/><small>Se pueden aplicar condiciones especiales por volumen. Este registro no genera cargos automáticamente.</small></label><button className="button button-dark button-full" disabled={busy}>{busy?"Creando...":"Crear negocio"} <ArrowUpRight size={17}/></button></div></form>}</div>}
  {tab==="users"&&<AdminMarketingUsers/>}
+ {tab==="leads"&&<AdminWaitlist/>}
  {tab==="leads"&&<AdminSupportRequests/>}
  {tab==="leads"&&<div className="panel-card"><div className="content-heading"><div><h2>Solicitudes de acceso</h2><p>Revisa cada negocio y conviértelo manualmente en cliente cuando proceda.</p></div><span className="table-pill">{leads.length} solicitudes</span></div>
  <div className="table-wrap"><table className="data-table directory-table"><DirectoryHead columns={leadColumns} table={leadTable}/>
