@@ -76,16 +76,12 @@ assert.match(read("lib/server/denue-download.ts"),/11020.*denue_11_0525_csv.zip/
 
 assert.match(directory,/marketing-users\?view=users/);
 assert.match(directory,/marketing-users\?view=regions/);
-assert.match(directory,/Cambiar contraseña/);
 assert.match(api,/admin_reset_staff_password/);
 
 
 // One marketing editor action and one save, with explicit password validation.
 assert.match(directory,/existing&&<section className="marketing-editor-section form-stack" aria-label="Contraseña de acceso"/);
-assert.match(directory,/u\.role==="marketing"&&<button[^>]*>/);
-assert.match(directory,/\["owner","manager","employee"\]\.includes\(u\.role\)/);
 assert.doesNotMatch(directory,/Editar permisos|Guarda la contraseña en el apartado superior/);
-assert.match(directory,/newPassword:existing\?newPassword:""/);
 assert.match(directory,/passwordValidation\(newPassword,confirmPassword,true\)/);
 assert.match(directory,/type="submit" disabled=\{busy\}>\{busy\?"Guardando…":existing\?"Guardar cambios"/);
 assert.match(directory,/style=\{\{display:"grid",gap:24\}\}/);
@@ -94,3 +90,15 @@ assert.match(directory,/passwordError&&<p role="alert"/);
 assert.match(api,/if\(newPassword\)await c\.query\("SELECT public\.admin_reset_staff_password\(\$1::uuid,\$2\)",\[result\.id,hash\]\)/);
 assert.match(api,/passwordChanged:!!newPassword/);
 assert.match(api,/if\(!initialPassword&&!newPassword&&v\.invite===true\)/);
+
+assert.match(directory,/method:existing\?"PUT":"POST"/);
+assert.match(directory,/onClick=\{\(\)=>open\(u\)\} disabled=\{busy\}>Editar usuario/);
+assert.match(directory,/key:"business",label:"Negocio"/);
+assert.match(directory,/matches:\(u,id\)=>\(u.business_links\|\|\[\]\).some\(b=>b.id===id\)/);
+assert.match(api,/public.admin_account_details\(\)/);
+assert.match(api,/public.admin_edit_account\(/);
+const people=[{name:"Owner",ids:["b1"]},{name:"Customer",ids:["b1","b2"]},{name:"Employee",ids:["b2"]}];
+const businessCol=[{key:"business",value:r=>r.ids.join(","),filter:"select",matches:(r,id)=>r.ids.includes(id)}];
+assert.equal(selectDirectoryRows(people,businessCol,{business:"b1"},{key:"business",direction:"asc"}).length,2);
+assert.equal(selectDirectoryRows(people,businessCol,{business:"b2"},{key:"business",direction:"asc"}).length,2);
+assert.equal(selectDirectoryRows(people,businessCol,{business:"b"},{key:"business",direction:"asc"}).length,0);
