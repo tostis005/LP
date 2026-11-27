@@ -1,0 +1,115 @@
+name: Precargar CSV Venezuela en CRM privado
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/stage-venezuela.yml'
+      - 'scripts/build-venezuela-osm.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: lp-production
+  cancel-in-progress: false
+jobs:
+  stage:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - name: Descargar y comprobar el extracto aprobado
+        run: |
+          set -euo pipefail
+          expected=2f7627c62bcaf3ae3d0d3b66f629ef92c236d0140aed1dd2ca7b2d49bf8a7bed
+          ok=false
+          for url in https://download.geofabrik.de/south-america/venezuela-261126.osm.pbf https://download.geofabrik.de/south-america/venezuela-latest.osm.pbf; do
+            if curl -fsSL --retry 2 --max-time 180 "$url" -o /tmp/venezuela.osm.pbf && echo "$expected  /tmp/venezuela.osm.pbf" | sha256sum -c --status; then ok=true; break; fi
+          done
+          if [[ "$ok" != true ]]; then echo "::error::No se recuperó el extracto exacto del 26/11/2026. No se cargaron otros datos."; exit 1; fi
+      - name: Reconstruir y comprobar el CSV exacto
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet pandas==2.2.3 pyogrio==0.12.1 geopandas==1.1.2 shapely==2.1.2 numpy==2.3.5 pyproj==3.7.2
+          python scripts/build-venezuela-osm.py /tmp/venezuela.osm.pbf /tmp/osm-venezuela-20261126.csv
+          echo '771f0025cc90740ed9150145ef2685f3d2d4f7ba97df5c9068ca303d2d8ff66b  /tmp/osm-venezuela-20261126.csv' | sha256sum -c --status
+          echo "CSV idéntico al original verificado."
+      - name: Configurar acceso SSH con los secretos existentes del repositorio
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          LP_SSH_KNOWN_HOSTS: ${{ secrets.LP_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$VPS_HOST" || -z "$VPS_USER" || -z "$VPS_SSH_KEY" ]]; then
+            echo "::error::Falta VPS_HOST, VPS_USER o VPS_SSH_KEY en Repository secrets o en el entorno production."
+            exit 1
+          fi
+          PORT="${VPS_SSH_PORT:-22}"
+          install -d -m 700 "$HOME/.ssh"
+          # La clave del secreto puede incluir CRLF al copiarse desde Windows.
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$HOME/.ssh/id_deploy"
+          chmod 600 "$HOME/.ssh/id_deploy"
+          if ! ssh-keygen -y -P "" -f "$HOME/.ssh/id_deploy" >/dev/null 2>&1; then
+            echo "::error::VPS_SSH_KEY no es una clave privada SSH válida sin frase de paso."
+            exit 1
+          fi
+          # Opción recomendada: verificar y fijar previamente la clave de host
+          # en LP_SSH_KNOWN_HOSTS. Si no está configurada, se utiliza TOFU
+          # mediante ssh-keyscan (confianza en el primer contacto).
+          if [[ -n "$LP_SSH_KNOWN_HOSTS" ]]; then
+            printf '%s\n' "$LP_SSH_KNOWN_HOSTS" | tr -d '\r' > "$HOME/.ssh/known_hosts"
+            LOOKUP="$VPS_HOST"
+            if [[ "$PORT" != 22 ]]; then LOOKUP="[$VPS_HOST]:$PORT"; fi
+            if ! ssh-keygen -F "$LOOKUP" -f "$HOME/.ssh/known_hosts" >/dev/null 2>&1; then
+              # Accept one explicitly supplied public host key, with or without a hostname.
+              # Never obtain a replacement key from the network or disable strict checking.
+              PIN=$(awk 'NF && $1 !~ /^#/ { n++; if ($1 ~ /^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521))$/) { k=$1 " " $2 } else if ($1 !~ /^@/ && $2 ~ /^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521))$/) { k=$2 " " $3 } } END { if(n==1 && k!="") print k; else exit 1 }' "$HOME/.ssh/known_hosts") || { echo 'CRM_DIAG invalid_host_key_format'; exit 2; }
+              printf '%s %s\n' "$LOOKUP" "$PIN" > "$HOME/.ssh/known_hosts"
+              if ! ssh-keygen -l -f "$HOME/.ssh/known_hosts" >/dev/null 2>&1; then echo 'CRM_DIAG invalid_host_key_format'; exit 2; fi
+              echo 'CRM_DIAG pinned_host_key_format_normalized'
+            fi
+          else
+            echo "::notice::LP_SSH_KNOWN_HOSTS no configurado: se comprueba la clave de host mediante ssh-keyscan sin huella prevalidada. Para mayor seguridad, fija la huella verificada."
+            ssh-keyscan -T 15 -p "$PORT" "$VPS_HOST" > "$HOME/.ssh/known_hosts" 2>/dev/null
+          fi
+          chmod 600 "$HOME/.ssh/known_hosts"
+          if ! [[ -s "$HOME/.ssh/known_hosts" ]]; then
+            echo "::error::No fue posible obtener la clave pública SSH del VPS."
+            exit 1
+          fi
+          echo "Identidad SSH configurada. Conexión a Contabo preparada."
+
+      - name: Guardar solo en la biblioteca privada
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          PORT="${VPS_SSH_PORT:-22}"
+          # Transfer only through SSH stdin. Never write the CSV to the repository or logs.
+          {
+            printf '%s\n' 'BEGIN;' 'CREATE TEMP TABLE stage_ve(encoded text) ON COMMIT DROP;' 'COPY stage_ve(encoded) FROM STDIN;'
+            base64 -w0 /tmp/osm-venezuela-20261126.csv
+            printf '\n\\.\n'
+            cat <<'SQL'
+          INSERT INTO public.crm_staged_csv(filename,sha256,data)
+          SELECT 'osm-venezuela-20261126.csv','771f0025cc90740ed9150145ef2685f3d2d4f7ba97df5c9068ca303d2d8ff66b',decode(encoded,'base64')
+          FROM stage_ve
+          ON CONFLICT(filename) DO NOTHING;
+          DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM public.crm_staged_csv WHERE filename='osm-venezuela-20261126.csv' AND sha256='771f0025cc90740ed9150145ef2685f3d2d4f7ba97df5c9068ca303d2d8ff66b' AND data=(SELECT decode(encoded,'base64') FROM stage_ve)) THEN
+              RAISE EXCEPTION 'El archivo existente difiere del aprobado; no se ha sobrescrito.';
+            END IF;
+          END $$;
+          COMMIT;
+          SELECT filename,sha256,octet_length(data) AS bytes,NOT EXISTS (SELECT 1 FROM public.crm_import_runs r WHERE r.filename=s.filename AND r.report->>'sha256'=s.sha256) AS pending FROM public.crm_staged_csv s WHERE filename='osm-venezuela-20261126.csv';
+          SQL
+          } | ssh -i "$HOME/.ssh/id_deploy" -p "$PORT" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o ConnectTimeout=15 "$VPS_USER@$VPS_HOST" 'cd /opt/lp && if test -r .env.production && docker info >/dev/null 2>&1; then docker compose --env-file .env.production exec -T db sh -c '\''psql -X -q -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'\''; else sudo -n docker compose --env-file .env.production exec -T db sh -c '\''psql -X -q -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'\''; fi'
