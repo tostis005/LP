@@ -30,7 +30,7 @@ export function AdminMarketingUsers(){
    if(!r.ok)throw Error(j.error||"No se pudo cambiar la contraseña.");
    clearPassword();
    const message="Contraseña guardada. Las sesiones anteriores se han cerrado.";
-   if(editing)setPasswordNotice(message+(active?" El usuario puede acceder con su correo y la nueva contraseña.":" Para permitir el acceso al CRM, activa la cuenta y guarda los permisos."));
+   if(editing)setPasswordNotice(message+" El usuario podrá entrar con su correo y la nueva contraseña si su acceso al CRM está activo.");
    else{setNotice(message);setPasswordUser(null);}
   }catch(e){setPasswordError(e instanceof Error?e.message:"No se pudo cambiar la contraseña.");}finally{setBusy(false);}
  }
