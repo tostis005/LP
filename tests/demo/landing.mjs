@@ -106,7 +106,7 @@ assert.match(appEntry,/Añadir a mi móvil/,"Customers can install from app entr
 assert.match(manifest,/start_url:"\/entrar"/,"The installed icon starts with session resolution");
 const entryRouter=readFileSync(new URL("../../app/entrar/page.tsx",import.meta.url),"utf8");
 assert.match(entryRouter,/KreyviLoading/);
-assert.match(entryRouter,/if\(!user\)\{router.replace\("\/acceder"\);return\}/);
+assert.match(entryRouter,/if\(!user\)\{clearOfflineAccount\(\);router.replace\("\/acceder"\);return\}/,"A confirmed missing session clears cached private cards before redirecting");
 assert.match(entryRouter,/router.replace\("\/app"\)/);
 const rootPage=readFileSync(new URL("../../app/page.tsx",import.meta.url),"utf8");
 assert.match(rootPage,/Tus lugares favoritos/);
