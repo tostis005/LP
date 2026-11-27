@@ -13,7 +13,9 @@ import {db} from "@/lib/supabase";
 import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {MerchantCard} from "@/components/StampCard";
-import {CARD_DESIGNS} from "@/lib/card-designs";
+import {CARD_BACKGROUNDS,CARD_BACKGROUND_GROUPS} from "@/lib/card-backgrounds";
+import {cardBackgroundUrl} from "@/lib/card-images";
+import "@/app/card-designer.css";
 import type {MilestoneRule} from "@/lib/milestones";
 import {CounterPoster} from "@/components/CounterPoster";
 import {adminBusinessHref,adminBusinessSections,managedBusinessHref,type AdminBusinessSection} from "@/lib/admin-sections";
@@ -102,6 +104,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
  },[]);
  const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,push:false,template_name:"",template_language:""});
  useEffect(()=>{fetch("/api/local/marketing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setMarketingStatus(v as MarketingStatus)}).catch(()=>{});},[]);
+ const [backgroundGroup,setBackgroundGroup]=useState("Todos");
  const [previewEarned,setPreviewEarned]=useState(3),[previewMilestones,setPreviewMilestones]=useState<MilestoneRule[]>([]);
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
@@ -362,7 +365,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
    {tab==="card"&&cardArea==="design"&&<div className="designer-grid lp-new-designer">
     <section className="panel-card"><div className="panel-icon"><Brush size={22}/></div><h2>Diseño de la tarjeta</h2>
      <div className="form-stack">
-      <div className="owner-card-brand-upload"><div className="owner-card-brand-preview">{biz.logo_url?<img src={logoImageUrl(biz.logo_url,256)} alt="Logotipo actual del negocio" decoding="async"/>:<span style={{background:biz.accent_color}}>{initials(biz.name)}</span>}</div>
+      <div className="card-editor-block"><h3>1. Logotipo y mensaje</h3><div className="owner-card-brand-upload"><div className="owner-card-brand-preview">{biz.logo_url?<img src={logoImageUrl(biz.logo_url,256)} alt="Logotipo actual del negocio" decoding="async"/>:<span style={{background:biz.accent_color}}>{initials(biz.name)}</span>}</div>
        <div><strong>Logotipo de la tarjeta</strong><small>También se utiliza en la ficha del negocio.</small>
         <label className="file-input"><ImagePlus size={18}/> Subir o cambiar logotipo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"logo_url")}/></label>
         <small>JPG, PNG o WEBP hasta 5 MB. Se aplica al pulsar Guardar diseño.</small>
@@ -371,29 +374,42 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
       {biz.logo_url&&<div className="logo-adjust-controls"><strong>Ajustar logotipo</strong><label>Tamaño · {biz.card_logo_scale??100}%<input type="range" min={50} max={220} value={biz.card_logo_scale??100} onChange={e=>setBiz({...biz,card_logo_scale:Number(e.target.value)})}/></label><label>Posición horizontal<input type="range" min={-50} max={50} value={biz.card_logo_x??0} onChange={e=>setBiz({...biz,card_logo_x:Number(e.target.value)})}/></label><label>Posición vertical<input type="range" min={-50} max={50} value={biz.card_logo_y??0} onChange={e=>setBiz({...biz,card_logo_y:Number(e.target.value)})}/></label><button type="button" className="button button-outline button-sm" onClick={()=>setBiz({...biz,card_logo_scale:100,card_logo_x:0,card_logo_y:0})}>Restablecer ajuste</button><small>Comprueba el resultado en la vista previa y guarda el diseño.</small></div>}
       <label>Mensaje en la tarjeta<input value={biz.card_text||""} maxLength={60} placeholder="GRACIAS POR VOLVER" onChange={e=>setBiz({...biz,card_text:e.target.value})}/></label>
 
-      <div className="card-design-library"><strong>Diseños prediseñados</strong><p className="muted">Elige un estilo y personalízalo. Se aplica únicamente al guardar el diseño.</p><div className="card-design-options">{CARD_DESIGNS.map(design=><button type="button" key={design.id} aria-pressed={biz.card_background===design.business.card_background} onClick={()=>setBiz(old=>old?{...old,...design.business}:old)}><span style={{backgroundColor:design.preview.color,backgroundImage:"url("+design.preview.backgroundUrl+")"}}><StampMark kind={design.preview.icon} size={23}/></span><strong>{design.label}</strong><small>{design.description}</small></button>)}</div></div>
-      <label className="color-input-label">Fondo de la tarjeta <span><input aria-label="Elegir color de fondo" type="color" value={biz.accent_color} onChange={e=>setBiz({...biz,accent_color:e.target.value})}/><code>{biz.accent_color}</code></span></label>
-      <div className="preset-palette">{COLOR_PRESETS.map(color=><button type="button" title={color} aria-label={"Elegir color "+color} onClick={()=>setBiz({...biz,accent_color:color})} style={{background:color}} key={color}/>)}</div>
-      <label className="color-input-label">Color de las letras <span><input aria-label="Elegir color de las letras" type="color" value={biz.card_text_color||"#ffffff"} onChange={e=>setBiz({...biz,card_text_color:e.target.value})}/><code>{biz.card_text_color||"#ffffff"}</code></span></label>
-      {prog.type==="stamps"&&<>
-       <strong className="lp-icon-heading">1. Elige el dibujo de tus sellos</strong>
-       <div className="role-demo-icon-grid lp-real-icon-grid">{STAMP_OPTIONS.map(option=><button type="button" key={option.id} className={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url?"selected":""} aria-label={"Sello de "+option.label} aria-pressed={(biz.stamp_icon||"coffee")===option.id&&!biz.stamp_image_url} onClick={()=>setBiz({...biz,stamp_icon:option.id,stamp_image_url:null})}><StampMark kind={option.id} size={30} color={biz.stamp_color||"#571c32"}/><span>{option.label}</span></button>)}</div>
-       <div className="stamp-color-panel">
-        <strong className="lp-icon-heading">2. Elige el color de tu sello</strong>
-        <p className="muted">Utiliza uno de estos colores o elige el que mejor combine con tu negocio. El cambio se aplicará al guardar el diseño.</p>
-        <div className="stamp-color-row">
-         <div className="stamp-color-sample"><StampMark kind={biz.stamp_icon||"coffee"} size={38} color={biz.stamp_color||"#571c32"}/><span>Tu sello</span></div>
-         <label className="color-input-label">Color personalizado <span><input aria-label="Cambiar color del sello" type="color" value={biz.stamp_color||"#571c32"} onChange={e=>setBiz({...biz,stamp_color:e.target.value})}/><code>{biz.stamp_color||"#571c32"}</code></span></label>
-        </div>
-        <div className="stamp-color-palette" role="group" aria-label="Colores sugeridos para el sello">
-         {STAMP_COLOR_PRESETS.map(color=><button type="button" key={color} style={{backgroundColor:color}} className={(biz.stamp_color||"#571c32").toLowerCase()===color?"selected":""} title={"Elegir "+color} aria-label={"Elegir color de sello "+color} aria-pressed={(biz.stamp_color||"#571c32").toLowerCase()===color} onClick={()=>setBiz({...biz,stamp_color:color})}/>)}
-        </div>
+      </div>
+      <section className="card-editor-block" aria-label="Fondo de la tarjeta">
+       <h3>2. Fondo de la tarjeta</h3><p className="muted">Elige un color liso o una imagen de fondo. Puedes utilizar nuestros diseños o subir tu propia imagen.</p>
+       <div className="card-editor-modes" role="group" aria-label="Tipo de fondo">
+        <button type="button" aria-pressed={!biz.card_background} disabled={busy} onClick={()=>setBiz(old=>old?{...old,card_background:null}:old)}><span className="card-mode-color" style={{background:biz.accent_color}}/> <strong>Color liso</strong><small>Un solo color</small></button>
+        <button type="button" aria-pressed={!!biz.card_background} disabled={busy} onClick={()=>{if(!biz.card_background){const design=CARD_BACKGROUNDS[0];setBiz(old=>old?{...old,card_background:design.url,accent_color:design.color,card_text_color:"#ffffff"}:old);setBackgroundGroup("Todos");}}}><ImagePlus size={21}/><strong>Imagen de fondo</strong><small>Galería o imagen propia</small></button>
        </div>
-       <label className="file-input"><ImagePlus size={18}/> Subir sello propio <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"stamp_image_url")}/></label>
-       {biz.stamp_image_url&&<button type="button" className="role-demo-textbutton" onClick={()=>setBiz({...biz,stamp_image_url:null})}>Quitar imagen personalizada</button>}
-       <small className="muted">Elige uno de nuestros dibujos o, si lo prefieres, sube tu propia imagen. Los clientes verán el sello cuando guardes el diseño.</small>
-      </>}
-      <label className="file-input"><ImagePlus size={18}/> Subir imagen de fondo <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e.target.files?.[0]||null,"card_background")}/></label>{biz.card_background&&<button type="button" className="role-demo-textbutton" disabled={busy} onClick={()=>setBiz(old=>old?{...old,card_background:null}:old)}>Quitar imagen de fondo</button>}
+       {!biz.card_background?<div className="card-color-picker">
+        <strong>Colores sugeridos</strong><div className="card-color-swatches" role="group" aria-label="Colores sugeridos del fondo">{COLOR_PRESETS.map(color=><button type="button" key={color} disabled={busy} title={color} aria-label={"Elegir color de fondo "+color} aria-pressed={biz.accent_color.toLowerCase()===color} onClick={()=>setBiz(old=>old?{...old,accent_color:color}:old)} style={{background:color}}>{biz.accent_color.toLowerCase()===color&&<Check size={15}/>}</button>)}</div>
+        <label className="card-custom-color"><input aria-label="Elegir color de fondo" type="color" value={biz.accent_color} disabled={busy} onChange={e=>setBiz(old=>old?{...old,accent_color:e.target.value}:old)}/><span><strong>Elegir color personalizado</strong><small>Abre la paleta y selecciona cualquier color</small></span><code>{biz.accent_color}</code></label>
+       </div>:<div className="card-background-library">
+        <div className="card-gallery-heading"><strong>Galería de fondos</strong><small>{CARD_BACKGROUNDS.length} diseños</small></div>
+        <div className="card-gallery-filters" role="group" aria-label="Estilos de fondo">{CARD_BACKGROUND_GROUPS.map(group=><button key={group} type="button" aria-pressed={group===backgroundGroup} onClick={()=>setBackgroundGroup(group)}>{group}</button>)}</div>
+        <div className="card-gallery-grid">{CARD_BACKGROUNDS.filter(d=>backgroundGroup==="Todos"||d.group===backgroundGroup).map(design=><button type="button" key={design.id} disabled={busy} aria-pressed={biz.card_background===design.url} onClick={()=>setBiz(old=>old?{...old,accent_color:design.color,card_background:design.url,card_text_color:"#ffffff"}:old)}><span className="card-gallery-art"><img src={design.url} alt="" loading="lazy" draggable={false}/>{biz.card_background===design.url&&<span className="card-gallery-check"><Check size={15}/></span>}</span><span className="card-gallery-label">{design.label}</span></button>)}</div>
+        <div className="card-upload-choice">
+         <div className="card-upload-thumb"><img src={cardBackgroundUrl(biz.card_background)} alt="Fondo seleccionado" loading="lazy"/></div><div><strong>{CARD_BACKGROUNDS.find(d=>d.url===biz.card_background)?.label||"Imagen personalizada"}</strong><small>Fondo seleccionado</small></div>
+        </div>
+        <label className={"card-upload-button"+(busy?" is-disabled":"")}><ImagePlus size={21}/><span><strong>Subir fondo personalizado</strong><small>JPG, PNG o WEBP · hasta 5 MB</small></span><input type="file" disabled={busy} accept="image/png,image/jpeg,image/webp" onChange={e=>{upload(e.target.files?.[0]||null,"card_background");e.currentTarget.value="";}}/></label>
+       </div>}
+       <label className="card-custom-color"><input aria-label="Elegir color de las letras" type="color" value={biz.card_text_color||"#ffffff"} disabled={busy} onChange={e=>setBiz(old=>old?{...old,card_text_color:e.target.value}:old)}/><span><strong>Color de las letras</strong><small>Elige un color que se lea bien sobre el fondo</small></span><code>{biz.card_text_color||"#ffffff"}</code></label>
+      </section>
+      {prog.type==="stamps"&&<section className="card-editor-block" aria-label="Diseño de los sellos">
+       <h3>3. Sellos</h3><p className="muted">Elige un icono de la galería y personaliza su color, o sube un sello propio.</p>
+       <div className="card-editor-modes" role="group" aria-label="Tipo de sello">
+        <button type="button" aria-pressed={!biz.stamp_image_url} disabled={busy} onClick={()=>setBiz(old=>old?{...old,stamp_image_url:null}:old)}><StampMark kind={biz.stamp_icon||"coffee"} size={23} color={biz.stamp_color||"#571c32"}/><strong>Icono de galería</strong><small>Personaliza su color</small></button>
+        <label className={"card-mode-upload"+(biz.stamp_image_url?" selected":"")+(busy?" is-disabled":"")}><ImagePlus size={21}/><strong>{biz.stamp_image_url?"Sello personalizado":"Subir sello propio"}</strong><small>{biz.stamp_image_url?"Cambiar imagen":"JPG, PNG o WEBP"}</small><input type="file" disabled={busy} aria-label="Subir sello propio" accept="image/png,image/jpeg,image/webp" onChange={e=>{upload(e.target.files?.[0]||null,"stamp_image_url");e.currentTarget.value="";}}/></label>
+       </div>
+       {biz.stamp_image_url?<div className="card-upload-choice"><div className="card-stamp-thumb"><StampMark kind={biz.stamp_icon||"coffee"} imageUrl={biz.stamp_image_url} size={42}/></div><div><strong>Tu sello personalizado</strong><small>Conserva sus colores originales. Para cambiarlo, sube otra imagen o vuelve a la galería.</small></div></div>:<>
+        <strong>Galería de iconos</strong>
+        <div className="role-demo-icon-grid lp-real-icon-grid card-stamp-gallery">{STAMP_OPTIONS.map(option=><button type="button" key={option.id} disabled={busy} className={(biz.stamp_icon||"coffee")===option.id?"selected":""} aria-label={"Sello de "+option.label} aria-pressed={(biz.stamp_icon||"coffee")===option.id} onClick={()=>setBiz(old=>old?{...old,stamp_icon:option.id,stamp_image_url:null}:old)}><StampMark kind={option.id} size={26} color={biz.stamp_color||"#571c32"}/><span>{option.label}</span></button>)}</div>
+        <div className="card-color-picker"><strong>Color del sello · colores sugeridos</strong><div className="card-color-swatches" role="group" aria-label="Colores sugeridos para el sello">{STAMP_COLOR_PRESETS.map(color=><button type="button" key={color} disabled={busy} style={{backgroundColor:color}} title={color} aria-label={"Elegir color de sello "+color} aria-pressed={(biz.stamp_color||"#571c32").toLowerCase()===color} onClick={()=>setBiz(old=>old?{...old,stamp_color:color}:old)}>{(biz.stamp_color||"#571c32").toLowerCase()===color&&<Check size={15}/>}</button>)}</div>
+         <label className="card-custom-color"><input aria-label="Cambiar color del sello" type="color" value={biz.stamp_color||"#571c32"} disabled={busy} onChange={e=>setBiz(old=>old?{...old,stamp_color:e.target.value}:old)}/><span><strong>Elegir color personalizado</strong><small>Selecciona cualquier color para el icono</small></span><code>{biz.stamp_color||"#571c32"}</code></label>
+        </div>
+       </>}
+      </section>}
+      <p className="muted">Los cambios se aplican a tus clientes únicamente cuando pulses Guardar diseño.</p>
       <button className="button button-dark button-full" disabled={busy} type="button" onClick={saveDesigner}>{busy?"Guardando...":"Guardar diseño"} <Check size={17}/></button>
      </div>
     </section>
