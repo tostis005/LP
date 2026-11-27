@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
-const page=read("app/help/page.tsx"),form=read("components/SupportForm.tsx"),api=read("app/api/support/route.ts"),wallet=read("lib/server/wallet.ts"),sql=read("db/migrations/999_zzzzzzzzzzzz_support_requests.sql");
-assert.match(page,/canonical:"https:\/\/kreyvi.com\/help"/);
-assert.match(page,/\?lang=en/);assert.match(page,/Google Wallet/);assert.match(page,/<SupportForm lang=\{lang\}/);
+const page=read("app/contacto/page.tsx"),form=read("components/SupportForm.tsx"),api=read("app/api/support/route.ts"),wallet=read("lib/server/wallet.ts"),sql=read("db/migrations/999_zzzzzzzzzzzz_support_requests.sql");
+assert.match(page,/canonical:"https:\/\/kreyvi.com\/contacto"/);
+assert.match(page,/\?lang=en/);assert.match(page,/Google Wallet/);assert.match(page,/<SupportForm[^>]*lang=\{lang\}/);
 assert.doesNotMatch(page,/auth.getUser|actorFromRequest|redirect\(/,"Support page must not require login");
-assert.match(form,/fetch\("\/api\/support"/);
+assert.match(form,/fetch\(access\?"\/api\/leads":"\/api\/support"/);
 assert.match(form,/No necesitas tener una cuenta/);
 assert.match(form,/name="consent" required/);
 assert.match(api,/checkOrigin\(request\)/);
@@ -15,15 +15,27 @@ assert.match(api,/is_platform_admin/);
 assert.match(sql,/ENABLE ROW LEVEL SECURITY/);
 assert.match(sql,/GRANT EXECUTE ON FUNCTION public.submit_support_request\(text,text,text,text\) TO lp_auth/);
 assert.match(wallet,/uri:site\+"\/help"/);
-assert.match(read("lib/public-navigation.ts"),/help:"\/help"/);
+assert.match(read("lib/public-navigation.ts"),/contact:"\/contacto"/);
 console.log("Public bilingual help, real support submission, admin isolation and Wallet support link verified.");
 
 const header=read("components/PublicHeader.tsx"),css=read("app/public-pages.css"),helpCss=read("app/help/help.css");
-assert.match(page,/<PublicHeader lang=\{lang\} page="help"\/>/,"Help uses the same public header");
+assert.match(page,/<PublicHeader lang=\{lang\} page="contact"\/>/,"Help uses the same public header");
 assert.match(page,/<LandingLanguageSync lang=\{lang\}\/>,?/,"The document language follows the selected locale");
 assert.doesNotMatch(page,/<header className="help-header"/);
-assert.match(header,/page==="help"\?"\/help\?lang="\+target/,"Switching language keeps the visitor on help");
+assert.match(header,/\/contacto\?lang="\+target/,"Switching language keeps the visitor on help");
 assert.match(header,/href=\{languageHref\("es"\)\}[\s\S]*?>ES<\/a>/);
 assert.match(header,/href=\{languageHref\("en"\)\}[\s\S]*?>EN<\/a>/);
 assert.match(css,/\.shared-public-header \.header-actions\{display:flex/,"Language controls remain visible on mobile");
 assert.match(helpCss,/linear-gradient\(125deg,#3d0f1b,#5e1a2b/,"Help uses the public landing palette");
+
+assert.match(read("app/help/page.tsx"),/from "\.\.\/contacto\/page"/);
+assert.match(read("app/solicitar-acceso/page.tsx"),/topic:"business_access"/);
+assert.match(form,/Contacta con nosotros/);
+assert.match(form,/optgroup label=\{en\?"For customers":"Para clientes"\}/);
+assert.match(form,/optgroup label=\{en\?"For businesses":"Para negocios"\}/);
+assert.match(form,/business_name:data.business_name/);
+assert.match(form,/consent_contact:data.consent==="on"/);
+assert.match(form,/PUBLIC_BUSINESS_SECTORS/);
+const topics=read("lib/contact-topics.ts"),migration=read("db/migrations/999_zzzzzzzzzzzzzzzzzzz_unified_contact_topics.sql");
+for(const topic of ["business_info","business_design","business_management","business_marketing","business_technical"]){assert.ok(topics.includes(topic));assert.ok(api.includes(topic));assert.ok(migration.includes(topic));}
+assert.doesNotMatch(read("lib/public-navigation.ts"),/Help & support|Ayuda y soporte/);
