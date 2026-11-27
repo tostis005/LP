@@ -2,7 +2,7 @@ import {authPool,actorFromRequest,asActor,checkOrigin,ApiError,responseError} fr
 import {validateEmail} from "@/lib/server/auth";
 export const runtime="nodejs";
 const headers={"Cache-Control":"no-store"};
-const topics=new Set(["wallet","card","account","rewards","privacy","other"]);
+const topics=new Set(["wallet","card","account","rewards","privacy","other","business_info","business_design","business_management","business_marketing","business_technical"]);
 const text=(v:unknown)=>typeof v==="string"?v.trim():"";
 export async function POST(request:Request){
  try{

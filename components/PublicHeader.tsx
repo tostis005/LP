@@ -5,7 +5,7 @@ import {LANDING_COPY,type LandingLanguage} from "@/lib/landing-copy";
 import {publicHref,publicLinks,type PublicPage} from "@/lib/public-navigation";
 export function PublicHeader({lang="es",page="business"}:{lang?:LandingLanguage;page?:PublicPage}){
  const t=LANDING_COPY[lang].nav,en=lang==="en";
- const languageHref=(target:LandingLanguage)=>page==="help"?"/help?lang="+target:page==="business"?"/para-negocios?lang="+target:publicHref(page,target);
+ const languageHref=(target:LandingLanguage)=>(page==="help"||page==="contact")?"/contacto?lang="+target:page==="business"?"/para-negocios?lang="+target:publicHref(page,target);
  return <header className="public-header loi-public-header shared-public-header"><div className="container header-inner">
   <Brand href={publicHref("customer",lang)}/>
   <nav className="top-nav shared-public-nav" aria-label={en?"Main navigation":"Navegación principal"}>

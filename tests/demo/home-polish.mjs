@@ -51,7 +51,7 @@ for(const name of ["cafeteria","barberia","floristeria","spa","automocion","cate
 assert.match(home,/PUBLIC_BUSINESS_SECTORS\.map/);
 assert.match(home,/kind=\{sector\.icon\}/);
 assert.doesNotMatch(home,/kind="flower"/);
-assert.match(read("app/solicitar-acceso/page.tsx"),/PUBLIC_BUSINESS_SECTORS\.map/);
+assert.match(read("components/SupportForm.tsx"),/PUBLIC_BUSINESS_SECTORS\.map/);
 assert.match(read("app/api/leads/route.ts"),/PUBLIC_BUSINESS_SECTORS\.map\(c=>c\.value\)/);
 assert.match(home,/\["cafeteria","hamburgueseria","restaurante","barberia"/);
 const install=read("components/InstallGuide.tsx");

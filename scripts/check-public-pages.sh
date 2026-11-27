@@ -26,17 +26,22 @@ grep -Fq 'More sales.' "$dir/business_en" || { echo 'PUBLIC_FAIL business EN acc
 grep -Fq 'id="comunidad"' "$dir/business_en" || { echo 'PUBLIC_FAIL business community'; exit 1; }
 grep -Fq 'id="panel-negocio"' "$dir/business_en" || { echo 'PUBLIC_FAIL business dashboard'; exit 1; }
 if grep -Fq 'Más clientes. Más visitas.' "$dir/business_en"; then echo 'PUBLIC_FAIL Spanish text in English business landing'; exit 1; fi
-page /help help
+page /contacto help
 grep -Fq '¿En qué podemos ayudarte?' "$dir/help" || { echo 'PUBLIC_FAIL help'; exit 1; }
-page '/help?lang=en' help_en
+page '/contacto?lang=en' help_en
 grep -Fq 'How can we help?' "$dir/help_en" || { echo 'PUBLIC_FAIL help EN'; exit 1; }
 for help_file in help help_en; do
   grep -Fq 'public-header loi-public-header shared-public-header' "$dir/$help_file" || { echo 'PUBLIC_FAIL shared help header'; exit 1; }
-  grep -Fq 'href="/help?lang=es"' "$dir/$help_file" || { echo 'PUBLIC_FAIL Spanish language link'; exit 1; }
-  grep -Fq 'href="/help?lang=en"' "$dir/$help_file" || { echo 'PUBLIC_FAIL English language link'; exit 1; }
+  grep -Fq 'href="/contacto?lang=es"' "$dir/$help_file" || { echo 'PUBLIC_FAIL Spanish language link'; exit 1; }
+  grep -Fq 'href="/contacto?lang=en"' "$dir/$help_file" || { echo 'PUBLIC_FAIL English language link'; exit 1; }
 done
-grep -Fq 'Contact Kreyvi support' "$dir/help_en" || { echo 'PUBLIC_FAIL English support form'; exit 1; }
-grep -Fq 'Contacta con soporte' "$dir/help" || { echo 'PUBLIC_FAIL Spanish support form'; exit 1; }
+grep -Fq 'Contact us' "$dir/help_en" || { echo 'PUBLIC_FAIL English support form'; exit 1; }
+grep -Fq 'Contacta con nosotros' "$dir/help" || { echo 'PUBLIC_FAIL Spanish support form'; exit 1; }
+page /help help_legacy
+page /solicitar-acceso legacy_access
+grep -Fq 'Contacta con nosotros' "$dir/help_legacy" || { echo 'PUBLIC_FAIL legacy help'; exit 1; }
+grep -Fq 'name="business_name"' "$dir/legacy_access" || { echo 'PUBLIC_FAIL legacy access form'; exit 1; }
+grep -Fq 'href="/contacto"' "$dir/customer" || { echo 'PUBLIC_FAIL unified contact link'; exit 1; }
 page '/?lang=en' customer_en
 grep -Fq '<h1>Your favorite places.' "$dir/customer_en" || { echo 'PUBLIC_FAIL English customer landing'; exit 1; }
 for public_file in customer customer_en business_es business_en help help_en; do

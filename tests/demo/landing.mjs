@@ -80,8 +80,8 @@ const publicFooter=readFileSync(new URL("../../components/PublicFooter.tsx",impo
 assert.match(headerUi,/publicLinks\(lang\)\.map/);
 assert.match(publicFooter,/publicLinks\(lang\)\.map/);
 assert.match(landingUi,/<PublicFooter lang=\{lang\} page="business"\/>/);
-assert.match(publicNav,/help:"\/help"/);
-assert.match(publicNav,/contact:"\/solicitar-acceso"/);
+assert.match(publicNav,/help:"\/contacto"/);
+assert.match(publicNav,/contact:"\/contacto"/);
 
 assert.match(installUi,/Tus próximos premios/,"The install section is customer-focused");
 assert.match(installUi,/beforeinstallprompt/,"Native browser install prompts still work");
@@ -191,16 +191,18 @@ assert.match(landingUi,/name="Café Noma"/);
 assert.doesNotMatch(landingUi,/loi-hero-spark|✦/);
 assert.match(landingCss,/cafe-noma-beans\.svg/);
 
-const contactUi=readFileSync(new URL("../../app/solicitar-acceso/page.tsx",import.meta.url),"utf8");
-const contactCss=readFileSync(new URL("../../app/public-pages.css",import.meta.url),"utf8");
-assert.match(contactUi,/request-kicker/);
-assert.match(contactUi,/request-form-heading/);
-assert.match(contactUi,/fetch\("\/api\/leads"/);
-assert.match(contactUi,/consent_contact,website/);
-assert.match(contactUi,/id="consent-access" required/);
+const contactUi=readFileSync(new URL("../../components/SupportForm.tsx",import.meta.url),"utf8");
+const contactPage=readFileSync(new URL("../../app/contacto/page.tsx",import.meta.url),"utf8");
+assert.match(contactPage,/<PublicHeader lang=\{lang\} page="contact"\/>/);
+assert.match(contactPage,/<PublicFooter lang=\{lang\} page="contact"\/>/);
+assert.match(contactUi,/Contacta con nosotros/);
+assert.match(contactUi,/fetch\(access\?"\/api\/leads":"\/api\/support"/);
+assert.match(contactUi,/consent_contact:data.consent==="on"/);
+assert.match(contactUi,/name="consent" required/);
 assert.match(contactUi,/honeypot-field/);
-assert.match(contactCss,/\.request-page \.request-copy h1 em\{color:#f2ca7e\}/);
-assert.match(contactCss,/\.request-page \.request-form\{/);
+assert.match(landingUi,/publicBusinessContactHref\(lang\)/);
+assert.match(publicNav,/topic=business_access/);
+assert.doesNotMatch(publicNav,/Help & support|Ayuda y soporte/);
 
 const nextConfig=readFileSync(new URL("../../next.config.ts",import.meta.url),"utf8");
 assert.doesNotMatch(nextConfig,/source\s*:\s*"\/"\s*,\s*destination\s*:\s*"\/presentacion"/,"The Next.js rewrite cannot shadow the customer home");
