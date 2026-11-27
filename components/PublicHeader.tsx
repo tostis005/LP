@@ -12,7 +12,7 @@ export function PublicHeader({lang="es",page="business"}:{lang?:LandingLanguage;
    {publicLinks(lang).map(item=><Link key={item.page} href={item.href} aria-current={page===item.page?"page":undefined}>{item.label}</Link>)}
   </nav>
   <div className="header-actions loi-header-actions"><nav className="loi-language-switch" aria-label={t.language}>
-   <Link href={languageHref("es")} lang="es" aria-current={lang==="es"?"page":undefined} className={lang==="es"?"selected":""} title="Ver en español">ES</Link><span aria-hidden="true">/</span><Link href={languageHref("en")} lang="en" aria-current={lang==="en"?"page":undefined} className={lang==="en"?"selected":""} title="View in English">EN</Link></nav>
+   <a href={languageHref("es")} lang="es" aria-current={lang==="es"?"page":undefined} className={lang==="es"?"selected":""} title="Ver en español">ES</a><span aria-hidden="true">/</span><a href={languageHref("en")} lang="en" aria-current={lang==="en"?"page":undefined} className={lang==="en"?"selected":""} title="View in English">EN</a></nav>
    <Link href="/acceder" className="button button-dark button-sm">{t.login} <ArrowUpRight size={16}/></Link>
   </div>
  </div></header>;

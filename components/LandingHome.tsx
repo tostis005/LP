@@ -3,6 +3,7 @@ import Link from "next/link";
 import {ArrowRight,ArrowUpRight,Check,Download} from "lucide-react";
 import {PublicHeader} from "@/components/PublicHeader";
 import {PublicFooter} from "@/components/PublicFooter";
+import {publicHref} from "@/lib/public-navigation";
 import {InstallGuide} from "@/components/InstallGuide";
 import {Brand} from "@/components/Brand";
 import {BrandText} from "@/components/BrandText";
@@ -25,7 +26,7 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
       <h1>{t.hero.title} <em>{t.hero.accent}<svg className="loi-hero-underline" viewBox="0 0 300 16" fill="none" aria-hidden="true" preserveAspectRatio="none"><path d="M3 12 Q145 -3 297 8" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"/></svg></em></h1>
       <p>{t.hero.description}</p>
       <div className="loi-hero-actions">
-       <Link href="/solicitar-acceso" className="loi-button loi-button-main">{t.hero.primary} <ArrowUpRight size={19}/></Link>
+       <Link href={publicHref("contact",lang)} className="loi-button loi-button-main">{t.hero.primary} <ArrowUpRight size={19}/></Link>
        <Link href={landingHref(lang,"como-funciona")} className="loi-button loi-button-light">{t.hero.secondary} <ArrowRight size={18}/></Link>
        <a href="/mi-loyally?instalar=1" className="loi-button loi-button-install"><Download size={18}/><BrandText value={lang==="en"?"Kreyvi on my phone":"Kreyvi en mi móvil"}/></a>
       </div>
@@ -62,21 +63,21 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
 
    <section className="loi-process" id="como-funciona">
     <div className="container loi-process-layout">
-     <div className="loi-process-copy"><span className="loi-overline">{t.how.eyebrow}</span><h2>{t.how.first} <em>{t.how.second}</em></h2><p>{t.how.intro}</p><Link href="/solicitar-acceso" className="loi-text-link">{t.how.cta} <ArrowUpRight size={18}/></Link></div>
+     <div className="loi-process-copy"><span className="loi-overline">{t.how.eyebrow}</span><h2>{t.how.first} <em>{t.how.second}</em></h2><p>{t.how.intro}</p><Link href={publicHref("contact",lang)} className="loi-text-link">{t.how.cta} <ArrowUpRight size={18}/></Link></div>
      <div className="loi-process-steps">{t.how.items.map((s,i)=><article className="loi-step" key={s.title}><span>0{i+1}</span><div><h3>{s.title}</h3><p>{s.text}</p></div><Check size={19}/></article>)}</div>
     </div>
    </section>
 
    <section className="loi-section" id="comunidad">
     <div className="container loi-process-layout">
-     <div className="loi-design-copy"><span className="loi-overline">{t.community.eyebrow}</span><h2>{t.community.first} <em>{t.community.second}</em></h2><p>{t.community.intro}</p><Link href="/solicitar-acceso" className="loi-button loi-button-main">{lang==="en"?"Join the community":"Únete a la comunidad"} <ArrowUpRight size={18}/></Link></div>
+     <div className="loi-design-copy"><span className="loi-overline">{t.community.eyebrow}</span><h2>{t.community.first} <em>{t.community.second}</em></h2><p>{t.community.intro}</p><Link href={publicHref("contact",lang)} className="loi-button loi-button-main">{lang==="en"?"Join the community":"Únete a la comunidad"} <ArrowUpRight size={18}/></Link></div>
      <div className="loi-process-steps">{t.community.items.map((item,i)=><article className="loi-step" key={item.title}><span><KreyvIcon name={BENEFIT_ICONS[i]} size={25}/></span><div><h3>{item.title}</h3><p>{item.text}</p></div><Check size={19}/></article>)}</div>
     </div>
    </section>
 
    <section className="loi-process" id="panel-negocio">
     <div className="container loi-process-layout">
-     <div className="loi-process-copy"><span className="loi-overline">{t.dashboard.eyebrow}</span><h2>{t.dashboard.first} <em>{t.dashboard.second}</em></h2><p>{t.dashboard.intro}</p><Link href="/solicitar-acceso" className="loi-text-link">{t.hero.primary} <ArrowUpRight size={18}/></Link></div>
+     <div className="loi-process-copy"><span className="loi-overline">{t.dashboard.eyebrow}</span><h2>{t.dashboard.first} <em>{t.dashboard.second}</em></h2><p>{t.dashboard.intro}</p><Link href={publicHref("contact",lang)} className="loi-text-link">{t.hero.primary} <ArrowUpRight size={18}/></Link></div>
      <div className="loi-process-steps">{t.dashboard.items.map((item,i)=><article className="loi-step" key={item.title}><span><KreyvIcon name={BENEFIT_ICONS[(i+2)%BENEFIT_ICONS.length]} size={25}/></span><div><h3>{item.title}</h3><p>{item.text}</p></div><Check size={19}/></article>)}</div>
     </div>
    </section>
@@ -90,14 +91,14 @@ export function LandingHome({lang="es"}:{lang?:LandingLanguage}){
      </div>
      <div className="loi-design-copy"><span className="loi-overline">{t.design.eyebrow}</span><h2>{t.design.first} <em>{t.design.second}</em></h2><p>{t.design.description}</p>
       <div className="loi-design-points">{t.design.points.map(point=><div key={point}><Check size={17}/> {point}</div>)}</div>
-      <Link href="/solicitar-acceso" className="loi-button loi-button-main">{t.design.cta} <ArrowUpRight size={18}/></Link>
+      <Link href={publicHref("contact",lang)} className="loi-button loi-button-main">{t.design.cta} <ArrowUpRight size={18}/></Link>
      </div>
     </div>
    </section>
 
    <InstallGuide lang={lang}/>
 
-   <section className="loi-final-section" id="empezar"><div className="container"><div className="loi-final-card"><div><span className="loi-overline">{t.final.eyebrow}</span><h2>{t.final.first}<br/><em>{t.final.second}</em></h2><p>{t.final.description}</p><div className="loi-final-actions"><Link href="/solicitar-acceso" className="loi-button loi-button-cream">{t.final.primary} <ArrowUpRight size={19}/></Link><Link href="/acceder" className="loi-final-secondary">{t.final.secondary} <ArrowRight size={17}/></Link></div></div><div className="loi-final-deco" aria-hidden="true"><KreyvIcon name="premios" size={170}/><KreyvIcon name="recompensa" size={58}/></div></div></div></section>
+   <section className="loi-final-section" id="empezar"><div className="container"><div className="loi-final-card"><div><span className="loi-overline">{t.final.eyebrow}</span><h2>{t.final.first}<br/><em>{t.final.second}</em></h2><p>{t.final.description}</p><div className="loi-final-actions"><Link href={publicHref("contact",lang)} className="loi-button loi-button-cream">{t.final.primary} <ArrowUpRight size={19}/></Link><Link href="/acceder" className="loi-final-secondary">{t.final.secondary} <ArrowRight size={17}/></Link></div></div><div className="loi-final-deco" aria-hidden="true"><KreyvIcon name="premios" size={170}/><KreyvIcon name="recompensa" size={58}/></div></div></div></section>
   </main>
   <PublicFooter lang={lang} page="business"/>
  </div>;

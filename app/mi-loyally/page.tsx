@@ -121,15 +121,15 @@ export default function MiLoyally(){
     <h2 id="loyal-app-auth-title">{intro}</h2>
     <p>{mode==="signup"?(en?"All your cards together from day one.":"Tus tarjetas estarán juntas desde el primer día."):mode==="forgot"?(en?"We will help you get back in.":"Te ayudamos a volver a entrar."):(en?"Sign in to see your cards and rewards.":"Entra para ver tus tarjetas y tus recompensas.")}</p>
     {signedIn?<><p>{en?"You are signed in. Install Kreyvi and open your account whenever you like.":"Ya tienes una sesión iniciada. Puedes instalar Kreyvi y abrir tu espacio cuando quieras."}</p><Link className="loyal-app-submit" href="/entrar">Entrar en mi espacio <ArrowRight size={18}/></Link></>:<>
-    <SocialAuthButtons next="/entrar"/>
+    <SocialAuthButtons next="/entrar" lang={lang}/>
     <form onSubmit={signIn} className="loyal-app-form">
-     {mode==="signup"&&<label>{en?"Your name":"Tu nombre"}<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder="¿Cómo te llamas?"/></label>}
+     {mode==="signup"&&<label>{en?"Your name":"Tu nombre"}<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder={en?"Your name":"¿Cómo te llamas?"}/></label>}
      <label>{en?"Email address":"Correo electrónico"}<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
-     {mode!=="forgot"&&<label>{en?"Password":"Contraseña"}<input type="password" required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña"/></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y novedades</strong></span></label>}
-     {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&"No te pierdas las ofertas y promociones de los locales participantes. "}Puedes cambiar tus preferencias en Ajustes cuando quieras.</p>}
-     {mode==="signup"&&<details className="lp-signup-consent-details"><summary>Más información</summary><p>Si marcas la casilla, Kreyvi y los negocios de tus tarjetas podrán enviarte ofertas y novedades por email, WhatsApp y notificaciones. Es opcional y puedes retirar tu consentimiento en Ajustes.</p></details>}
-     {mode==="signup"&&marketingOptIn&&<label>Tu número de WhatsApp<input type="tel" inputMode="tel" required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>Para recibir las ofertas que has elegido. Incluye el prefijo internacional.</small></label>}
+     {mode!=="forgot"&&<label>{en?"Password":"Contraseña"}<input type="password" required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder={en?"Your password":"Tu contraseña"}/></label>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>{en?"I want to receive offers and news":"Quiero recibir ofertas y novedades"}</strong></span></label>}
+     {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&(en?"Don’t miss offers from participating businesses. ":"No te pierdas las ofertas y promociones de los locales participantes. ")}{en?"Change your preferences in Settings at any time.":"Puedes cambiar tus preferencias en Ajustes cuando quieras."}</p>}
+     {mode==="signup"&&<details className="lp-signup-consent-details"><summary>{en?"More information":"Más información"}</summary><p>{en?"If checked, Kreyvi and participating businesses may send offers and news by email, WhatsApp and notifications. This is optional and you can withdraw consent in Settings.":"Si marcas la casilla, Kreyvi y los negocios de tus tarjetas podrán enviarte ofertas y novedades por email, WhatsApp y notificaciones. Es opcional y puedes retirar tu consentimiento en Ajustes."}</p></details>}
+     {mode==="signup"&&marketingOptIn&&<label>{en?"Your WhatsApp number":"Tu número de WhatsApp"}<input type="tel" inputMode="tel" required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>{en?"To receive the offers you selected. Include your country code.":"Para recibir las ofertas que has elegido. Incluye el prefijo internacional."}</small></label>}
      
      {error&&<p role="alert" className="loyal-app-error">{error}</p>}
      {message&&<p role="status" className="loyal-app-success">{message}</p>}
@@ -141,25 +141,25 @@ export default function MiLoyally(){
   </div>
   {showInstall&&!standalone&&<div className="loyal-app-sheet-overlay" role="presentation">
    <div className="loyal-app-sheet" role="dialog" aria-modal="true" aria-labelledby="loyal-app-install-title">
-    <button type="button" className="loyal-app-sheet-close" onClick={()=>setShowInstall(false)} aria-label="Cerrar"><X size={19}/></button>
+    <button type="button" className="loyal-app-sheet-close" onClick={()=>setShowInstall(false)} aria-label={en?"Close":"Cerrar"}><X size={19}/></button>
     <div className="loyal-app-sheet-icon"><Smartphone size={28}/></div>
     <h2 id="loyal-app-install-title">{en?"Kreyvi on your home screen":"Kreyvi en tu pantalla de inicio"}</h2>
     <p>{en?"Open your cards from the Kreyvi icon, without the browser bar.":"Así podrás abrir tus tarjetas desde el icono de Kreyvi, sin la barra del navegador."}</p>
     {platform==="ios"?<>
      <ol className="loyal-app-sheet-steps">
-      <li><span>1</span><p>Abre esta pantalla en <strong>Safari</strong>. Si llegaste desde WhatsApp, Instagram u otra app, abre el enlace en Safari.</p></li>
-      <li><span>2</span><p>Toca <Share2 size={15} aria-hidden="true"/> <strong>Compartir</strong> (o el menú de página de Safari) y después <strong>Añadir a pantalla de inicio</strong>.</p></li>
-      <li><span>3</span><p>Si aparece, activa <strong>«Abrir como app web»</strong> y toca <strong>Añadir</strong>.</p></li>
+      <li><span>1</span><p>{en?"Open this page in ":"Abre esta pantalla en "}<strong>Safari</strong>{en?". If you arrived from WhatsApp, Instagram or another app, open the link in Safari.":". Si llegaste desde WhatsApp, Instagram u otra app, abre el enlace en Safari."}</p></li>
+      <li><span>2</span><p>{en?"Tap ":"Toca "}<Share2 size={15} aria-hidden="true"/> <strong>{en?"Share":"Compartir"}</strong>{en?" (or the Safari page menu), then ":" (o el menú de página de Safari) y después "}<strong>{en?"Add to Home Screen":"Añadir a pantalla de inicio"}</strong>.</p></li>
+      <li><span>3</span><p>{en?"If shown, enable ":"Si aparece, activa "}<strong>{en?"Open as Web App":"«Abrir como app web»"}</strong>{en?" and tap ":" y toca "}<strong>{en?"Add":"Añadir"}</strong>.</p></li>
      </ol>
-     <p className="loyal-app-sheet-hint">Si no aparece la opción, busca «Editar acciones» al final del menú Compartir. Después, abre Kreyvi desde el nuevo icono.</p>
+     <p className="loyal-app-sheet-hint">{en?"If the option is missing, look for Edit Actions in the Share menu. Then open Kreyvi from its new icon.":"Si no aparece la opción, busca «Editar acciones» al final del menú Compartir. Después, abre Kreyvi desde el nuevo icono."}</p>
     </>:platform==="android"?<>
      <ol className="loyal-app-sheet-steps">
-      <li><span>1</span><p>Abre esta pantalla en <strong>Chrome</strong>.</p></li>
-      <li><span>2</span><p>Toca el menú <strong>⋮</strong> y <strong>Instalar aplicación</strong>.</p></li>
-      <li><span>3</span><p>Abre Kreyvi desde el icono que aparecerá en tu móvil.</p></li>
+      <li><span>1</span><p>{en?"Open this page in ":"Abre esta pantalla en "}<strong>Chrome</strong>.</p></li>
+      <li><span>2</span><p>Toca el menú <strong>⋮</strong> y <strong>{en?"Install app":"Instalar aplicación"}</strong>.</p></li>
+      <li><span>3</span><p>{en?"Open Kreyvi from the new icon on your phone.":"Abre Kreyvi desde el icono que aparecerá en tu móvil."}</p></li>
      </ol>
      <button type="button" className="loyal-app-sheet-action" onClick={addToHome}>Añadir Kreyvi <ArrowRight size={17}/></button>
-    </>:<p className="loyal-app-sheet-hint">Abre esta página desde tu iPhone o Android para tener Kreyvi en tu pantalla de inicio.</p>}
+    </>:<p className="loyal-app-sheet-hint">{en?"Open this page on your iPhone or Android to add Kreyvi to your home screen.":"Abre esta página desde tu iPhone o Android para tener Kreyvi en tu pantalla de inicio."}</p>}
     <button type="button" className="loyal-app-sheet-secondary" onClick={()=>setShowInstall(false)}><Check size={15}/> Entendido</button>
    </div>
   </div>}

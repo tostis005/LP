@@ -23,7 +23,7 @@ assert.match(page,/<PublicHeader lang=\{lang\} page="help"\/>/,"Help uses the sa
 assert.match(page,/<LandingLanguageSync lang=\{lang\}\/>,?/,"The document language follows the selected locale");
 assert.doesNotMatch(page,/<header className="help-header"/);
 assert.match(header,/page==="help"\?"\/help\?lang="\+target:publicHref\(page,target\)/,"Switching language keeps the visitor on help");
-assert.match(header,/href=\{languageHref\("es"\)\}[\s\S]*?>ES<\/Link>/);
-assert.match(header,/href=\{languageHref\("en"\)\}[\s\S]*?>EN<\/Link>/);
+assert.match(header,/href=\{languageHref\("es"\)\}[\s\S]*?>ES<\/a>/);
+assert.match(header,/href=\{languageHref\("en"\)\}[\s\S]*?>EN<\/a>/);
 assert.match(css,/\.shared-public-header \.header-actions\{display:flex/,"Language controls remain visible on mobile");
 assert.match(helpCss,/linear-gradient\(125deg,#3d0f1b,#5e1a2b/,"Help uses the public landing palette");
