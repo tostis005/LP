@@ -72,6 +72,7 @@ try{
  // Las migraciones pueden preceder a la provisión del escaparate interno.
  await db.query("SELECT public.seed_internal_noma_to_163()");
  await db.query("SELECT public.seed_internal_noma_dashboard()");
+ await db.query("SELECT public.apply_internal_showcase_card_designs()");
  await db.query("COMMIT");
  console.log("Cuentas autenticadas y negocios persistentes preparados; se han conservado los datos preexistentes.");
 }catch(error){await db.query("ROLLBACK");throw error}

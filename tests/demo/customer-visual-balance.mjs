@@ -35,7 +35,7 @@ assert.match(css,/\.workspace-customer \.customer-profile-only/);
 const home=read("app/app/page.tsx"),map=read("app/app/descubrir/page.tsx");
 const deck=read("components/CustomerCardDeck.tsx"),deckCss=read("app/customer-deck.css");
 assert.match(home,/<CustomerCardDeck/,"Keep the customer card deck");
-assert.match(deck,/onPointerMove=\{pointerMove\}/,"The wheel follows the finger throughout the gesture");assert.match(deck,/wheelDestination\(pos.current,velocity\)/,"Release retains momentum");assert.match(deck,/requestAnimationFrame/);assert.match(deckCss,/perspective:1050px/);assert.match(deckCss,/border:2px solid rgba\(255,255,255,.9\)/);
+assert.match(deck,/onPointerMove=\{pointerMove\}/,"The wheel follows the finger throughout the gesture");assert.match(deck,/wheelDestination\(pos.current,velocity\)/,"Release retains momentum");assert.match(deck,/requestAnimationFrame/);assert.match(deckCss,/perspective:1050px/);assert.match(deckCss,/border:1px solid rgba\(255,255,255,.30\)/);
 assert.match(deck,/modalOnly autoOpen/,"Open the existing QR and reward details");
 assert.match(deckCss,/\.customer-wallet-tab\{/);assert.match(deckCss,/\.customer-wallet-logo\{/);
 assert.match(map,/className="customer-map-stage"/,"Keep integrated discovery map");
@@ -69,3 +69,16 @@ assert.ok(wheelDestination(1.3,.018)>=5,"A fast gesture moves several cards");
 assert.ok(wheelDestination(1.3,-.018)<0,"Momentum also works in reverse");
 assert.match(deckCss,/customer-wallet-lower-label/,"Lower cards keep a visible merchant label");
 console.log("Circular wheel: continuous geometry, depth, inertial travel, stable unique cards and wraparound.");
+
+assert.match(deck,/capture\.setPointerCapture\(e\.pointerId\)/);
+assert.match(deck,/d\.capture=e\.currentTarget/);
+assert.match(deck,/onDragStart=\{e=>e\.preventDefault\(\)\}/);
+assert.match(deck,/onClickCapture=/);
+assert.match(deckCss,/\.customer-wallet-tab \*\{pointer-events:none/);
+const designsSql=read("db/migrations/999_zzzzzzzzzzzzzzzz_showcase_card_designs.sql");
+assert.match(designsSql,/NULLIF\(btrim\(b\.card_background\),''\) IS NULL/);
+assert.doesNotMatch(designsSql,/'interno-cafe-noma'/);
+for(const slug of ["brunch-club","barba-norte","studio-verde","taco-lumbre","pan-mar","dulce-frontera","punto-fit","lavanda-spa","marea-pets"]){
+ assert.ok(designsSql.includes("'interno-"+slug+"'"));
+ assert.match(read("public/brand/card-designs/showcase-"+slug+".svg"),/<svg.*viewBox="0 0 860 540"/);
+}
