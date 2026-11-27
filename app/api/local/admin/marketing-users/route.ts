@@ -18,19 +18,25 @@ export async function POST(request:Request){
   await asActor(actor,async c=>{if(!(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed)throw new ApiError("No autorizado.",403);});
   const raw=await request.text();if(raw.length>20000)throw new ApiError("Solicitud demasiado larga.");
   const v=JSON.parse(raw),email=String(v.email||"").trim().toLowerCase(),name=String(v.name||"").trim();
-  const editingUser=v.userId??null,initialPassword=v.initialPassword??"";
+  const editingUser=v.userId??null,initialPassword=v.initialPassword??"",newPassword=v.newPassword??"";
   if(!validateEmail(email)||name.length<2||name.length>120||!Array.isArray(v.scopes)||v.scopes.length>100||typeof v.active!=="boolean"||(editingUser!==null&&(typeof editingUser!=="string"||! /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(editingUser))))throw new ApiError("Datos no válidos.");
   if(typeof initialPassword!=="string"||(initialPassword&&(initialPassword.length<10||initialPassword.length>128||editingUser!==null)))throw new ApiError("La contraseña inicial debe tener entre 10 y 128 caracteres y solo puede establecerse al crear la cuenta.");
+  if(typeof newPassword!=="string"||(newPassword&&(editingUser===null||newPassword.length<10||newPassword.length>128)))throw new ApiError("La nueva contraseña debe tener entre 10 y 128 caracteres y requiere un usuario existente.");
   const scopes:MarketingScope[]=v.scopes.map((s:Record<string,unknown>)=>{const result={} as MarketingScope;let empty=false;for(const k of scopeKeys){const value=s?.[k];if(typeof value!=="string"||value.length>200||(empty&&value))throw new ApiError("Ámbito geográfico no válido.");result[k]=value;empty=empty||!value;}return result;});
   const unique=[...new Map(scopes.map(s=>[scopeKey(s),s])).values()];
-  const hash=await hashPassword(initialPassword||randomBytes(32).toString("hex"));
-  const saved=await asActor(actor,async c=>(await c.query("SELECT public.crm_admin_provision_marketing($1,$2,$3,$4,$5::jsonb,$6,$7::uuid) AS saved",[email,name,hash,v.active,JSON.stringify(unique),!!initialPassword,editingUser])).rows[0].saved as {id:string;active:boolean;scopes:MarketingScope[]});
+  const hash=await hashPassword(initialPassword||newPassword||randomBytes(32).toString("hex"));
+  const saved=await asActor(actor,async c=>{
+   const result=(await c.query("SELECT public.crm_admin_provision_marketing($1,$2,$3,$4,$5::jsonb,$6,$7::uuid) AS saved",[email,name,hash,v.active,JSON.stringify(unique),!!initialPassword,editingUser])).rows[0].saved as {id:string;active:boolean;scopes:MarketingScope[]};
+   // Both changes commit together; a failed password reset rolls back the permissions edit.
+   if(newPassword)await c.query("SELECT public.admin_reset_staff_password($1::uuid,$2)",[result.id,hash]);
+   return result;
+  });
   let invitation=initialPassword?"Cuenta creada con contraseña inicial.": "";
-  if(!initialPassword&&v.invite===true){
+  if(!initialPassword&&!newPassword&&v.invite===true){
    const row=(await authPool.query("SELECT email_confirmed_at FROM auth.users WHERE id=$1",[saved.id])).rows[0];
    if(!row?.email_confirmed_at){try{await emailToken(saved.id,"verify",email);invitation="Invitación enviada.";}catch{invitation="Cuenta guardada; no se pudo enviar la invitación. Reintenta desde la edición."}}
   }
-  return Response.json({ok:true,saved,invitation},{headers});
+  return Response.json({ok:true,saved,invitation,passwordChanged:!!newPassword},{headers});
  }catch(e){return responseError(e);}
 }
 

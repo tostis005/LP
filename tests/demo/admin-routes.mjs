@@ -42,7 +42,7 @@ assert.match(directory,/if\(editing\)return <section className="panel-card marke
 assert.match(directory,/className="marketing-active-control"/);
 assert.match(directory,/filter:"select",options:Object.entries\(roles\)/);
 assert.match(directory,/Ver programas/);
-assert.match(directory,/Editar permisos/);
+assert.match(directory,/Editar usuario/);
 assert.match(header,/aria-sort/);
 assert.match(header,/directory-filter-row/);
 assert.match(api,/admin_user_directory\(\)/);
@@ -65,7 +65,7 @@ assert.deepEqual(scopesForSave([leon],leon),[leon],"Do not duplicate selected sc
 assert.deepEqual(appendScope([leon],emptyScope),[leon,emptyScope],"Global permission is explicit");
 assert.match(directory,/scopes:scopesForSave\(scopes,draft\)/);
 assert.match(directory,/Contraseña inicial \(opcional\)/);
-assert.match(api,/hashPassword\(initialPassword\|\|randomBytes/);
+assert.match(api,/hashPassword\(initialPassword\|\|newPassword\|\|randomBytes/);
 assert.match(api,/crm_admin_provision_marketing/);
 assert.match(read("app/acceder/page.tsx"),/resetPasswordForEmail/);
 assert.match(read("app/marketing/page.tsx"),/href="\/restablecer-clave"/);
@@ -80,11 +80,17 @@ assert.match(directory,/Cambiar contraseña/);
 assert.match(api,/admin_reset_staff_password/);
 
 
-// Existing marketing accounts can set a password within the editor itself.
-assert.match(directory,/existing&&<form className="marketing-editor-section form-stack" aria-label="Contraseña de acceso"/);
-assert.match(directory,/const target=editing&&existing\?userId:passwordUser\?\.id/);
-assert.match(directory,/method:"PATCH".*userId:target,password:newPassword/);
+// One marketing editor action and one save, with explicit password validation.
+assert.match(directory,/existing&&<section className="marketing-editor-section form-stack" aria-label="Contraseña de acceso"/);
+assert.match(directory,/u\.role==="marketing"&&<button[^>]*>/);
+assert.match(directory,/\["owner","manager","employee"\]\.includes\(u\.role\)/);
+assert.doesNotMatch(directory,/Editar permisos|Guarda la contraseña en el apartado superior/);
+assert.match(directory,/newPassword:existing\?newPassword:""/);
+assert.match(directory,/passwordValidation\(newPassword,confirmPassword,true\)/);
+assert.match(directory,/type="submit" disabled=\{busy\}>\{busy\?"Guardando…":existing\?"Guardar cambios"/);
+assert.match(directory,/style=\{\{display:"grid",gap:24\}\}/);
 assert.match(directory,/Confirmar contraseña/);
-assert.match(directory,/Guardar contraseña/);
-assert.match(directory,/passwordNotice&&<p role="status"/);
-assert.match(directory,/if\(u\.role==="marketing"\)\{open\(u\);return;\}/);
+assert.match(directory,/passwordError&&<p role="alert"/);
+assert.match(api,/if\(newPassword\)await c\.query\("SELECT public\.admin_reset_staff_password\(\$1::uuid,\$2\)",\[result\.id,hash\]\)/);
+assert.match(api,/passwordChanged:!!newPassword/);
+assert.match(api,/if\(!initialPassword&&!newPassword&&v\.invite===true\)/);
