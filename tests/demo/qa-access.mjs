@@ -45,3 +45,14 @@ assert.match(publicHeader,/href="\/acceder"/,"Public header links to normal logi
 assert.doesNotMatch(publicHeader,/acceder2/,"No public navigation to management access");
 assert.match(publicCss,/\.request-copy h1 em,\.pricing-page h1 em\{font-style:normal;color:var\(--color-accent-600\)/,"Contact and pricing use corporate gold");
 assert.match(read("app/layout.tsx"),/import "\.\/public-pages.css"/,"Public styles are shared across routes");
+
+const rename=read("db/migrations/999_zzzzzzzzzzzzzzzzzzzzzz_qa_profile_emails.sql");
+const provision=read("scripts/provision-showcase-real.mjs");
+for(const email of ["administrador@kreyviapp.com","owner@kreyviapp.com","empleado@kreyviapp.com","cliente@kreyviapp.com"]){
+ assert.ok(rename.includes(email));assert.ok(provision.includes(email));
+}
+assert.match(rename,/UPDATE auth\.users SET email=item\.new_email,updated_at=now\(\) WHERE id=existing_id/);
+assert.doesNotMatch(rename,/password_hash|INSERT INTO auth\.users/);
+assert.match(rename,/RAISE EXCEPTION/);
+assert.match(auth,/JOIN auth\.qa_profile_accounts q ON q\.user_id=u\.id/);
+assert.match(provision,/if\(occupied\.rowCount\)throw/);
