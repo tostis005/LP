@@ -48,8 +48,8 @@ assert.match(owner,/biz.stamp_image_url\?<div className="card-upload-choice"/);
 assert.match(owner,/Conserva sus colores originales/);
 const catalog=read("lib/card-backgrounds.ts");
 const backgrounds=[...catalog.matchAll(/"url": "(\/brand\/card-designs\/[^"]+)"/g)].map(x=>x[1]);
-assert.equal(backgrounds.length,42);
-assert.equal(new Set(backgrounds).size,42);
+assert.equal(backgrounds.length,51);
+assert.equal(new Set(backgrounds).size,51);
 for(const url of backgrounds)assert.match(read("public"+url),/<svg\b/);
 assert.match(read("app/card-designer.css"),/grid-template-columns:repeat\(auto-fill,minmax\(100px,1fr\)\)/);
 assert.match(owner,/Guardar diseño/);
@@ -59,3 +59,6 @@ assert.match(owner,/Tipografía del nombre del negocio/);
 assert.match(owner,/card_title_font:biz.card_title_font\|\|"default"/);
 assert.match(read("components/StampCard.tsx"),/titleFont=\{business.card_title_font\}/);
 assert.match(read("components/CustomerCardDeck.tsx"),/cardTitleFont\(b.card_title_font\)/);
+
+assert.equal(backgrounds.filter(url=>url.includes("/gallery-vivid-")).length,9);
+for(const group of ["Fitness y deporte","Bienestar y spa","Cuidado personal","Mascotas"])assert.ok(catalog.includes(group));

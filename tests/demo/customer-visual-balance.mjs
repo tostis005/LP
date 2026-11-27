@@ -82,3 +82,15 @@ for(const slug of ["brunch-club","barba-norte","studio-verde","taco-lumbre","pan
  assert.ok(designsSql.includes("'interno-"+slug+"'"));
  assert.match(read("public/brand/card-designs/showcase-"+slug+".svg"),/<svg.*viewBox="0 0 860 540"/);
 }
+
+const vividSql=read("db/migrations/999_zzzzzzzzzzzzzzzzzz_vivid_showcase_card_designs.sql");
+assert.match(vividSql,/CREATE OR REPLACE FUNCTION public\.apply_internal_showcase_card_designs/);
+assert.match(vividSql,/b.slug='interno-'\|\|d.slug AND b.name=d.name/);
+assert.match(vividSql,/b.card_background='\/brand\/card-designs\/showcase-'\|\|d.slug\|\|'\.svg'/);
+assert.doesNotMatch(vividSql,/'cafe-noma'/);
+for(const slug of ["brunch-club","barba-norte","studio-verde","taco-lumbre","pan-mar","dulce-frontera","punto-fit","lavanda-spa","marea-pets"]){
+ assert.ok(vividSql.includes("'"+slug+"'"));
+ assert.match(read("public/brand/card-designs/gallery-vivid-"+slug+".svg"),/<svg.*viewBox="0 0 860 540"/);
+}
+assert.match(read("components/StampCard.tsx"),/gallery-\(food\|vivid\)-/);
+assert.match(read("components/CustomerCardDeck.tsx"),/gallery-\(food\|vivid\)-/);
