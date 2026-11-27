@@ -63,6 +63,24 @@ try{
  const changed=(await c.query("SELECT password_hash,email_confirmed_at FROM auth.users WHERE id=$1",[marketing])).rows[0];
  assert.equal(changed.password_hash,replacementHash);assert.ok(changed.email_confirmed_at);
  assert.equal((await c.query("SELECT count(*)::int AS n FROM auth.sessions WHERE user_id=$1",[marketing])).rows[0].n,0);
+ // All-account editor: admin can edit customer and admin accounts, other roles cannot.
+ const editAccount=(id,email,hash=null)=>(c.query("SELECT public.admin_edit_account($1,$2,$3,$4,$5::date,$6,$7,NULL,NULL) AS saved",[id,"Edited account",email,"+526641234567","1990-01-01","other",hash]));
+ await assume(customer);
+ await denied(()=>c.query("SELECT public.admin_account_details()"));
+ await denied(()=>editAccount(customer,tag+"-customer@example.test",replacementHash));
+ await assume(admin);
+ const details=(await c.query("SELECT public.admin_account_details() AS details")).rows[0].details;
+ assert.ok(details.find(u=>u.id===admin));
+ assert.ok(details.find(u=>u.id===customer));
+ await c.query("RESET ROLE");
+ await c.query("INSERT INTO auth.sessions(user_id,token_hash,expires_at) VALUES($1,$2,now()+interval '1 day')",[customer,tag.replace(/-/g,"")+"c".repeat(32)]);
+ await assume(admin);
+ assert.equal((await editAccount(customer,tag+"-customer@example.test",replacementHash)).rows[0].saved.passwordChanged,true);
+ assert.equal((await editAccount(admin,tag+"-admin@example.test",replacementHash)).rows[0].saved.relogin,true);
+ await c.query("RESET ROLE");
+ assert.equal((await c.query("SELECT password_hash FROM auth.users WHERE id=$1",[customer])).rows[0].password_hash,replacementHash);
+ assert.equal((await c.query("SELECT count(*)::int AS n FROM auth.sessions WHERE user_id=$1",[customer])).rows[0].n,0);
+ assert.equal((await c.query("SELECT password_hash FROM auth.users WHERE id=$1",[admin])).rows[0].password_hash,replacementHash);
  await assume(customer);assert.deepEqual(await visible(),[]);await denied(()=>c.query("SELECT public.crm_marketing_save_contact($1,'qualified','customer')",[allowed]));
  await c.query("RESET ROLE");await c.query("UPDATE public.crm_marketing_users SET scopes='[]' WHERE user_id=$1",[marketing]);await assume(marketing);assert.deepEqual(await visible(),[]);
  await c.query("RESET ROLE");await c.query("UPDATE public.crm_marketing_users SET scopes=$2::jsonb,active=false WHERE user_id=$1",[marketing,JSON.stringify([scope])]);await assume(marketing);assert.deepEqual(await visible(),[]);await denied(()=>c.query("SELECT public.crm_marketing_save_contact($1,'contacted','disabled')",[allowed]));
