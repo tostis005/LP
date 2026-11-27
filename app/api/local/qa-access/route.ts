@@ -6,11 +6,11 @@ export const runtime="nodejs";
 export const dynamic="force-dynamic";
 
 type Role="ADMIN"|"BUSINESS"|"STAFF"|"CUSTOMER";
-const roles:Record<Role,{email:string;label:string;route:string}>={
- ADMIN:{email:"admin@loyally.local",label:"Administrador",route:"/admin"},
- BUSINESS:{email:"gestor@loyally.local",label:"Dueño de negocio",route:"/negocio"},
- STAFF:{email:"empleado@loyally.local",label:"Empleado",route:"/empleado"},
- CUSTOMER:{email:"cliente@loyally.local",label:"Cliente",route:"/app"}
+const roles:Record<Role,{label:string;route:string}>={
+ ADMIN:{label:"Administrador",route:"/admin"},
+ BUSINESS:{label:"Dueño de negocio",route:"/negocio"},
+ STAFF:{label:"Empleado",route:"/empleado"},
+ CUSTOMER:{label:"Cliente",route:"/app"}
 };
 const OPERATOR_MINUTES=45;
 const OPERATOR_MS=OPERATOR_MINUTES*60*1000;
@@ -38,7 +38,7 @@ function operatorCookie(request:Request){
 }
 async function verifiedAdmin(){
  const r=await authPool.query(
-  "SELECT id,email,raw_user_meta_data FROM auth.users WHERE lower(email)='admin@loyally.local' AND email_confirmed_at IS NOT NULL LIMIT 1"
+  "SELECT u.id,u.email,u.raw_user_meta_data FROM auth.users u JOIN auth.qa_profile_accounts q ON q.user_id=u.id WHERE q.role='ADMIN' AND u.email_confirmed_at IS NOT NULL LIMIT 1"
  );
  const admin=r.rows[0];
  if(!admin)throw new ApiError("El administrador aún no tiene una cuenta confirmada.",503);
@@ -60,8 +60,8 @@ async function operatorAllowed(request:Request,adminId:string){
 }
 async function targetUser(role:Role){
  const r=await authPool.query(
-  "SELECT id,email FROM auth.users WHERE lower(email)=$1 AND email_confirmed_at IS NOT NULL LIMIT 1",
-  [roles[role].email]
+  "SELECT u.id,u.email FROM auth.users u JOIN auth.qa_profile_accounts q ON q.user_id=u.id WHERE q.role=$1 AND u.email_confirmed_at IS NOT NULL LIMIT 1",
+  [role]
  );
  if(!r.rowCount)throw new ApiError("La cuenta de este perfil aún no está preparada.",503);
  return r.rows[0] as {id:string;email:string};
