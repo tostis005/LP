@@ -47,13 +47,13 @@ assert.match(css,/\.directory-results-grid>\.directory-card-premium/);
 console.log("OK: Wallet UI hidden, QR PNG retained, menu sections, full width, employee workflow and voluntary consent.");
 
 for(const screen of [access,entry]){
- assert.match(screen,/Quiero recibir ofertas y novedades<\/strong><\/span><\/label>/,"Short visible opt-in label");
- assert.match(screen,/<details className="lp-signup-consent-details"><summary>Más información<\/summary>/,"Channel information available on demand");
+ assert.match(screen,/Quiero recibir ofertas y novedades(?:"\})?<\/strong><\/span><\/label>/,"Short visible opt-in label");
+ assert.match(screen,/<details className="lp-signup-consent-details"><summary>(?:\{en\?"More information":")?Más información(?:"\})?<\/summary>/,"Channel information available on demand");
  assert.doesNotMatch(screen,/checked=\{marketingOptIn\}[^>]*\brequired\b/,"Marketing stays optional");
 }
 
 for(const screen of [access,entry]){
- assert.match(screen,/!marketingOptIn&&"No te pierdas las ofertas y promociones de los locales participantes\. "/,"Show a friendly invitation only before opt-in");
+ assert.match(screen,/!marketingOptIn&&(?:\(en\?"[^"]+":)?"No te pierdas las ofertas y promociones de los locales participantes\. "/,"Show a friendly invitation only before opt-in");
  assert.match(screen,/Puedes cambiar tus preferencias en Ajustes cuando quieras\./,"Explain how to change preferences");
 }
 
