@@ -76,7 +76,7 @@ console.log("CRM census: geographic isolation, all compatible sectors, contact f
 const crmUi=read("components/AdminCrm.tsx"),crmRoute=read("app/api/local/admin/crm/route.ts");
 assert.doesNotMatch(crmUi,/Importar y analizar DENUE/);
 assert.match(libraryUi,/!archivedCity\(f\.filename\)/);
-assert.match(libraryUi,/if\(!files\.length&&!error&&!focus\)return null/);
+assert.match(libraryUi,/Preparar fichero de Venezuela/); // The upload control remains visible when the pending list is empty.
 assert.match(crmUi,/aria-busy=\{loading\}/);
 assert.match(crmUi,/controller\.abort\(\)/);
 assert.match(crmUi,/aria-sort=/);
@@ -180,3 +180,21 @@ assert.doesNotMatch(mapQuery.sql,/malicious/);
 assert.deepEqual(mapQuery.params,["MX"]);
 assert.match(mapQuery.sql,/FROM selected ORDER BY name,id LIMIT 5000/);
 assert.match(mapQuery.sql,/count\(\*\) FILTER \(WHERE has_instagram\)/);
+
+const osm=load(read("lib/server/crm-osm.ts"),{"./denue":denue,"./db":{ApiError:class extends Error{}}},{TextDecoder});
+const osmHeader="nombre,categoria,pais,estado,municipio,ciudad,direccion,barrio,telefono,whatsapp,email,web,instagram,facebook,latitud,longitud,osm_tipo,osm_id,url_osm,etiqueta_osm,codigo_postal,horario,fuente\n";
+const osmRow=(id,state="Miranda",kind="node")=>["Café ficticio","Cafetería","Venezuela",state,"Chacao","","","", "+58 412 1234567","+58 412 1234567","","https://example.com","@example","example","10.5","-66.85",kind,String(id),"https://www.openstreetmap.org/"+kind+"/"+id,"amenity=cafe","1060","Mo-Su 08:00-18:00","OpenStreetMap"].join(",")+"\n";
+const bytes=Buffer.from("\uFEFF"+osmHeader+osmRow(1)+osmRow(1)+osmRow(1,"Miranda","way")+osmRow(2,""));
+const parsedOsm=osm.parseOsmCsv(bytes);
+assert.equal(parsedOsm.prospects.length,2);assert.equal(parsedOsm.skipped,2);
+const op=parsedOsm.prospects[0];assert.equal(op.email,null);assert.equal(op.country_code,"VE");assert.equal(op.category,"Restaurantes y cafeterías");assert.equal(op.latitude,"10.5");assert.equal(op.instagram,"@example");assert.equal(op.facebook,"example");assert.equal(op.whatsapp,"+58 412 1234567");assert.equal(op.postal_code,"1060");assert.equal(op.source_data.horario,"Mo-Su 08:00-18:00");
+assert.notEqual(parsedOsm.prospects[0].source_id,parsedOsm.prospects[1].source_id);
+const qOsm=[];const clientOsm={query:async(sql,args=[])=>{qOsm.push({sql,args});return {rows:[],rowCount:0};}};
+const fOsm={filename:"osm-venezuela-20261126.csv",sha256:"a".repeat(64),data:bytes};
+const prevOsm=await osm.importOsm(clientOsm,fOsm,"preview");assert.equal(prevOsm.counts.create,2);assert.ok(qOsm.every(q=>q.sql.startsWith("SELECT")));
+qOsm.length=0;await assert.rejects(()=>osm.importOsm(clientOsm,fOsm,"apply","bad"),/Vuelve a analizar/);
+assert.ok(qOsm.every(q=>q.sql.startsWith("SELECT")));
+qOsm.length=0;const resultOsm=await osm.importOsm(clientOsm,fOsm,"apply",prevOsm.plan);assert.equal(resultOsm.created,2);assert.ok(qOsm.some(q=>q.sql.includes("ON CONFLICT(source,source_id)")));assert.ok(qOsm.some(q=>q.sql.includes("crm_email_exclusions")));
+assert.match(library,/crm_staged_csv/);assert.match(library,/parseOsmCsv/);
+assert.match(mapUi,/Con Facebook/);assert.match(mapUi,/Con WhatsApp/);
+console.log("CRM Venezuela: source identity, no email required, social data, missing geography, preview and non-destructive apply.");
