@@ -38,6 +38,14 @@ export async function GET(request:Request){
  try{
   const result=await crmReader(request,async (c,restricted)=>{
    const p=new URL(request.url).searchParams;
+   // Fetch only the clicked marker's contact data, using the same scoped RLS reader.
+   if(p.get("view")==="contact"){
+    const id=p.get("id")||"";
+    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))throw new ApiError("Negocio no válido.",400);
+    const contact=(await c.query("SELECT id,name,category,activity,address,neighborhood,city,municipality,state,postal_code,phone,email,public_email,website,instagram,status,notes FROM public.crm_prospects WHERE id=$1::uuid",[id])).rows[0];
+    if(!contact)throw new ApiError("Negocio no disponible en tu zona.",404);
+    return {contact};
+   }
    if(p.get("view")==="options"){
     if(!restricted&&optionsCache&&optionsCache.expires>Date.now()&&p.get("refresh")!=="1")return optionsCache.data;
     const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
