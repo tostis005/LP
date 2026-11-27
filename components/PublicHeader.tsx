@@ -23,7 +23,7 @@ export function PublicHeader({lang="es",page="business"}:{lang?:LandingLanguage;
     <Link href={languageHref("en")} lang="en" aria-current={lang==="en"?"page":undefined} className={lang==="en"?"selected":""} title="View in English">EN</Link>
    </nav>
    {!help&&<Link href="/solicitar-acceso" className="nav-login">{t.info}</Link>}
-   <Link href={help?"/entrar":"/acceder"} className="button button-dark button-sm">{t.login} <ArrowUpRight size={16}/></Link>
+   <Link href="/acceder" className="button button-dark button-sm">{t.login} <ArrowUpRight size={16}/></Link>
   </div>
  </div></header>;
 }
