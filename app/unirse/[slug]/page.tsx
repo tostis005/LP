@@ -103,6 +103,7 @@ export default function JoinPage(){
       <div className="join-subscribe">
        <h2>Tu tarjeta, en el móvil</h2>
        <p>Consíguela gratis y empieza a disfrutar de tus recompensas.</p>
+       <p className="tiny-note">Al añadir esta tarjeta se activan sus avisos de promociones y regalos por correo, WhatsApp y notificaciones. Puedes desactivarlos en Ajustes.</p>
        {error&&<div className="alert error" role="alert">{error}</div>}
        <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Añadir tarjeta":"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
       </div>}

@@ -35,6 +35,13 @@ export async function POST(request:Request) {
       const platformPushOptIn=input.platform_push_opt_in===true;
       const cardNotificationsOptIn=input.card_notifications_opt_in===true;
        const whatsapp=String(input.whatsapp||"").trim();
+      const birthDate=typeof input.birth_date==="string"?input.birth_date.trim():"";
+      const gender=typeof input.gender==="string"?input.gender:"";
+      if(birthDate||gender){
+        const today=new Date().toISOString().slice(0,10);
+        const parsed=/^\d{4}-\d{2}-\d{2}$/.test(birthDate)?new Date(birthDate+"T00:00:00Z"):null;
+        if(!parsed||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==birthDate||birthDate<"1900-01-01"||birthDate>today||!["woman","man","other","prefer_not"].includes(gender)||!whatsapp)throw new ApiError("Completa la fecha de nacimiento, el sexo y el teléfono con datos válidos.");
+      }
       if(!validateEmail(email)||password.length<10||password.length>128||name.length<2||name.length>120||(whatsapp!==""&&!/^[+][1-9][0-9]{7,14}$/.test(whatsapp)))throw new ApiError("Introduce un email válido, un nombre, apellidos, WhatsApp y una contraseña de al menos 10 caracteres.");
       if(cardNotificationsOptIn&&!whatsapp)throw new ApiError("Añade tu número de WhatsApp con prefijo internacional para activar los tres canales.");
       await rateLimit("signup:"+email,4,60);
@@ -45,7 +52,7 @@ export async function POST(request:Request) {
         return Response.json({data:{user:{id:exists.rows[0].id,email},session:null},error:null});
       }
       const pass=await hashPassword(password);
-      const r=await authPool.query("INSERT INTO auth.users(email,password_hash,raw_user_meta_data) VALUES($1,$2,$3::jsonb) RETURNING id",[email,pass,JSON.stringify({full_name:name,whatsapp:whatsapp||null,platform_marketing_opt_in:platformMarketingOptIn,platform_push_opt_in:platformPushOptIn,card_notifications_opt_in:cardNotificationsOptIn})]);
+      const r=await authPool.query("INSERT INTO auth.users(email,password_hash,raw_user_meta_data) VALUES($1,$2,$3::jsonb) RETURNING id",[email,pass,JSON.stringify({full_name:name,whatsapp:whatsapp||null,...(birthDate?{birth_date:birthDate,gender:gender==="prefer_not"?null:gender}:{}),platform_marketing_opt_in:platformMarketingOptIn,platform_push_opt_in:platformPushOptIn,card_notifications_opt_in:cardNotificationsOptIn})]);
       await emailToken(r.rows[0].id,"verify",email,returnTo);
       return Response.json({data:{user:{id:r.rows[0].id,email},session:null},error:null},{status:201});
     }

@@ -14,6 +14,7 @@ export default function Login(){
  const router=useRouter();
  const [mode,setMode]=useState<"login"|"signup"|"forgot">("login");
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[surname,setSurname]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[whatsapp,setWhatsapp]=useState("");
+ const [birthDate,setBirthDate]=useState(""),[gender,setGender]=useState("");
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
  const [loginTarget,setLoginTarget]=useState("/entrar");
  const [sessionReady,setSessionReady]=useState(false);
@@ -33,7 +34,7 @@ export default function Login(){
     const {error}=await db().auth.resetPasswordForEmail(email,{redirectTo:PUBLIC_SITE_URL+"/auth/callback?next=password"});
     if(error)throw error;setMessage("Te hemos enviado un email para recuperar tu contraseña.");
    }else if(mode==="signup"){
-    const {data,error}=await db().auth.signUp({email,password,options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn,return_to:safeJoinTarget(loginTarget)||undefined},emailRedirectTo:PUBLIC_SITE_URL+"/auth/callback"}});
+    const {data,error}=await db().auth.signUp({email,password,options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim(),birth_date:birthDate,gender,platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn,return_to:safeJoinTarget(loginTarget)||undefined},emailRedirectTo:PUBLIC_SITE_URL+"/auth/callback"}});
     if(error)throw error;
     if(data.session)router.replace(loginTarget);else setMessage("Revisa tu correo y confirma tu cuenta antes de entrar.");
    }else{
@@ -56,10 +57,9 @@ export default function Login(){
      {mode==="signup"&&<><div className="form-two"><label>Nombre<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} placeholder="Nombre"/></label><label>Apellidos<input value={surname} onChange={e=>setSurname(e.target.value)} required minLength={2} placeholder="Apellidos"/></label></div></>}
      <label>Correo electrónico<input value={email} type="email" onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="tu@email.com"/></label>
      {mode!=="forgot"&&<label>Contraseña<div className="password-input"><input value={password} type={visible?"text":"password"} onChange={e=>setPassword(e.target.value)} required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} placeholder="Tu contraseña"/><button type="button" aria-label={visible?"Ocultar contraseña":"Mostrar contraseña"} onClick={()=>setVisible(v=>!v)}>{visible?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y novedades</strong></span></label>}
-     {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&"No te pierdas las ofertas y promociones de los locales participantes. "}Puedes cambiar tus preferencias en Ajustes cuando quieras.</p>}
-     {mode==="signup"&&<details className="lp-signup-consent-details"><summary>Más información</summary><p>Si marcas la casilla, Kreyvi y los negocios de tus tarjetas podrán enviarte ofertas y novedades por email, WhatsApp y notificaciones. Es opcional y puedes retirar tu consentimiento en Ajustes.</p></details>}
-     {mode==="signup"&&marketingOptIn&&<label>Tu número de WhatsApp<input type="tel" inputMode="tel" required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>Para recibir las ofertas que has elegido. Incluye el prefijo internacional.</small></label>}
+     {mode==="signup"&&<><div className="form-two"><label>Fecha de nacimiento<input type="date" required min="1900-01-01" max={new Date().toISOString().slice(0,10)} value={birthDate} onChange={e=>setBirthDate(e.target.value)} autoComplete="bday"/></label><label>Sexo<select required value={gender} onChange={e=>setGender(e.target.value)}><option value="">Seleccionar</option><option value="woman">Mujer</option><option value="man">Hombre</option><option value="other">Otro</option><option value="prefer_not">Prefiero no indicarlo</option></select></label></div><label>Teléfono<input type="tel" inputMode="tel" autoComplete="tel" required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>Incluye el prefijo internacional.</small></label></>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir promociones y regalos</strong></span></label>}
+     {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&"Entérate de regalos, descuentos y recompensas de tus negocios favoritos. "}Por correo, WhatsApp y notificaciones de Kreyvi y los comercios de tus tarjetas. Es opcional; puedes cambiarlo en Ajustes.</p>}
      
      {mode==="login"&&<button className="inline-action forgot-action" type="button" onClick={()=>switchMode("forgot")}>¿Olvidaste la contraseña?</button>}
      {error&&<div className="alert error" role="alert">{error}</div>}

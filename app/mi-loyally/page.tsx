@@ -34,6 +34,7 @@ export default function MiLoyally(){
  const [showInstall,setShowInstall]=useState(false);
  const [installPrompt,setInstallPrompt]=useState<InstallPrompt|null>(null);
  const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[marketingOptIn,setMarketingOptIn]=useState(false),[whatsapp,setWhatsapp]=useState("");
+ const [surname,setSurname]=useState(""),[birthDate,setBirthDate]=useState(""),[gender,setGender]=useState("");
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
 
  useEffect(()=>{
@@ -89,7 +90,7 @@ export default function MiLoyally(){
    }else if(mode==="signup"){
     const {data,error}=await db().auth.signUp({
      email,password,
-     options:{data:{full_name:name.trim(),whatsapp:whatsapp.trim(),platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn},emailRedirectTo:"https://kreyvi.com/auth/callback"}
+     options:{data:{full_name:(name+" "+surname).trim(),whatsapp:whatsapp.trim(),birth_date:birthDate,gender,platform_marketing_opt_in:marketingOptIn,platform_push_opt_in:marketingOptIn,card_notifications_opt_in:marketingOptIn},emailRedirectTo:"https://kreyvi.com/auth/callback"}
     });
     if(error)throw error;
     if(data.session)router.replace("/entrar");
@@ -126,10 +127,9 @@ export default function MiLoyally(){
      {mode==="signup"&&<label>{en?"Your name":"Tu nombre"}<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder={en?"Your name":"¿Cómo te llamas?"}/></label>}
      <label>{en?"Email address":"Correo electrónico"}<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
      {mode!=="forgot"&&<label>{en?"Password":"Contraseña"}<input type="password" required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder={en?"Your password":"Tu contraseña"}/></label>}
-     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>{en?"I want to receive offers and news":"Quiero recibir ofertas y novedades"}</strong></span></label>}
-     {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&(en?"Don’t miss offers from participating businesses. ":"No te pierdas las ofertas y promociones de los locales participantes. ")}{en?"Change your preferences in Settings at any time.":"Puedes cambiar tus preferencias en Ajustes cuando quieras."}</p>}
-     {mode==="signup"&&<details className="lp-signup-consent-details"><summary>{en?"More information":"Más información"}</summary><p>{en?"If checked, Kreyvi and participating businesses may send offers and news by email, WhatsApp and notifications. This is optional and you can withdraw consent in Settings.":"Si marcas la casilla, Kreyvi y los negocios de tus tarjetas podrán enviarte ofertas y novedades por email, WhatsApp y notificaciones. Es opcional y puedes retirar tu consentimiento en Ajustes."}</p></details>}
-     {mode==="signup"&&marketingOptIn&&<label>{en?"Your WhatsApp number":"Tu número de WhatsApp"}<input type="tel" inputMode="tel" required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>{en?"To receive the offers you selected. Include your country code.":"Para recibir las ofertas que has elegido. Incluye el prefijo internacional."}</small></label>}
+     {mode==="signup"&&<><label>{en?"Surname":"Apellidos"}<input required minLength={2} value={surname} onChange={x=>setSurname(x.target.value)} autoComplete="family-name"/></label><label>{en?"Date of birth":"Fecha de nacimiento"}<input type="date" required min="1900-01-01" max={new Date().toISOString().slice(0,10)} value={birthDate} onChange={x=>setBirthDate(x.target.value)} autoComplete="bday"/></label><label>{en?"Sex":"Sexo"}<select required value={gender} onChange={x=>setGender(x.target.value)}><option value="">{en?"Select":"Seleccionar"}</option><option value="woman">{en?"Woman":"Mujer"}</option><option value="man">{en?"Man":"Hombre"}</option><option value="other">{en?"Other":"Otro"}</option><option value="prefer_not">{en?"Prefer not to say":"Prefiero no indicarlo"}</option></select></label><label>{en?"Phone":"Teléfono"}<input type="tel" inputMode="tel" autoComplete="tel" required value={whatsapp} onChange={x=>setWhatsapp(x.target.value)} placeholder="+526641234567" pattern="[+][1-9][0-9]{7,14}"/><small>{en?"Include your country code.":"Incluye el prefijo internacional."}</small></label></>}
+     {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>{en?"I want to receive promotions and gifts":"Quiero recibir promociones y regalos"}</strong></span></label>}
+     {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&(en?"Discover gifts, discounts and rewards from your favorite businesses. ":"Entérate de regalos, descuentos y recompensas de tus negocios favoritos. ")}{en?"By email, WhatsApp and notifications from Kreyvi and your card businesses. Optional; change in Settings.":"Por correo, WhatsApp y notificaciones de Kreyvi y los comercios de tus tarjetas. Es opcional; puedes cambiarlo en Ajustes."}</p>}
      
      {error&&<p role="alert" className="loyal-app-error">{error}</p>}
      {message&&<p role="status" className="loyal-app-success">{message}</p>}
