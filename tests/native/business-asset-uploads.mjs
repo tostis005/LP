@@ -22,11 +22,11 @@ try{
  const result=await admin.query(
   "SELECT u.id AS manager_id,b.business_id FROM auth.users u "+
   "JOIN public.business_members b ON b.user_id=u.id AND b.active AND b.role='owner' "+
-  "WHERE u.email='gestor@loyally.local' ORDER BY b.business_id LIMIT 1");
+  "WHERE u.email='owner@kreyvi.com' ORDER BY b.business_id LIMIT 1");
  const manager=result.rows[0];
  assert.ok(manager,"Showcase business owner missing");
  const customer=(await admin.query(
-  "SELECT id FROM auth.users WHERE email='cliente@loyally.local' LIMIT 1")).rows[0];
+  "SELECT id FROM auth.users WHERE email='cliente@kreyvi.com' LIMIT 1")).rows[0];
  assert.ok(customer,"Showcase customer missing");
  const fileName="oferta-"+randomUUID()+".webp";
  await impersonate(manager.manager_id,async client=>{
