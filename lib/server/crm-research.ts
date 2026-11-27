@@ -29,17 +29,17 @@ export function parseEvidence(raw:unknown):Evidence[]{
 export async function researchQueue(c:PoolClient,after:string){
    if(after&&!/^\d{1,20}$/.test(after))throw new ApiError("Cursor inválido.");
    const stats=(await c.query("SELECT count(*)::int AS total,count(*) FILTER(WHERE email IS NOT NULL OR public_email IS NOT NULL)::int AS with_email,count(*) FILTER(WHERE contact_review<>'pending')::int AS reviewed FROM public.crm_prospects WHERE "+pilot)).rows[0];
-   const rows=(await c.query("SELECT source_id,name,city,municipality,state,activity_code,activity,website FROM public.crm_prospects WHERE "+pilot+" AND status NOT IN ('do_not_contact','discarded','converted') AND contact_review='pending' AND email IS NULL AND public_email IS NULL AND source_id>$1 ORDER BY source_id LIMIT 25",[after])).rows;
+   const rows=(await c.query("SELECT source_id,name,city,municipality,state,activity_code,activity,website FROM public.crm_prospects WHERE "+pilot+" AND closed_at IS NULL AND status NOT IN ('do_not_contact','discarded','converted') AND contact_review='pending' AND email IS NULL AND public_email IS NULL AND source_id>$1 ORDER BY source_id LIMIT 25",[after])).rows;
    return {scope:"02003",stats,rows,next:rows.length===25?rows.at(-1).source_id:null};
 }
 export async function recordResearch(c:PoolClient,reviews:Evidence[]){
    await c.query("SELECT pg_advisory_xact_lock(hashtext('crm-sendcorex-send'))");
    const out:Array<{source_id:string;result:string}>=[];
    for(const v of reviews){
-    const r=await c.query("SELECT id,status,email,public_email FROM public.crm_prospects WHERE "+pilot+" AND source_id=$1 FOR UPDATE",[v.source_id]);
+    const r=await c.query("SELECT id,status,email,public_email,closed_at FROM public.crm_prospects WHERE "+pilot+" AND source_id=$1 FOR UPDATE",[v.source_id]);
     const p=r.rows[0];
     if(!p){out.push({source_id:v.source_id,result:"not_found"});continue;}
-    if(["do_not_contact","discarded","converted"].includes(p.status)){out.push({source_id:v.source_id,result:"excluded"});continue;}
+    if(p.closed_at||["do_not_contact","discarded","converted"].includes(p.status)){out.push({source_id:v.source_id,result:"excluded"});continue;}
     if(p.email||p.public_email&&p.public_email!==v.public_email){out.push({source_id:v.source_id,result:"existing_contact"});continue;}
     if(v.public_email){
      const blocked=await c.query("SELECT 1 FROM public.crm_email_exclusions WHERE email=$1",[v.public_email]);

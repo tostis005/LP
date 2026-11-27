@@ -11,7 +11,7 @@ const statuses=["pending_review","qualified","contacted","interested","trial","c
 const reviewStates=["pending","source_found","no_contact_found","ambiguous","not_relevant"];
 // Public sort keys are mapped to fixed SQL expressions; no request text is interpolated.
 const sortColumns:Record<string,string>={
- name:"lower(name)",state:"lower(state)",municipality:"lower(municipality)",city:"lower(city)",neighborhood:"lower(neighborhood)",
+ origin:"lower(origin)",name:"lower(name)",state:"lower(state)",municipality:"lower(municipality)",city:"lower(city)",neighborhood:"lower(neighborhood)",
  category:"lower(category)",activity:"lower(activity)",email:"lower(COALESCE(NULLIF(public_email,''),NULLIF(email,'')))",
  phone:"NULLIF(phone,'')",address:"lower(NULLIF(address,''))",website:"lower(NULLIF(website,''))",
  status:"CASE status WHEN 'pending_review' THEN 'Sin contactar' WHEN 'qualified' THEN 'Sin contactar revisado' WHEN 'contacted' THEN 'Contactado' WHEN 'interested' THEN 'Interesado' WHEN 'trial' THEN 'En prueba' WHEN 'converted' THEN 'Cliente' WHEN 'discarded' THEN 'No interesado' WHEN 'do_not_contact' THEN 'No contactar' ELSE status END",
@@ -22,7 +22,7 @@ const pageSizes=[25,50,100,200];
 // Cache compact aggregate data, not prospect rows. Expire quickly to pick up external imports.
 type Aggregate=CrmDirectoryCount;
 const countCache=new Map<string,{expires:number;data:Aggregate}>();
-let optionsCache:{expires:number;data:{regions:Record<string,unknown>[];categories:Record<string,unknown>[];officialImports:unknown[]}}|undefined;
+let optionsCache:{expires:number;data:{regions:Record<string,unknown>[];categories:Record<string,unknown>[];officialImports:unknown[];closedCount:number}}|undefined;
 function clearCounts(){countCache.clear();optionsCache=undefined;}
 
 async function admin<T>(request:Request,fn:(c:PoolClient,actor:Actor)=>Promise<T>){
@@ -42,7 +42,7 @@ export async function GET(request:Request){
    if(p.get("view")==="contact"){
     const id=p.get("id")||"";
     if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))throw new ApiError("Negocio no válido.",400);
-    const contact=(await c.query("SELECT id,name,category,activity,address,neighborhood,city,municipality,state,postal_code,phone,email,public_email,website,instagram,status,notes FROM public.crm_prospects WHERE id=$1::uuid",[id])).rows[0];
+    const contact=(await c.query("SELECT id,name,category,activity,address,neighborhood,city,municipality,state,postal_code,phone,email,public_email,website,instagram,status,notes,origin,closed_at FROM public.crm_prospects WHERE id=$1::uuid",[id])).rows[0];
     if(!contact)throw new ApiError("Negocio no disponible en tu zona.",404);
     return {contact};
    }
@@ -51,9 +51,13 @@ export async function GET(request:Request){
     const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
     const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
     const officialImports=restricted?[]:(await c.query("SELECT DISTINCT report->>\x27scope\x27 AS scope FROM public.crm_import_runs WHERE filename IN (\x27DENUE León 2025-05\x27)")).rows.map(r=>r.scope);
-    const options={regions,categories,officialImports};if(!restricted)optionsCache={expires:Date.now()+60000,data:options};return options;
+    const closedCount=Number((await c.query("SELECT count(*)::int AS n FROM public.crm_prospects WHERE closed_at IS NOT NULL")).rows[0].n);
+    const leon={country_code:"MX",state_code:"11",state:"Guanajuato",municipality_code:"020",municipality:"León",locality_code:"0001",city:"León de los Aldama",total:0};
+    if(!regions.some(r=>r.country_code==="MX"&&r.state_code==="11"&&r.municipality_code==="020"&&r.locality_code==="0001")&&(!restricted||(await c.query("SELECT public.crm_marketing_can_choose_region('MX','11','020','0001') AS allowed")).rows[0].allowed))regions.push(leon);
+    const options={regions,categories,officialImports,closedCount};if(!restricted)optionsCache={expires:Date.now()+60000,data:options};return options;
    }
    const where:string[]=[],args:unknown[]=[];
+   if(p.get("show_closed")!=="1")where.push("closed_at IS NULL");
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
     const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR (source='WEB' AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
@@ -61,8 +65,8 @@ export async function GET(request:Request){
    const neighborhood=p.get("neighborhood")?.trim();if(neighborhood){args.push("%"+neighborhood.slice(0,200)+"%");where.push("neighborhood ILIKE $"+args.length);}
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
    const review=p.get("review");if(review&&reviewStates.includes(review))add("contact_review",review);
-   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","neighborhood","postal_code","instagram","city","municipality","state","category","activity"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
-   const textFilters:Record<string,string>={name:"name",email:"COALESCE(NULLIF(public_email,''),email)",phone:"phone",address:"address",website:"website",activity:"activity"};
+   const search=p.get("q")?.trim().slice(0,120);if(search){args.push("%"+search+"%");where.push("("+["name","email","public_email","phone","address","website","neighborhood","postal_code","instagram","city","municipality","state","category","activity","origin"].map(col=>col+" ILIKE $"+args.length).join(" OR ")+")");}
+   const textFilters:Record<string,string>={origin:"origin",name:"name",email:"COALESCE(NULLIF(public_email,''),email)",phone:"phone",address:"address",website:"website",activity:"activity"};
    for(const [key,expression] of Object.entries(textFilters)){
     const value=p.get("filter_"+key)?.trim().slice(0,120);
     if(value){args.push("%"+value+"%");where.push(expression+" ILIKE $"+args.length);}
@@ -81,7 +85,7 @@ export async function GET(request:Request){
     const requested=(p.get("map_channels")||"").split(",");
     const chosen=channels.filter(key=>requested.includes(key)||requested.includes("any"));
     const contactFilter=chosen.length?" WHERE "+chosen.map(key=>"has_"+key).join(" OR "):"";
-    const sql="WITH raw AS MATERIALIZED (SELECT id,name,address,category,latitude,longitude,status,email,public_email,phone,website,instagram FROM public.crm_prospects"+filter+"), coords AS MATERIALIZED (SELECT id,name,address,category,CASE WHEN latitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN latitude::double precision END AS lat,CASE WHEN longitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN longitude::double precision END AS lng, status IS DISTINCT FROM 'do_not_contact' AND (NULLIF(btrim(public_email),'') IS NOT NULL OR NULLIF(btrim(email),'') IS NOT NULL) AS has_email, status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(phone),'') IS NOT NULL AS has_phone, status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(website),'') IS NOT NULL AS has_website, status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(instagram),'') IS NOT NULL AS has_instagram FROM raw), available AS MATERIALIZED (SELECT * FROM coords WHERE lat BETWEEN -90 AND 90 AND lng BETWEEN -180 AND 180 AND NOT(lat=0 AND lng=0)), selected AS MATERIALIZED (SELECT id,name,address,category,lat,lng FROM available"+contactFilter+"), visible AS (SELECT * FROM selected ORDER BY name,id LIMIT 5000) SELECT (SELECT count(*)::int FROM selected) AS total, (SELECT jsonb_build_object('email',count(*) FILTER (WHERE has_email),'phone',count(*) FILTER (WHERE has_phone),'website',count(*) FILTER (WHERE has_website),'instagram',count(*) FILTER (WHERE has_instagram),'any',count(*) FILTER (WHERE has_email OR has_phone OR has_website OR has_instagram)) FROM available) AS channels, COALESCE((SELECT jsonb_agg(to_jsonb(v) ORDER BY v.name,v.id) FROM visible v),'[]'::jsonb) AS points";
+    const sql="WITH raw AS MATERIALIZED (SELECT id,name,address,category,latitude,longitude,status,email,public_email,phone,website,instagram,closed_at FROM public.crm_prospects"+filter+"), coords AS MATERIALIZED (SELECT id,name,address,category,CASE WHEN latitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN latitude::double precision END AS lat,CASE WHEN longitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN longitude::double precision END AS lng, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND (NULLIF(btrim(public_email),'') IS NOT NULL OR NULLIF(btrim(email),'') IS NOT NULL) AS has_email, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(phone),'') IS NOT NULL AS has_phone, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(website),'') IS NOT NULL AS has_website, closed_at IS NULL AND status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(instagram),'') IS NOT NULL AS has_instagram FROM raw), available AS MATERIALIZED (SELECT * FROM coords WHERE lat BETWEEN -90 AND 90 AND lng BETWEEN -180 AND 180 AND NOT(lat=0 AND lng=0)), selected AS MATERIALIZED (SELECT id,name,address,category,lat,lng FROM available"+contactFilter+"), visible AS (SELECT * FROM selected ORDER BY name,id LIMIT 5000) SELECT (SELECT count(*)::int FROM selected) AS total, (SELECT jsonb_build_object('email',count(*) FILTER (WHERE has_email),'phone',count(*) FILTER (WHERE has_phone),'website',count(*) FILTER (WHERE has_website),'instagram',count(*) FILTER (WHERE has_instagram),'any',count(*) FILTER (WHERE has_email OR has_phone OR has_website OR has_instagram)) FROM available) AS channels, COALESCE((SELECT jsonb_agg(to_jsonb(v) ORDER BY v.name,v.id) FROM visible v),'[]'::jsonb) AS points";
     const row=(await c.query(sql,args)).rows[0];
     return {points:row?.points||[],total:row?.total||0,channels:row?.channels||{email:0,phone:0,website:0,instagram:0,any:0}};
    }
@@ -175,6 +179,18 @@ export async function POST(request:Request){
   });
   clearCounts();
   return Response.json({report:data.report,imported},{headers});
+ }catch(e){return responseError(e);}
+}
+export async function PUT(request:Request){
+ try{
+  checkOrigin(request);
+  const raw=await request.text();if(raw.length>12000)throw new ApiError("Solicitud demasiado larga.",413);
+  const v=JSON.parse(raw) as Record<string,unknown>;
+  const result=await crmReader(request,async c=>{
+   if(v.action==="create")return (await c.query("SELECT public.crm_create_manual_prospect($1::jsonb) AS id",[JSON.stringify(v)])).rows[0];
+   if(v.action==="close"&&typeof v.id==="string"&&/^[0-9a-f-]{36}$/i.test(v.id)){await c.query("SELECT public.crm_close_prospect($1::uuid)",[v.id]);return {ok:true};}
+   throw new ApiError("Acción no válida.");
+  });clearCounts();return Response.json(result,{headers,status:v.action==="create"?201:200});
  }catch(e){return responseError(e);}
 }
 export async function PATCH(request:Request){

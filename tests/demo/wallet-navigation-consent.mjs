@@ -50,7 +50,7 @@ for(const screen of [access,entry]){
  assert.match(screen,/Quiero recibir promociones y regalos/);
  assert.doesNotMatch(screen,/lp-signup-consent-details/,"No expandable consent text");
  assert.doesNotMatch(screen,/checked=\{marketingOptIn\}[^>]*\brequired\b/,"Marketing stays optional");
- assert.match(screen,/Es opcional; puedes cambiarlo en Ajustes/);
+ assert.match(screen,/Tú decides qué quieres recibir/);
  assert.match(screen,/birth_date:birthDate,gender/);
  assert.match(screen,/type="date" required/);
  assert.match(screen,/type="tel" inputMode="tel" autoComplete="tel" required/);

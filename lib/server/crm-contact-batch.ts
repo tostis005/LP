@@ -102,7 +102,7 @@ export async function contactBatch(c:PoolClient,candidates:Candidate[],selected:
   if(!approvals.has(d.row))continue;
   const v=candidateByRow.get(d.row)!;
   if(d.action==="update"){
-   const r=await c.query("UPDATE public.crm_prospects SET public_email=$2,public_email_source=$3,public_email_checked_at=now(),contact_review='source_found',contact_review_url=$3,contact_reviewed_at=now(),updated_at=now() WHERE id=$1 AND email IS NULL AND public_email IS NULL AND status NOT IN ('do_not_contact','discarded','converted') RETURNING id",[d.id,v.email,v.source]);
+   const r=await c.query("UPDATE public.crm_prospects SET public_email=$2,public_email_source=$3,public_email_checked_at=now(),contact_review='source_found',contact_review_url=$3,contact_reviewed_at=now(),updated_at=now() WHERE id=$1 AND closed_at IS NULL AND email IS NULL AND public_email IS NULL AND status NOT IN ('do_not_contact','discarded','converted') RETURNING id",[d.id,v.email,v.source]);
    if(!r.rowCount)throw new ApiError("La ficha cambió. Vuelve a analizar.",409);
    updated++;
   }else if(d.action==="create"){

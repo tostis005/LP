@@ -27,7 +27,7 @@ async function candidates(c:PoolClient,id:string|null=null,limit:number|null=30)
  "CASE WHEN p.activity ~* 'caf[eé]|cafeter|panader|pasteler|helad|never[ií]' OR p.category ~* 'helad|panader|pasteler' THEN 0 ELSE 1 END AS priority, CASE WHEN p.status='qualified' THEN 0 ELSE 1 END AS stage_priority "+
  "FROM public.crm_prospects p WHERE p.country_code='MX' AND lower(trim(p.state))='puebla' AND lower(trim(p.municipality))='puebla' "+
  "AND lower(trim(p.city)) IN ('puebla','heroica puebla de zaragoza','puebla de zaragoza') "+
- "AND p.status IN ('qualified','pending_review') AND p.contact_review='source_found' "+
+ "AND p.closed_at IS NULL AND p.status IN ('qualified','pending_review') AND p.contact_review='source_found' "+
  "AND p.public_email_checked_at IS NOT NULL AND p.public_email_source ~ '^https?://' "+
  "AND p.public_email IS NOT NULL AND lower(trim(p.public_email)) ~ '^[^[:space:]@,;<>]+@[a-z0-9.-]+[.][a-z]{2,}$' "+
  "AND (p.activity_code LIKE '7225%' OR p.activity_code IN ('461170','311520') OR p.category IN ('Restaurantes y cafeterías','Heladerías') OR p.category ~* 'panader|pasteler') "+

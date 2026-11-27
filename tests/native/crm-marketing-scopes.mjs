@@ -23,6 +23,13 @@ try{
  assert.equal((await mapContact(otherColony)).length,0,"Map detail respects neighbourhood scope");
  await denied(()=>c.query("SELECT public.crm_marketing_save_contact($1,'contacted','outside')",[outside]));
  await denied(()=>c.query("SELECT public.crm_admin_marketing_users()"));
+ const manual={name:"Manual "+tag,region:"MX:14:039:0001",category:"Heladerías",neighborhood:"Centro"};
+ const newId=(await c.query("SELECT public.crm_create_manual_prospect($1::jsonb) AS id",[JSON.stringify(manual)])).rows[0].id;
+ assert.equal((await c.query("SELECT origin,created_by FROM public.crm_prospects WHERE id=$1",[newId])).rows[0].created_by,marketing);
+ await denied(()=>c.query("SELECT public.crm_create_manual_prospect($1::jsonb)",[JSON.stringify({...manual,region:"MX:11:020:0001"})]));
+ await denied(()=>c.query("SELECT public.crm_close_prospect($1)",[outside]));
+ await c.query("SELECT public.crm_close_prospect($1)",[newId]);
+ assert.ok((await c.query("SELECT closed_at FROM public.crm_prospects WHERE id=$1",[newId])).rows[0].closed_at);
  await denied(()=>c.query("SELECT * FROM public.crm_marketing_users"));
  await c.query("SELECT public.crm_marketing_save_contact($1,'contacted','within scope')",[allowed]);
  await assume(admin);const roles=(await c.query("SELECT public.crm_admin_marketing_users() AS users")).rows[0].users;const directory=(await c.query("SELECT * FROM public.admin_user_directory()")).rows;assert.equal(roles.find(u=>u.id===marketing)?.role,"marketing");assert.equal(roles.find(u=>u.id===admin)?.role,"admin");assert.equal(roles.find(u=>u.id===customer)?.role,"customer");assert.ok(directory.find(u=>u.user_id===customer)?.joined_at,"Directory retains registration dates");assert.equal(Number(directory.find(u=>u.user_id===customer)?.businesses),0,"Directory retains program count");assert.equal((await c.query("SELECT count(*)::int AS n FROM public.crm_prospects WHERE source_id LIKE $1 AND status='contacted'",[tag+"%"])).rows[0].n,3,"Shared address inherits contact globally");
