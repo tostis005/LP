@@ -33,3 +33,23 @@ assert.match(migration,/public\.automation_queue\.status <> 'delivered'/,"Inacti
 assert.match(css,/owner-card-brand-upload/);
 assert.match(css,/automation-builder-step/);
 console.log("OK: Tarjeta routing, unified icons, all card settings and blank actionable campaign flow builder.");
+
+
+// Background and stamp selection are independent, and all artwork is present.
+assert.match(owner,/CARD_BACKGROUNDS/);
+assert.match(owner,/Color liso/);
+assert.match(owner,/Imagen de fondo/);
+assert.match(owner,/Subir fondo personalizado/);
+assert.match(owner,/Icono de galería/);
+assert.match(owner,/Subir sello propio/);
+assert.match(owner,/Elegir color personalizado/);
+assert.match(owner,/accent_color:design.color,card_background:design.url,card_text_color:"#ffffff"/);
+assert.match(owner,/biz.stamp_image_url\?<div className="card-upload-choice"/);
+assert.match(owner,/Conserva sus colores originales/);
+const catalog=read("lib/card-backgrounds.ts");
+const backgrounds=[...catalog.matchAll(/"url": "(\/brand\/card-designs\/[^"]+)"/g)].map(x=>x[1]);
+assert.equal(backgrounds.length,26);
+assert.equal(new Set(backgrounds).size,26);
+for(const url of backgrounds)assert.match(read("public"+url),/<svg\b/);
+assert.match(read("app/card-designer.css"),/grid-template-columns:repeat\(auto-fill,minmax\(100px,1fr\)\)/);
+assert.match(owner,/Guardar diseño/);
