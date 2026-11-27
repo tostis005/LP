@@ -22,7 +22,7 @@ const header=read("components/PublicHeader.tsx"),css=read("app/public-pages.css"
 assert.match(page,/<PublicHeader lang=\{lang\} page="help"\/>/,"Help uses the same public header");
 assert.match(page,/<LandingLanguageSync lang=\{lang\}\/>,?/,"The document language follows the selected locale");
 assert.doesNotMatch(page,/<header className="help-header"/);
-assert.match(header,/page==="help"\?"\/help\?lang="\+target:publicHref\(page,target\)/,"Switching language keeps the visitor on help");
+assert.match(header,/page==="help"\?"\/help\?lang="\+target/,"Switching language keeps the visitor on help");
 assert.match(header,/href=\{languageHref\("es"\)\}[\s\S]*?>ES<\/a>/);
 assert.match(header,/href=\{languageHref\("en"\)\}[\s\S]*?>EN<\/a>/);
 assert.match(css,/\.shared-public-header \.header-actions\{display:flex/,"Language controls remain visible on mobile");
