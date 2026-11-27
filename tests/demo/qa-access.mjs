@@ -56,3 +56,5 @@ assert.doesNotMatch(rename,/password_hash|INSERT INTO auth\.users/);
 assert.match(rename,/RAISE EXCEPTION/);
 assert.match(auth,/JOIN auth\.qa_profile_accounts q ON q\.user_id=u\.id/);
 assert.match(provision,/if\(occupied\.rowCount\)throw/);
+
+assert.match(logout,/NOT EXISTS \(SELECT 1 FROM auth\.qa_profile_accounts q WHERE q\.user_id=u\.id\)/,"Internal QA accounts must not send password-reset emails to the brand domain");
