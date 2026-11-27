@@ -1,10 +1,11 @@
 import type {Metadata} from "next";
 import Link from "next/link";
-import {Brand} from "@/components/Brand";
+import {PublicHeader} from "@/components/PublicHeader";
+import {LandingLanguageSync} from "@/components/LandingLanguageSync";
 import {SupportForm} from "@/components/SupportForm";
 import {LifeBuoy,WalletCards,ShieldCheck,ArrowUpRight} from "lucide-react";
 import "./help.css";
-export const metadata:Metadata={title:"Kreyvi | Ayuda y soporte / Customer support",description:"Asistencia oficial de Kreyvi para tarjetas de fidelización, Google Wallet, sellos, recompensas y acceso a tu cuenta.",alternates:{canonical:"https://kreyvi.com/help"}};
+export const metadata:Metadata={title:"Kreyvi | Ayuda y soporte / Customer support",description:"Asistencia oficial de Kreyvi para tarjetas de fidelización, Google Wallet, sellos, recompensas y acceso a tu cuenta.",alternates:{canonical:"https://kreyvi.com/help",languages:{es:"https://kreyvi.com/help?lang=es",en:"https://kreyvi.com/help?lang=en"}}};
 const faq=[
  ["¿Es una tarjeta bancaria o de pago?","No. Los pases de Kreyvi son tarjetas de fidelización y recompensas. No sirven para pagar ni almacenan números de tarjetas bancarias.","Is this a payment card?","No. Kreyvi passes are loyalty and rewards cards. They cannot be used for payments and do not store bank card numbers."],
  ["¿Qué es Kreyvi?","Kreyvi reúne las tarjetas digitales de fidelización de negocios participantes. Cada negocio establece sus propias condiciones, sellos, puntos y recompensas.","What is Kreyvi?","Kreyvi brings together digital loyalty cards from participating businesses. Each business sets its own rewards, stamps, points and program rules."],
@@ -17,9 +18,9 @@ const faq=[
 ];
 export default async function HelpPage({searchParams}:{searchParams:Promise<{lang?:string}>}){
  const lang=(await searchParams).lang==="en"?"en":"es",en=lang==="en";
- return <div className="help-page" lang={lang}><header className="help-header"><Brand/><nav aria-label={en?"Navigation":"Navegación"}><Link href="/">{en?"Home":"Inicio"}</Link><Link href={en?"/help":"/help?lang=en"} lang={en?"es":"en"}>{en?"Español":"English"}</Link><Link href="/entrar" className="button button-dark button-sm">{en?"Sign in":"Acceder"}</Link></nav></header>
+ return <div className="help-page" lang={lang}><LandingLanguageSync lang={lang}/><PublicHeader lang={lang} page="help"/>
  <main className="help-main"><section className="help-hero"><span className="help-kicker"><LifeBuoy size={18}/> {en?"CUSTOMER SUPPORT":"CENTRO DE AYUDA"}</span><h1>{en?"How can we help?":"¿En qué podemos ayudarte?"}</h1><p>{en?"Official Kreyvi support for your loyalty cards, Google Wallet, rewards and account.":"Soporte oficial de Kreyvi para tus tarjetas de fidelización, Google Wallet, recompensas y cuenta."}</p><a className="button button-dark" href="#contact">{en?"Contact support":"Contactar con soporte"} <ArrowUpRight size={17}/></a></section>
  <div className="help-grid"><section className="help-faq" aria-label={en?"Frequently asked questions":"Preguntas frecuentes"}><h2>{en?"Frequently asked questions":"Preguntas frecuentes"}</h2>{faq.map(([q,a,eq,ea])=><details key={q}><summary>{en?eq:q}</summary><p>{en?ea:a}</p></details>)}<article className="help-info"><WalletCards size={24}/><div><h3>{en?"Google Wallet support":"Ayuda de Google Wallet"}</h3><p>{en?"For issues with the Google Wallet app itself, consult Google's official help. For Kreyvi passes and rewards, contact us here.":"Para problemas de la aplicación Google Wallet, consulta la ayuda oficial de Google. Para tarjetas y recompensas de Kreyvi, escríbenos aquí."}</p><a href="https://support.google.com/wallet/" target="_blank" rel="noopener noreferrer">{en?"Google Wallet Help":"Ayuda oficial de Google Wallet"} <ArrowUpRight size={15}/></a></div></article></section>
  <div><SupportForm lang={lang}/><article className="help-info"><ShieldCheck size={24}/><div><h3>{en?"Your privacy":"Tu privacidad"}</h3><p>{en?"We use the information you send to manage and respond to your support request. We do not request your password or payment information.":"Utilizamos los datos que envías para gestionar y responder a tu consulta. No solicitamos contraseñas ni información de pago."}</p></div></article></div></div></main>
- <footer className="help-header help-footer"><span>© {new Date().getFullYear()} Kreyvi</span><nav><Link href="/">{en?"Home":"Inicio"}</Link><Link href="/para-negocios">{en?"For businesses":"Para negocios"}</Link></nav></footer></div>;
+ <footer className="help-footer"><span>© {new Date().getFullYear()} Kreyvi</span><nav><Link href="/">{en?"Home":"Inicio"}</Link><Link href={en?"/para-negocios?lang=en":"/para-negocios"}>{en?"For businesses":"Para negocios"}</Link></nav></footer></div>;
 }

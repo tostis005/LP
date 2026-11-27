@@ -17,3 +17,13 @@ assert.match(sql,/GRANT EXECUTE ON FUNCTION public.submit_support_request\(text,
 assert.match(wallet,/uri:site\+"\/help"/);
 assert.match(read("app/page.tsx"),/href="\/help"/);
 console.log("Public bilingual help, real support submission, admin isolation and Wallet support link verified.");
+
+const header=read("components/PublicHeader.tsx"),css=read("app/public-pages.css"),helpCss=read("app/help/help.css");
+assert.match(page,/<PublicHeader lang=\{lang\} page="help"\/>/,"Help uses the same public header");
+assert.match(page,/<LandingLanguageSync lang=\{lang\}\/>,?/,"The document language follows the selected locale");
+assert.doesNotMatch(page,/<header className="help-header"/);
+assert.match(header,/help\?"\/help\?lang="\+target:landingHref\(target\)/,"Switching language keeps the visitor on help");
+assert.match(header,/href=\{languageHref\("es"\)\}[\s\S]*?>ES<\/Link>/);
+assert.match(header,/href=\{languageHref\("en"\)\}[\s\S]*?>EN<\/Link>/);
+assert.match(css,/\.public-header-help \.header-actions\{display:flex/,"Language controls remain visible on mobile");
+assert.match(helpCss,/linear-gradient\(125deg,#3d0f1b,#5e1a2b/,"Help uses the public landing palette");

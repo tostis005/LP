@@ -191,3 +191,11 @@
  .request-page .request-benefits>div{padding:10px}
  .request-page .request-form{border-radius:19px;padding:20px}
 }
+
+/* Help shares the public header, keeping both language buttons usable at every width. */
+.public-header-help .top-nav a[aria-current="page"]{color:var(--color-brand);text-decoration:underline;text-underline-offset:5px}
+.public-header-help .loi-language-switch{flex:none;white-space:nowrap}
+.public-header-help .header-actions{display:flex;flex:none}
+.public-header-help .brand{flex-shrink:0}
+@media(max-width:1040px){.public-header-help .top-nav{display:none}.public-header-help .header-actions{margin-left:auto}}
+@media(max-width:410px){.public-header-help .header-inner{width:calc(100% - 24px);gap:7px}.public-header-help .brand .brand-logo-image{width:clamp(92px,34vw,145px);max-height:42px}.public-header-help .header-actions{gap:6px}.public-header-help .header-actions .button{white-space:nowrap}.public-header-help .loi-language-switch a{min-width:25px;min-height:30px;padding:5px}}
