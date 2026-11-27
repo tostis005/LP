@@ -156,7 +156,7 @@ for(const value of ["https://evil.example","//evil.example","/unirse/../admin","
 
 const {CARD_RATIO,posterAssetUrl}=loadTs("lib/counter-poster-export.ts");
 assert.ok(Math.abs(CARD_RATIO-1.586)<.001);
-assert.equal(posterAssetUrl("https://kreyviapp.com/api/assets/business-assets/id/logo.webp?w=512",96),"/api/assets/business-assets/id/logo.webp?w=96");
+for(const origin of ["https://kreyviapp.com","https://www.kreyviapp.com","https://kreyvi.com","https://www.kreyvi.com"]){assert.equal(posterAssetUrl(origin+"/api/assets/business-assets/id/logo.webp?w=512",96),"/api/assets/business-assets/id/logo.webp?w=96");}
 const joinUi=readFileSync(new URL("../../app/unirse/[slug]/page.tsx",import.meta.url),"utf8");
 assert.ok(joinUi.indexOf('className="join-action-panel"')<joinUi.indexOf('className="join-info-panel"'));
 assert.match(joinUi,/logoImageUrl\(offer.logo_url,192\)/);

@@ -34,3 +34,9 @@ assert.equal(isAllowedOrigin("https://kreyvi.com:8443",ip,aliases),false);
 assert.equal(isAllowedOrigin("https://evil.example",ip,aliases),false);
 assert.equal(isAllowedOrigin("https://kreyvi.com",ip),false);
 console.log("Origin validation: canonical origin, explicit HTTPS aliases and hostile origins tested.");
+
+const activeAliases="https://kreyviapp.com,https://www.kreyviapp.com";
+assert.equal(isAllowedOrigin("https://kreyviapp.com","https://kreyviapp.com",activeAliases),true);
+assert.equal(isAllowedOrigin("https://www.kreyviapp.com","https://kreyviapp.com",activeAliases),true);
+assert.equal(isAllowedOrigin("https://kreyviapp.com.evil.example","https://kreyviapp.com",activeAliases),false);
+assert.equal(isAllowedOrigin("https://kreyvi.com","https://kreyviapp.com",activeAliases),false);

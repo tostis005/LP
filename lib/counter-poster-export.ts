@@ -4,7 +4,7 @@ export const PRINT_DPI=300;
 export const CARD_RATIO=85.60/53.98;
 /** The poster is at most 360 CSS px wide; download only the required asset variant. */
 export function posterAssetUrl(value:string,width:number):string{
- const match=value.match(/^(?:https?:\/\/(?:www\.kreyvi\.com|kreyvi\.com|169\.58\.121\.198)(?::\d+)?)?(\/api\/assets\/business-assets\/[^?#]+)(\?[^#]*)?(?:#.*)?$/i);
+ const match=value.match(/^(?:https?:\/\/(?:(?:www\.)?kreyvi(?:app)?\.com|169\.58\.121\.198)(?::\d+)?)?(\/api\/assets\/business-assets\/[^?#]+)(\?[^#]*)?(?:#.*)?$/i);
  if(!match)return value;
  const query=new URLSearchParams(match[2]||"");query.set("w",String(width));
  return match[1]+"?"+query.toString();
