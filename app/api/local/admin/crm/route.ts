@@ -60,7 +60,7 @@ export async function GET(request:Request){
    if(p.get("show_closed")!=="1")where.push("closed_at IS NULL");
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
    for(const col of ["country_code","state_code","municipality_code","locality_code","category","status"]){
-    const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR (source IN ('WEB','OSM') AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
+    const v=p.get(col);if(col==="category"&&v==="pilot_food"){where.push("(activity_code LIKE '7225%' OR activity_code IN ('461170','311520') OR ((source='WEB' OR source='OSM') AND category IN ('Restaurantes y cafeterías','Heladerías')))");}else if(v)add(col,v.slice(0,120));
    }
    const neighborhood=p.get("neighborhood")?.trim();if(neighborhood){args.push("%"+neighborhood.slice(0,200)+"%");where.push("neighborhood ILIKE $"+args.length);}
    const coverage=p.get("coverage");if(coverage==="missing")where.push("email IS NULL AND public_email IS NULL");if(coverage==="available")where.push("(email IS NOT NULL OR public_email IS NOT NULL)");if(coverage==="web")where.push("public_email IS NOT NULL");
