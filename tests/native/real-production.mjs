@@ -5,8 +5,11 @@ const pool=new pg.Pool({host:process.env.PGHOST||"127.0.0.1",port:Number(process
 const db=await pool.connect();
 try{
  const names=["admin","gestor","empleado","cliente"];
- const users=Object.fromEntries((await db.query("SELECT id,email FROM auth.users WHERE email=ANY($1::text[])",[names.map(n=>n+"@loyally.local")])).rows
-  .map(u=>[u.email.split("@")[0],u.id]));
+ const mapping={admin:"ADMIN",gestor:"BUSINESS",empleado:"STAFF",cliente:"CUSTOMER"};
+ const addresses={ADMIN:"administrador@kreyviapp.com",BUSINESS:"owner@kreyviapp.com",STAFF:"empleado@kreyviapp.com",CUSTOMER:"cliente@kreyviapp.com"};
+ const rows=(await db.query("SELECT q.role,u.id,u.email FROM auth.qa_profile_accounts q JOIN auth.users u ON u.id=q.user_id")).rows;
+ for(const row of rows)assert.equal(row.email,addresses[row.role]);
+ const users=Object.fromEntries(names.map(name=>[name,rows.find(row=>row.role===mapping[name])?.id]));
  for(const name of names)assert.ok(users[name],"Real login account missing: "+name);
  const sites=(await db.query("SELECT id,slug,public_listing,card_background FROM public.businesses WHERE slug LIKE 'interno-%'")).rows;
  assert.equal(sites.length,10,"Ten internal locations must be persistent in PostgreSQL");
