@@ -224,3 +224,9 @@ assert.match(rootPage,/customer-public-hero-inner/);
 assert.match(customerCss,/\.customer-public-hero\{[^}]*linear-gradient\(125deg,#3d0f1b/,"Customer hero uses the rich wine palette");
 assert.match(customerCss,/\.customer-public-copy h1 em\{color:#f2ca7e/,"Gold emphasis ties both presentations together");
 assert.match(rootPage,/Volver tiene premio/);
+
+// curl must finish downloading the full body before a quiet grep can exit.
+const deployWorkflow=readFileSync(new URL("../../.github/workflows/deploy.yml",import.meta.url),"utf8");
+assert.doesNotMatch(deployWorkflow,/curl[^\n]*\|\s*grep\s+[^\n]*q/,"No premature pipe closure under pipefail");
+assert.match(deployWorkflow,/bash scripts\/check-public-pages\.sh "http:\/\/127\.0\.0\.1:3100"/,"Production uses the same public checks as the candidate image");
+assert.match(deployWorkflow,/push_config="\$\(curl/,"Web Push response is fully read before checking");

@@ -12,6 +12,7 @@ page() {
 }
 page / customer
 page /inicio customer_alias
+if grep -Fq 'Preparando tu espacio' "$dir/customer"; then echo 'PUBLIC_FAIL root serves login router'; exit 1; fi
 grep -Fq '<h1>Tus lugares favoritos.' "$dir/customer_alias" || { echo 'PUBLIC_FAIL /inicio missing heading'; exit 1; }
 grep -Fq '<main class="customer-public" data-public-landing="customer">' "$dir/customer" || { echo 'PUBLIC_FAIL / missing customer main'; exit 1; }
 grep -Fq '<h1>Tus lugares favoritos.' "$dir/customer" || { echo 'PUBLIC_FAIL / missing rendered heading'; exit 1; }
@@ -21,6 +22,10 @@ page '/para-negocios?lang=es' business_es
 grep -Fq 'Más clientes. Más visitas.' "$dir/business_es" || { echo 'PUBLIC_FAIL business ES'; exit 1; }
 page '/para-negocios?lang=en' business_en
 grep -Fq 'More customers. More visits.' "$dir/business_en" || { echo 'PUBLIC_FAIL business EN'; exit 1; }
+grep -Fq 'More sales.' "$dir/business_en" || { echo 'PUBLIC_FAIL business EN accent'; exit 1; }
+grep -Fq 'id="comunidad"' "$dir/business_en" || { echo 'PUBLIC_FAIL business community'; exit 1; }
+grep -Fq 'id="panel-negocio"' "$dir/business_en" || { echo 'PUBLIC_FAIL business dashboard'; exit 1; }
+if grep -Fq 'Más clientes. Más visitas.' "$dir/business_en"; then echo 'PUBLIC_FAIL Spanish text in English business landing'; exit 1; fi
 page /help help
 grep -Fq '¿En qué podemos ayudarte?' "$dir/help" || { echo 'PUBLIC_FAIL help'; exit 1; }
 page '/help?lang=en' help_en
