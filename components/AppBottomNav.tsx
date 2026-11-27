@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
 import {BarChart3,Compass,CreditCard,LayoutDashboard,LogOut,Mail,ScanLine,Settings2,Shield,Users,UserRound,BellRing,Brush} from "lucide-react";
@@ -27,6 +27,33 @@ export function AppBottomNav(){
  const pathname=usePathname(),router=useRouter();
  const [role,setRole]=useState<Role|null>(null),[ready,setReady]=useState(false);
  const inside=roleFromRoute(pathname);
+ const navRef=useRef<HTMLElement>(null);
+ useEffect(()=>{
+  const nav=navRef.current,viewport=window.visualViewport;
+  if(!nav||!viewport||!CSS.supports("-webkit-touch-callout","none"))return;
+  let frame=0;
+  const update=()=>{
+   cancelAnimationFrame(frame);
+   frame=requestAnimationFrame(()=>{
+    const inset=Math.abs(viewport.scale-1)<.01
+     ?Math.max(0,document.documentElement.clientHeight-viewport.height-viewport.offsetTop):0;
+    nav.style.setProperty("--kreyvi-viewport-bottom",Math.round(inset)+"px");
+   });
+  };
+  update();
+  viewport.addEventListener("resize",update);
+  viewport.addEventListener("scroll",update);
+  window.addEventListener("resize",update);
+  window.addEventListener("pageshow",update);
+  return()=>{
+   cancelAnimationFrame(frame);
+   viewport.removeEventListener("resize",update);
+   viewport.removeEventListener("scroll",update);
+   window.removeEventListener("resize",update);
+   window.removeEventListener("pageshow",update);
+   nav.style.removeProperty("--kreyvi-viewport-bottom");
+  };
+ },[inside,ready,role]);
  useEffect(()=>{
   let mounted=true;
   async function load(){
@@ -56,7 +83,7 @@ export function AppBottomNav(){
   await db().auth.signOut();
   router.replace("/acceder");
  }
- return <nav className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de KREYVI">
+ return <nav ref={navRef} className={"mobile-bottom-nav loyalty-global-bottom-nav loyalty-nav-"+role} aria-label="Menú principal de KREYVI">
   {items.map(item=>{
    const active=role==="admin"?adminActiveHref(pathname)===item.href:item.href==="/negocio"?["/negocio","/negocio/overview","/negocio/settings","/negocio/locations","/negocio/poster"].includes(pathname):item.href==="/negocio/reports"?["/negocio/reports","/negocio/transactions","/negocio/customers"].includes(pathname):pathname===item.href;
    return <Link key={item.href} href={item.href} aria-current={active?"page":undefined} className={"mobile-bottom-link"+(active?" active":"")}>{item.href==="/negocio/reports"?<BarChart3 size={20}/>:<KreyvIcon name={item.icon} size={20}/> }<span>{item.label}</span>{role==="customer"&&item.href==="/app/novedades"&&<CustomerInboxNavCount/>}</Link>;
