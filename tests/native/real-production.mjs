@@ -8,10 +8,14 @@ try{
  const users=Object.fromEntries((await db.query("SELECT id,email FROM auth.users WHERE email=ANY($1::text[])",[names.map(n=>n+"@loyally.local")])).rows
   .map(u=>[u.email.split("@")[0],u.id]));
  for(const name of names)assert.ok(users[name],"Real login account missing: "+name);
- const sites=(await db.query("SELECT id,slug,public_listing FROM public.businesses WHERE slug LIKE 'interno-%'")).rows;
+ const sites=(await db.query("SELECT id,slug,public_listing,card_background FROM public.businesses WHERE slug LIKE 'interno-%'")).rows;
  assert.equal(sites.length,10,"Ten internal locations must be persistent in PostgreSQL");
  assert.ok(sites.every(s=>s.public_listing===true),"QA fixture stores must appear in customer discovery during validation");
  const cafe=sites.find(s=>s.slug==="interno-cafe-noma");assert.ok(cafe);
+ const designed=sites.filter(s=>s.slug!=="interno-cafe-noma");
+ assert.equal(new Set(designed.map(s=>s.card_background)).size,9);
+ assert.ok(designed.every(s=>s.card_background==="/brand/card-designs/showcase-"+s.slug.slice(8)+".svg"));
+ assert.equal((await db.query("SELECT public.apply_internal_showcase_card_designs() AS changed")).rows[0].changed,0,"Do not overwrite existing designs");
  const owned=await db.query("SELECT count(*)::int n FROM public.business_members WHERE user_id=$1 AND role='owner' AND active",[users.gestor]);
  assert.equal(owned.rows[0].n,1,"Business owner manages only Café Noma; superadmin sees all shops separately");
  const cards=await db.query("SELECT m.id,m.card_token,m.balance FROM public.loyalty_memberships m WHERE m.customer_id=$1",[users.cliente]);
