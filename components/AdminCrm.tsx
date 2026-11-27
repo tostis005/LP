@@ -1,6 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
-const CrmMap=dynamic(()=>import("./CrmMap"),{ssr:false,loading:()=> <p>Cargando mapa…</p>});
+import {CrmLoading,CrmLoadError,CrmMapLoading} from "./CrmLoading";
+const CrmMap=dynamic(()=>import("./CrmMap"),{ssr:false,loading:()=> <CrmMapLoading/>});
 import {useEffect,useRef,useState} from "react";
 import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X,Building2,Mail,FolderUp,CheckCircle2,RefreshCw,Send,Clock3,Users,Phone,Globe,MapPinned,MapPin,ExternalLink,MessageSquare} from "lucide-react";
 import {AdminCrmPueblaCampaign} from "./AdminCrmPueblaCampaign";
@@ -30,14 +31,16 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const [columnFilters,setColumnFilters]=useState<Record<string,string>>({}),[loading,setLoading]=useState(true),[jump,setJump]=useState("");
  const topScroll=useRef<HTMLDivElement>(null),tableScroll=useRef<HTMLDivElement>(null);
  const [scrollWidth,setScrollWidth]=useState(0);
- useEffect(()=>{if(tab!=="directory")return;const wrap=tableScroll.current,top=topScroll.current;if(!wrap||!top)return;const update=()=>{setScrollWidth(wrap.scrollWidth);top.scrollLeft=wrap.scrollLeft;};const observer=new ResizeObserver(update);observer.observe(wrap);const table=wrap.querySelector("table");if(table)observer.observe(table);update();return()=>observer.disconnect();},[tab,data]);
+ const [initialReady,setInitialReady]=useState(false);
+ useEffect(()=>{if(data&&!loading&&!optionsLoading&&!optionsError)setInitialReady(true);},[data,loading,optionsLoading,optionsError]);
+ useEffect(()=>{if(tab!=="directory")return;const wrap=tableScroll.current,top=topScroll.current;if(!wrap||!top)return;const update=()=>{setScrollWidth(wrap.scrollWidth);top.scrollLeft=wrap.scrollLeft;};const observer=new ResizeObserver(update);observer.observe(wrap);const table=wrap.querySelector("table");if(table)observer.observe(table);update();return()=>observer.disconnect();},[tab,data,initialReady]);
  const requestVersion=useRef(0),lastRevision=useRef(-1),lastText=useRef("");
  const [optionsRevision,setOptionsRevision]=useState(0),[historyOpen,setHistoryOpen]=useState(false);
  const [leonFile,setLeonFile]=useState<File|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
  // Directory updates only on explicit actions.
  const mailSync=useCrmMailSync(()=>{},!marketingOnly&&tab==="mail");
  useEffect(()=>{
-  const controller=new AbortController();setOptionsLoading(true);
+  const controller=new AbortController();setOptionsLoading(true);setOptionsError("");
   fetch("/api/local/admin/crm?view=options"+(optionsRevision>0?"&refresh=1":""),{signal:controller.signal,cache:"no-store"}).then(async r=>{
    const j=await r.json();if(!r.ok)throw new Error(j.error||"No se pudieron cargar los filtros.");
    if(!controller.signal.aborted){setOptions(j);setOptionsError("");}
@@ -94,6 +97,11 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const textColumns=new Set(["name","activity","email","phone","address","website"]);
  const hasFilters=Boolean(search||state||municipality||city||category||coverage||review||status||Object.keys(columnFilters).length);
  const pendingCities=[{code:"14039",name:"Guadalajara"},{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
+ function retryDirectory(){setError("");setOptionsError("");setLoading(true);setOptionsLoading(true);setRevision(v=>v+1);setOptionsRevision(v=>v+1);}
+ if(tab==="directory"&&!initialReady){
+  if(!loading&&!optionsLoading&&(error||optionsError))return <CrmLoadError title="No se pudo preparar el CRM" message={error||optionsError} onRetry={retryDirectory}/>;
+  return <CrmLoading title="Preparando tu CRM" description="Estamos cargando los negocios, sus indicadores y los filtros de tu zona."/>;
+ }
  return <div className="panel-card crm-workspace">
   <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);setOptionsRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
   <div style={marketingOnly?{display:"none"}:undefined} className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
@@ -206,14 +214,12 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    .crm-column-filter{display:block;min-width:115px;width:100%;font-size:.78rem;margin-top:8px;padding:5px 7px;border:1px solid var(--border,#d5d5d5);border-radius:6px;background:transparent;color:inherit}
    .crm-table-shell td{vertical-align:top;max-width:260px;overflow-wrap:anywhere}
    .crm-table-shell td small{display:block}
-   .crm-table-loading{position:absolute;inset:0;z-index:2;display:flex;align-items:flex-start;justify-content:center;padding-top:65px;pointer-events:none}
-   .crm-table-loading span{display:flex;align-items:center;gap:10px;border:1px solid var(--border,#ddd);border-radius:999px;background:var(--card,#fff);padding:10px 16px;box-shadow:0 4px 18px #0002}
    .crm-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0 0;padding:16px 12px;border-top:1px solid var(--color-bg-2);border-radius:0 0 16px 16px;background:var(--color-surface);min-width:0;max-width:100%;box-sizing:border-box}
    .crm-pagination-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;max-width:100%;min-width:0}
    .crm-pagination-group select,.crm-pagination-group input{max-width:100px}
    .crm-pagination-group button{display:inline-flex;align-items:center;gap:4px;min-width:32px;justify-content:center}
   `}</style>
-  {tab==="directory"&&<>{optionsLoading&&<small role="status" className="muted">Cargando opciones de filtros…</small>}<div className="crm-filter-box"><div className="crm-filter-heading"><div><strong>Filtrar negocios</strong><span className="crm-filter-state">{hasFilters?"Filtros activos":"Todos los negocios"}</span></div><button type="button" className="button button-outline button-sm" onClick={clearFilters}><X size={15}/> Limpiar filtros</button></div><div className="crm-filter-search"><label className="crm-filter-field"><span>Buscar</span><span className="crm-filter-search-control"><Search size={17}/><input className="crm-filter-input" aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Negocio, correo, teléfono…"/></span></label></div><div className="crm-list-filters">
+  {tab==="directory"&&<>{optionsLoading&&<small role="status" className="crm-inline-progress"><Loader2 size={15} className="crm-list-spinner"/> Actualizando filtros…</small>}<div className="crm-filter-box"><div className="crm-filter-heading"><div><strong>Filtrar negocios</strong><span className="crm-filter-state">{hasFilters?"Filtros activos":"Todos los negocios"}</span></div><button type="button" className="button button-outline button-sm" onClick={clearFilters}><X size={15}/> Limpiar filtros</button></div><div className="crm-filter-search"><label className="crm-filter-field"><span>Buscar</span><span className="crm-filter-search-control"><Search size={17}/><input className="crm-filter-input" aria-label="Buscar prospectos" value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}} placeholder="Negocio, correo, teléfono…"/></span></label></div><div className="crm-list-filters">
    <label className="crm-filter-field"><span>País</span><select value={country} onChange={e=>{setCountry(e.target.value);setState("");setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{[...new Set(regions.map(r=>r.country_code))].map(code=><option key={code} value={code}>{code==="MX"?"México":code}</option>)}</select></label><label className="crm-filter-field"><span>Estado</span><select value={state} onChange={e=>{setState(e.target.value);setMunicipality("");setCity("");setPage(0)}}><option value="">Todos</option>{states.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label className="crm-filter-field"><span>Municipio</span><select value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
    <label className="crm-filter-field"><span>Localidad</span><select value={city} disabled={!municipality} onChange={e=>{setCity(e.target.value);setPage(0)}}><option value="">Todas</option>{localities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label>
@@ -230,6 +236,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    <button type="button" className="button button-dark crm-map-toggle" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}><MapPinned size={21}/>{showMap?"Ocultar mapa":"Ver mapa de negocios"}</button>
   </div>
   {showMap&&<CrmMap query={new URLSearchParams({country_code:country,state_code:state,municipality_code:municipality,locality_code:city,category,status,coverage,review,q:search,...columnFilters}).toString()}/>}
+  <div className="crm-results-status" role="status">{loading?<span className="crm-inline-progress"><Loader2 size={15} className="crm-list-spinner"/> Actualizando resultados…</span>:<span>{error?"No se han actualizado los resultados.":"Resultados del directorio"}</span>}</div>
   <div className="crm-table-shell" aria-busy={loading}>
    <div className="crm-table-top-scroll" ref={topScroll} tabIndex={0} aria-label="Desplazamiento horizontal superior" onScroll={e=>{if(tableScroll.current&&tableScroll.current.scrollLeft!==e.currentTarget.scrollLeft)tableScroll.current.scrollLeft=e.currentTarget.scrollLeft;}}><div style={{width:scrollWidth}}/></div>
    <div className="table-wrap" ref={tableScroll} onScroll={e=>{if(topScroll.current&&topScroll.current.scrollLeft!==e.currentTarget.scrollLeft)topScroll.current.scrollLeft=e.currentTarget.scrollLeft;}}><table className="data-table"><colgroup>{columns.map(([key])=><col key={key} style={{width:({name:230,state:150,municipality:150,city:180,neighborhood:180,category:190,activity:250,email:250,phone:150,address:280,website:230,status:170,review:170} as Record<string,number>)[key]}}/>)}<col style={{width:190}}/><col style={{width:90}}/></colgroup><thead><tr>{columns.map(([key,label])=><th key={key} scope="col" aria-sort={sort===key?(direction==="asc"?"ascending":"descending"):"none"}>
@@ -243,13 +250,13 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
     {key==="status"&&<select className="crm-column-filter" aria-label="Filtrar estado comercial" value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select>}
     {key==="review"&&<select className="crm-column-filter" aria-label="Filtrar revisión" value={review} onChange={e=>{setReview(e.target.value);setPage(0)}}><option value="">Todas</option>{Object.entries(reviewStages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select>}
    </th>)}<th scope="col">Actividad de correo</th><th scope="col">Ficha</th></tr></thead>
-   <tbody style={{opacity:loading?0.45:1}}>{data?.prospects.map(p=><tr key={p.id}>
+   <tbody style={{opacity:loading?0.7:1}}>{data?.prospects.map(p=><tr key={p.id}>
     <td><strong>{p.name}</strong></td><td>{p.state}</td><td>{p.municipality}</td><td>{p.city||"—"}</td><td>{p.neighborhood||"—"}</td><td>{p.category}</td><td>{p.activity||"—"}</td>
     <td>{p.public_email||p.email||"Sin correo"}{p.public_email&&<small>Fuente externa</small>}</td><td>{p.phone||"—"}</td><td>{p.address||"—"}</td><td>{p.website||"—"}{p.instagram&&<small>Instagram: {p.instagram}</small>}</td><td><span className="crm-stage" data-stage={p.status}>{stages[p.status]||p.status}</span></td><td>{reviewStages[p.contact_review]||p.contact_review||"—"}</td>
     <td><div className="crm-activity">{p.last_sent_at?<><strong>{p.sent_count||0} enviado(s)</strong><small>Último: {new Date(p.last_sent_at).toLocaleDateString("es-MX")}</small></>:p.last_attempt_at?<small>Intento de envío: {new Date(p.last_attempt_at).toLocaleDateString("es-MX")}</small>:<small>Sin envíos registrados</small>}{p.last_received_at&&<small className="crm-inbound">Recibido: {new Date(p.last_received_at).toLocaleDateString("es-MX")}</small>}</div></td>
     <td><button type="button" className="inline-table-button" disabled={loading} onClick={()=>{setHistoryOpen(false);setError("");setFocus({...p});}}>Abrir</button></td>
    </tr>)}</tbody></table></div>
-   {loading&&<div className="crm-table-loading" role="status"><span><Loader2 className="crm-list-spinner" size={20}/>{data?"Actualizando resultados…":"Cargando negocios…"}</span></div>}
+
    {!loading&&data&&!data.prospects.length&&<p className="muted" role="status">No hay prospectos con estos filtros. {hasFilters&&<button type="button" className="inline-table-button" onClick={clearFilters}>Limpiar filtros</button>}</p>}
   </div>
   <div className="crm-pagination">
