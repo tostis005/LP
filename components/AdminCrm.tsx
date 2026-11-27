@@ -35,7 +35,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  useEffect(()=>{if(tab!=="directory")return;const refresh=()=>{if(!document.hidden)setActivityRevision(v=>v+1);};const timer=setInterval(refresh,60000);window.addEventListener("focus",refresh);return()=>{clearInterval(timer);window.removeEventListener("focus",refresh);};},[tab]);
  useEffect(()=>{
   const controller=new AbortController();setOptionsLoading(true);
-  fetch("/api/local/admin/crm?view=options",{signal:controller.signal,cache:"no-store"}).then(async r=>{
+  fetch("/api/local/admin/crm?view=options"+(revision>0?"&refresh=1":""),{signal:controller.signal,cache:"no-store"}).then(async r=>{
    const j=await r.json();if(!r.ok)throw new Error(j.error||"No se pudieron cargar los filtros.");
    if(!controller.signal.aborted){setOptions(j);setOptionsError("");}
   }).catch(e=>{if(!controller.signal.aborted)setOptionsError(e.message);}).finally(()=>{if(!controller.signal.aborted)setOptionsLoading(false);});
@@ -45,7 +45,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
   if(tab!=="directory")return;
   const controller=new AbortController(),version=++requestVersion.current;
   setLoading(true);setError("");
-  const refresh=lastRevision.current!==revision;
+  const refresh=lastRevision.current!==-1&&lastRevision.current!==revision;
   const textKey=JSON.stringify([search,columnFilters]);
   const delay=lastText.current!==textKey&&lastRevision.current!==-1?160:0;lastText.current=textKey;
   const params=new URLSearchParams({compact:"1",...(refresh?{refresh:"1"}:{}),country_code:country,state_code:state,municipality_code:municipality,locality_code:city,category,status,coverage,review,q:search,page:String(page),page_size:String(pageSize),sort,direction,...columnFilters});
@@ -218,7 +218,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
     {key==="municipality"&&<select className="crm-column-filter" aria-label="Filtrar municipio" value={municipality} disabled={!state} onChange={e=>{setMunicipality(e.target.value);setCity("");setPage(0)}}><option value="">Todos</option>{municipalities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select>}
     {key==="city"&&<select className="crm-column-filter" aria-label="Filtrar localidad" value={city} disabled={!municipality} onChange={e=>{setCity(e.target.value);setPage(0)}}><option value="">Todas</option>{localities.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select>}
     {key==="neighborhood"&&<input className="crm-column-filter" aria-label="Filtrar colonia o barrio" placeholder="Filtrar…" value={columnFilters.neighborhood||""} onChange={e=>filterColumn("neighborhood",e.target.value)}/>}
-    {key==="category"&&<select className="crm-column-filter" aria-label="Filtrar sector" value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración y heladerías</option>{options.categories.map(c=><option key={c.category}>{c.category}</option>)}</select>}
+    {key==="category"&&<select className="crm-column-filter" aria-label="Filtrar sector" value={category} onChange={e=>{setCategory(e.target.value);setPage(0)}}><option value="">Todos</option><option value="pilot_food">Restauración, cafeterías y heladerías</option>{options.categories.map(c=><option key={c.category}>{c.category}</option>)}</select>}
     {key==="status"&&<select className="crm-column-filter" aria-label="Filtrar estado comercial" value={status} onChange={e=>{setStatus(e.target.value);setPage(0)}}><option value="">Todos</option>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select>}
     {key==="review"&&<select className="crm-column-filter" aria-label="Filtrar revisión" value={review} onChange={e=>{setReview(e.target.value);setPage(0)}}><option value="">Todas</option>{Object.entries(reviewStages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select>}
    </th>)}<th scope="col">Actividad de correo</th><th scope="col">Ficha</th></tr></thead>
