@@ -14,6 +14,7 @@ import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {MerchantCard} from "@/components/StampCard";
 import {CARD_BACKGROUNDS,CARD_BACKGROUND_GROUPS} from "@/lib/card-backgrounds";
+import {CARD_FONTS,cardTitleFont} from "@/lib/card-fonts";
 import {cardBackgroundUrl} from "@/lib/card-images";
 import "@/app/card-designer.css";
 import type {MilestoneRule} from "@/lib/milestones";
@@ -196,7 +197,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   try{
    const {error,count}=await db().from("businesses").update({
     logo_url:biz.logo_url||null,card_background:biz.card_background||null,accent_color:biz.accent_color,card_text:biz.card_text,card_logo_scale:biz.card_logo_scale??100,card_logo_x:biz.card_logo_x??0,card_logo_y:biz.card_logo_y??0,
-    card_text_color:biz.card_text_color||"#ffffff",stamp_color:biz.stamp_color||"#571c32",
+    card_text_color:biz.card_text_color||"#ffffff",card_title_font:biz.card_title_font||"default",stamp_color:biz.stamp_color||"#571c32",
     stamp_icon:biz.stamp_icon||"coffee",stamp_image_url:biz.stamp_image_url||null
    }).eq("id",selected);
    if(error||count!==1){setError(error?.message||"No se ha guardado el diseño. Revisa tus permisos.");return}
@@ -372,6 +373,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
        </div>
       </div>
       {biz.logo_url&&<div className="logo-adjust-controls"><strong>Ajustar logotipo</strong><label>Tamaño · {biz.card_logo_scale??100}%<input type="range" min={50} max={220} value={biz.card_logo_scale??100} onChange={e=>setBiz({...biz,card_logo_scale:Number(e.target.value)})}/></label><label>Posición horizontal<input type="range" min={-50} max={50} value={biz.card_logo_x??0} onChange={e=>setBiz({...biz,card_logo_x:Number(e.target.value)})}/></label><label>Posición vertical<input type="range" min={-50} max={50} value={biz.card_logo_y??0} onChange={e=>setBiz({...biz,card_logo_y:Number(e.target.value)})}/></label><button type="button" className="button button-outline button-sm" onClick={()=>setBiz({...biz,card_logo_scale:100,card_logo_x:0,card_logo_y:0})}>Restablecer ajuste</button><small>Comprueba el resultado en la vista previa y guarda el diseño.</small></div>}
+      <label>Tipografía del nombre del negocio<select aria-label="Tipografía del nombre del negocio" value={biz.card_title_font||"default"} disabled={busy} onChange={e=>setBiz(old=>old?{...old,card_title_font:e.target.value}:old)}>{CARD_FONTS.map(font=><option key={font.id} value={font.id} style={{fontFamily:font.family}}>{font.label}</option>)}</select></label><div className="card-font-sample" style={{fontFamily:cardTitleFont(biz.card_title_font)}}>{biz.name}</div>
       <label>Mensaje en la tarjeta<input value={biz.card_text||""} maxLength={60} placeholder="GRACIAS POR VOLVER" onChange={e=>setBiz({...biz,card_text:e.target.value})}/></label>
 
       </div>
@@ -379,7 +381,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
        <h3>2. Fondo de la tarjeta</h3><p className="muted">Elige un color liso o una imagen de fondo. Puedes utilizar nuestros diseños o subir tu propia imagen.</p>
        <div className="card-editor-modes" role="group" aria-label="Tipo de fondo">
         <button type="button" aria-pressed={!biz.card_background} disabled={busy} onClick={()=>setBiz(old=>old?{...old,card_background:null}:old)}><span className="card-mode-color" style={{background:biz.accent_color}}/> <strong>Color liso</strong><small>Un solo color</small></button>
-        <button type="button" aria-pressed={!!biz.card_background} disabled={busy} onClick={()=>{if(!biz.card_background){const design=CARD_BACKGROUNDS[0];setBiz(old=>old?{...old,card_background:design.url,accent_color:design.color,card_text_color:"#ffffff"}:old);setBackgroundGroup("Todos");}}}><ImagePlus size={21}/><strong>Imagen de fondo</strong><small>Galería o imagen propia</small></button>
+        <button type="button" aria-pressed={!!biz.card_background} disabled={busy} onClick={()=>{if(!biz.card_background){const design=CARD_BACKGROUNDS[0];setBiz(old=>old?{...old,card_background:design.url,accent_color:design.color,card_text_color:design.textColor}:old);setBackgroundGroup("Todos");}}}><ImagePlus size={21}/><strong>Imagen de fondo</strong><small>Galería o imagen propia</small></button>
        </div>
        {!biz.card_background?<div className="card-color-picker">
         <strong>Colores sugeridos</strong><div className="card-color-swatches" role="group" aria-label="Colores sugeridos del fondo">{COLOR_PRESETS.map(color=><button type="button" key={color} disabled={busy} title={color} aria-label={"Elegir color de fondo "+color} aria-pressed={biz.accent_color.toLowerCase()===color} onClick={()=>setBiz(old=>old?{...old,accent_color:color}:old)} style={{background:color}}>{biz.accent_color.toLowerCase()===color&&<Check size={15}/>}</button>)}</div>
@@ -387,7 +389,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
        </div>:<div className="card-background-library">
         <div className="card-gallery-heading"><strong>Galería de fondos</strong><small>{CARD_BACKGROUNDS.length} diseños</small></div>
         <div className="card-gallery-filters" role="group" aria-label="Estilos de fondo">{CARD_BACKGROUND_GROUPS.map(group=><button key={group} type="button" aria-pressed={group===backgroundGroup} onClick={()=>setBackgroundGroup(group)}>{group}</button>)}</div>
-        <div className="card-gallery-grid">{CARD_BACKGROUNDS.filter(d=>backgroundGroup==="Todos"||d.group===backgroundGroup).map(design=><button type="button" key={design.id} disabled={busy} aria-pressed={biz.card_background===design.url} onClick={()=>setBiz(old=>old?{...old,accent_color:design.color,card_background:design.url,card_text_color:"#ffffff"}:old)}><span className="card-gallery-art"><img src={design.url} alt="" loading="lazy" draggable={false}/>{biz.card_background===design.url&&<span className="card-gallery-check"><Check size={15}/></span>}</span><span className="card-gallery-label">{design.label}</span></button>)}</div>
+        <div className="card-gallery-grid">{CARD_BACKGROUNDS.filter(d=>backgroundGroup==="Todos"||d.group===backgroundGroup).map(design=><button type="button" key={design.id} disabled={busy} aria-pressed={biz.card_background===design.url} onClick={()=>setBiz(old=>old?{...old,accent_color:design.color,card_background:design.url,card_text_color:design.textColor}:old)}><span className="card-gallery-art"><img src={design.url} alt="" loading="lazy" draggable={false}/>{biz.card_background===design.url&&<span className="card-gallery-check"><Check size={15}/></span>}</span><span className="card-gallery-label">{design.label}</span></button>)}</div>
         <div className="card-upload-choice">
          <div className="card-upload-thumb"><img src={cardBackgroundUrl(biz.card_background)} alt="Fondo seleccionado" loading="lazy"/></div><div><strong>{CARD_BACKGROUNDS.find(d=>d.url===biz.card_background)?.label||"Imagen personalizada"}</strong><small>Fondo seleccionado</small></div>
         </div>
