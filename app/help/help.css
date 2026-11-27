@@ -2,3 +2,5 @@
 
 .help-hero .button-dark{background:#f2ca7e;color:#431525;border-color:#f2ca7e}.help-hero .button-dark:hover{background:#ffe0a1;color:#431525}.help-main{max-width:1190px}.help-grid>div,.help-grid>section{min-width:0}.help-form{scroll-margin-top:100px}.help-faq summary:focus-visible,.help-page a:focus-visible{outline:2px solid var(--color-accent);outline-offset:4px}
 @media(max-width:720px){.help-footer{width:calc(100% - 32px)}.help-hero{border-radius:22px;margin-top:12px}.help-grid{gap:20px}}
+
+.contact-faq-group{font-size:14px;letter-spacing:.04em;color:var(--color-brand);margin:20px 0 10px;font-weight:800}.contact-business-fields{display:grid;gap:18px;padding:16px;border:1px solid var(--color-bg-2,#e8dce1);background:var(--color-bg,#fcf8f5);border-radius:12px}.contact-business-fields p{margin:0;font-size:12px}.contact-business-fields .form-two{min-width:0}@media(max-width:440px){.contact-business-fields .form-two{grid-template-columns:1fr}}
