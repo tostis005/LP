@@ -56,3 +56,20 @@ assert.deepEqual(selectDirectoryRows(sample,cols,{name:"alvaro"},{key:"name",dir
 assert.deepEqual(selectDirectoryRows(sample,cols,{role:"marketing"},{key:"n",direction:"desc"}).map(r=>r.n),[3,2]);
 assert.deepEqual(selectDirectoryRows(sample,cols,{n:"2"},{key:"n",direction:"asc"}).map(r=>r.name),["Ana"]);
 assert.deepEqual(selectDirectoryRows(sample,cols,{},{key:"n",direction:"asc"}).map(r=>r.n),[2,3,10]);
+
+const {emptyScope,appendScope,scopesForSave}=await import("../../lib/marketing-scopes.ts");
+const leon={...emptyScope,country_code:"MX",state_code:"11",municipality_code:"020"};
+assert.deepEqual(scopesForSave([],leon),[leon],"Save includes selected but not yet added geographic scope");
+assert.deepEqual(scopesForSave([],emptyScope),[],"An empty draft must not grant global permissions");
+assert.deepEqual(scopesForSave([leon],leon),[leon],"Do not duplicate selected scopes");
+assert.deepEqual(appendScope([leon],emptyScope),[leon,emptyScope],"Global permission is explicit");
+assert.match(directory,/scopes:scopesForSave\(scopes,draft\)/);
+assert.match(directory,/Contraseña inicial \(opcional\)/);
+assert.match(api,/hashPassword\(initialPassword\|\|randomBytes/);
+assert.match(api,/crm_admin_provision_marketing/);
+assert.match(read("app/acceder/page.tsx"),/resetPasswordForEmail/);
+assert.match(read("app/marketing/page.tsx"),/href="\/restablecer-clave"/);
+const crm=read("components/AdminCrm.tsx");
+assert.match(crm,/importOfficial\("11020","León"\)/);
+assert.match(crm,/importOfficial\("11020","León",leonFile\)/);
+assert.match(read("lib/server/denue-download.ts"),/11020.*denue_11_0525_csv.zip/);

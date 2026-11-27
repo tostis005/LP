@@ -22,6 +22,25 @@ try{
  await denied(()=>c.query("SELECT * FROM public.crm_marketing_users"));
  await c.query("SELECT public.crm_marketing_save_contact($1,'contacted','within scope')",[allowed]);
  await assume(admin);const roles=(await c.query("SELECT public.crm_admin_marketing_users() AS users")).rows[0].users;const directory=(await c.query("SELECT * FROM public.admin_user_directory()")).rows;assert.equal(roles.find(u=>u.id===marketing)?.role,"marketing");assert.equal(roles.find(u=>u.id===admin)?.role,"admin");assert.equal(roles.find(u=>u.id===customer)?.role,"customer");assert.ok(directory.find(u=>u.user_id===customer)?.joined_at,"Directory retains registration dates");assert.equal(Number(directory.find(u=>u.user_id===customer)?.businesses),0,"Directory retains program count");assert.equal((await c.query("SELECT count(*)::int AS n FROM public.crm_prospects WHERE source_id LIKE $1 AND status='contacted'",[tag+"%"])).rows[0].n,3,"Shared address inherits contact globally");
+ // Create using the exact server RPC, then re-open from the directory and edit.
+ const leonScope={country_code:"MX",state_code:"11",municipality_code:"020",locality_code:"",neighborhood:""};
+ const staffEmail=tag+"-provisioned@example.test",initialHash="scrypt:test-only:"+ "a".repeat(128);
+ const save=async(email,hash,scopes,initial,id=null)=>(await c.query("SELECT public.crm_admin_provision_marketing($1,$2,$3,$4,$5::jsonb,$6,$7::uuid) AS saved",[email,"Marketing test",hash,true,JSON.stringify(scopes),initial,id])).rows[0].saved;
+ const provisioned=await save(staffEmail,initialHash,[leonScope],true);
+ assert.deepEqual(provisioned.scopes,[leonScope]);
+ assert.deepEqual((await c.query("SELECT public.crm_admin_marketing_users() AS users")).rows[0].users.find(u=>u.id===provisioned.id).scopes,[leonScope]);
+ await assume(provisioned.id);assert.deepEqual(await visible(),[outside],"New marketing user can only read León");
+ await denied(()=>save(tag+"-forbidden@example.test",initialHash,[leonScope],true));
+ await assume(admin);
+ await denied(()=>save(staffEmail,initialHash,[scope],true));
+ await denied(()=>save(staffEmail,"b".repeat(128),[scope],true,provisioned.id));
+ const edited=await save(staffEmail,"b".repeat(128),[scope],false,provisioned.id);
+ assert.deepEqual(edited.scopes,[scope]);
+ assert.deepEqual((await c.query("SELECT public.crm_admin_marketing_users() AS users")).rows[0].users.find(u=>u.id===provisioned.id).scopes,[scope]);
+ await c.query("RESET ROLE");
+ const credential=(await c.query("SELECT password_hash,email_confirmed_at FROM auth.users WHERE id=$1",[provisioned.id])).rows[0];
+ assert.equal(credential.password_hash,initialHash,"Editing permissions never replaces the password");
+ assert.ok(credential.email_confirmed_at,"Admin-provisioned account can sign in immediately");
  await assume(customer);assert.deepEqual(await visible(),[]);await denied(()=>c.query("SELECT public.crm_marketing_save_contact($1,'qualified','customer')",[allowed]));
  await c.query("RESET ROLE");await c.query("UPDATE public.crm_marketing_users SET scopes='[]' WHERE user_id=$1",[marketing]);await assume(marketing);assert.deepEqual(await visible(),[]);
  await c.query("RESET ROLE");await c.query("UPDATE public.crm_marketing_users SET scopes=$2::jsonb,active=false WHERE user_id=$1",[marketing,JSON.stringify([scope])]);await assume(marketing);assert.deepEqual(await visible(),[]);await denied(()=>c.query("SELECT public.crm_marketing_save_contact($1,'contacted','disabled')",[allowed]));

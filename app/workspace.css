@@ -1230,3 +1230,5 @@
 @media(max-width:620px){.marketing-editor-fields,.marketing-scope-fields{grid-template-columns:1fr}.marketing-editor-section{padding:15px}.marketing-editor-actions .button{flex:1}}
 
 .milestone-settings-preview{background:var(--color-brand);color:#fff;padding:14px 16px;border-radius:14px;margin:14px 0;max-width:390px}.milestone-settings-preview .stamp-grid{margin:0 0 10px;grid-template-columns:repeat(var(--stamp-columns),minmax(0,32px));gap:6px}.milestone-settings-preview small{font-size:12px;color:#fff;opacity:.9}
+
+.marketing-password-field{display:grid;gap:7px}.marketing-password-field .password-input{display:flex;align-items:center;position:relative}.marketing-password-field .password-input input{width:100%;padding-right:45px}.marketing-password-field .password-input button{position:absolute;right:9px;border:0;background:transparent;color:var(--color-brand);display:grid;place-items:center;padding:8px}.marketing-password-field small{line-height:1.55}

@@ -20,3 +20,7 @@ Las importaciones conservan estado comercial y notas, deduplican por ID DENUE y 
 - Comprobar reimportación, exclusiones y resultados con un CSV real.
 
 El análisis completo de México requiere los archivos de todos los estados y sectores relevantes. Los informes por importación no se deben sumar sin deduplicar fuentes superpuestas.
+
+## León, Guanajuato
+Administración → CRM comercial → Importaciones → León → Cargar León desde INEGI.
+La carga oficial usa la edición 2025-05 configurada (municipio 11020) y conserva los negocios de todos los sectores compatibles, tengan o no correo electrónico publicado. Si INEGI no responde, el mismo panel permite importar un CSV oficial descomprimido de Guanajuato de hasta 40 MB, filtrando exclusivamente 11020. Para archivos mayores, dividir conservando las cabeceras. No se envía correo. Se conservan estados y notas, se deduplica por ID de establecimiento y se respetan exclusiones. La existencia de algunos negocios de León no significa que se haya registrado la carga oficial completa.
