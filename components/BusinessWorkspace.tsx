@@ -20,7 +20,7 @@ import type {MilestoneRule} from "@/lib/milestones";
 import {CounterPoster} from "@/components/CounterPoster";
 import {adminBusinessHref,adminBusinessSections,managedBusinessHref,type AdminBusinessSection} from "@/lib/admin-sections";
 import {publicJoinUrl} from "@/lib/public-url";
-import {logoImageUrl} from "@/lib/asset-images";
+import {logoImageUrl,stampImageUrl} from "@/lib/asset-images";
 import {BUSINESS_CATEGORIES} from "@/lib/business-categories";
 import {BusinessAnalytics,type MetricRow,type RankingRow,type GrowthRow} from "@/components/BusinessAnalytics";
 import {EmployeeChart,CustomerPanel,TransactionsPanel,type EmployeeActivity} from "@/components/OwnerDataPanels";
@@ -401,7 +401,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
         <button type="button" aria-pressed={!biz.stamp_image_url} disabled={busy} onClick={()=>setBiz(old=>old?{...old,stamp_image_url:null}:old)}><StampMark kind={biz.stamp_icon||"coffee"} size={23} color={biz.stamp_color||"#571c32"}/><strong>Icono de galería</strong><small>Personaliza su color</small></button>
         <label className={"card-mode-upload"+(biz.stamp_image_url?" selected":"")+(busy?" is-disabled":"")}><ImagePlus size={21}/><strong>{biz.stamp_image_url?"Sello personalizado":"Subir sello propio"}</strong><small>{biz.stamp_image_url?"Cambiar imagen":"JPG, PNG o WEBP"}</small><input type="file" disabled={busy} aria-label="Subir sello propio" accept="image/png,image/jpeg,image/webp" onChange={e=>{upload(e.target.files?.[0]||null,"stamp_image_url");e.currentTarget.value="";}}/></label>
        </div>
-       {biz.stamp_image_url?<div className="card-upload-choice"><div className="card-stamp-thumb"><StampMark kind={biz.stamp_icon||"coffee"} imageUrl={biz.stamp_image_url} size={42}/></div><div><strong>Tu sello personalizado</strong><small>Conserva sus colores originales. Para cambiarlo, sube otra imagen o vuelve a la galería.</small></div></div>:<>
+       {biz.stamp_image_url?<div className="card-upload-choice"><div className="card-stamp-thumb"><img src={stampImageUrl(biz.stamp_image_url,96)} alt="Sello personalizado"/></div><div><strong>Tu sello personalizado</strong><small>Conserva sus colores originales. Para cambiarlo, sube otra imagen o vuelve a la galería.</small></div></div>:<>
         <strong>Galería de iconos</strong>
         <div className="role-demo-icon-grid lp-real-icon-grid card-stamp-gallery">{STAMP_OPTIONS.map(option=><button type="button" key={option.id} disabled={busy} className={(biz.stamp_icon||"coffee")===option.id?"selected":""} aria-label={"Sello de "+option.label} aria-pressed={(biz.stamp_icon||"coffee")===option.id} onClick={()=>setBiz(old=>old?{...old,stamp_icon:option.id,stamp_image_url:null}:old)}><StampMark kind={option.id} size={26} color={biz.stamp_color||"#571c32"}/><span>{option.label}</span></button>)}</div>
         <div className="card-color-picker"><strong>Color del sello · colores sugeridos</strong><div className="card-color-swatches" role="group" aria-label="Colores sugeridos para el sello">{STAMP_COLOR_PRESETS.map(color=><button type="button" key={color} disabled={busy} style={{backgroundColor:color}} title={color} aria-label={"Elegir color de sello "+color} aria-pressed={(biz.stamp_color||"#571c32").toLowerCase()===color} onClick={()=>setBiz(old=>old?{...old,stamp_color:color}:old)}>{(biz.stamp_color||"#571c32").toLowerCase()===color&&<Check size={15}/>}</button>)}</div>
