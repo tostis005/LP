@@ -29,7 +29,7 @@ export function useCrmMailSync(onChange:()=>void,enabled=true){
   }catch(e){setError(e instanceof Error?e.message:"Error de sincronización.");}
   finally{busy.current=false;setSyncing(false);}
  },[refresh]);
- useEffect(()=>{if(!enabled)return;void run();const timer=setInterval(()=>{if(!document.hidden&&!busy.current)void refresh().catch(e=>setError(e.message));},60000);return()=>clearInterval(timer);},[run,refresh,enabled]);
+ useEffect(()=>{if(!enabled)return;void refresh().catch(e=>setError(e.message));},[refresh,enabled]);
  return {status,error,syncing,run,refresh};
 }
 export function CrmMailSettings({sync}:{sync:ReturnType<typeof useCrmMailSync>}){

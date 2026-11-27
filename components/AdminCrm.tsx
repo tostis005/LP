@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 const CrmMap=dynamic(()=>import("./CrmMap"),{ssr:false,loading:()=> <p>Cargando mapa…</p>});
 import {useEffect,useRef,useState} from "react";
-import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X,Building2,Mail,FolderUp,CheckCircle2,RefreshCw,Send,Clock3,Users,Phone,Globe} from "lucide-react";
+import {Upload,Search,Loader2,ArrowUp,ArrowDown,ArrowUpDown,ChevronLeft,ChevronRight,ChevronsLeft,ChevronsRight,X,Building2,Mail,FolderUp,CheckCircle2,RefreshCw,Send,Clock3,Users,Phone,Globe,MapPinned,MapPin,ExternalLink,MessageSquare} from "lucide-react";
 import {AdminCrmPueblaCampaign} from "./AdminCrmPueblaCampaign";
 import {AdminCrmCsvLibrary} from "./AdminCrmCsvLibrary";
 import {CrmContactHistory,CrmMailSettings,useCrmMailSync} from "./CrmContactHistory";
@@ -13,6 +13,9 @@ type Report=Count&{duplicates:number;skipped:number;byCity:Array<Count&{state:st
 type Data={prospects:Prospect[];count:{total:number;unique_emails:number;with_email:number;with_phone:number;with_website:number;missing_email:number;reviewed:number;contacted:number;confirmed_email:number;confirmed_24h:number;pending_contact:number};regions:Region[];categories:Array<{category:string;total:number}>;imports:Array<{filename:string;created_at:string;report:Report&{edition?:string|null}}>;page:number;pageSize:number;totalPages:number};
 const stages:Record<string,string>={pending_review:"Sin contactar",qualified:"Sin contactar (revisado)",contacted:"Contactado",interested:"Interesado",trial:"En prueba",converted:"Cliente",discarded:"No interesado",do_not_contact:"No contactar"};
 const reviewStages:Record<string,string>={pending:"Pendiente",source_found:"Fuente localizada",no_contact_found:"Sin contacto localizado",ambiguous:"Identidad dudosa",not_relevant:"No relevante"};
+function phoneLink(phone:string|null|undefined){const value=(phone||"").trim();return /^\+?[\d\s().-]+$/.test(value)&&value.replace(/\D/g,"").length>=5?"tel:"+value.replace(/[^\d+]/g,""):undefined;}
+function contactEmail(p:Prospect){const email=(p.public_email||p.email||"").trim();return /^[^\s@,;<>?#&]+@[^\s@,;<>?#&]+\.[^\s@,;<>?#&]+$/.test(email)?email:undefined;}
+function safeWebsite(value:string|null|undefined){if(!value?.trim())return undefined;try{const raw=value.trim(),url=new URL(/^[a-z][a-z0-9+.-]*:/i.test(raw)?raw:"https://"+raw);return ["http:","https:"].includes(url.protocol)&&!url.username&&!url.password?url.href:undefined;}catch{return undefined;}}
 export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const [showMap,setShowMap]=useState(false);
  const [data,setData]=useState<Data|null>(null);
@@ -29,18 +32,18 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const [scrollWidth,setScrollWidth]=useState(0);
  useEffect(()=>{if(tab!=="directory")return;const wrap=tableScroll.current,top=topScroll.current;if(!wrap||!top)return;const update=()=>{setScrollWidth(wrap.scrollWidth);top.scrollLeft=wrap.scrollLeft;};const observer=new ResizeObserver(update);observer.observe(wrap);const table=wrap.querySelector("table");if(table)observer.observe(table);update();return()=>observer.disconnect();},[tab,data]);
  const requestVersion=useRef(0),lastRevision=useRef(-1),lastText=useRef("");
- const [activityRevision,setActivityRevision]=useState(0);
+ const [optionsRevision,setOptionsRevision]=useState(0),[historyOpen,setHistoryOpen]=useState(false);
  const [leonFile,setLeonFile]=useState<File|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[revision,setRevision]=useState(0),[focus,setFocus]=useState<Prospect|null>(null);
- const mailSync=useCrmMailSync(()=>setActivityRevision(v=>v+1),!marketingOnly);
- useEffect(()=>{if(tab!=="directory")return;const refresh=()=>{if(!document.hidden)setActivityRevision(v=>v+1);};const timer=setInterval(refresh,60000);window.addEventListener("focus",refresh);return()=>{clearInterval(timer);window.removeEventListener("focus",refresh);};},[tab]);
+ // Directory updates only on explicit actions.
+ const mailSync=useCrmMailSync(()=>{},!marketingOnly&&tab==="mail");
  useEffect(()=>{
   const controller=new AbortController();setOptionsLoading(true);
-  fetch("/api/local/admin/crm?view=options"+(revision>0?"&refresh=1":""),{signal:controller.signal,cache:"no-store"}).then(async r=>{
+  fetch("/api/local/admin/crm?view=options"+(optionsRevision>0?"&refresh=1":""),{signal:controller.signal,cache:"no-store"}).then(async r=>{
    const j=await r.json();if(!r.ok)throw new Error(j.error||"No se pudieron cargar los filtros.");
    if(!controller.signal.aborted){setOptions(j);setOptionsError("");}
   }).catch(e=>{if(!controller.signal.aborted)setOptionsError(e.message);}).finally(()=>{if(!controller.signal.aborted)setOptionsLoading(false);});
   return()=>controller.abort();
- },[revision]);
+ },[optionsRevision]);
  useEffect(()=>{
   if(tab!=="directory")return;
   const controller=new AbortController(),version=++requestVersion.current;
@@ -59,7 +62,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    .finally(()=>{if(!controller.signal.aborted&&version===requestVersion.current)setLoading(false);});
   },delay);
   return()=>{clearTimeout(timer);controller.abort();};
- },[country,state,municipality,city,category,status,coverage,review,search,page,pageSize,sort,direction,columnFilters,revision,activityRevision,tab]);
+ },[country,state,municipality,city,category,status,coverage,review,search,page,pageSize,sort,direction,columnFilters,revision,tab]);
  useEffect(()=>{if(!focus)return;const handler=(e:KeyboardEvent)=>{if(e.key==="Escape"&&!busy)setFocus(null);};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler);},[focus,busy]);
  const regions=options.regions,states=[...new Map(regions.filter(r=>!country||r.country_code===country).map(r=>[r.state_code,r.state])).entries()];
  const municipalities=[...new Map(regions.filter(r=>r.state_code===state).map(r=>[r.municipality_code,r.municipality])).entries()];
@@ -69,14 +72,14 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    const body=new FormData();body.append("mode",file?"import":"official");body.append("municipality",code);if(file)body.append("file",file);
    const r=await fetch("/api/local/admin/crm",{method:"POST",body}),j=await r.json();
    if(!r.ok)throw new Error(j.error||"No se pudo importar "+name+".");
-   setColumnFilters({});setCountry("MX");setState(code.slice(0,2));setMunicipality(code.slice(2));setCity("");setCategory("");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);setTab("directory");setLeonFile(null);
+   setColumnFilters({});setCountry("MX");setState(code.slice(0,2));setMunicipality(code.slice(2));setCity("");setCategory("");setCoverage("");setReview("");setStatus("");setSearch("");setPage(0);setRevision(x=>x+1);setOptionsRevision(x=>x+1);setTab("directory");setLeonFile(null);
    setNotice(j.alreadyImported?"El directorio de "+name+" ya está cargado.":name+": "+j.report.relevant+" negocios del sector y "+j.report.withEmail+" con correo DENUE. No se ha enviado ningún correo.");
   }catch(e){setNotice("");setError(e instanceof Error?e.message:"Error de importación oficial.");}finally{setBusy(false);}
  }
  async function save(){
   if(!focus)return;setBusy(true);setError("");setNotice("");
   try{
-   const r=await fetch("/api/local/admin/crm",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:focus.id,status:focus.status,notes:focus.notes,public_email:focus.public_email||"",public_email_source:focus.public_email_source||"",contact_review:focus.contact_review,contact_review_url:focus.contact_review_url||""})});
+   const r=await fetch("/api/local/admin/crm",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:focus.id,status:focus.status,notes:focus.notes||""})});
    const j=await r.json();if(!r.ok)throw new Error(j.error);setFocus(null);setRevision(x=>x+1);setNotice("Ficha actualizada.");
   }catch(e){setError(e instanceof Error?e.message:"Error al guardar.");}finally{setBusy(false);}
  }
@@ -92,7 +95,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
  const hasFilters=Boolean(search||state||municipality||city||category||coverage||review||status||Object.keys(columnFilters).length);
  const pendingCities=[{code:"14039",name:"Guadalajara"},{code:"22014",name:"Querétaro"},{code:"21114",name:"Puebla"}].filter(x=>!regions.some(r=>r.state_code+r.municipality_code===x.code));
  return <div className="panel-card crm-workspace">
-  <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
+  <div className="crm-hero"><div><span className="crm-eyebrow">GESTIÓN COMERCIAL</span><h2>CRM comercial</h2><p>Organiza tus negocios, contactos y conversaciones en un solo lugar.</p></div>{tab==="directory"&&<button type="button" className="button button-outline button-sm" onClick={()=>{setRevision(v=>v+1);setOptionsRevision(v=>v+1);}} disabled={loading}><RefreshCw size={15}/> Actualizar negocios</button>}</div>
   <div style={marketingOnly?{display:"none"}:undefined} className="crm-tabs" role="tablist" aria-label="Secciones del CRM">
    {([{id:"directory",label:"Negocios",icon:Building2},{id:"mail",label:"Sincronización de correo",icon:Mail},{id:"imports",label:"Importaciones",icon:FolderUp}] as const).map(t=><button key={t.id} type="button" role="tab" aria-selected={tab===t.id} className={tab===t.id?"active":""} onClick={()=>setTab(t.id)}><t.icon size={18}/>{t.label}</button>)}
   </div>
@@ -101,7 +104,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    {([{label:"Negocios",n:data?.count.total,icon:Building2,hint:"Total con los filtros actuales"},{label:"Contactados",n:data?.count.contacted,icon:Users,hint:"Envío confirmado o contacto registrado comercialmente"},{label:"Por contactar",n:data?.count.pending_contact,icon:Clock3,hint:"Con correo y estado pendiente; no implica elegibilidad para una campaña"},{label:"Con envío confirmado",n:data?.count.confirmed_email,icon:Send,hint:"Negocios con al menos un correo aceptado por el destinatario"},{label:"Confirmados últimas 24 h",n:data?.count.confirmed_24h,icon:CheckCircle2,hint:"Negocios distintos con envío confirmado en las últimas 24 horas"},{label:"Con correo",n:data?.count.with_email,icon:Mail,hint:"Negocios con dirección registrada"},{label:"Con teléfono",n:data?.count.with_phone,icon:Phone,hint:"Negocios con teléfono registrado"},{label:"Con web",n:data?.count.with_website,icon:Globe,hint:"Negocios con sitio web registrado"},{label:"Correos únicos",n:data?.count.unique_emails,icon:Mail,hint:"Direcciones de correo distintas"},{label:"Revisados",n:data?.count.reviewed,icon:CheckCircle2,hint:"Contactos con revisión registrada"}] as const).map(m=><div className="crm-metric" key={m.label} title={m.hint}><span><m.icon size={16}/>{m.label}</span><strong>{m.n===undefined?"—":format(m.n)}</strong></div>)}
   </div><p className="crm-metrics-note muted">Indicadores de todos los resultados filtrados, no solo de esta página. Los envíos en cola, fallidos o rebotados no cuentan como confirmados.</p></>}
   {tab==="mail"&&<><CrmMailSettings sync={mailSync}/><AdminCrmPueblaCampaign onChange={()=>setRevision(v=>v+1)}/></>}
-  {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{!marketingOnly&&<div className="admin-inspector"><div className="content-heading"><div><h3>León · Guanajuato</h3><p className="muted">DENUE INEGI · municipio 11020 · edición oficial 2025-05. Incluye sectores compatibles, con y sin correo.</p></div></div><p>{optionsLoading?"Consultando importaciones…":options.officialImports?.includes("11020")?"Carga oficial registrada.":regions.some(r=>r.state_code+r.municipality_code==="11020")?"Hay negocios de León, pero no consta la carga oficial completa.":"Carga oficial pendiente."}</p><button type="button" className="button button-dark button-sm" disabled={busy||optionsLoading} onClick={()=>void importOfficial("11020","León")}><Upload size={16}/> {options.officialImports?.includes("11020")?"Consultar carga de León":"Cargar León desde INEGI"}</button><details><summary>Importar un CSV oficial manualmente</summary><p className="muted">Alternativa si INEGI no responde. Selecciona un CSV descomprimido de Guanajuato (máximo 40 MB). Solo se incorporarán los negocios de León.</p><a href="https://www.inegi.org.mx/app/descarga/" target="_blank" rel="noreferrer">Descarga oficial DENUE</a><label className="file-input"><Upload size={16}/> Elegir CSV <input type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>setLeonFile(e.target.files?.[0]||null)}/></label>{leonFile&&<p>{leonFile.name}</p>}<button type="button" className="button button-outline button-sm" disabled={busy||!leonFile} onClick={()=>{if(leonFile&&confirm("¿Importar los negocios compatibles de León de este CSV? No se enviarán correos."))void importOfficial("11020","León",leonFile);}}>Importar CSV de León</button></details></div>}{!marketingOnly&&pendingCities.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);}}/></section>}
+  {tab==="imports"&&<section className="crm-imports"><h3>Actualización de contactos</h3><p className="muted">Archivos nuevos o modificados pendientes de incorporar a PostgreSQL.</p>{!marketingOnly&&<div className="admin-inspector"><div className="content-heading"><div><h3>León · Guanajuato</h3><p className="muted">DENUE INEGI · municipio 11020 · edición oficial 2025-05. Incluye sectores compatibles, con y sin correo.</p></div></div><p>{optionsLoading?"Consultando importaciones…":options.officialImports?.includes("11020")?"Carga oficial registrada.":regions.some(r=>r.state_code+r.municipality_code==="11020")?"Hay negocios de León, pero no consta la carga oficial completa.":"Carga oficial pendiente."}</p><button type="button" className="button button-dark button-sm" disabled={busy||optionsLoading} onClick={()=>void importOfficial("11020","León")}><Upload size={16}/> {options.officialImports?.includes("11020")?"Consultar carga de León":"Cargar León desde INEGI"}</button><details><summary>Importar un CSV oficial manualmente</summary><p className="muted">Alternativa si INEGI no responde. Selecciona un CSV descomprimido de Guanajuato (máximo 40 MB). Solo se incorporarán los negocios de León.</p><a href="https://www.inegi.org.mx/app/descarga/" target="_blank" rel="noreferrer">Descarga oficial DENUE</a><label className="file-input"><Upload size={16}/> Elegir CSV <input type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>setLeonFile(e.target.files?.[0]||null)}/></label>{leonFile&&<p>{leonFile.name}</p>}<button type="button" className="button button-outline button-sm" disabled={busy||!leonFile} onClick={()=>{if(leonFile&&confirm("¿Importar los negocios compatibles de León de este CSV? No se enviarán correos."))void importOfficial("11020","León",leonFile);}}>Importar CSV de León</button></details></div>}{!marketingOnly&&pendingCities.length>0&&<div className="admin-inspector"><div className="content-heading"><strong>Carga inicial de negocios</strong></div>{pendingCities.map(x=><button key={x.code} type="button" className="button button-outline button-sm" disabled={busy} onClick={()=>void importOfficial(x.code,x.name)}><Upload size={16}/> Cargar {x.name}</button>)}</div>}{error&&<div role="alert" className="alert error">{error}</div>}{notice&&<div role="status" className="alert success">{notice}</div>}<AdminCrmCsvLibrary onSaved={()=>{setPage(0);setRevision(x=>x+1);setOptionsRevision(x=>x+1);}}/></section>}
   <style>{`
    .crm-workspace{min-width:0}
    .crm-hero{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:4px 0 16px}
@@ -169,6 +172,24 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
    @media(max-width:700px){.crm-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.crm-metric{padding:12px}.crm-metric strong{font-size:1.3rem}.crm-hero h2{font-size:1.35rem}.crm-tabs button{padding:10px}}
    @keyframes crm-list-spin{to{transform:rotate(360deg)}}
    .crm-list-spinner{animation:crm-list-spin .8s linear infinite;flex-shrink:0}
+   .crm-map-toggle{min-height:44px;padding:10px 18px;font-weight:700;gap:9px;box-shadow:0 2px 8px #57233d26}
+   .crm-contact-card{display:grid;gap:20px;align-content:start}
+   .crm-contact-card h2{font-size:1.45rem;line-height:1.25;margin:0;overflow-wrap:anywhere}
+   .crm-contact-card h3{font-size:1rem;margin:0 0 10px}
+   .crm-contact-card .crm-contact-section{border:1px solid var(--color-bg-2,#e8dce1);border-radius:14px;padding:16px;min-width:0}
+   .crm-contact-card .crm-contact-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+   .crm-contact-card .crm-contact-heading>div{min-width:0;display:grid;gap:7px}
+   .crm-contact-card .crm-contact-line{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--color-bg-2,#e8dce1)}
+   .crm-contact-card .crm-contact-line>svg{flex-shrink:0;margin-top:3px;color:var(--color-brand,#783752)}
+   .crm-contact-card .crm-contact-line>div{min-width:0;display:grid;gap:3px;overflow-wrap:anywhere}
+   .crm-contact-card .crm-contact-line small{font-weight:600;color:var(--muted,#64748b)}
+   .crm-contact-card .crm-contact-line a{color:var(--color-brand,#783752);font-weight:600;overflow-wrap:anywhere;text-decoration:underline}
+   .crm-contact-card .crm-contact-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+   .crm-contact-card .crm-contact-actions .button{flex:1;justify-content:center;min-height:42px}
+   .crm-contact-card textarea{min-height:125px;resize:vertical}
+   .crm-contact-card .crm-contact-save{width:100%;min-height:44px;justify-content:center}
+   .crm-contact-card .crm-contact-history{padding-top:0;border:0;margin:8px 0 0}
+   @media(max-width:520px){.crm-inspector-wrap .admin-inspector{padding:18px}.crm-map-toggle{width:100%;justify-content:center}}
    .crm-list-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0}
    .crm-table-shell{position:relative;min-height:100px}
    .crm-table-shell .table-wrap{max-height:65vh;overflow:auto;max-width:100%}
@@ -206,7 +227,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
   </div></div>
   <div className="crm-list-header">
    <span className="muted" aria-live="polite">{data?format(total):"—"} negocios · {data?format(data.count.with_email):"—"} con correo · {data?format(data.count.unique_emails):"—"} correos únicos{hasFilters?" · filtros activos":""}</span>
-   <button type="button" className="button button-outline button-sm" onClick={()=>setShowMap(v=>!v)}>{showMap?"Ocultar mapa":"Ver mapa"}</button>
+   <button type="button" className="button button-dark crm-map-toggle" aria-expanded={showMap} onClick={()=>setShowMap(v=>!v)}><MapPinned size={21}/>{showMap?"Ocultar mapa":"Ver mapa de negocios"}</button>
   </div>
   {showMap&&<CrmMap query={new URLSearchParams({country_code:country,state_code:state,municipality_code:municipality,locality_code:city,category,status,coverage,review,q:search,...columnFilters}).toString()}/>}
   <div className="crm-table-shell" aria-busy={loading}>
@@ -226,7 +247,7 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
     <td><strong>{p.name}</strong></td><td>{p.state}</td><td>{p.municipality}</td><td>{p.city||"—"}</td><td>{p.neighborhood||"—"}</td><td>{p.category}</td><td>{p.activity||"—"}</td>
     <td>{p.public_email||p.email||"Sin correo"}{p.public_email&&<small>Fuente externa</small>}</td><td>{p.phone||"—"}</td><td>{p.address||"—"}</td><td>{p.website||"—"}{p.instagram&&<small>Instagram: {p.instagram}</small>}</td><td><span className="crm-stage" data-stage={p.status}>{stages[p.status]||p.status}</span></td><td>{reviewStages[p.contact_review]||p.contact_review||"—"}</td>
     <td><div className="crm-activity">{p.last_sent_at?<><strong>{p.sent_count||0} enviado(s)</strong><small>Último: {new Date(p.last_sent_at).toLocaleDateString("es-MX")}</small></>:p.last_attempt_at?<small>Intento de envío: {new Date(p.last_attempt_at).toLocaleDateString("es-MX")}</small>:<small>Sin envíos registrados</small>}{p.last_received_at&&<small className="crm-inbound">Recibido: {new Date(p.last_received_at).toLocaleDateString("es-MX")}</small>}</div></td>
-    <td><button type="button" className="inline-table-button" disabled={loading} onClick={()=>setFocus({...p})}>Abrir</button></td>
+    <td><button type="button" className="inline-table-button" disabled={loading} onClick={()=>{setHistoryOpen(false);setError("");setFocus({...p});}}>Abrir</button></td>
    </tr>)}</tbody></table></div>
    {loading&&<div className="crm-table-loading" role="status"><span><Loader2 className="crm-list-spinner" size={20}/>{data?"Actualizando resultados…":"Cargando negocios…"}</span></div>}
    {!loading&&data&&!data.prospects.length&&<p className="muted" role="status">No hay prospectos con estos filtros. {hasFilters&&<button type="button" className="inline-table-button" onClick={clearFilters}>Limpiar filtros</button>}</p>}
@@ -246,21 +267,24 @@ export function AdminCrm({marketingOnly=false}:{marketingOnly?:boolean}={}){
     <button type="submit" className="button button-outline button-sm" disabled={loading||!jump||Number(jump)<1||Number(jump)>totalPages}>Ir</button>
    </form>
   </div>
-  {focus&&<div className="crm-inspector-wrap" onClick={e=>{if(e.target===e.currentTarget&&!busy)setFocus(null);}}><div className="admin-inspector" role="dialog" aria-modal="true" aria-label="Ficha del negocio"><div className="inspector-head"><div><strong>{focus.name}</strong><small>{focus.email} · {focus.activity}</small></div><button className="inline-table-button" onClick={()=>setFocus(null)}>Cerrar</button></div><div className="form-stack">
-   <label>Estado<select disabled={focus.status==="do_not_contact"} value={focus.status} onChange={e=>setFocus({...focus,status:e.target.value})}>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
-   <p>{focus.address||focus.city}{focus.neighborhood&&" · "+focus.neighborhood}{focus.postal_code&&" · CP "+focus.postal_code}</p>{focus.instagram&&<p>Instagram: {focus.instagram}</p>}{(focus.latitude||focus.longitude)&&<p>Coordenadas: {focus.latitude||"—"}, {focus.longitude||"—"}</p>}<p>Teléfono: {focus.phone||"Sin localizar"} · Correo: {focus.public_email||focus.email||"Sin localizar"}</p>{focus.website&&<p>Web: {focus.website}</p>}
-   <details hidden={marketingOnly}><summary>Datos de contacto y fuente</summary><label>Correo comercial publicado en otra fuente<input type="email" value={focus.public_email||""} onChange={e=>setFocus({...focus,public_email:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
-   <label>URL de la fuente pública<input type="url" value={focus.public_email_source||""} onChange={e=>setFocus({...focus,public_email_source:e.target.value})} disabled={busy||focus.status==="do_not_contact"}/></label>
-   {focus.public_email_checked_at&&<small>Fuente registrada: {new Date(focus.public_email_checked_at).toLocaleDateString("es-MX")}</small>}
-   <p className="muted">La presencia de un correo publicado no confirma vigencia, entregabilidad ni permiso de envío.</p>
-   <label>Resultado de revisión<select value={focus.contact_review} onChange={e=>setFocus({...focus,contact_review:e.target.value})}>{Object.entries(reviewStages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
-   <label>Fuente revisada (URL)<input type="url" value={focus.contact_review_url||""} onChange={e=>setFocus({...focus,contact_review_url:e.target.value})}/></label>
-   {focus.contact_reviewed_at&&<small>Última revisión: {new Date(focus.contact_reviewed_at).toLocaleDateString("es-MX")}</small>}
-   </details>
-   <label>Notas<textarea maxLength={2000} value={focus.notes} onChange={e=>setFocus({...focus,notes:e.target.value})}/></label>
-   <button className="button button-dark button-sm" disabled={busy} onClick={save}>Guardar ficha</button>
-   {!marketingOnly&&<CrmContactHistory id={focus.id} revision={revision}/>}
-  </div></div></div>}
- </>}
+  {focus&&<div className="crm-inspector-wrap" onClick={e=>{if(e.target===e.currentTarget&&!busy)setFocus(null);}}><div className="admin-inspector crm-contact-card" role="dialog" aria-modal="true" aria-label="Ficha del negocio">
+   <div className="crm-contact-heading"><div><span className="crm-eyebrow">FICHA DEL NEGOCIO</span><h2>{focus.name}</h2><span className="muted">{focus.category}{focus.activity&&focus.activity!==focus.category?" · "+focus.activity:""}</span><span><span className="crm-stage" data-stage={focus.status}>{stages[focus.status]||focus.status}</span></span></div><button type="button" className="inline-table-button" disabled={busy} aria-label="Cerrar ficha" onClick={()=>setFocus(null)}><X size={22}/></button></div>
+   <section className="crm-contact-section"><h3>Datos de contacto</h3>
+    <div className="crm-contact-line"><Phone size={18}/><div><small>Teléfono</small>{phoneLink(focus.phone)&&focus.status!=="do_not_contact"?<a href={phoneLink(focus.phone)}>{focus.phone}</a>:<span>{focus.phone||"No disponible"}</span>}</div></div>
+    <div className="crm-contact-line"><Mail size={18}/><div><small>Correo electrónico</small>{contactEmail(focus)&&focus.status!=="do_not_contact"?<a href={"mailto:"+contactEmail(focus)}>{contactEmail(focus)}</a>:<span>{focus.public_email||focus.email||"No disponible"}</span>}</div></div>
+    <div className="crm-contact-line"><Globe size={18}/><div><small>Página web</small>{safeWebsite(focus.website)?<a href={safeWebsite(focus.website)} target="_blank" rel="noopener noreferrer">{focus.website} <ExternalLink size={13}/></a>:<span>{focus.website||"No disponible"}</span>}</div></div>
+    <div className="crm-contact-line"><MapPin size={18}/><div><small>Dirección</small><span>{[focus.address,focus.neighborhood,focus.city,focus.municipality!==focus.city?focus.municipality:"",focus.state].filter(Boolean).join(" · ")||"No disponible"}</span></div></div>
+    {focus.status!=="do_not_contact"&&<div className="crm-contact-actions">{phoneLink(focus.phone)&&<a className="button button-dark button-sm" href={phoneLink(focus.phone)}><Phone size={16}/> Llamar</a>}{contactEmail(focus)&&<a className="button button-outline button-sm" href={"mailto:"+contactEmail(focus)}><Mail size={16}/> Enviar correo</a>}</div>}
+    {focus.status==="do_not_contact"&&<p className="alert error">Este negocio está marcado como No contactar.</p>}
+   </section>
+   <form className="crm-contact-section form-stack" onSubmit={e=>{e.preventDefault();void save();}}><h3>Seguimiento comercial</h3>
+    <label>Estado<select disabled={busy||data?.prospects.find(p=>p.id===focus.id)?.status==="do_not_contact"} value={focus.status} onChange={e=>setFocus({...focus,status:e.target.value})}>{Object.entries(stages).map(([v,t])=><option key={v} value={v}>{t}</option>)}</select></label>
+    <label>Notas<textarea disabled={busy} maxLength={2000} value={focus.notes||""} placeholder="Resultado de la llamada, próximos pasos, persona de contacto…" onChange={e=>setFocus({...focus,notes:e.target.value})}/></label>
+    {error&&<p role="alert" className="alert error">{error}</p>}
+    <button type="submit" className="button button-dark crm-contact-save" disabled={busy}><CheckCircle2 size={18}/>{busy?"Guardando…":"Guardar cambios"}</button>
+   </form>
+   {!marketingOnly&&<section className="crm-contact-section"><button type="button" className="button button-outline button-sm" aria-expanded={historyOpen} onClick={()=>setHistoryOpen(v=>!v)}><MessageSquare size={16}/>{historyOpen?"Ocultar historial":"Ver historial de correo"}</button>{historyOpen&&<CrmContactHistory id={focus.id} revision={revision}/>}</section>}
+  </div></div>}
+  </>}
  </div>;
 }
