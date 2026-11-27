@@ -26,12 +26,20 @@ grep -Fq '¿En qué podemos ayudarte?' "$dir/help" || { echo 'PUBLIC_FAIL help';
 page '/help?lang=en' help_en
 grep -Fq 'How can we help?' "$dir/help_en" || { echo 'PUBLIC_FAIL help EN'; exit 1; }
 for help_file in help help_en; do
-  grep -Fq 'public-header loi-public-header public-header-help' "$dir/$help_file" || { echo 'PUBLIC_FAIL shared help header'; exit 1; }
+  grep -Fq 'public-header loi-public-header shared-public-header' "$dir/$help_file" || { echo 'PUBLIC_FAIL shared help header'; exit 1; }
   grep -Fq 'href="/help?lang=es"' "$dir/$help_file" || { echo 'PUBLIC_FAIL Spanish language link'; exit 1; }
   grep -Fq 'href="/help?lang=en"' "$dir/$help_file" || { echo 'PUBLIC_FAIL English language link'; exit 1; }
 done
 grep -Fq 'Contact Kreyvi support' "$dir/help_en" || { echo 'PUBLIC_FAIL English support form'; exit 1; }
 grep -Fq 'Contacta con soporte' "$dir/help" || { echo 'PUBLIC_FAIL Spanish support form'; exit 1; }
+page '/?lang=en' customer_en
+grep -Fq '<h1>Your favorite places.' "$dir/customer_en" || { echo 'PUBLIC_FAIL English customer landing'; exit 1; }
+for public_file in customer customer_en business_es business_en help help_en; do
+ grep -Fq 'shared-public-header' "$dir/$public_file" || { echo "PUBLIC_FAIL header $public_file"; exit 1; }
+ grep -Fq 'shared-public-footer' "$dir/$public_file" || { echo "PUBLIC_FAIL footer $public_file"; exit 1; }
+done
+page /brand/card-designs/coffee.svg coffee_art
+page /brand/card-designs/icecream.svg icecream_art
 page /manifest.webmanifest manifest
 grep -Eq '"start_url"[[:space:]]*:[[:space:]]*"/entrar"' "$dir/manifest" || { echo 'PUBLIC_FAIL app start URL'; exit 1; }
 echo "PUBLIC_OK $base: customer landing, business ES/EN, help ES/EN and app startup"

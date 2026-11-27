@@ -71,16 +71,17 @@ assert.match(landingUi,/id="comunidad"/,"Community section stays on the landing"
 assert.match(landingUi,/id="panel-negocio"/,"Business dashboard section stays on the landing");
 assert.match(landingUi,/Kreyvi en mi móvil/,"Consumer-friendly action in the landing");
 assert.match(landingUi,/<InstallGuide lang=\{lang\}\/>/,"The install section stays on the landing");
-assert.match(headerUi,/"La app"/,"The top navigation links to the app");
+const publicNav=readFileSync(new URL("../../lib/public-navigation.ts",import.meta.url),"utf8");
+assert.match(publicNav,/"La app"/,"The top navigation links to the app");
 
 assert.match(landingUi,/<a href="\/mi-loyally\?instalar=1" className="loi-button loi-button-install"/,"Hero opens the installation sheet directly");
-assert.match(headerUi,/<a href="\/mi-loyally\?instalar=1" className="loi-nav-install"/,"Header opens the installation sheet directly");
-const footerNav=landingUi.match(/<nav aria-label=\{lang==="en"\?"Footer links":"Enlaces del pie de página"\}>([\s\S]*?)<\/nav>/)?.[1]||"";
-assert.equal((footerNav.match(/href=/g)||[]).length,3,"Footer includes contact, customer support and app");
-assert.match(footerNav,/href=\{lang==="en"\?"\/help\?lang=en":"\/help"\}/);
-assert.match(footerNav,/href="\/solicitar-acceso"/);
-assert.match(footerNav,/href="\/mi-loyally\?instalar=1"/);
-assert.doesNotMatch(footerNav,/landingHref|href="\/acceder"/);
+assert.match(publicNav,/\?instalar=1/,"Header opens the installation sheet directly");
+const publicFooter=readFileSync(new URL("../../components/PublicFooter.tsx",import.meta.url),"utf8");
+assert.match(headerUi,/publicLinks\(lang\)\.map/);
+assert.match(publicFooter,/publicLinks\(lang\)\.map/);
+assert.match(landingUi,/<PublicFooter lang=\{lang\} page="business"\/>/);
+assert.match(publicNav,/help:"\/help"/);
+assert.match(publicNav,/contact:"\/solicitar-acceso"/);
 
 assert.match(installUi,/Tus próximos premios/,"The install section is customer-focused");
 assert.match(installUi,/beforeinstallprompt/,"Native browser install prompts still work");
@@ -109,7 +110,7 @@ assert.match(entryRouter,/if\(!user\)\{router.replace\("\/acceder"\);return\}/);
 assert.match(entryRouter,/router.replace\("\/app"\)/);
 const rootPage=readFileSync(new URL("../../app/page.tsx",import.meta.url),"utf8");
 assert.match(rootPage,/Tus lugares favoritos/);
-assert.match(rootPage,/href="\/para-negocios"/);
+assert.match(rootPage,/<PublicHeader lang=\{lang\} page="customer"\/>/);
 assert.match(rootPage,/href="\/entrar"/);
 assert.match(readFileSync(new URL("../../app/para-negocios/page.tsx",import.meta.url),"utf8"),/<LandingHome/);
 assert.match(manifest,/display:"standalone"/,"The app has a standalone window");
@@ -215,7 +216,7 @@ assert.match(rootPage,/dynamic="force-dynamic"/);
 
 assert.match(nextConfig,/beforeFiles:\[\{source:"\/",destination:"\/inicio"\}\]/,"Root is served from a dedicated public customer route without an external redirect");
 const publicAlias=readFileSync(new URL("../../app/inicio/page.tsx",import.meta.url),"utf8");
-assert.match(publicAlias,/return <CustomerHome\/>/);
+assert.match(publicAlias,/return <CustomerHome searchParams=\{searchParams\}\/>/);
 assert.doesNotMatch(publicAlias,/redirect\(|auth.getUser/);
 
 const customerCss=readFileSync(new URL("../../app/customer-entry.css",import.meta.url),"utf8");

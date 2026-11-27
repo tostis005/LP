@@ -10,7 +10,7 @@ import type {LandingLanguage} from "@/lib/landing-copy";
 import {useEffect,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import Link from "next/link";
-import {ArrowRight,Check,ChevronLeft,Gift,Heart,LockKeyhole,Share2,Smartphone,Ticket,X} from "lucide-react";
+import {ArrowRight,Check,ChevronLeft,Share2,Smartphone,Ticket,X} from "lucide-react";
 import {db} from "@/lib/supabase";
 import {SocialAuthButtons} from "@/components/SocialAuthButtons";
 import "./mi-loyally.css";
@@ -101,7 +101,8 @@ export default function MiLoyally(){
    }
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
- const intro=mode==="signup"?"Crea tu espacio":mode==="forgot"?"Recupera tu acceso":"Bienvenido a Kreyvi";
+ const en=lang==="en";
+ const intro=mode==="signup"?(en?"Create your account":"Crea tu espacio"):mode==="forgot"?(en?"Recover your access":"Recupera tu acceso"):(en?"Welcome to Kreyvi":"Bienvenido a Kreyvi");
  if(!ready||standalone)return <KreyviLoading label="Preparando tu espacio"/>;
  return <div className="loyal-app-public"><LandingLanguageSync lang={lang}/><PublicHeader lang={lang} page="app"/><main className="loyal-app-entry">
   <div className="loyal-app-entry-inner">
@@ -118,13 +119,13 @@ export default function MiLoyally(){
    </div>
    <section className="loyal-app-auth" aria-labelledby="loyal-app-auth-title">
     <h2 id="loyal-app-auth-title">{intro}</h2>
-    <p>{mode==="signup"?"Tus tarjetas estarán juntas desde el primer día.":mode==="forgot"?"Te ayudamos a volver a entrar.":"Entra para ver tus tarjetas y tus recompensas."}</p>
-    {signedIn?<><p>Ya tienes una sesión iniciada. Puedes instalar Kreyvi y abrir tu espacio cuando quieras.</p><Link className="loyal-app-submit" href="/entrar">Entrar en mi espacio <ArrowRight size={18}/></Link></>:<>
+    <p>{mode==="signup"?(en?"All your cards together from day one.":"Tus tarjetas estarán juntas desde el primer día."):mode==="forgot"?(en?"We will help you get back in.":"Te ayudamos a volver a entrar."):(en?"Sign in to see your cards and rewards.":"Entra para ver tus tarjetas y tus recompensas.")}</p>
+    {signedIn?<><p>{en?"You are signed in. Install Kreyvi and open your account whenever you like.":"Ya tienes una sesión iniciada. Puedes instalar Kreyvi y abrir tu espacio cuando quieras."}</p><Link className="loyal-app-submit" href="/entrar">Entrar en mi espacio <ArrowRight size={18}/></Link></>:<>
     <SocialAuthButtons next="/entrar"/>
     <form onSubmit={signIn} className="loyal-app-form">
-     {mode==="signup"&&<label>Tu nombre<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder="¿Cómo te llamas?"/></label>}
-     <label>Correo electrónico<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
-     {mode!=="forgot"&&<label>Contraseña<input type="password" required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña"/></label>}
+     {mode==="signup"&&<label>{en?"Your name":"Tu nombre"}<input type="text" required minLength={2} value={name} onChange={e=>setName(e.target.value)} autoComplete="given-name" placeholder="¿Cómo te llamas?"/></label>}
+     <label>{en?"Email address":"Correo electrónico"}<input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tunombre@correo.com"/></label>
+     {mode!=="forgot"&&<label>{en?"Password":"Contraseña"}<input type="password" required minLength={mode==="signup"?10:1} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña"/></label>}
      {mode==="signup"&&<label className="lp-signup-consent"><input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}/><span><strong>Quiero recibir ofertas y novedades</strong></span></label>}
      {mode==="signup"&&<p className="lp-signup-consent-hint" aria-live="polite">{!marketingOptIn&&"No te pierdas las ofertas y promociones de los locales participantes. "}Puedes cambiar tus preferencias en Ajustes cuando quieras.</p>}
      {mode==="signup"&&<details className="lp-signup-consent-details"><summary>Más información</summary><p>Si marcas la casilla, Kreyvi y los negocios de tus tarjetas podrán enviarte ofertas y novedades por email, WhatsApp y notificaciones. Es opcional y puedes retirar tu consentimiento en Ajustes.</p></details>}
@@ -132,9 +133,9 @@ export default function MiLoyally(){
      
      {error&&<p role="alert" className="loyal-app-error">{error}</p>}
      {message&&<p role="status" className="loyal-app-success">{message}</p>}
-     <button type="submit" className="loyal-app-submit" disabled={busy||!ready}>{busy?"Un momento...":mode==="login"?"Entrar en Kreyvi":mode==="signup"?"Crear mi cuenta":"Enviar instrucciones"}<ArrowRight size={18}/></button>
+     <button type="submit" className="loyal-app-submit" disabled={busy||!ready}>{busy?(en?"One moment…":"Un momento..."):mode==="login"?(en?"Sign in":"Entrar en Kreyvi"):mode==="signup"?(en?"Create my account":"Crear mi cuenta"):(en?"Send instructions":"Enviar instrucciones")}<ArrowRight size={18}/></button>
     </form>
-    {mode==="login"?<div className="loyal-app-links"><button type="button" onClick={()=>{setMode("signup");setError("");setMessage("");}}>Quiero crear una cuenta</button><button type="button" onClick={()=>{setMode("forgot");setError("");setMessage("");}}>Olvidé mi contraseña</button></div>:<button type="button" className="loyal-app-back" onClick={()=>{setMode("login");setError("");setMessage("");}}><ChevronLeft size={16}/> Ya tengo cuenta</button>}
+    {mode==="login"?<div className="loyal-app-links"><button type="button" onClick={()=>{setMode("signup");setError("");setMessage("");}}>{en?"Create an account":"Quiero crear una cuenta"}</button><button type="button" onClick={()=>{setMode("forgot");setError("");setMessage("");}}>{en?"Forgot my password":"Olvidé mi contraseña"}</button></div>:<button type="button" className="loyal-app-back" onClick={()=>{setMode("login");setError("");setMessage("");}}><ChevronLeft size={16}/> Ya tengo cuenta</button>}
     </>}
    </section>
   </div>
@@ -142,8 +143,8 @@ export default function MiLoyally(){
    <div className="loyal-app-sheet" role="dialog" aria-modal="true" aria-labelledby="loyal-app-install-title">
     <button type="button" className="loyal-app-sheet-close" onClick={()=>setShowInstall(false)} aria-label="Cerrar"><X size={19}/></button>
     <div className="loyal-app-sheet-icon"><Smartphone size={28}/></div>
-    <h2 id="loyal-app-install-title">Kreyvi en tu pantalla de inicio</h2>
-    <p>Así podrás abrir tus tarjetas desde el icono de Kreyvi, sin la barra del navegador.</p>
+    <h2 id="loyal-app-install-title">{en?"Kreyvi on your home screen":"Kreyvi en tu pantalla de inicio"}</h2>
+    <p>{en?"Open your cards from the Kreyvi icon, without the browser bar.":"Así podrás abrir tus tarjetas desde el icono de Kreyvi, sin la barra del navegador."}</p>
     {platform==="ios"?<>
      <ol className="loyal-app-sheet-steps">
       <li><span>1</span><p>Abre esta pantalla en <strong>Safari</strong>. Si llegaste desde WhatsApp, Instagram u otra app, abre el enlace en Safari.</p></li>

@@ -12,7 +12,7 @@ import {InstalledAppEntry} from "@/components/InstalledAppEntry";
 // Public HTML must be generated for the current deployment, not a stale static root.
 export const dynamic="force-dynamic";
 export default async function Home({searchParams}:{searchParams:Promise<{lang?:string|string[]}>}){
- const lang:LandingLanguage=(await searchParams).lang==="en"?"en":"es",en=lang==="en";
+ const lang:LandingLanguage=(await searchParams).lang==="en"?"en":"es";
  return <CustomerHome lang={lang}/>;
 }
 function CustomerHome({lang="es"}:{lang?:LandingLanguage}){
