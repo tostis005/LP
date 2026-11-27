@@ -56,8 +56,10 @@ input[type=time]::-webkit-date-and-time-value,
 input[type=datetime-local]::-webkit-date-and-time-value{
  min-width:0;text-align:left
 }
-@media(max-width:600px){
+@media(max-width:480px){
  .form-two{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:600px){
  .auth-login-form :is(input,select,textarea):not([type=checkbox]):not([type=radio]),
  .loyal-app-form :is(input,select,textarea):not([type=checkbox]):not([type=radio]){font-size:16px}
 }
@@ -76,8 +78,8 @@ input[type=datetime-local]::-webkit-date-and-time-value{
  .loyalty-global-bottom-nav.loyalty-nav-customer{bottom:calc(8px + var(--kreyvi-viewport-bottom,0px))}
  .loyalty-global-bottom-nav.loyalty-nav-business,
  .loyalty-global-bottom-nav.loyalty-nav-staff{bottom:calc(7px + var(--kreyvi-viewport-bottom,0px))}
- .loyalty-global-bottom-nav.loyalty-nav-admin{bottom:var(--kreyvi-viewport-bottom,0px)}
 }
+.loyalty-global-bottom-nav.loyalty-nav-admin{bottom:var(--kreyvi-viewport-bottom,0px)}
 @supports (-webkit-touch-callout:none){
  .loyalty-global-bottom-nav{
   -webkit-backdrop-filter:none;backdrop-filter:none;
