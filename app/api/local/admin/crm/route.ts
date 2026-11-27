@@ -22,7 +22,8 @@ const pageSizes=[25,50,100,200];
 // Cache compact aggregate data, not prospect rows. Expire quickly to pick up external imports.
 type Aggregate=CrmDirectoryCount;
 const countCache=new Map<string,{expires:number;data:Aggregate}>();
-function clearCounts(){countCache.clear();}
+let optionsCache:{expires:number;data:{regions:Record<string,unknown>[];categories:Record<string,unknown>[];officialImports:unknown[]}}|undefined;
+function clearCounts(){countCache.clear();optionsCache=undefined;}
 
 async function admin<T>(request:Request,fn:(c:PoolClient,actor:Actor)=>Promise<T>){
  const actor=await actorFromRequest(request);
@@ -38,10 +39,11 @@ export async function GET(request:Request){
   const result=await crmReader(request,async (c,restricted)=>{
    const p=new URL(request.url).searchParams;
    if(p.get("view")==="options"){
+    if(!restricted&&optionsCache&&optionsCache.expires>Date.now()&&p.get("refresh")!=="1")return optionsCache.data;
     const regions=(await c.query("SELECT country_code,state_code,state,municipality_code,municipality,locality_code,city,count(*)::int AS total FROM public.crm_prospects GROUP BY 1,2,3,4,5,6,7 ORDER BY state,municipality,city")).rows;
     const categories=(await c.query("SELECT category,count(*)::int AS total FROM public.crm_prospects GROUP BY 1 ORDER BY 1")).rows;
     const officialImports=restricted?[]:(await c.query("SELECT DISTINCT report->>\x27scope\x27 AS scope FROM public.crm_import_runs WHERE filename IN (\x27DENUE León 2025-05\x27)")).rows.map(r=>r.scope);
-    return {regions,categories,officialImports};
+    const options={regions,categories,officialImports};if(!restricted)optionsCache={expires:Date.now()+60000,data:options};return options;
    }
    const where:string[]=[],args:unknown[]=[];
    const add=(column:string,value:string)=>{args.push(value);where.push(column+"=$"+args.length);};
