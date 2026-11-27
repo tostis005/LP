@@ -45,7 +45,10 @@ assert.match(designer,/accent_color:biz\.accent_color/,"Business settings keep t
 assert.match(clientCard,/backgroundColor:color/,"Customer cards keep the business color");
 assert.match(demo,/loyally_role_sample_tijuana_v6/,"Demo data must refresh to new palette");
 assert.match(demo,/slug:"cafe-noma",category:"Cafetería",color:"#571c32"/);
-assert.match(login,/name="Tu cafetería" color="#5E1A2B"/,"The login example uses a generic business name");
+assert.doesNotMatch(login,/auth-story|auth-mobile-intro|<StampCard/,"The login is a focused form, not a marketing page");
+assert.match(login,/simple-login-tabs/);
+assert.match(login,/aria-pressed=\{mode==="signup"\}/);
+assert.match(read("app/customer-entry.css"),/border-top:4px solid var\(--color-brand\)/,"Simple login retains the Kreyvi accent");
 assert.match(tableDefault,/ALTER COLUMN accent_color SET DEFAULT '#571c32'/);
 assert.match(tableDefault,/ALTER COLUMN stamp_color SET DEFAULT '#571c32'/);
 function luminance(hex){

@@ -217,3 +217,9 @@ assert.match(nextConfig,/beforeFiles:\[\{source:"\/",destination:"\/inicio"\}\]/
 const publicAlias=readFileSync(new URL("../../app/inicio/page.tsx",import.meta.url),"utf8");
 assert.match(publicAlias,/return <CustomerHome\/>/);
 assert.doesNotMatch(publicAlias,/redirect\(|auth.getUser/);
+
+const customerCss=readFileSync(new URL("../../app/customer-entry.css",import.meta.url),"utf8");
+assert.match(rootPage,/customer-public-hero-inner/);
+assert.match(customerCss,/\.customer-public-hero\{[^}]*linear-gradient\(125deg,#3d0f1b/,"Customer hero uses the rich wine palette");
+assert.match(customerCss,/\.customer-public-copy h1 em\{color:#f2ca7e/,"Gold emphasis ties both presentations together");
+assert.match(rootPage,/Volver tiene premio/);
