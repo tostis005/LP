@@ -75,8 +75,15 @@ export async function GET(request:Request){
    }
    const filter=where.length?" WHERE "+where.join(" AND "):"";
    if(p.get("view")==="map"){
-    const result=await c.query("WITH raw AS MATERIALIZED (SELECT id,name,address,category,latitude,longitude FROM public.crm_prospects"+filter+"), coords AS MATERIALIZED (SELECT id,name,address,category,CASE WHEN latitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN latitude::double precision END AS lat,CASE WHEN longitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN longitude::double precision END AS lng FROM raw) SELECT id,name,address,category,lat,lng,count(*) OVER()::int AS total FROM coords WHERE lat BETWEEN -90 AND 90 AND lng BETWEEN -180 AND 180 AND NOT(lat=0 AND lng=0) ORDER BY name,id LIMIT 5000",args);
-    return {points:result.rows,total:result.rows[0]?.total||0};
+    // Availability is measured over all matching geocoded rows, before the marker cap.
+    // Fixed SQL predicates only; selected channels are allowlisted and combined with OR.
+    const channels=["email","phone","website","instagram"] as const;
+    const requested=(p.get("map_channels")||"").split(",");
+    const chosen=channels.filter(key=>requested.includes(key)||requested.includes("any"));
+    const contactFilter=chosen.length?" WHERE "+chosen.map(key=>"has_"+key).join(" OR "):"";
+    const sql="WITH raw AS MATERIALIZED (SELECT id,name,address,category,latitude,longitude,status,email,public_email,phone,website,instagram FROM public.crm_prospects"+filter+"), coords AS MATERIALIZED (SELECT id,name,address,category,CASE WHEN latitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN latitude::double precision END AS lat,CASE WHEN longitude::text ~ '^-?[0-9]+([.][0-9]+)?$' THEN longitude::double precision END AS lng, status IS DISTINCT FROM 'do_not_contact' AND (NULLIF(btrim(public_email),'') IS NOT NULL OR NULLIF(btrim(email),'') IS NOT NULL) AS has_email, status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(phone),'') IS NOT NULL AS has_phone, status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(website),'') IS NOT NULL AS has_website, status IS DISTINCT FROM 'do_not_contact' AND NULLIF(btrim(instagram),'') IS NOT NULL AS has_instagram FROM raw), available AS MATERIALIZED (SELECT * FROM coords WHERE lat BETWEEN -90 AND 90 AND lng BETWEEN -180 AND 180 AND NOT(lat=0 AND lng=0)), selected AS MATERIALIZED (SELECT id,name,address,category,lat,lng FROM available"+contactFilter+"), visible AS (SELECT * FROM selected ORDER BY name,id LIMIT 5000) SELECT (SELECT count(*)::int FROM selected) AS total, (SELECT jsonb_build_object('email',count(*) FILTER (WHERE has_email),'phone',count(*) FILTER (WHERE has_phone),'website',count(*) FILTER (WHERE has_website),'instagram',count(*) FILTER (WHERE has_instagram),'any',count(*) FILTER (WHERE has_email OR has_phone OR has_website OR has_instagram)) FROM available) AS channels, COALESCE((SELECT jsonb_agg(to_jsonb(v) ORDER BY v.name,v.id) FROM visible v),'[]'::jsonb) AS points";
+    const row=(await c.query(sql,args)).rows[0];
+    return {points:row?.points||[],total:row?.total||0,channels:row?.channels||{email:0,phone:0,website:0,instagram:0,any:0}};
    }
    const requestedPage=Math.max(0,Math.min(100000,Math.floor(Number(p.get("page"))||0)));
    const requestedSize=Number(p.get("page_size")),pageSize=pageSizes.includes(requestedSize)?requestedSize:50;

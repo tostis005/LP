@@ -165,3 +165,18 @@ assert.deepEqual(contactQuery.params,[contactId]);
 assert.match(contactQuery.sql,/phone,email,public_email,website,instagram,status,notes/);
 await assert.rejects(()=>crm.GET({url:"https://example.com/api/local/admin/crm?view=contact&id=invalid"}),/Negocio no válido/);
 console.log("CRM map: scoped contact lookup, validated UUID and branded loading states.");
+
+assert.match(mapUi,/navigator\.clipboard\.writeText\(value\)/);
+assert.match(mapUi,/<CopyContact value=\{f.value\} label=\{f.label\}/);
+assert.match(mapUi,/channels\.instagram>0/);
+assert.match(mapUi,/map_channels=/);
+assert.match(crmRoute,/const chosen=channels\.filter/);
+assert.match(crmRoute,/chosen\.map\(key=>"has_"\+key\)\.join\(" OR "\)/);
+queries.length=0;
+await crm.GET({url:"https://example.com/api/local/admin/crm?view=map&country_code=MX&map_channels=email,phone,malicious"});
+const mapQuery=queries.find(q=>q.sql.startsWith("WITH raw AS MATERIALIZED"));
+assert.match(mapQuery.sql,/FROM available WHERE has_email OR has_phone\)/);
+assert.doesNotMatch(mapQuery.sql,/malicious/);
+assert.deepEqual(mapQuery.params,["MX"]);
+assert.match(mapQuery.sql,/FROM selected ORDER BY name,id LIMIT 5000/);
+assert.match(mapQuery.sql,/count\(\*\) FILTER \(WHERE has_instagram\)/);
