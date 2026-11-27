@@ -744,3 +744,12 @@ body:has(.workspace-customer){background:var(--color-bg)}
 .customer-first-layout .customer-spotlight-foot a{background:var(--color-brand);color:var(--color-on-brand);min-height:44px}
 .customer-first-layout .customer-spotlight-foot a:hover{background:var(--color-brand-900)}
 .customer-first-layout .customer-spotlight-foot a:focus-visible{outline:3px solid var(--color-accent-600);outline-offset:3px}
+
+/* Cached customer space: keep the same brand and card appearance, hide network-only navigation. */
+body:has(.customer-cached-space) .loyalty-global-bottom-nav,body:has(.customer-cached-space) .kreyv-header-bell{display:none!important}
+.customer-cached-space .cached-card-list{display:grid;gap:16px;max-width:500px;margin:0 auto}
+.customer-cached-space .cached-card-button{border:0;background:none;padding:0;text-align:left;cursor:pointer;width:100%;min-width:0;color:inherit}
+.customer-cached-space .cached-card-qr{display:grid;justify-items:center;gap:12px;margin-top:18px}
+.customer-cached-space .cached-card-qr svg{max-width:100%;height:auto;background:#fff;border-radius:12px;padding:8px}
+.customer-cached-space .cached-card-back{margin-bottom:16px}
+.customer-cached-space .cached-space-footer{display:flex;justify-content:center;margin-top:28px}

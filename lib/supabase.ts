@@ -33,7 +33,8 @@ async function post<T=any>(endpoint:string,payload:object):Promise<Result<T>>{
   if(mutation)showActionToast("Cambios guardados correctamente.");
   return {data:(body.data as T),error:null,count:body.count};
  }catch{
-  if(endpoint==="/api/local/query"||endpoint==="/api/local/rpc")showActionToast("No se pudo conectar para guardar los cambios.","error");
+  const input=payload as {operation?:string;name?:string;action?:string};
+  if((endpoint==="/api/local/query"&&["insert","update","delete"].includes(input.operation||""))||(endpoint==="/api/local/rpc"&&mutatingRpcs.has(input.name||""))||(endpoint==="/api/local/auth"&&input.action==="updateUser"))showActionToast("No se pudo conectar para guardar los cambios.","error");
   return {data:(null as T),error:err("No se pudo conectar con el servidor.")};
  }
 }

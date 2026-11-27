@@ -4,7 +4,7 @@ import {logoImageUrl,stampImageUrl} from "@/lib/asset-images";
 import type {MilestoneDetails} from "@/lib/milestones";
 import type {Business,Membership,Program} from "@/lib/types";
 export type OfflineCard=Membership&{businesses:Business};
-export type OfflineAccount={id:string;area:"customer"|"staff";at:number;businesses:{id:string;name:string;program?:Program;currency?:string;revision?:string}[]};
+export type OfflineAccount={id:string;area:"customer"|"staff";at:number;name?:string;businesses:{id:string;name:string;program?:Program;currency?:string;revision?:string}[]};
 export type Snapshot={id:string;at:number;cards:OfflineCard[];programs:Program[];milestones?:Record<string,MilestoneDetails>;movements?:{id:string;business_id:string;kind:string;amount_delta:number;created_at:string}[]};
 export type Award={id:string;actor:string;business:string;token:string;at:number;amount:number;stamps:number;ticket:string|null;revision:string;error?:string};
 const prefix="kreyvi-offline-v1:", accountKey=prefix+"account",snapshotKey=prefix+"cards",queuePrefix=prefix+"award:",confirmedPrefix=prefix+"confirmed:";

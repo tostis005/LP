@@ -8,7 +8,8 @@ import {CustomerCardDeck} from "@/components/CustomerCardDeck";
 import "../customer-deck.css";
 import {db} from "@/lib/supabase";
 import type {MilestoneDetails} from "@/lib/milestones";
-import {saveCards} from "@/lib/client/offline";
+import {offlineCards,saveCards} from "@/lib/client/offline";
+import {CachedCustomerSpace} from "@/components/CachedCustomerSpace";
 import type {Membership,Business,Program} from "@/lib/types";
 import {dateShort,units} from "@/lib/format";
 type CardRow=Membership&{businesses:Business|null};
@@ -20,6 +21,7 @@ function completeCard(card:CardRow):card is CompleteCard {
 type Movement={id:string;amount_delta:number;kind:string;created_at:string;business_id:string;};
 function CustomerHome({account}:{account:Account}){
  const [cards,setCards]=useState<CompleteCard[]>([]),[programs,setPrograms]=useState<Program[]>([]),[movements,setMovements]=useState<Movement[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
+ const [cached,setCached]=useState(false);
  const [milestones,setMilestones]=useState<Record<string,MilestoneDetails>>({});
  const [offerCounts,setOfferCounts]=useState<Record<string,number>>({}),[unreadOffers,setUnreadOffers]=useState(0);
  useEffect(()=>{
@@ -35,7 +37,9 @@ function CustomerHome({account}:{account:Account}){
   return()=>{live=false};
  },[account.user.id]);
  const load=useCallback(async()=>{
-  setLoading(true);setError("");
+  const saved=offlineCards();
+  if(saved?.id===account.user.id){setCards(saved.cards);setPrograms(saved.programs);setMilestones(saved.milestones||{});setMovements(saved.movements||[]);setLoading(false);if(!navigator.onLine){setCached(true);return;}}
+  else setLoading(true);setError("");
   try{
    const res=await db().from("loyalty_memberships").select("*,businesses(*)")
     .eq("customer_id",account.user.id).order("created_at",{ascending:false});
@@ -50,6 +54,7 @@ function CustomerHome({account}:{account:Account}){
     }
    }
    const complete=rows.filter(completeCard);
+   if(complete.length!==rows.length&&saved?.id===account.user.id)throw Error("Tarjetas incompletas");
    setCards(complete);
    if(complete.length!==rows.length){
     setError("No hemos podido mostrar algunas tarjetas. Vuelve a intentarlo.");
@@ -60,6 +65,7 @@ function CustomerHome({account}:{account:Account}){
      db().from("loyalty_transactions").select("id,amount_delta,kind,created_at,business_id")
       .in("membership_id",complete.map(c=>c.id)).order("created_at",{ascending:false}).limit(10),db().rpc("customer_stamp_milestones")
     ]);
+    if((p.error||m.error||ms.error)&&saved?.id===account.user.id)throw Error("Tarjetas no actualizadas");
     setPrograms((p.data||[]) as Program[]);
     setMovements((m.data||[]) as Movement[]);
     const md:Record<string,MilestoneDetails>=Object.fromEntries(((ms.data||[]) as {membership_id:string;details:MilestoneDetails}[]).map(x=>[x.membership_id,x.details]));setMilestones(md);
@@ -68,12 +74,15 @@ function CustomerHome({account}:{account:Account}){
    }else{
     setPrograms([]);setMovements([]);setMilestones({});if(!rows.length)saveCards({id:account.user.id,at:Date.now(),cards:[],programs:[]});
    }
+   setCached(false);
   }catch{
+   if(saved?.id===account.user.id){setCards(saved.cards);setPrograms(saved.programs);setMilestones(saved.milestones||{});setMovements(saved.movements||[]);setCached(true);return;}
    setError("No hemos podido cargar tus tarjetas. Comprueba la conexión e inténtalo de nuevo.");
    setCards([]);setPrograms([]);setMovements([]);
   }finally{setLoading(false);}
  },[account.user.id]);
- useEffect(()=>{load();const refresh=()=>{void load()};window.addEventListener("online",refresh);return()=>window.removeEventListener("online",refresh)},[load]);
+ useEffect(()=>{load();const refresh=()=>{void load()};window.addEventListener("online",refresh);window.addEventListener("offline",refresh);return()=>{window.removeEventListener("online",refresh);window.removeEventListener("offline",refresh)}},[load]);
+ useEffect(()=>{if(!cached)return;const timer=window.setInterval(()=>{if(navigator.onLine&&document.visibilityState!=="hidden")void load()},15000);return()=>window.clearInterval(timer)},[cached,load]);
  const prog=(id:string)=>programs.find(x=>x.business_id===id);
  const readyRewards=cards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length;
  const firstName=String(account.user.user_metadata?.full_name||"").trim().split(/\s+/)[0];
@@ -85,6 +94,7 @@ function CustomerHome({account}:{account:Account}){
  })[0];
  const closestProgram=closest?prog(closest.business_id):undefined;
  const remaining=closest&&closestProgram?Math.max(0,closestProgram.reward_cost-closest.balance):0;
+ if(cached)return <CachedCustomerSpace embedded/>;
  return <div className="customer-first-layout">
   <div className="customer-home-greeting">
    <span className="customer-overline">TUS RECOMPENSAS</span>

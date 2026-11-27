@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
+const sw=read("public/sw.js"),shell=read("app/offline/page.tsx"),space=read("components/CachedCustomerSpace.tsx"),frame=read("components/AppFrame.tsx"),home=read("app/app/page.tsx");
+assert.doesNotMatch(sw,/Response\.redirect\(/,"No redirect to a blocking offline page");
+assert.match(sw,/new Response\(shell.body/);
+assert.match(shell,/account\?\.area==="customer"\)return <CachedCustomerSpace recover/);
+assert.doesNotMatch(space,/Conexión recuperada|Los saldos guardados|Sin conexión/);
+assert.match(space,/snapshot.cards.map/);
+assert.match(space,/QRCodeSVG/);
+assert.match(space,/window.location.replace\("\/app"\)/);
+assert.match(frame,/cached\)return <CachedCustomerSpace/);
+assert.match(home,/if\(cached\)return <CachedCustomerSpace embedded/);
+assert.match(read("lib/client/offline.ts"),/s\?\.id===a.id/,"Cache belongs to the current saved account");
+console.log("Customer app cache continuity and QR access");
