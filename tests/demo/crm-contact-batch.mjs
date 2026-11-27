@@ -143,3 +143,25 @@ assert.match(crmUi,/Guardar cambios/);
 assert.match(crmUi,/JSON\.stringify\(\{id:focus\.id,status:focus\.status,notes:focus\.notes\|\|""\}\)/);
 assert.doesNotMatch(crmUi,/URL de la fuente pública|Fuente revisada \(URL\)|Coordenadas:/);
 assert.match(crmUi,/historyOpen&&<CrmContactHistory/);
+
+
+// Branded initial load waits for both directory and filter options; refreshes stay inline.
+assert.match(crmUi,/data&&!loading&&!optionsLoading&&!optionsError/);
+assert.match(crmUi,/if\(tab==="directory"&&!initialReady\)/);
+assert.match(crmUi,/CrmLoading title="Preparando tu CRM"/);
+assert.match(crmUi,/CrmLoadError title="No se pudo preparar el CRM"/);
+assert.match(crmUi,/crm-results-status/);
+assert.match(crmUi,/loading:\(\)=> <CrmMapLoading\/>/);
+assert.match(mapUi,/view=contact&id=/);
+for(const label of ["Teléfono","Correo","Web","Instagram","Dirección","Llamar","Enviar correo"])assert.ok(mapUi.includes(label),label);
+assert.match(mapUi,/contact\?\.status==="do_not_contact"/);
+assert.match(crmRoute,/WHERE id=\$1::uuid",\[id\]/);
+assert.match(crmRoute,/p\.get\("view"\)==="contact"/);
+const contactId="12345678-1234-1234-1234-123456789abc";
+queries.length=0;
+await assert.rejects(()=>crm.GET({url:"https://example.com/api/local/admin/crm?view=contact&id="+contactId}),/Negocio no disponible/);
+const contactQuery=queries.find(q=>q.sql.includes("WHERE id=$1::uuid"));
+assert.deepEqual(contactQuery.params,[contactId]);
+assert.match(contactQuery.sql,/phone,email,public_email,website,instagram,status,notes/);
+await assert.rejects(()=>crm.GET({url:"https://example.com/api/local/admin/crm?view=contact&id=invalid"}),/Negocio no válido/);
+console.log("CRM map: scoped contact lookup, validated UUID and branded loading states.");
