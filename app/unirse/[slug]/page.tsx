@@ -13,6 +13,7 @@ import {publicJoinUrl} from "@/lib/public-url";
 import {StampMark} from "@/components/StampMarks";
 import {categoryStampKind} from "@/lib/business-categories";
 import {programPromise,programExplanation} from "@/lib/program-presentation";
+import type {MilestoneRule} from "@/lib/milestones";
 import type {Business,Location,Program} from "@/lib/types";
 import {db,configured} from "@/lib/supabase";
 const DirectoryMapView=dynamic(()=>import("@/components/DirectoryMap"),{ssr:false,loading:()=> <div className="map-placeholder">Preparando el mapa...</div>});
@@ -21,15 +22,16 @@ type Offer={business_id:string;business_name:string;description:string|null;acce
 export default function JoinPage(){
  const params=useParams<{slug:string}>(),router=useRouter();
  const [offer,setOffer]=useState<Offer|null>(null),[business,setBusiness]=useState<Business|null>(null);
+ const [milestones,setMilestones]=useState<MilestoneRule[]>([]);
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
  const [membershipId,setMembershipId]=useState("");
  const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con KREYVI.");setLoading(false);return}
-  const [o,u,assets]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser(),db().rpc("public_business_card_assets",{p_slug:params.slug})]);
+  const [o,u,assets,rewards]=await Promise.all([db().rpc("public_business_details",{p_slug:params.slug}),db().auth.getUser(),db().rpc("public_business_card_assets",{p_slug:params.slug}),db().rpc("public_stamp_milestones",{p_slug:params.slug})]);
   if(!alive)return;
-  setSigned(!!u.data.user);
+  setSigned(!!u.data.user);setMilestones((rewards.data||[]) as MilestoneRule[]);
   if(o.error||!o.data?.length){setError("No hemos encontrado un programa disponible con este enlace.");setLoading(false);return}
   const found=o.data[0] as Offer;setOffer(found);
   setBusiness({
@@ -111,7 +113,7 @@ export default function JoinPage(){
       {offer.description&&<p className="join-business-description">{offer.description}</p>}
       <p>{programExplanation(offerProgram)}</p>
       {business&&program&&<div className="join-card-preview">
-       <MerchantCard business={business} program={program} balance={0} qrValue={publicJoinUrl(params.slug)}/>
+       <MerchantCard business={business} program={program} milestones={milestones} balance={0} qrValue={publicJoinUrl(params.slug)}/>
        <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
       </div>}
 

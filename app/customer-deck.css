@@ -17,3 +17,7 @@
 @media(max-width:600px){.customer-wallet-stack{height:470px}.customer-wallet-tab{height:205px;left:5%;width:90%;padding:11px 12px 10px}.customer-wallet-card-head{padding:6px 7px}.workspace-customer .customer-wallet-deck .qr-modal{max-height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom))}}
 
 .customer-wallet-lower-label{display:none}.customer-wallet-tab.is-below .customer-wallet-lower-label{display:flex;position:absolute;inset:auto 10px 10px;align-items:center;gap:9px;padding:7px 9px;border:1px solid #ffffff55;border-radius:12px;background:inherit;background-image:none;box-shadow:0 -1px 5px #00000028;z-index:3}.customer-wallet-lower-label .customer-wallet-logo{width:30px;height:30px}.customer-wallet-lower-label strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.customer-wallet-lower-label>svg{flex:none}
+
+/* Keep every intermediate position visible even in a dense wheel card. */
+.customer-wallet-card-body .stamp-grid.is-dense{grid-template-columns:repeat(var(--stamp-columns),minmax(0,23px));justify-content:center;gap:3px}
+.customer-wallet-card-body .stamp-grid.is-very-dense{grid-template-columns:repeat(var(--stamp-columns),minmax(0,16px));justify-content:center;gap:2px}

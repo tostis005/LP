@@ -1,0 +1,9 @@
+/* A milestone is a subtle marker inside its existing slot, never a new row. */
+.stamp-grid .stamp-slot.has-milestone{position:relative;isolation:isolate}
+.stamp-grid .stamp-slot.has-milestone:not(.is-filled){background:linear-gradient(145deg,#fff7df36,#ffffff18);border-color:#fff2c9bc;color:#fff;box-shadow:inset 0 0 0 1px #fff4d21a}
+.stamp-grid .stamp-milestone-mark{display:grid;place-items:center;width:66%;height:66%;pointer-events:none;line-height:1;color:inherit}
+.stamp-grid .stamp-milestone-mark:not(.is-earned){color:#fff;opacity:.84;filter:drop-shadow(0 1px 2px #0008)}
+.stamp-grid .stamp-slot .stamp-milestone-mark svg{display:block;width:100%;height:100%;max-width:none;max-height:none}
+.stamp-grid .stamp-milestone-mark.is-earned{position:absolute;right:1%;bottom:1%;width:43%;height:43%;border-radius:50%;background:#f5d78f;color:#57361c;box-shadow:0 0 0 1px #fff9e7;transform:rotate(8deg);z-index:1}
+.stamp-grid .stamp-milestone-mark.is-earned svg{width:72%;height:72%}
+.stamp-grid.is-dense .stamp-milestone-mark.is-earned,.stamp-grid.is-very-dense .stamp-milestone-mark.is-earned{width:51%;height:51%}

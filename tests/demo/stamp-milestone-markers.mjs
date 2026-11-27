@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {milestoneAt,availableMilestonePositions} from "../../lib/milestones.ts";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
+const rules=[{position:2,label:"Galleta"},{position:4,label:"Café"},{position:6,label:"Final"}];
+assert.equal(milestoneAt(rules,2,6).label,"Galleta");
+assert.equal(milestoneAt(rules,1,6),undefined);
+assert.equal(milestoneAt(rules,6,6),undefined);
+assert.deepEqual(availableMilestonePositions(6,[{position:2,active:true},{position:4,active:false}]),[1,3,4,5]);
+assert.match(read("components/StampMarks.tsx"),/earnedStamp&&\(imageUrl/);
+assert.match(read("components/StampMarks.tsx"),/stamp-milestone-mark/);
+assert.match(read("components/CustomerCardDeck.tsx"),/p.reward_cost<=30&&details\(card\).rules.length>0/);
+assert.match(read("components/BusinessWorkspace.tsx"),/milestones=\{previewMilestones\}/);
+assert.match(read("app/unirse/[slug]/page.tsx"),/public_stamp_milestones/);
+assert.match(read("components/StampMilestoneSettings.tsx"),/freePositions.includes\(Number\(position\)\)/);
+console.log("Intermediate stamp markers preserve earned icons, prevent duplicate positions and retain compact card proportions.");

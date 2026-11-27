@@ -17,6 +17,10 @@ try{
  await identity(id.owner);
  await rejected("SELECT public.manager_add_stamp_milestone($1,3,$2)",[id.business,reward],/catálogo de premios intermedios/);
  const rule=(await q("SELECT public.manager_add_stamp_milestone($1,3,$2) AS id",[id.business,intermediate])).rows[0].id;
+ await rejected("SELECT public.manager_add_stamp_milestone($1,3,$2)",[id.business,intermediate],/ya tiene un premio intermedio/);
+ await rejected("SELECT public.manager_add_stamp_milestone($1,6,$2)",[id.business,intermediate],/anterior al premio final/);
+ await q("RESET ROLE");await q("SET LOCAL ROLE anon");
+ assert.deepEqual((await q("SELECT * FROM public.public_stamp_milestones($1)",["milestone-"+id.business.slice(0,8)])).rows,[{position:3,label:"Galleta intermedia"}]);
  await identity(id.staff);
  assert.deepEqual((await q("SELECT id FROM public.available_rewards($1)",[id.business])).rows.map(r=>r.id),[reward]);
  const access=(await q("SELECT * FROM public.staff_offline_access()")).rows[0];

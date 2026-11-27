@@ -32,6 +32,8 @@ jobs:
         run: node tests/demo/home-polish.mjs
       - name: Textos bilingües y colección visual
         run: node tests/demo/landing.mjs
+      - name: Verificar marcadores de premios intermedios
+        run: node tests/demo/stamp-milestone-markers.mjs
       - name: Verificar centro de ayuda y enlace de Wallet
         run: node tests/demo/help-support.mjs
       - name: Comprobar ofertas, novedades y recuperación de notificaciones push

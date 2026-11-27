@@ -52,6 +52,8 @@ jobs:
         run: node tests/demo/home-polish.mjs
       - name: Verificar textos comerciales ES/EN, iconos y logotipo
         run: node tests/demo/landing.mjs
+      - name: Verificar marcadores de premios intermedios
+        run: node tests/demo/stamp-milestone-markers.mjs
       - name: Verificar centro de ayuda y enlace de Wallet
         run: node tests/demo/help-support.mjs
       - name: Verificar la marca Kreyv y sus dos paletas

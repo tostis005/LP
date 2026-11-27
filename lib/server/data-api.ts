@@ -177,6 +177,7 @@ const rpcMap:Record<string,Spec>={
  business_staff_directory:{args:[["p_business","uuid"]],returns:"table"},
  admin_user_directory:{args:[],returns:"table"},
  find_join_business:{args:[["p_slug","text"]],returns:"table"},
+ public_stamp_milestones:{args:[["p_slug","text"]],returns:"table"},
  public_business_details:{args:[["p_slug","text"]],returns:"table"},
  manager_reverse_transaction:{args:[["p_transaction","uuid"],["p_reason","text"]],returns:"scalar"},
  business_owner_activity:{args:[["p_business","uuid"],["p_days","integer"]],returns:"table"},

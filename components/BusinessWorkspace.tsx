@@ -13,6 +13,7 @@ import {db} from "@/lib/supabase";
 import {showActionToast} from "@/lib/action-toast";
 import {STAMP_OPTIONS,StampMark} from "@/components/StampMarks";
 import {MerchantCard} from "@/components/StampCard";
+import type {MilestoneRule} from "@/lib/milestones";
 import {CounterPoster} from "@/components/CounterPoster";
 import {adminBusinessHref,adminBusinessSections,managedBusinessHref,type AdminBusinessSection} from "@/lib/admin-sections";
 import {publicJoinUrl} from "@/lib/public-url";
@@ -100,7 +101,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
  },[]);
  const [usage,setUsage]=useState<Usage[]>([]),[marketingStatus,setMarketingStatus]=useState<MarketingStatus>({email:false,whatsapp:false,push:false,template_name:"",template_language:""});
  useEffect(()=>{fetch("/api/local/marketing/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{if(v)setMarketingStatus(v as MarketingStatus)}).catch(()=>{});},[]);
- const [previewEarned,setPreviewEarned]=useState(3);
+ const [previewEarned,setPreviewEarned]=useState(3),[previewMilestones,setPreviewMilestones]=useState<MilestoneRule[]>([]);
  const reload=useCallback(async()=>{
   if(!selected)return;setLoading(true);setError("");
   // Una pantalla solo consulta lo que necesita; evita saturar las conexiones
@@ -108,7 +109,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   const empty=Promise.resolve({data:[],error:null});
   const forReport=tab==="reports"&&dataArea==="summary",forTeam=tab==="team",forCard=tab==="card";
   const forCampaign=tab==="marketing",forCustomers=tab==="reports"&&dataArea==="customers",forLocations=tab==="locations";
-  const [b,p,c,s,i,l,t,d,a,m,r,o,g,gs,rc]=await Promise.all([
+  const [b,p,c,s,i,l,t,d,a,m,r,o,g,gs,rc,mr]=await Promise.all([
    db().from("businesses").select("*").eq("id",selected).maybeSingle(),
    db().from("loyalty_programs").select("*").eq("business_id",selected).maybeSingle(),
    forReport||forCustomers||forCard?db().rpc("business_customer_directory",{p_business:selected}):empty,
@@ -123,8 +124,10 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
     forCard?db().from("reward_options").select("*").eq("business_id",selected).order("position",{ascending:true}):empty,
      forReport?db().rpc("business_growth_series",{p_business:selected,p_days:periodDays}):empty,
      forReport?db().rpc("business_growth_summary",{p_business:selected,p_days:periodDays}):empty,
-     forCard?db().rpc("business_default_reward_cost",{p_business:selected}):empty
+     forCard?db().rpc("business_default_reward_cost",{p_business:selected}):empty,
+     forCard?db().rpc("manager_stamp_milestones",{p_business:selected}):empty
   ]);
+  setPreviewMilestones(((mr.data||[]) as (MilestoneRule&{active:boolean})[]).filter(rule=>rule.active));
   setDefaultRewardCost(rc.data?.[0]?.cost_cents==null?"":String(Number(rc.data[0].cost_cents)/100));
    setBiz(b.data as Business|null);setProg(p.data as Program|null);setCustomers((c.data||[]) as Customer[]);
   setStaff((s.data||[]) as Employee[]);setInvites(i.data||[]);setLocations((l.data||[]) as Location[]);
@@ -134,7 +137,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
   setActivity((a.data||[]) as EmployeeActivity[]);
    setMetrics((m.data||[]) as MetricRow[]);setGrowth((g.data||[]) as GrowthRow[]);setGrowthSummary((gs.data||[]) as MetricRow[]);setRanking((r.data||[]) as RankingRow[]);setRewardOptions((o.data||[]) as RewardOption[]);
   if(adminMode&&!b.data&&!b.error)setError("No se encontró este establecimiento.");
-  const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error||rc.error;
+  const failure=b.error||p.error||c.error||s.error||i.error||l.error||t.error||d.error||a.error||m.error||r.error||o.error||g.error||gs.error||rc.error||mr.error;
   if(failure)setError(failure.message);
   if(forCampaign){
   const [pricing,used,pushItems]=await Promise.all([
@@ -349,7 +352,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
        <button type="button" className="button button-outline button-sm" onClick={()=>openSection("card")}>Editar tarjeta <ArrowUpRight size={16}/></button>
       </div>
       <div className="owner-start-card-preview">
-       <MerchantCard business={biz} program={prog} balance={prog.type==="stamps"?Math.min(previewEarned,prog.reward_cost):prog.type==="points"?120:15000} qrValue={publicJoinUrl(biz.slug)}/>
+       <MerchantCard business={biz} program={prog} milestones={previewMilestones} balance={prog.type==="stamps"?Math.min(previewEarned,prog.reward_cost):prog.type==="points"?120:15000} qrValue={publicJoinUrl(biz.slug)}/>
       </div>
      </section>
     </div>}
@@ -394,7 +397,7 @@ export default function BusinessWorkspace({account,adminBusinessId}:{account:Acc
     </section>
     <section className="panel-card designer-preview-wrap lp-designer-live">
      <span className="eyebrow">VISTA PREVIA EN DIRECTO</span>
-     <MerchantCard business={biz} program={prog} balance={prog.type==="stamps"?Math.min(previewEarned,prog.reward_cost):prog.type==="points"?120:15000} qrValue={publicJoinUrl(biz.slug)}/>
+     <MerchantCard business={biz} program={prog} milestones={previewMilestones} balance={prog.type==="stamps"?Math.min(previewEarned,prog.reward_cost):prog.type==="points"?120:15000} qrValue={publicJoinUrl(biz.slug)}/>
      {prog.type==="stamps"&&<label className="lp-preview-range">Sellos en la vista previa: <strong>{Math.min(previewEarned,prog.reward_cost)} de {prog.reward_cost}</strong><input type="range" min={0} max={prog.reward_cost} value={Math.min(previewEarned,prog.reward_cost)} onChange={e=>setPreviewEarned(Number(e.target.value))}/></label>}
      <p className="tiny-note">Comparte el enlace de inscripción. Cada cliente tendrá su propio QR para registrar visitas.</p>
      <a className="button button-outline button-full" href={workspaceHref("/negocio/vista-previa?business="+encodeURIComponent(selected))}>Previsualizar mi tarjeta <ArrowUpRight size={17}/></a>
