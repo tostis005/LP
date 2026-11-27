@@ -7,7 +7,7 @@ const pool=new pg.Pool({
 });
 const client=await pool.connect();
 try{
- const user=await client.query("SELECT id,email FROM auth.users WHERE lower(email)='cliente@loyally.local'");
+ const user=await client.query("SELECT id,email FROM auth.users WHERE lower(email)='cliente@kreyvi.com'");
  assert.equal(user.rowCount,1,"The real QA customer must exist");
  const customerId=user.rows[0].id;
 
