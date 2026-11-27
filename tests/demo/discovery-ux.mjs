@@ -65,10 +65,14 @@ const card=readFileSync(new URL("../../components/LoyaltyCard.tsx",import.meta.u
 assert.match(business,/STAMP_COLOR_PRESETS/,"Owner can choose a stamp preset");
 assert.match(business,/Cambiar color del sello/,"Owner has a custom color picker");
 assert.match(business,/stamp_color:biz\.stamp_color/,"Chosen ink color is saved");
-assert.match(business,/StampMark kind=\{option\.id\} size=\{30\} color=\{biz\.stamp_color/,"Gallery previews chosen color");
+assert.match(business,/StampMark kind=\{option\.id\} size=\{26\} color=\{biz\.stamp_color/,"Gallery previews chosen color");
 assert.match(card,/image\/png/,"Downloaded card is a PNG with QR");
 assert.doesNotMatch(card,/filledCount|STAMP_DRAWINGS/,"Download must not freeze stamp progress");
-assert.match(css,/\.stamp-color-palette\{/);
+const designerCss=readFileSync(new URL("../../app/card-designer.css",import.meta.url),"utf8");
+assert.match(designerCss,/\.card-color-swatches\{/);
+assert.match(business,/Colores sugeridos para el sello/);
+assert.match(business,/stamp_color:color/);
+assert.match(business,/biz\.stamp_image_url\?<div className="card-upload-choice"/);
 
 const join=readFileSync(new URL("../../app/unirse/[slug]/page.tsx",import.meta.url),"utf8");
 assert.doesNotMatch(join,/join-marketing-choice|join-phone-field/);
