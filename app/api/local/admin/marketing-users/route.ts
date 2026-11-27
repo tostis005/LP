@@ -4,13 +4,14 @@ import {hashPassword,validateEmail,emailToken} from "@/lib/server/auth";
 import {scopeKeys,scopeKey,type MarketingScope} from "@/lib/marketing-scopes";
 export const runtime="nodejs";
 const headers={"Cache-Control":"no-store"};
-export async function GET(request:Request){try{const actor=await actorFromRequest(request);if(!actor)throw new ApiError("Inicia sesión.",401);const self=new URL(request.url).searchParams.has("self");const data=await asActor(actor,async c=>{if(self)return (await c.query("SELECT public.crm_is_marketing() AS marketing,public.crm_marketing_active() AS active")).rows[0];if(!(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed)throw new ApiError("No autorizado.",403);const roleUsers=(await c.query("SELECT public.crm_admin_marketing_users() AS users")).rows[0].users as {id:string;name:string|null;email:string;role:string;active:boolean|null;scopes:unknown}[];
+export async function GET(request:Request){try{const actor=await actorFromRequest(request);if(!actor)throw new ApiError("Inicia sesión.",401);const params=new URL(request.url).searchParams,self=params.has("self"),view=params.get("view");const data=await asActor(actor,async c=>{if(self)return (await c.query("SELECT public.crm_is_marketing() AS marketing,public.crm_marketing_active() AS active")).rows[0];if(!(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed)throw new ApiError("No autorizado.",403);const users=view==="regions"?[]:await (async()=>{const roleUsers=(await c.query("SELECT public.crm_admin_marketing_users() AS users")).rows[0].users as {id:string;name:string|null;email:string;role:string;active:boolean|null;scopes:unknown}[];
 const directory=(await c.query("SELECT * FROM public.admin_user_directory()")).rows as {user_id:string;full_name:string|null;email:string;businesses:number|string;joined_at:string|null}[];
 const byId=new Map(directory.map(u=>[u.user_id,u]));
-const users=roleUsers.map(u=>{const detail=byId.get(u.id);return {...u,name:detail?.full_name||u.name,businesses:detail?Number(detail.businesses):0,joined_at:detail?.joined_at??null};});
+return roleUsers.map(u=>{const detail=byId.get(u.id);return {...u,name:detail?.full_name||u.name,businesses:detail?Number(detail.businesses):0,joined_at:detail?.joined_at??null};});})();
+if(view==="users")return {users};
 const regions=(await c.query("SELECT DISTINCT country_code,state_code,state,municipality_code,municipality,locality_code,city,neighborhood FROM public.crm_prospects ORDER BY state,municipality,city,neighborhood")).rows;
 if(!regions.some(r=>r.country_code==="MX"&&r.state_code==="11"&&r.municipality_code==="020"))regions.push({country_code:"MX",state_code:"11",state:"Guanajuato",municipality_code:"020",municipality:"León",locality_code:"0001",city:"León de los Aldama",neighborhood:""});
-return {users,regions};});return Response.json(data,{headers});}catch(e){return responseError(e);}}
+return view==="regions"?{regions}:{users,regions};});return Response.json(data,{headers});}catch(e){return responseError(e);}}
 export async function POST(request:Request){
  try{
   checkOrigin(request);const actor=await actorFromRequest(request);if(!actor)throw new ApiError("Inicia sesión.",401);
@@ -30,5 +31,18 @@ export async function POST(request:Request){
    if(!row?.email_confirmed_at){try{await emailToken(saved.id,"verify",email);invitation="Invitación enviada.";}catch{invitation="Cuenta guardada; no se pudo enviar la invitación. Reintenta desde la edición."}}
   }
   return Response.json({ok:true,saved,invitation},{headers});
+ }catch(e){return responseError(e);}
+}
+
+export async function PATCH(request:Request){
+ try{
+  checkOrigin(request);const actor=await actorFromRequest(request);if(!actor)throw new ApiError("Inicia sesión.",401);
+  await asActor(actor,async c=>{if(!(await c.query("SELECT public.is_platform_admin() AS allowed")).rows[0]?.allowed)throw new ApiError("No autorizado.",403);});
+  const raw=await request.text();if(raw.length>4000)throw new ApiError("Solicitud demasiado larga.");
+  const v=JSON.parse(raw),id=v.userId,password=v.password;
+  if(typeof id!=="string"||! /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)||typeof password!=="string"||password.length<10||password.length>128)throw new ApiError("La contraseña debe tener entre 10 y 128 caracteres.");
+  const hash=await hashPassword(password);
+  await asActor(actor,async c=>{await c.query("SELECT public.admin_reset_staff_password($1::uuid,$2)",[id,hash]);});
+  return Response.json({ok:true},{headers});
  }catch(e){return responseError(e);}
 }
