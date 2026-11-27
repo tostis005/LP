@@ -93,14 +93,8 @@ assert.match(api,/if\(!initialPassword&&!newPassword&&v\.invite===true\)/);
 
 assert.match(directory,/method:existing\?"PUT":"POST"/);
 assert.match(directory,/key:"business",label:"Negocio"/);
-assert.match(directory,/matches:\(u,id\)=>\(u.business_links\|\|\[\]\).some\(b=>b.id===id\)/);
 assert.match(api,/public.admin_account_details\(\)/);
 assert.match(api,/public.admin_edit_account\(/);
-const people=[{name:"Owner",ids:["b1"]},{name:"Customer",ids:["b1","b2"]},{name:"Employee",ids:["b2"]}];
-const businessCol=[{key:"business",value:r=>r.ids.join(","),filter:"select",matches:(r,id)=>r.ids.includes(id)}];
-assert.equal(selectDirectoryRows(people,businessCol,{business:"b1"},{key:"business",direction:"asc"}).length,2);
-assert.equal(selectDirectoryRows(people,businessCol,{business:"b2"},{key:"business",direction:"asc"}).length,2);
-assert.equal(selectDirectoryRows(people,businessCol,{business:"b"},{key:"business",direction:"asc"}).length,0);
 
 const userPage=read("app/admin/usuarios/[id]/page.tsx");
 const userFrame=read("components/AdminUserPage.tsx");
@@ -112,3 +106,27 @@ assert.match(directory,/aria-expanded=\{expanded\}/);
 assert.match(directory,/expanded&&hasPrograms&&<tr className="admin-user-program-row"/);
 assert.doesNotMatch(directory,/focusUser&&<div className="admin-inspector"/);
 assert.match(read("app/workspace.css"),/admin-user-row-actions\{display:flex;align-items:center;justify-content:flex-end/);
+
+const {staffBusinesses,loyaltySubscriptions,matchesBusiness,staffBusinessNames}=await import("../../lib/admin-user-affiliations.ts");
+const link=(id,role,active=true)=>({id,name:id,role,active});
+const people=[
+ {role:"owner",business_links:[link("b1","owner"),link("b2","customer")]},
+ {role:"employee",business_links:[link("b1","employee")]},
+ {role:"manager",business_links:[link("b2","manager")]},
+ {role:"customer",business_links:[link("b1","customer"),link("b2","customer")]},
+ {role:"marketing",business_links:[link("b1","customer")]},
+ {role:"admin",business_links:[link("b1","customer")]},
+ {role:"employee",business_links:[link("b1","employee",false)]}
+];
+const businessCol=[{key:"business",value:staffBusinessNames,filter:"select",matches:matchesBusiness}];
+assert.deepEqual(selectDirectoryRows(people,businessCol,{business:"b1"},{key:"business",direction:"asc"}).map(u=>u.role),["owner","employee"]);
+assert.deepEqual(selectDirectoryRows(people,businessCol,{business:"b2"},{key:"business",direction:"asc"}).map(u=>u.role),["manager"]);
+assert.equal(selectDirectoryRows(people,businessCol,{business:"b"},{key:"business",direction:"asc"}).length,0);
+assert.equal(staffBusinesses(people[3]).length,0);
+assert.equal(loyaltySubscriptions(people[3]).length,2);
+assert.equal(staffBusinessNames(people[0]),"b1");
+assert.equal(loyaltySubscriptions(people[0]).length,1);
+assert.match(directory,/matches:matchesBusiness/);
+assert.match(directory,/hasPrograms=loyaltySubscriptions\(u\).length>0/);
+assert.match(directory,/staffBusinessNames\(u\)/);
+assert.match(directory,/staffBusinesses\(u\).map/);
