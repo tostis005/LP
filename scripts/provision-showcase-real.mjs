@@ -4,10 +4,10 @@ import {promisify} from "node:util";
 const scrypt=promisify(scryptCallback);
 
 const people=[
- {role:"ADMIN",email:"admin@loyally.local",name:"Administración Loyally"},
- {role:"BUSINESS",email:"gestor@loyally.local",name:"Responsable de negocio"},
- {role:"STAFF",email:"empleado@loyally.local",name:"Personal de tienda"},
- {role:"CUSTOMER",email:"cliente@loyally.local",name:"Cliente Loyally"}
+ {role:"ADMIN",email:"administrador@kreyviapp.com",name:"Administración Loyally"},
+ {role:"BUSINESS",email:"owner@kreyviapp.com",name:"Responsable de negocio"},
+ {role:"STAFF",email:"empleado@kreyviapp.com",name:"Personal de tienda"},
+ {role:"CUSTOMER",email:"cliente@kreyviapp.com",name:"Cliente Loyally"}
 ];
 for(const u of people){
  const password=process.env["LP_SHOWCASE_"+u.role+"_PASSWORD"]||"";
@@ -32,8 +32,11 @@ try{
  await db.query("BEGIN");
  const ids={};
  for(const p of people){
-  const r=await db.query("SELECT id FROM auth.users WHERE lower(email)=$1",[p.email]);
+  const r=await db.query("SELECT user_id AS id FROM auth.qa_profile_accounts WHERE role=$1",[p.role]);
   if(r.rowCount){ids[p.role]=r.rows[0].id;continue}
+  // Never attach QA privileges to an unrelated existing address.
+  const occupied=await db.query("SELECT 1 FROM auth.users WHERE lower(email)=$1",[p.email]);
+  if(occupied.rowCount)throw new Error("El correo de validación ya pertenece a otra cuenta: "+p.email);
   const password=process.env["LP_SHOWCASE_"+p.role+"_PASSWORD"];
   const salt=randomBytes(16).toString("hex");
   const hash="scrypt$"+salt+"$"+(await scrypt(password,salt,64)).toString("hex");
@@ -42,6 +45,7 @@ try{
    [p.email,hash,JSON.stringify({full_name:p.name})]
   );
   ids[p.role]=created.rows[0].id;
+  await db.query("INSERT INTO auth.qa_profile_accounts(role,user_id) VALUES($1,$2)",[p.role,ids[p.role]]);
  }
  await db.query("INSERT INTO public.platform_admins(user_id) VALUES($1) ON CONFLICT DO NOTHING",[ids.ADMIN]);
  const existing={},createdSlugs=new Set();
