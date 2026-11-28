@@ -781,3 +781,16 @@ body:has(.customer-cached-space) .loyalty-global-bottom-nav,body:has(.customer-c
  .customer-card-detail-backdrop.is-closing .customer-card-detail-header{background:transparent}
  .workspace-customer .customer-card-detail-backdrop.is-closing .customer-card-detail-panel{background:transparent;box-shadow:none;border-color:transparent;overflow:visible}
 }
+
+/* Baseline dimensions for browsers without dynamic viewport units or :has(). */
+.workspace-customer.customer-wallet-home{background:var(--color-bg)}
+.workspace-customer .qr-modal.customer-card-detail-panel{max-height:calc(100vh - 24px);-webkit-overflow-scrolling:touch}
+@media(max-width:700px){.workspace-customer .qr-modal.customer-card-detail-panel{width:100%;height:100vh;max-height:100vh}}
+@supports (height:100dvh){
+ .workspace-customer .qr-modal.customer-card-detail-panel{max-height:calc(100dvh - 24px)}
+ @media(max-width:700px){.workspace-customer .qr-modal.customer-card-detail-panel{height:100dvh;max-height:100dvh}}
+}
+@supports (-webkit-touch-callout:none){
+ .workspace-customer .customer-card-detail-backdrop{-webkit-backdrop-filter:none;backdrop-filter:none}
+ .workspace-customer .customer-card-detail-panel{-webkit-overflow-scrolling:touch}
+}

@@ -31,6 +31,23 @@ const menus: Record<Area,{href:string;label:string;icon:ReactNode}[]> = {
 };
 export function AppFrame({ area, title, subtitle, children }: {area:Area;title:string;subtitle:string;children:(a:Account)=>ReactNode}) {
  const router=useRouter(), pathname=usePathname();
+ const walletHome=area==="customer"&&pathname==="/app";
+ useEffect(()=>{
+  if(!walletHome)return;
+  const body=document.body,viewport=window.visualViewport;
+  body.classList.add("kreyvi-wallet-home");
+  let frame=0;
+  const update=()=>{
+   cancelAnimationFrame(frame);
+   frame=requestAnimationFrame(()=>{
+    const height=viewport&&Math.abs(viewport.scale-1)<.01?viewport.height:window.innerHeight;
+    if(height>0)body.style.setProperty("--kreyvi-home-viewport",Math.floor(height)+"px");
+   });
+  };
+  update();window.addEventListener("resize",update);window.addEventListener("pageshow",update);
+  viewport?.addEventListener("resize",update);
+  return()=>{cancelAnimationFrame(frame);window.removeEventListener("resize",update);window.removeEventListener("pageshow",update);viewport?.removeEventListener("resize",update);body.classList.remove("kreyvi-wallet-home");body.style.removeProperty("--kreyvi-home-viewport");};
+ },[walletHome]);
  const activePath=area==="admin"?adminActiveHref(pathname):area==="business"&&["/negocio/customers","/negocio/transactions"].includes(pathname)?"/negocio/reports":area==="business"&&["/negocio/settings","/negocio/locations","/negocio/overview","/negocio/poster"].includes(pathname)?"/negocio":pathname;
  const [user,setUser]=useState<User|null>(null),[roles,setRoles]=useState<BusinessRole[]>([]),[admin,setAdmin]=useState(false);
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[version,setVersion]=useState(0),[cached,setCached]=useState(false);
@@ -80,7 +97,7 @@ export function AppFrame({ area, title, subtitle, children }: {area:Area;title:s
  if(!user)return <KreyviLoading label="Abriendo el acceso"/>;
  if(!allowed)return <div className="empty-page"><h2>Esta zona es privada</h2><p>No tienes permisos para acceder a esta sección.</p>{awards(user.id).length>0&&<p>Compras pendientes o rechazadas: {awards(user.id).length}. Las operaciones anteriores a la baja se sincronizan al recuperar la conexión.</p>}<Link className="button button-dark" href={admin?"/admin":roles.some(x=>x.role!=="employee")?"/negocio":roles.length?"/empleado":"/app"}>Volver a mi espacio</Link></div>;
  const account:Account={user,businesses:roles,admin,refresh:()=>setVersion(v=>v+1)};
- return <div className={"workspace workspace-"+area}>
+ return <div className={"workspace workspace-"+area+(walletHome?" customer-wallet-home":"")}>
   <aside className="sidebar"><div className="sidebar-brand"><Brand href="/entrar"/></div><div className="sidebar-caption">NAVEGACIÓN</div><nav className="side-links" aria-label="Menú principal">
    {menus[area].map(i=><Link key={i.href} href={i.href} aria-current={activePath===i.href?"page":undefined} className={"side-link"+(activePath===i.href?" active":"")}>{i.icon}{i.label}</Link>)}
   </nav><div className="sidebar-spacer"/><button type="button" className="side-logout" onClick={logout}><LogOut size={17}/> Cerrar sesión</button>

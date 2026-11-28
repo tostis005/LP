@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState,type PointerEvent as ReactPointerEvent} from "react";
+import {useEffect,useLayoutEffect,useRef,useState,type PointerEvent as ReactPointerEvent} from "react";
 import {ChevronDown,ChevronUp,Gift,ArrowUpRight} from "lucide-react";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
 import {cardTitleFont} from "@/lib/card-fonts";
@@ -9,14 +9,23 @@ import {cardBackgroundUrl} from "@/lib/card-images";
 import {emptyMilestones,type MilestoneDetails} from "@/lib/milestones";
 import {StampGrid} from "@/components/StampMarks";
 import {units} from "@/lib/format";
-import {wheelStep,wrapIndex,wheelSlots,wheelTransform,wheelDestination} from "@/lib/customer-wheel";
+import {wheelStep,wrapIndex,wheelSlots,wheelTransform,wheelDestination,wheelRadius} from "@/lib/customer-wheel";
 import type {Business,Membership,Program} from "@/lib/types";
 type Card=Membership&{businesses:Business};
 type Drag={capture:HTMLElement;id:number;y:number;x:number;start:number;last:number;time:number;velocity:number;moved:boolean};
 export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:Card[];programs:Program[];milestones:Record<string,MilestoneDetails>;offerCounts:Record<string,number>}){
  const [position,setPosition]=useState(0),[openId,setOpenId]=useState<string|null>(null),[dragging,setDragging]=useState(false);
  const [transitionFrom,setTransitionFrom]=useState<DOMRect|undefined>();
+ const [radius,setRadius]=useState(95);
  const pos=useRef(0),frame=useRef(0),wheelTimer=useRef<ReturnType<typeof setTimeout>|null>(null),drag=useRef<Drag|null>(null),suppress=useRef(0),stage=useRef<HTMLDivElement>(null),count=cards.length;
+ useLayoutEffect(()=>{
+  const node=stage.current;if(!node)return;
+  const resize=()=>{const card=node.querySelector<HTMLElement>(".customer-wallet-tab");if(card)setRadius(wheelRadius(node.clientHeight,card.offsetHeight));};
+  resize();
+  const observer=typeof ResizeObserver!=="undefined"?new ResizeObserver(resize):null;observer?.observe(node);
+  window.addEventListener("resize",resize);
+  return()=>{observer?.disconnect();window.removeEventListener("resize",resize);};
+ },[count]);
  const update=(value:number)=>{pos.current=value;setPosition(value);};
  function cancel(){cancelAnimationFrame(frame.current);if(wheelTimer.current){clearTimeout(wheelTimer.current);wheelTimer.current=null;}}
  function settle(target:number){
@@ -44,20 +53,30 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
   node.addEventListener("wheel",onWheel,{passive:false});
   return()=>{node.removeEventListener("wheel",onWheel);cancel();};
  },[count]);
+ // Older touch browsers without Pointer Events still support one-finger rotation.
+ useEffect(()=>{
+  const node=stage.current;if(!node||count<2||"PointerEvent" in window)return;
+  let touch:{id:number;x:number;y:number;start:number;last:number;time:number;velocity:number;moved:boolean}|null=null;
+  const start=(e:TouchEvent)=>{if(e.touches.length!==1){touch=null;setDragging(false);return;}const t=e.touches[0];cancel();suppress.current=0;touch={id:t.identifier,x:t.clientX,y:t.clientY,start:pos.current,last:t.clientY,time:performance.now(),velocity:0,moved:false};};
+  const moveTouch=(e:TouchEvent)=>{const d=touch;if(!d)return;const t=Array.from(e.touches).find(t=>t.identifier===d.id);if(!t)return;const dy=t.clientY-d.y,dx=t.clientX-d.x;if(!d.moved){if(Math.abs(dy)<5||Math.abs(dy)<Math.abs(dx))return;d.moved=true;setDragging(true);}if(e.cancelable)e.preventDefault();const now=performance.now(),elapsed=Math.max(8,now-d.time);d.velocity=d.velocity*.55-(t.clientY-d.last)/wheelStep/elapsed*.45;d.last=t.clientY;d.time=now;update(d.start-dy/wheelStep);};
+  const end=(e:TouchEvent)=>{const d=touch;if(!d)return;if(!Array.from(e.changedTouches).some(t=>t.identifier===d.id))return;touch=null;setDragging(false);if(d.moved){suppress.current=Date.now()+350;settle(wheelDestination(pos.current,e.type==="touchcancel"||performance.now()-d.time>110?0:d.velocity));}};
+  node.addEventListener("touchstart",start,{passive:true});node.addEventListener("touchmove",moveTouch,{passive:false});node.addEventListener("touchend",end);node.addEventListener("touchcancel",end);
+  return()=>{node.removeEventListener("touchstart",start);node.removeEventListener("touchmove",moveTouch);node.removeEventListener("touchend",end);node.removeEventListener("touchcancel",end);cancel();};
+ },[count]);
  function pointerDown(e:ReactPointerEvent<HTMLDivElement>){
   if(count<2||!e.isPrimary||(e.pointerType==="mouse"&&e.button!==0))return;
   cancel();suppress.current=0;
   // Capture on the pressed card (not the stage) so taps still activate the button.
   const capture=(e.target instanceof Element?e.target.closest<HTMLButtonElement>(".customer-wallet-tab"):null)||e.currentTarget;
   drag.current={capture,id:e.pointerId,x:e.clientX,y:e.clientY,start:pos.current,last:e.clientY,time:performance.now(),velocity:0,moved:false};
-  capture.setPointerCapture(e.pointerId);
+  try{capture.setPointerCapture(e.pointerId);}catch{/* Safari may cancel an inactive pointer. */}
  }
  function pointerMove(e:ReactPointerEvent<HTMLDivElement>){
   const d=drag.current;if(!d||d.id!==e.pointerId)return;
   const dy=e.clientY-d.y,dx=e.clientX-d.x;
   if(!d.moved){if(Math.abs(dy)<5||Math.abs(dy)<Math.abs(dx))return;d.moved=true;setDragging(true);
    // The pressed card can leave the rendered wheel during a long drag.
-   if(d.capture!==e.currentTarget){d.capture=e.currentTarget;d.capture.setPointerCapture(e.pointerId);}}
+   if(d.capture!==e.currentTarget){d.capture=e.currentTarget;try{d.capture.setPointerCapture(e.pointerId);}catch{/* Keep tracking inside the stage. */}}}
   if(e.cancelable)e.preventDefault();
   const now=performance.now(),elapsed=Math.max(8,now-d.time),v=-(e.clientY-d.last)/wheelStep/elapsed;
   d.velocity=d.velocity*.55+v*.45;d.last=e.clientY;d.time=now;
@@ -66,7 +85,7 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
  function pointerEnd(e:ReactPointerEvent<HTMLDivElement>,cancelled=false){
   const d=drag.current;if(!d||d.id!==e.pointerId)return;
   drag.current=null;setDragging(false);
-  if(d.capture.hasPointerCapture(e.pointerId))d.capture.releasePointerCapture(e.pointerId);
+  try{if(d.capture.hasPointerCapture(e.pointerId))d.capture.releasePointerCapture(e.pointerId);}catch{/* Already released by the browser. */}
   if(d.moved){suppress.current=Date.now()+350;const velocity=cancelled||performance.now()-d.time>110?0:d.velocity;settle(wheelDestination(pos.current,velocity));}
  }
  function open(card:Card,element:HTMLButtonElement){cancel();setTransitionFrom(element.getBoundingClientRect());update(cards.findIndex(c=>c.id===card.id));setOpenId(card.id);}
@@ -76,9 +95,9 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
   <div className="customer-wallet-controls"><span aria-live={dragging?"off":"polite"}>{current+1} de {count}</span><div><button type="button" aria-label="Tarjeta anterior" onClick={()=>move(-1)} disabled={count<2}><ChevronUp size={21}/></button><button type="button" aria-label="Siguiente tarjeta" onClick={()=>move(1)} disabled={count<2}><ChevronDown size={21}/></button></div></div>
   <div ref={stage} className={"customer-wallet-stack"+(dragging?" is-dragging":"")+(count===1?" is-single":"")} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={e=>pointerEnd(e)} onPointerCancel={e=>pointerEnd(e,true)} onLostPointerCapture={e=>{if(drag.current?.capture===e.target)pointerEnd(e,true);}} onDragStart={e=>e.preventDefault()} onClickCapture={e=>{if(e.detail!==0&&Date.now()<suppress.current){e.preventDefault();e.stopPropagation();}}} onKeyDown={e=>{if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();move(e.key==="ArrowDown"?1:-1);}}}>
    {wheelSlots(position,count).map(({index,offset})=>{
-    const card=cards[index],b=card.businesses,p=program(card),g=wheelTransform(offset),color=b.accent_color||"#5e1a2b",photo=cardBackgroundUrl(b.card_background);
+    const card=cards[index],b=card.businesses,p=program(card),g=wheelTransform(offset,radius),color=b.accent_color||"#5e1a2b",photo=cardBackgroundUrl(b.card_background);
     const text=readableCardText(color,b.card_text_color||"#fff",!!photo&&!/^\/brand\/card-designs\/gallery-(food|vivid)-/.test(photo)),stamps=p?.type==="stamps";
-    return <button type="button" key={card.id} className={"customer-wallet-tab"+(index===current?" is-front":"")+(offset>.55?" is-below":"")} style={{backgroundColor:color,color:text,backgroundImage:photo?(/^\/brand\/card-designs\/gallery-(food|vivid)-/.test(photo)?"linear-gradient(0deg,transparent,transparent)":/^\/brand\/card-designs\/(showcase|gallery)-/.test(photo)?"linear-gradient(135deg,#0002,#0001)":"linear-gradient(135deg,#0007,#0004)")+",url("+photo+")":undefined,transform:"translate3d(0,calc(-50% + "+g.y+"px),"+g.z+"px) rotateX("+g.rotate+"deg) scale("+g.scale+")",zIndex:g.layer,opacity:g.opacity}} data-wallet-card={card.id} onClick={e=>open(card,e.currentTarget)} tabIndex={index===current?0:-1} aria-label={"Abrir tarjeta de "+b.name}>
+    return <button type="button" key={card.id} className={"customer-wallet-tab"+(index===current?" is-front":"")+(offset>.55?" is-below":"")} style={{backgroundColor:color,color:text,backgroundImage:photo?(/^\/brand\/card-designs\/gallery-(food|vivid)-/.test(photo)?"linear-gradient(0deg,transparent,transparent)":/^\/brand\/card-designs\/(showcase|gallery)-/.test(photo)?"linear-gradient(135deg,#0002,#0001)":"linear-gradient(135deg,#0007,#0004)")+",url("+photo+")":undefined,transform:"translate3d(0,calc(-50% + "+g.y+"px),"+g.z+"px) rotateX("+g.rotate+"deg) scale("+g.scale+")",zIndex:g.layer,opacity:g.opacity,pointerEvents:g.opacity<.05?"none":undefined}} data-wallet-card={card.id} onClick={e=>open(card,e.currentTarget)} tabIndex={index===current?0:-1} aria-label={"Abrir tarjeta de "+b.name}>
      <span className="customer-wallet-card-head"><span className="customer-wallet-logo">{b.logo_url?<img src={logoImageUrl(b.logo_url,192)} alt="" draggable={false}/>:<Gift size={22}/>}</span><strong style={{fontFamily:cardTitleFont(b.card_title_font)}}>{b.name}</strong><ArrowUpRight size={19}/></span>
      <div className="customer-wallet-card-body">{stamps&&(p.reward_cost<=12||(p.reward_cost<=30&&details(card).rules.length>0))?<StampGrid total={p.reward_cost} earned={card.balance} kind={b.stamp_icon} imageUrl={b.stamp_image_url} color={b.stamp_color} milestones={details(card).rules}/>:<strong className="customer-wallet-balance">{stamps?Math.min(card.balance,p.reward_cost)+" / "+p.reward_cost+" sellos":units(card.balance,p?.type,b.currency)}</strong>}</div>
      <span className="customer-wallet-card-foot"><span>{p?.reward_label||"Tu próxima recompensa"}</span><img src="/brand/kreyv-pegada-vino-mostaza-claro.svg" alt="Kreyvi" draggable={false}/></span>

@@ -1117,3 +1117,20 @@
 .workspace-customer .customer-first-layout .card-grid .stamp-visual-card{
  box-shadow:0 4px 7px -3px #3d0f1b55,0 15px 22px -9px #3d0f1b66,inset 0 1px 0 #ffffff30,inset 0 0 0 1px #00000012;
 }
+
+/* Card proportions on WebKit versions without container query length units. */
+@supports not (width:1cqw){
+ .stamp-visual-card.stamp-visual-rebalanced{padding:12px!important;gap:8px}
+ .stamp-visual-rebalanced .stamp-visual-main{gap:3px}
+ .stamp-visual-rebalanced .stamp-business-logo{width:46px;height:46px;border-radius:10px;font-size:22px}
+ .stamp-visual-rebalanced .stamp-visual-name{font-size:18px}
+ .stamp-visual-rebalanced .stamp-grid{grid-template-columns:repeat(var(--stamp-columns),minmax(0,28px));gap:3px}
+ .stamp-visual-rebalanced.is-dense .stamp-grid{grid-template-columns:repeat(var(--stamp-columns),minmax(0,20px))}
+ .stamp-visual-rebalanced.is-very-dense .stamp-grid{grid-template-columns:repeat(var(--stamp-columns),minmax(0,15px))}
+ .stamp-visual-rebalanced.is-dense .stamp-business-logo{width:35px;height:35px}
+ .stamp-visual-rebalanced.is-very-dense .stamp-business-logo{width:28px;height:28px}
+ .stamp-visual-rebalanced .stamp-visual-message,.stamp-visual-rebalanced .stamp-reward-name{font-size:10px}
+ .stamp-visual-rebalanced .stamp-visual-footer strong{font-size:12px}
+ .stamp-visual-rebalanced .stamp-visual-pill{font-size:8px}
+ .stamp-visual-rebalanced .merchant-balance{font-size:22px}
+}

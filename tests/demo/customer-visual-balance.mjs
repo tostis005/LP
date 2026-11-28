@@ -57,7 +57,7 @@ assert.match(roleCss,/\.workspace-customer \.customer-first-layout \.card-grid \
 
 const wheelCode=ts.transpileModule(read("lib/customer-wheel.ts"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const wheelModule={exports:{}};runInNewContext(wheelCode,{module:wheelModule,exports:wheelModule.exports});
-const {wheelSlots,wheelTransform,wheelDestination,wrapIndex}=wheelModule.exports;
+const {wheelSlots,wheelTransform,wheelDestination,wrapIndex,wheelRadius}=wheelModule.exports;
 assert.equal(wrapIndex(-1,5),4);assert.equal(wrapIndex(5,5),0);
 for(const n of [1,2,3,7,163])for(const p of [-8.7,-.5,0,.4,2.7,n+.2]){
  const slots=wheelSlots(p,n);assert.equal(new Set(slots.map(x=>x.index)).size,slots.length);
@@ -99,15 +99,22 @@ assert.match(read("components/CustomerCardDeck.tsx"),/gallery-\(food\|vivid\)-/)
 assert.match(home,/customer-home-compact/);
 assert.doesNotMatch(home,/TUS RECOMPENSAS|Desliza para girar/);
 assert.ok(home.indexOf("<CustomerCardDeck")<home.indexOf('className="customer-spotlight"'));
-assert.match(deckCss,/height:clamp\(470px/);
-// Project the top and bottom edges through the CSS perspective for the smallest mobile stage.
-for(let offset=-3.5;offset<=3.5;offset+=.025){
- const g=wheelTransform(offset);if(g.opacity<=0)continue;
+assert.match(deckCss,/height:clamp\(300px/);
+// Project every visible edge through perspective, for short and tall screens.
+for(const height of [300,320,360,390,430,470])for(const cardHeight of [205,218])for(let offset=-3.5;offset<=3.5;offset+=.025){
+ const g=wheelTransform(offset,wheelRadius(height,cardHeight));if(g.opacity<=0)continue;
  const radians=g.rotate*Math.PI/180;
- for(const edge of [-102.5,102.5]){
+ for(const edge of [-cardHeight/2,cardHeight/2]){
   const y=g.y+edge*g.scale*Math.cos(radians),z=g.z+edge*g.scale*Math.sin(radians);
   const projected=y*1050/(1050-z);
-  assert.ok(Math.abs(projected)<235-12,"Visible wheel card stays within the mobile stage: "+offset);
+  assert.ok(Math.abs(projected)<height/2-12,"Visible wheel card stays within stage: "+height+" "+offset);
  }
 }
-console.log("OK: compact heading and unclipped projected wheel on mobile.");
+assert.match(deckCss,/body\.kreyvi-wallet-home\{padding-bottom:0\}/,"Do not reserve bottom nav twice");
+assert.match(deckCss,/--kreyvi-home-viewport/);
+assert.match(read("components/AppFrame.tsx"),/viewport\?\.addEventListener\("resize",update\)/);
+assert.match(deck,/new ResizeObserver\(resize\)/);
+assert.match(deck,/touchmove",moveTouch,\{passive:false\}/);
+assert.match(deckCss,/-webkit-backface-visibility:hidden/);
+assert.match(roleCss,/@supports not \(width:1cqw\)/);
+console.log("OK: compact viewport, one navigation inset, adaptive unclipped wheel and WebKit fallbacks.");
