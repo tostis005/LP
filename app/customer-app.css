@@ -756,7 +756,7 @@ body:has(.customer-cached-space) .loyalty-global-bottom-nav,body:has(.customer-c
 
 /* A compact card detail, with the card itself animated from the wheel. */
 .workspace-customer .qr-modal.customer-card-detail-panel{padding:18px 20px calc(36px + env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;background:var(--color-bg)}
-.customer-card-detail-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;min-height:40px}
+.customer-card-detail-header{position:sticky;top:0;z-index:3;background:var(--color-bg);display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;min-height:40px}
 .workspace-customer .customer-card-detail-header h2{font-size:17px;margin:0;letter-spacing:-.02em}
 .workspace-customer .customer-card-detail-header .modal-close{position:static;width:40px;height:40px;flex:none;margin:0}
 .workspace-customer .customer-card-detail-panel .merchant-card-detail{margin:0 auto 16px;max-width:460px;position:relative;z-index:2}
@@ -776,7 +776,8 @@ body:has(.customer-cached-space) .loyalty-global-bottom-nav,body:has(.customer-c
 @media(prefers-reduced-motion:no-preference){
  .customer-card-detail-backdrop{animation:customer-card-backdrop-in .24s ease-out}
  .customer-card-detail-panel .customer-card-detail-header,.customer-card-detail-body{animation:customer-card-screen-in .32s .06s both}
- .customer-card-detail-backdrop.is-closing{pointer-events:none;animation:customer-card-backdrop-in .24s ease-in reverse both}
+ .customer-card-detail-backdrop.is-closing{animation:customer-card-backdrop-in .24s ease-in reverse both}
  .customer-card-detail-backdrop.is-closing .customer-card-detail-header,.customer-card-detail-backdrop.is-closing .customer-card-detail-body{animation:customer-card-screen-in .18s ease-in reverse both}
+ .customer-card-detail-backdrop.is-closing .customer-card-detail-header{background:transparent}
  .workspace-customer .customer-card-detail-backdrop.is-closing .customer-card-detail-panel{background:transparent;box-shadow:none;border-color:transparent;overflow:visible}
 }

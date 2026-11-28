@@ -84,6 +84,8 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   if(immediate||window.matchMedia("(prefers-reduced-motion: reduce)").matches){finishClose();return;}
   closingRef.current=true;setClosing(true);
   const preview=previewRef.current,target=source()?.getBoundingClientRect();
+  const panel=preview?.closest<HTMLElement>(".customer-card-detail-panel");
+  if(panel)panel.scrollTop=0;
   if(preview&&typeof preview.animate==="function"){
    animationRef.current?.cancel();
    const from=preview.getBoundingClientRect();
