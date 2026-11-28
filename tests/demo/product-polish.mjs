@@ -53,3 +53,14 @@ assert.match(card,/p_offset:historyPage\*20/);
 assert.match(analytics,/showMoney&&/);
 assert.match(analytics,/Ratio descriptivo, no ROI incremental/);
 assert.match(read("components/OwnerDataPanels.tsx"),/business_customer_financials/);
+
+assert.match(scanner,/<button ref=\{scanButton\} type="button" className="staff-scan-target" onClick=\{startCamera\}/,"The entire scan tile opens the camera");
+assert.doesNotMatch(scanner,/Abrir cámara<\/button>|Esperando una tarjeta/);
+assert.match(scanner,/aria-label="Cerrar tarjeta" disabled=\{busy\} onClick=\{closeClient\}/);
+assert.match(scanner,/accepted=true;controls.current\?\.stop\(\)/,"One camera result per scan");
+assert.match(scanner,/operationBusy.current=true/);
+assert.match(scanner,/complete\(kind==="earn"/);
+assert.match(scanner,/setConfirmed\(false\);setSuccess\(""\)/);
+assert.match(scanner,/token,amount:/,"Keep the scanned device token for push delivery");
+assert.match(read("components/AppBottomNav.tsx"),/inside!==role\|\|role==="staff"\)return null/);
+console.log("OK: single scan action, client screen, close, confirmed return and no employee bottom nav.");
