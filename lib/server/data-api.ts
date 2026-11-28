@@ -129,6 +129,7 @@ const rpcMap:Record<string,Spec>={
  manager_disable_stamp_milestone:{args:[["p_rule","uuid"]],returns:"scalar"},
  stamp_milestone_details:{args:[["p_membership","uuid"]],returns:"scalar"},
  customer_stamp_milestones:{args:[],returns:"table"},
+ customer_set_card_display:{args:[["p_membership","uuid"],["p_favorite","boolean"],["p_hidden","boolean"]],returns:"scalar"},
  staff_claim_stamp_milestone:{args:[["p_grant","uuid"]],returns:"scalar"},
  staff_offline_access:{args:[],returns:"table"},
  staff_sync_award:{args:[["p_operation","uuid"],["p_actor","uuid"],["p_business","uuid"],["p_token","uuid"],["p_purchase_cents","integer"],["p_stamps","integer"],["p_ticket_ref","text"],["p_captured_at","timestamptz"],["p_revision","uuid"]],returns:"scalar"},

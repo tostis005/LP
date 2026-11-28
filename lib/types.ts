@@ -11,7 +11,7 @@ export type Program = {
   max_daily_awards_per_employee: number; require_ticket_reference: boolean; require_purchase_amount?: boolean;
 };
 export type Membership = { id: string; customer_id: string; business_id: string; card_token: string;
-  balance: number; total_earned: number; created_at: string; businesses?: Business; };
+  balance: number; total_earned: number; created_at: string; customer_favorite?: boolean; customer_hidden?: boolean; businesses?: Business; };
 export type Location = { id: string; business_id: string; name: string; address: string; city: string;
   country: string; lat: number; lng: number; businesses?: Business; };
 export type Role = "owner" | "manager" | "employee";

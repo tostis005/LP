@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useLayoutEffect,useRef,useState,type PointerEvent as ReactPointerEvent} from "react";
-import {ChevronDown,ChevronUp,Gift,ArrowUpRight} from "lucide-react";
+import {ChevronDown,ChevronUp,Gift,ArrowUpRight,Star} from "lucide-react";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
 import {cardTitleFont} from "@/lib/card-fonts";
 import {readableCardText} from "@/lib/customer-card-contrast";
@@ -90,6 +90,8 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
  }
  function open(card:Card,element:HTMLButtonElement){cancel();setTransitionFrom(element.getBoundingClientRect());update(cards.findIndex(c=>c.id===card.id));setOpenId(card.id);}
  function transitionTarget(id:string){return Array.from(stage.current?.querySelectorAll<HTMLButtonElement>("[data-wallet-card]")||[]).find(el=>el.dataset.walletCard===id)||null;}
+ const orderKey=cards.map(c=>c.id).join(",");
+ useLayoutEffect(()=>{cancel();if(count>0){const index=cards.findIndex(c=>c.id===openId);update(index>=0?index:0);}else update(0);},[orderKey]);
  const selected=cards.find(c=>c.id===openId);
  return <section className="customer-wallet-deck" aria-label="Mis tarjetas: rueda vertical">
   <div className="customer-wallet-controls"><span aria-live={dragging?"off":"polite"}>{current+1} de {count}</span><div><button type="button" aria-label="Tarjeta anterior" onClick={()=>move(-1)} disabled={count<2}><ChevronUp size={21}/></button><button type="button" aria-label="Siguiente tarjeta" onClick={()=>move(1)} disabled={count<2}><ChevronDown size={21}/></button></div></div>
@@ -98,7 +100,7 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
     const card=cards[index],b=card.businesses,p=program(card),g=wheelTransform(offset,radius),color=b.accent_color||"#5e1a2b",photo=cardBackgroundUrl(b.card_background);
     const text=readableCardText(color,b.card_text_color||"#fff",!!photo&&!/^\/brand\/card-designs\/gallery-(food|vivid)-/.test(photo)),stamps=p?.type==="stamps";
     return <button type="button" key={card.id} className={"customer-wallet-tab"+(index===current?" is-front":"")+(offset>.55?" is-below":"")} style={{backgroundColor:color,color:text,backgroundImage:photo?(/^\/brand\/card-designs\/gallery-(food|vivid)-/.test(photo)?"linear-gradient(0deg,transparent,transparent)":/^\/brand\/card-designs\/(showcase|gallery)-/.test(photo)?"linear-gradient(135deg,#0002,#0001)":"linear-gradient(135deg,#0007,#0004)")+",url("+photo+")":undefined,transform:"translate3d(0,calc(-50% + "+g.y+"px),"+g.z+"px) rotateX("+g.rotate+"deg) scale("+g.scale+")",zIndex:g.layer,opacity:g.opacity,pointerEvents:g.opacity<.05?"none":undefined}} data-wallet-card={card.id} onClick={e=>open(card,e.currentTarget)} tabIndex={index===current?0:-1} aria-label={"Abrir tarjeta de "+b.name}>
-     <span className="customer-wallet-card-head"><span className="customer-wallet-logo">{b.logo_url?<img src={logoImageUrl(b.logo_url,192)} alt="" draggable={false}/>:<Gift size={22}/>}</span><strong style={{fontFamily:cardTitleFont(b.card_title_font)}}>{b.name}</strong><ArrowUpRight size={19}/></span>
+     <span className="customer-wallet-card-head"><span className="customer-wallet-logo">{b.logo_url?<img src={logoImageUrl(b.logo_url,192)} alt="" draggable={false}/>:<Gift size={22}/>}</span><strong style={{fontFamily:cardTitleFont(b.card_title_font)}}>{b.name}</strong>{card.customer_favorite&&<Star size={17} fill="#f2ca7e" color="#f2ca7e" aria-label="Destacada"/>}<ArrowUpRight size={19}/></span>
      <div className="customer-wallet-card-body">{stamps&&(p.reward_cost<=12||(p.reward_cost<=30&&details(card).rules.length>0))?<StampGrid total={p.reward_cost} earned={card.balance} kind={b.stamp_icon} imageUrl={b.stamp_image_url} color={b.stamp_color} milestones={details(card).rules}/>:<strong className="customer-wallet-balance">{stamps?Math.min(card.balance,p.reward_cost)+" / "+p.reward_cost+" sellos":units(card.balance,p?.type,b.currency)}</strong>}</div>
      <span className="customer-wallet-card-foot"><span>{p?.reward_label||"Tu próxima recompensa"}</span><img src="/brand/kreyv-pegada-vino-mostaza-claro.svg" alt="Kreyvi" draggable={false}/></span>
      <span className="customer-wallet-lower-label"><span className="customer-wallet-logo">{b.logo_url?<img src={logoImageUrl(b.logo_url,192)} alt="" draggable={false}/>:<Gift size={18}/>}</span><strong style={{fontFamily:cardTitleFont(b.card_title_font)}}>{b.name}</strong><ArrowUpRight size={16}/></span>

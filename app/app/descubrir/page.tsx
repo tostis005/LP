@@ -31,15 +31,18 @@ function Discover({account}:{account:Account}){
  useEffect(()=>{async function load(){
   const [loc,members,p]=await Promise.all([
    db().from("business_locations").select("*,businesses(*)").eq("visible",true),
-   db().from("loyalty_memberships").select("id,business_id,customer_id,balance,total_earned,created_at,card_token").eq("customer_id",account.user.id),
+   db().from("loyalty_memberships").select("id,business_id,customer_id,balance,total_earned,created_at,card_token,customer_favorite,customer_hidden").eq("customer_id",account.user.id),
    db().from("loyalty_programs").select("*")
   ]);
   if(loc.error)setError(loc.error.message);else setEntries((loc.data||[]) as Entry[]);
   if(p.error)setError(p.error.message);else setPrograms((p.data||[]) as Program[]);
   const owned=(members.data||[]) as Membership[];
-  setMyCards(Object.fromEntries(owned.map(x=>[x.business_id,x.id])));
+  setMyCards(Object.fromEntries(owned.filter(x=>!x.customer_hidden).map(x=>[x.business_id,x.id])));
   setMembersById(Object.fromEntries(owned.map(x=>[x.id,x])));
  }load()},[account.user.id]);
+ useEffect(()=>{const listener=(event:Event)=>{const {id,...patch}=(event as CustomEvent<{id:string;customer_favorite?:boolean;customer_hidden?:boolean}>).detail;setMembersById(prev=>{const m=prev[id];return m?{...prev,[id]:{...m,...patch}}:prev;});};window.addEventListener("kreyvi:card-display-changed",listener);return()=>window.removeEventListener("kreyvi:card-display-changed",listener);},[]);
+ useEffect(()=>{setMyCards(Object.fromEntries(Object.values(membersById).filter(x=>!x.customer_hidden).map(x=>[x.business_id,x.id])));},[membersById]);
+ const hiddenBusinesses=new Set(Object.values(membersById).filter(x=>x.customer_hidden).map(x=>x.business_id));
  function locate(){
   if(!navigator.geolocation){setError("Tu navegador no puede consultar la ubicación.");return}
   navigator.geolocation.getCurrentPosition(p=>{setCenter([p.coords.latitude,p.coords.longitude]);setHasLocation(true);setError("")},
@@ -100,13 +103,13 @@ function Discover({account}:{account:Account}){
       {selected.businesses.logo_url?<img src={logoImageUrl(selected.businesses.logo_url,96)} alt="" loading="lazy" decoding="async"/>:<StampMark kind={selected.businesses.stamp_icon||categoryStampKind(selected.businesses.category)} size={29} color={selected.businesses.stamp_color||"#fff"}/>}
      </div>
      <div className="customer-map-business-name"><h2>{selected.businesses.name}</h2><span>{selected.businesses.category||"Negocio local"} · {hasLocation?distance(selected)+" km aprox.":selected.city}</span></div>
-     <span className={"customer-map-ownership"+(selectedCard?" owned":"")}>{selectedCard?"La tengo":"Me falta"}</span>
+     <span className={"customer-map-ownership"+(selectedCard?" owned":"")}>{selectedCard?"La tengo":hiddenBusinesses.has(selected.business_id)?"Retirada":"Me falta"}</span>
     </div>
     <p className="customer-map-business-reward">{programPromise(selectedProgram)}</p>
     <div className="customer-map-business-actions">
      {selectedCard?
       <button type="button" className="customer-map-primary-action" onClick={()=>setOpenCardId(selectedCard)}>Ver tarjeta</button>:
-      <Link href={"/unirse/"+encodeURIComponent(selected.businesses.slug)} className="customer-map-primary-action">Añadir tarjeta</Link>}
+      <Link href={"/unirse/"+encodeURIComponent(selected.businesses.slug)} className="customer-map-primary-action">{hiddenBusinesses.has(selected.business_id)?"Recuperar tarjeta":"Añadir tarjeta"}</Link>}
      <a className="customer-map-secondary-action" href={"https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(selected.lat+","+selected.lng)} target="_blank" rel="noopener noreferrer"><Navigation size={16}/> Cómo llegar</a>
     </div>
    </article>}
@@ -124,7 +127,7 @@ function Discover({account}:{account:Account}){
      <div className="directory-card-footer">
       {hasLocation&&<span className="distance-tag">{distance(e)} km aprox.</span>}
       {already?<button type="button" onClick={()=>setOpenCardId(cardId)} className="button button-dark button-sm">Ver tarjeta <ArrowUpRight size={16}/></button>:
-        <Link href={"/unirse/"+encodeURIComponent(e.businesses.slug)} className="button button-dark button-sm">Conseguir tarjeta <ArrowUpRight size={16}/></Link>}
+        <Link href={"/unirse/"+encodeURIComponent(e.businesses.slug)} className="button button-dark button-sm">{hiddenBusinesses.has(e.business_id)?"Recuperar tarjeta":"Conseguir tarjeta"} <ArrowUpRight size={16}/></Link>}
      </div>
     </div>
    </article>})}

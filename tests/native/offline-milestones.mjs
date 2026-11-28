@@ -98,6 +98,16 @@ try{
  await identity(id.staff);await rejected(award,revoked,/Permisos revocados/);
  const prior2=[randomUUID(),id.staff,id.business,m.card_token,0,1,"antes-baja-2",beforeRevocation,access.revision];
  assert.ok(Number.isInteger((await q(award,prior2)).rows[0].balance),"Reactivar no invalida compras anteriores autorizadas");
+ await q("RESET ROLE");
+ const beforeDisplay=(await q("SELECT id,card_token,balance,total_earned FROM public.loyalty_memberships WHERE id=$1",[m.id])).rows[0];
+ const txBefore=(await q("SELECT count(*)::int n FROM public.loyalty_transactions WHERE membership_id=$1",[m.id])).rows[0].n;
+ await identity(id.outsider);await rejected("SELECT public.customer_set_card_display($1,true,true)",[m.id],/Tarjeta no disponible/);
+ await identity(id.customer);await q("SELECT public.customer_set_card_display($1,true,true)",[m.id]);
+ await q("RESET ROLE");const hidden=(await q("SELECT customer_favorite,customer_hidden FROM public.loyalty_memberships WHERE id=$1",[m.id])).rows[0];assert.deepEqual(hidden,{customer_favorite:true,customer_hidden:true});
+ await identity(id.customer);await q("SELECT public.customer_set_card_display($1,NULL,false)",[m.id]);
+ await q("RESET ROLE");assert.deepEqual((await q("SELECT id,card_token,balance,total_earned FROM public.loyalty_memberships WHERE id=$1",[m.id])).rows[0],beforeDisplay);
+ assert.deepEqual((await q("SELECT customer_favorite,customer_hidden FROM public.loyalty_memberships WHERE id=$1",[m.id])).rows[0],{customer_favorite:true,customer_hidden:false});
+ assert.equal((await q("SELECT count(*)::int n FROM public.loyalty_transactions WHERE membership_id=$1",[m.id])).rows[0].n,txBefore);
  await identity(id.customer);d=await details();assert.equal(d.rules.length,0);assert.equal(d.grants.filter(g=>g.available).length,1,"Already earned prize survives disable");
  await q("ROLLBACK");console.log("OK: offline replay, actor isolation, milestone cycles, costs, one-time redemption and earned rights.");
 }catch(e){await q("ROLLBACK").catch(()=>{});throw e}finally{client.release();await pool.end()}

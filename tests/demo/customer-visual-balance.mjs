@@ -118,3 +118,10 @@ assert.match(deck,/touchmove",moveTouch,\{passive:false\}/);
 assert.match(deckCss,/-webkit-backface-visibility:hidden/);
 assert.match(roleCss,/@supports not \(width:1cqw\)/);
 console.log("OK: compact viewport, one navigation inset, adaptive unclipped wheel and WebKit fallbacks.");
+
+const orderingModule={exports:{}};runInNewContext(ts.transpileModule(read("lib/customer-card-order.ts"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:orderingModule,exports:orderingModule.exports});
+const fixture=[{id:"a",created_at:"2026-11-28",balance:5},{id:"b",created_at:"2026-11-27",customer_favorite:true,balance:8},{id:"c",created_at:"2026-11-26",customer_hidden:true,customer_favorite:true,balance:10}];
+assert.deepEqual(Array.from(orderingModule.exports.visibleWalletCards(fixture),c=>c.id),["b","a"]);
+assert.equal(fixture[2].balance,10);assert.equal(fixture.length,3);
+assert.match(home,/Tarjetas retiradas/);assert.match(home,/customer_hidden:false/);assert.match(read("components/LoyaltyCard.tsx"),/Quitar de Mis tarjetas/);assert.match(read("app/unirse/[slug]/page.tsx"),/existingHidden&&membershipId\?await db\(\).rpc\("customer_set_card_display"/);assert.match(read("components/CachedCustomerSpace.tsx"),/visibleWalletCards/);
+console.log("OK: favorites first, soft hide, re-add existing membership, cached visibility.");

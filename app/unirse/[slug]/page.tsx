@@ -25,7 +25,7 @@ export default function JoinPage(){
  const [milestones,setMilestones]=useState<MilestoneRule[]>([]);
  const [program,setProgram]=useState<PublicProgram|null>(null),[locations,setLocations]=useState<Location[]>([]);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
- const [membershipId,setMembershipId]=useState("");
+ const [membershipId,setMembershipId]=useState(""),[existingHidden,setExistingHidden]=useState(false),[existingBalance,setExistingBalance]=useState(0);
  const [signed,setSigned]=useState(false),[isBusinessAccount,setIsBusinessAccount]=useState(false),[joined,setJoined]=useState(false),[success,setSuccess]=useState(false);
  useEffect(()=>{let alive=true;async function load(){
   if(!configured()){setError("No se ha podido conectar con KREYVI.");setLoading(false);return}
@@ -45,11 +45,11 @@ export default function JoinPage(){
   setLocations(Array.isArray(found.locations_json)?found.locations_json:[]);
   if(u.data.user){
    const [m,roles,admin]=await Promise.all([
-    db().from("loyalty_memberships").select("id").eq("business_id",found.business_id).eq("customer_id",u.data.user.id).maybeSingle(),
+    db().from("loyalty_memberships").select("id,customer_hidden,balance").eq("business_id",found.business_id).eq("customer_id",u.data.user.id).maybeSingle(),
     db().from("business_members").select("id").eq("user_id",u.data.user.id).eq("active",true).limit(1),
     db().from("platform_admins").select("user_id").eq("user_id",u.data.user.id).maybeSingle()
    ]);
-   if(alive){setJoined(!!m.data);setMembershipId(m.data?.id||"");setIsBusinessAccount(!!admin.data||!!roles.data?.length);}
+   if(alive){setJoined(!!m.data&&!m.data.customer_hidden);setMembershipId(m.data?.id||"");setExistingHidden(!!m.data?.customer_hidden);setExistingBalance(Number(m.data?.balance||0));setIsBusinessAccount(!!admin.data||!!roles.data?.length);}
   }
   if(alive)setLoading(false);
  }load();return()=>{alive=false}},[params.slug]);
@@ -60,7 +60,7 @@ export default function JoinPage(){
   // New cards use the account-level default; existing individual preferences are never reset.
   setBusy(true);setError("");
   try{
-   const result=await db().rpc("join_program_with_notifications",{
+   const result=existingHidden&&membershipId?await db().rpc("customer_set_card_display",{p_membership:membershipId,p_favorite:null,p_hidden:false}):await db().rpc("join_program_with_notifications",{
     p_business:offer.business_id,p_opted_in:true
    });
    if(result.error)throw result.error;
@@ -101,11 +101,11 @@ export default function JoinPage(){
       {isBusinessAccount?<div className="info-callout"><Heart size={19}/><div><strong>Esta ficha es para tus clientes</strong><p>Estás dentro con una cuenta de negocio. Para guardar tarjetas y premios, utiliza una cuenta de cliente independiente.</p><Link href="/negocio">Volver a mi negocio <ArrowUpRight size={16}/></Link></div></div>:
       success||joined?<div className="join-subscribed"><Check size={20}/><div><strong>¡Ya tienes tu tarjeta!</strong><p>La encontrarás junto a tus demás tarjetas. Puedes abrirla, enseñarla en el negocio o guardarla en tu dispositivo.</p></div><div className="join-subscribed-links"><Link href={"/app"+(membershipId?"?card="+encodeURIComponent(membershipId):"")} className="button button-dark">Abrir mi tarjeta <ArrowUpRight size={16}/></Link></div></div>:
       <div className="join-subscribe">
-       <h2>Tu tarjeta, en el móvil</h2>
-       <p>Consíguela gratis y empieza a disfrutar de tus recompensas.</p>
-       <p className="tiny-note">No te pierdas las promociones y regalos de este negocio. Puedes desactivarlos en Ajustes.</p>
+       <h2>{existingHidden?"Recupera tu tarjeta":"Tu tarjeta, en el móvil"}</h2>
+       <p>{existingHidden?"Tu saldo, premios e historial siguen intactos.":"Consíguela gratis y empieza a disfrutar de tus recompensas."}</p>
+       {!existingHidden&&<p className="tiny-note">No te pierdas las promociones y regalos de este negocio. Puedes desactivarlos en Ajustes.</p>}
        {error&&<div className="alert error" role="alert">{error}</div>}
-       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":signed?"Añadir tarjeta":"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
+       <button disabled={busy} onClick={()=>void join()} className="button button-dark button-full">{busy?"Preparando tu tarjeta...":existingHidden?"Recuperar tarjeta":signed?"Añadir tarjeta":"Conseguir mi tarjeta gratis"} <ArrowUpRight size={17}/></button>
       </div>}
      </section>
      <section className="join-info-panel">
@@ -114,8 +114,8 @@ export default function JoinPage(){
       {offer.description&&<p className="join-business-description">{offer.description}</p>}
       <p>{programExplanation(offerProgram)}</p>
       {business&&program&&<div className="join-card-preview">
-       <MerchantCard business={business} program={program} milestones={milestones} balance={0} qrValue={publicJoinUrl(params.slug)}/>
-       <small>Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio.</small>
+       <MerchantCard business={business} program={program} milestones={milestones} balance={existingHidden?existingBalance:0} qrValue={publicJoinUrl(params.slug)}/>
+       <small>{existingHidden?"Tu progreso se ha conservado.":"Así será tu tarjeta al comenzar. Cada visita te acercará a tu premio."}</small>
       </div>}
 
      </section>

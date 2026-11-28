@@ -2,7 +2,7 @@
 import {useEffect,useLayoutEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {QRCodeSVG} from "qrcode.react";
-import {Download, Maximize2, QrCode, X} from "lucide-react";
+import {Download, Maximize2, QrCode, X, Star, EyeOff, Eye} from "lucide-react";
 import type {Business,Program,Membership} from "@/lib/types";
 import {money,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
@@ -12,6 +12,23 @@ import {deviceCardQr} from "@/lib/client/device-card-qr";
 export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose,milestones=emptyMilestones,transitionFrom,transitionTarget}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void;milestones?:MilestoneDetails;transitionFrom?:DOMRect;transitionTarget?:()=>HTMLElement|null}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
+ const [displayBusy,setDisplayBusy]=useState(false),[confirmHide,setConfirmHide]=useState(false);
+ const [favorite,setFavorite]=useState(!!membership.customer_favorite),[hidden,setHidden]=useState(!!membership.customer_hidden);
+ useEffect(()=>{setFavorite(!!membership.customer_favorite);setHidden(!!membership.customer_hidden);},[membership.id,membership.customer_favorite,membership.customer_hidden]);
+ async function changeDisplay(patch:Partial<Pick<Membership,"customer_favorite"|"customer_hidden">>){
+  if(displayBusy)return;
+  setDisplayBusy(true);setConsentError("");
+  try{
+   const result=await db().rpc("customer_set_card_display",{p_membership:membership.id,p_favorite:patch.customer_favorite??null,p_hidden:patch.customer_hidden??null});
+   if(result.error)throw result.error;
+   if(patch.customer_favorite!==undefined)setFavorite(patch.customer_favorite);
+   if(patch.customer_hidden!==undefined)setHidden(patch.customer_hidden);
+   setConfirmHide(false);
+   if(patch.customer_hidden!==undefined)closeCard(true);
+   window.dispatchEvent(new CustomEvent("kreyvi:card-display-changed",{detail:{id:membership.id,...patch}}));
+  }catch(e){setConsentError((e as Error).message||"No se pudo guardar la preferencia.");}
+  finally{setDisplayBusy(false);}
+ }
  const [deviceToken,setDeviceToken]=useState<string|null>(null),[deviceQrPending,setDeviceQrPending]=useState(autoOpen);
  useEffect(()=>{
   if(!open)return;
@@ -151,7 +168,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  {offersCount>0&&<Link className="kreyv-loyalty-offers" href={"/app/novedades?business="+business.id}>Ver ofertas de este negocio ({offersCount})</Link>}
  </div>}
  {open&&<div className={"modal-backdrop qr-modal-backdrop customer-card-detail-backdrop"+(closing?" is-closing":"")} onMouseDown={()=>closeCard()}><div className="modal-card qr-modal customer-card-detail-panel" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
- <div className="customer-card-detail-header"><h2>Tu tarjeta</h2><button ref={detailCloseRef} type="button" className="modal-close" aria-label="Cerrar" onClick={()=>closeCard()}><X size={20}/></button></div>
+ <div className="customer-card-detail-header"><h2>Tu tarjeta</h2><div className="customer-card-header-actions"><button type="button" className={"customer-card-favorite"+(favorite?" is-favorite":"")} disabled={displayBusy||hidden} aria-label={favorite?"Quitar de destacadas":"Destacar tarjeta"} aria-pressed={favorite} title={favorite?"Quitar de destacadas":"Destacar tarjeta"} onClick={()=>void changeDisplay({customer_favorite:!favorite})}><Star size={22} fill={favorite?"currentColor":"none"}/></button><button ref={detailCloseRef} type="button" className="modal-close" aria-label="Cerrar" onClick={()=>closeCard()}><X size={20}/></button></div></div>
  <div ref={previewRef} className="loyally-modal-card-preview merchant-card-detail">{detailVisual}</div>
  <div className="customer-card-detail-body">
  <section className="customer-card-qr-section" aria-label="QR personal">
@@ -177,6 +194,11 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   {(historyPage>0||historyMore)&&<div className="owner-data-pagination"><button type="button" className="button button-outline button-sm" disabled={historyPage===0||historyLoading} onClick={()=>setHistoryPage(n=>n-1)}>Anterior</button><span>Página {historyPage+1}</span><button type="button" className="button button-outline button-sm" disabled={!historyMore||historyLoading} onClick={()=>setHistoryPage(n=>n+1)}>Siguiente</button></div>}
  </section>
  <Link className="button button-outline button-full" href={"/app/ajustes?business="+encodeURIComponent(business.id)} onClick={()=>closeCard(true)}>Gestionar notificaciones de esta tarjeta</Link>
+ <div className="customer-card-visibility">
+  {hidden?<button className="button button-outline button-full" disabled={displayBusy} type="button" onClick={()=>void changeDisplay({customer_hidden:false})}><Eye size={18}/> Volver a añadir tarjeta</button>:
+   confirmHide?<div className="customer-card-hide-confirm" role="group" aria-label="Confirmar retirar tarjeta"><strong>¿Quitar esta tarjeta de Mis tarjetas?</strong><p>Conservarás tus sellos, puntos, cashback, premios e historial. Puedes recuperarla cuando quieras.</p><div><button type="button" className="button button-outline" disabled={displayBusy} onClick={()=>setConfirmHide(false)}>Cancelar</button><button type="button" className="button button-dark" disabled={displayBusy} onClick={()=>void changeDisplay({customer_hidden:true})}>Quitar tarjeta</button></div></div>:
+   <button type="button" className="customer-card-hide-action" disabled={displayBusy} onClick={()=>setConfirmHide(true)}><EyeOff size={18}/> Quitar de Mis tarjetas</button>}
+ </div>
  {consentError&&<div className="alert error">{consentError}</div>}
  </div></div></div>}
  {open&&expandedQr&&<div className="qr-fullscreen-overlay" onMouseDown={()=>setExpandedQr(null)}>

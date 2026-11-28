@@ -2,9 +2,11 @@
 import {KreyviLoading} from "@/components/KreyviLoading";
 import {useCallback,useEffect,useState} from "react";
 import Link from "next/link";
-import {ArrowUpRight,Compass,Gift,Plus} from "lucide-react";
+import {ArrowUpRight,Compass,Gift,Plus,Eye,EyeOff} from "lucide-react";
 import {AppFrame, type Account} from "@/components/AppFrame";
 import {CustomerCardDeck} from "@/components/CustomerCardDeck";
+import {LoyaltyCard} from "@/components/LoyaltyCard";
+import {visibleWalletCards} from "@/lib/customer-card-order";
 import "../customer-deck.css";
 import {db} from "@/lib/supabase";
 import type {MilestoneDetails} from "@/lib/milestones";
@@ -22,6 +24,7 @@ type Movement={id:string;amount_delta:number;kind:string;created_at:string;busin
 function CustomerHome({account}:{account:Account}){
  const [cards,setCards]=useState<CompleteCard[]>([]),[programs,setPrograms]=useState<Program[]>([]),[movements,setMovements]=useState<Movement[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
  const [cached,setCached]=useState(false);
+ const [restoring,setRestoring]=useState<string|null>(null),[hiddenOpen,setHiddenOpen]=useState<string|null>(null),[notice,setNotice]=useState("");
  const [milestones,setMilestones]=useState<Record<string,MilestoneDetails>>({});
  const [offerCounts,setOfferCounts]=useState<Record<string,number>>({}),[unreadOffers,setUnreadOffers]=useState(0);
  useEffect(()=>{
@@ -83,11 +86,25 @@ function CustomerHome({account}:{account:Account}){
  },[account.user.id]);
  useEffect(()=>{load();const refresh=()=>{void load()};window.addEventListener("online",refresh);window.addEventListener("offline",refresh);return()=>{window.removeEventListener("online",refresh);window.removeEventListener("offline",refresh)}},[load]);
  useEffect(()=>{if(!cached)return;const timer=window.setInterval(()=>{if(navigator.onLine&&document.visibilityState!=="hidden")void load()},15000);return()=>window.clearInterval(timer)},[cached,load]);
+ const updateDisplay=useCallback((id:string,patch:Partial<Pick<Membership,"customer_favorite"|"customer_hidden">>)=>{
+  setCards(prev=>prev.map(c=>c.id===id?{...c,...patch}:c));
+  const saved=offlineCards();if(saved?.id===account.user.id)saveCards({...saved,cards:saved.cards.map(c=>c.id===id?{...c,...patch}:c)});
+  if(patch.customer_hidden!==undefined)setNotice(patch.customer_hidden?"Tarjeta retirada. Tu saldo y premios se conservan.":"Tarjeta recuperada. Tu saldo y premios siguen intactos.");
+ },[account.user.id]);
+ useEffect(()=>{const listener=(event:Event)=>{const {id,...patch}=(event as CustomEvent<{id:string;customer_favorite?:boolean;customer_hidden?:boolean}>).detail;updateDisplay(id,patch);};window.addEventListener("kreyvi:card-display-changed",listener);return()=>window.removeEventListener("kreyvi:card-display-changed",listener);},[updateDisplay]);
+ const visibleCards=visibleWalletCards(cards),hiddenCards=cards.filter(c=>c.customer_hidden);
+ const hiddenMembership=hiddenCards.find(c=>c.id===hiddenOpen);
+ useEffect(()=>{const id=new URLSearchParams(window.location.search).get("card");if(id&&cards.some(c=>c.id===id&&c.customer_hidden))setHiddenOpen(id);},[cards]);
+ async function restore(id:string){
+  if(restoring)return;setRestoring(id);setError("");setNotice("");
+  try{const r=await db().rpc("customer_set_card_display",{p_membership:id,p_favorite:null,p_hidden:false});if(r.error)throw r.error;updateDisplay(id,{customer_hidden:false});}
+  catch(e){setError((e as Error).message);}finally{setRestoring(null);}
+ }
  const prog=(id:string)=>programs.find(x=>x.business_id===id);
- const readyRewards=cards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length;
+ const readyRewards=visibleCards.filter(c=>prog(c.business_id)&&c.balance>=(prog(c.business_id)?.reward_cost||Infinity)).length;
  const firstName=String(account.user.user_metadata?.full_name||"").trim().split(/\s+/)[0];
  // La recompensa destacada sólo aparece cuando existe progreso real y relevante.
- const rewardCards=cards.filter(c=>{const p=prog(c.business_id);return p?.type==="stamps"&&p.reward_cost>0&&c.balance>0&&(c.balance>=Math.ceil(p.reward_cost*.7)||Number(c.total_earned||0)>=p.reward_cost);});
+ const rewardCards=visibleCards.filter(c=>{const p=prog(c.business_id);return p?.type==="stamps"&&p.reward_cost>0&&c.balance>0&&(c.balance>=Math.ceil(p.reward_cost*.7)||Number(c.total_earned||0)>=p.reward_cost);});
  const closest=rewardCards.sort((a,b)=>{
   const pa=prog(a.business_id)!,pb=prog(b.business_id)!;
   return Math.max(0,pa.reward_cost-a.balance)-Math.max(0,pb.reward_cost-b.balance);
@@ -101,7 +118,9 @@ function CustomerHome({account}:{account:Account}){
    <Link href="/app/descubrir"><Plus size={16}/> Explorar</Link>
   </div>
   {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button> · <a href="/offline">Ver tarjetas guardadas</a></div>}
-  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<CustomerCardDeck cards={cards} programs={programs} milestones={milestones} offerCounts={offerCounts}/>}
+  {notice&&<p className="customer-display-notice" role="status">{notice}</p>}
+  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:visibleCards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>{hiddenCards.length?"No tienes tarjetas visibles":"Aún no tienes tarjetas"}</h3><p>{hiddenCards.length?"Puedes recuperar tus tarjetas más abajo, sin perder tu saldo.":"Busca un negocio y añade su tarjeta para empezar a acumular recompensas."}</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<CustomerCardDeck cards={visibleCards} programs={programs} milestones={milestones} offerCounts={offerCounts}/>}
+  {!loading&&hiddenCards.length>0&&<details className="customer-hidden-cards"><summary><EyeOff size={16}/> Tarjetas retiradas ({hiddenCards.length})</summary><p>Tu saldo, premios e historial se conservan.</p>{hiddenCards.map(c=><div className="customer-hidden-row" key={c.id}><div><strong>{c.businesses.name}</strong><small>{units(c.balance,prog(c.business_id)?.type,c.businesses.currency)}</small></div><button type="button" className="button button-outline button-sm" disabled={restoring!==null} onClick={()=>void restore(c.id)}><Eye size={16}/> Recuperar</button></div>)}</details>}
 
   {closest&&closestProgram&&<section className="customer-spotlight" aria-label="Tu próxima recompensa">
    <div className="customer-spotlight-head"><span>{remaining===0?"PREMIO LISTO":remaining===1?"CASI LO TIENES":"SIGUE SUMANDO"}</span><Gift size={21}/></div>
@@ -109,10 +128,11 @@ function CustomerHome({account}:{account:Account}){
    <p>{closestProgram.reward_label}</p>
    <div className="customer-spotlight-foot"><span>{Math.min(closest.balance,closestProgram.reward_cost)}/{closestProgram.reward_cost} sellos</span><Link href={"/app?card="+encodeURIComponent(closest.id)} onClick={()=>window.dispatchEvent(new CustomEvent("kreyv:open-card",{detail:closest.id}))}>Ver tarjeta <ArrowUpRight size={17}/></Link></div>
   </section>}
-  {movements.length>0&&<section className="customer-activity-section" aria-label="Últimos movimientos">
+  {movements.some(m=>visibleCards.some(c=>c.business_id===m.business_id))&&<section className="customer-activity-section" aria-label="Últimos movimientos">
    <h2>Actividad reciente</h2>
-   <div className="customer-activity-list">{movements.map(m=><div className="activity-row" key={m.id}><div className={"activity-icon "+(m.kind==="earn"?"positive":"negative")}>{m.kind==="earn"?<Plus size={19}/>:<Gift size={19}/>}</div><div><strong>{cards.find(c=>c.business_id===m.business_id)?.businesses.name||"Negocio"}</strong><span>{m.kind==="earn"?"Compra registrada":m.kind==="redeem"?"Recompensa canjeada":"Corrección de movimiento"} · {dateShort(m.created_at)}</span></div><b className={m.amount_delta>0?"positive-text":"negative-text"}>{m.amount_delta>0?"+":""}{units(m.amount_delta,prog(m.business_id)?.type,cards.find(c=>c.business_id===m.business_id)?.businesses.currency)}</b></div>)}</div>
+   <div className="customer-activity-list">{movements.filter(m=>visibleCards.some(c=>c.business_id===m.business_id)).map(m=><div className="activity-row" key={m.id}><div className={"activity-icon "+(m.kind==="earn"?"positive":"negative")}>{m.kind==="earn"?<Plus size={19}/>:<Gift size={19}/>}</div><div><strong>{cards.find(c=>c.business_id===m.business_id)?.businesses.name||"Negocio"}</strong><span>{m.kind==="earn"?"Compra registrada":m.kind==="redeem"?"Recompensa canjeada":"Corrección de movimiento"} · {dateShort(m.created_at)}</span></div><b className={m.amount_delta>0?"positive-text":"negative-text"}>{m.amount_delta>0?"+":""}{units(m.amount_delta,prog(m.business_id)?.type,cards.find(c=>c.business_id===m.business_id)?.businesses.currency)}</b></div>)}</div>
   </section>}
+  {hiddenMembership&&<LoyaltyCard key={hiddenMembership.id} membership={hiddenMembership} business={hiddenMembership.businesses} program={prog(hiddenMembership.business_id)} milestones={milestones[hiddenMembership.id]} autoOpen modalOnly onClose={()=>setHiddenOpen(null)}/>}
  </div>;
 }
 export default function CustomerPage(){return <AppFrame area="customer" title="Mis tarjetas" subtitle="">{a=><CustomerHome account={a}/>}</AppFrame>}
