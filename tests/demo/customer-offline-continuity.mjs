@@ -6,7 +6,8 @@ assert.doesNotMatch(sw,/Response\.redirect\(/,"No redirect to a blocking offline
 assert.match(sw,/new Response\(shell.body/);
 assert.match(shell,/account\?\.area==="customer"\)return <CachedCustomerSpace recover/);
 assert.doesNotMatch(space,/Conexión recuperada|Los saldos guardados|Sin conexión/);
-assert.match(space,/snapshot.cards.map/);
+assert.match(space,/visibleWalletCards\(snapshot\?\.cards\|\|\[\]\)/);
+assert.match(space,/visible.map/);
 assert.match(space,/QRCodeSVG/);
 assert.match(space,/window.location.replace\("\/app"\)/);
 assert.match(frame,/cached\)return <CachedCustomerSpace/);

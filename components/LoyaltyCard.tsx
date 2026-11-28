@@ -9,6 +9,7 @@ import {db} from "@/lib/supabase";
 import {emptyMilestones,type MilestoneDetails} from "@/lib/milestones";
 import {MerchantCard} from "@/components/StampCard";
 import {deviceCardQr} from "@/lib/client/device-card-qr";
+import {cacheCardDisplay} from "@/lib/client/offline";
 export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose,milestones=emptyMilestones,transitionFrom,transitionTarget}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void;milestones?:MilestoneDetails;transitionFrom?:DOMRect;transitionTarget?:()=>HTMLElement|null}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
@@ -23,7 +24,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    if(result.error)throw result.error;
    if(patch.customer_favorite!==undefined)setFavorite(patch.customer_favorite);
    if(patch.customer_hidden!==undefined)setHidden(patch.customer_hidden);
-   setConfirmHide(false);
+   setConfirmHide(false);cacheCardDisplay(membership.id,patch);
    if(patch.customer_hidden!==undefined)closeCard(true);
    window.dispatchEvent(new CustomEvent("kreyvi:card-display-changed",{detail:{id:membership.id,...patch}}));
   }catch(e){setConsentError((e as Error).message||"No se pudo guardar la preferencia.");}

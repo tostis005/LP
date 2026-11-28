@@ -92,6 +92,7 @@ function CustomerHome({account}:{account:Account}){
   if(patch.customer_hidden!==undefined)setNotice(patch.customer_hidden?"Tarjeta retirada. Tu saldo y premios se conservan.":"Tarjeta recuperada. Tu saldo y premios siguen intactos.");
  },[account.user.id]);
  useEffect(()=>{const listener=(event:Event)=>{const {id,...patch}=(event as CustomEvent<{id:string;customer_favorite?:boolean;customer_hidden?:boolean}>).detail;updateDisplay(id,patch);};window.addEventListener("kreyvi:card-display-changed",listener);return()=>window.removeEventListener("kreyvi:card-display-changed",listener);},[updateDisplay]);
+ useEffect(()=>{if(!notice)return;const timer=window.setTimeout(()=>setNotice(""),3500);return()=>clearTimeout(timer);},[notice]);
  const visibleCards=visibleWalletCards(cards),hiddenCards=cards.filter(c=>c.customer_hidden);
  const hiddenMembership=hiddenCards.find(c=>c.id===hiddenOpen);
  useEffect(()=>{const id=new URLSearchParams(window.location.search).get("card");if(id&&cards.some(c=>c.id===id&&c.customer_hidden))setHiddenOpen(id);},[cards]);

@@ -41,3 +41,8 @@ export async function submitAward(a:Award):Promise<{state:"confirmed"|"pending"|
 }
 let syncing=false;
 export async function syncAwards(actor:string){if(syncing||!navigator.onLine)return;syncing=true;try{for(const a of awards(actor)){if(a.error)continue;const r=await submitAward(a);if(r.state==="pending")break}}finally{syncing=false}}
+
+// Preserve the display preference in the same-account offline snapshot, even from Discover.
+export function cacheCardDisplay(id:string,patch:Partial<Pick<Membership,"customer_favorite"|"customer_hidden">>){
+ const saved=offlineCards();if(saved)saveCards({...saved,cards:saved.cards.map(c=>c.id===id?{...c,...patch}:c)});
+}

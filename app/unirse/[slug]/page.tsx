@@ -16,6 +16,7 @@ import {programPromise,programExplanation} from "@/lib/program-presentation";
 import type {MilestoneRule} from "@/lib/milestones";
 import type {Business,Location,Program} from "@/lib/types";
 import {db,configured} from "@/lib/supabase";
+import {cacheCardDisplay} from "@/lib/client/offline";
 const DirectoryMapView=dynamic(()=>import("@/components/DirectoryMap"),{ssr:false,loading:()=> <div className="map-placeholder">Preparando el mapa...</div>});
 type PublicProgram=Pick<Program,"type"|"reward_label"|"reward_cost"|"cashback_bps"|"points_per_euro">;
 type Offer={business_id:string;business_name:string;description:string|null;accent_color:string;reward_label:string;program_type:Program["type"];reward_cost:number;cashback_bps:number;points_per_euro:number;category:string|null;logo_url:string|null;card_text:string|null;card_text_color:string;stamp_color:string;stamp_icon:string;public_listing:boolean;locations_json:Location[]};
@@ -64,6 +65,7 @@ export default function JoinPage(){
     p_business:offer.business_id,p_opted_in:true
    });
    if(result.error)throw result.error;
+   if(existingHidden&&membershipId)cacheCardDisplay(membershipId,{customer_hidden:false});
    window.localStorage.removeItem("lp_pending_join");
    setJoined(true);setSuccess(true);
    const id=String(result.data||"");
