@@ -94,3 +94,20 @@ for(const slug of ["brunch-club","barba-norte","studio-verde","taco-lumbre","pan
 }
 assert.match(read("components/StampCard.tsx"),/gallery-\(food\|vivid\)-/);
 assert.match(read("components/CustomerCardDeck.tsx"),/gallery-\(food\|vivid\)-/);
+
+// Compact home keeps one count, with reward promotion below the cards.
+assert.match(home,/customer-home-compact/);
+assert.doesNotMatch(home,/TUS RECOMPENSAS|Desliza para girar/);
+assert.ok(home.indexOf("<CustomerCardDeck")<home.indexOf('className="customer-spotlight"'));
+assert.match(deckCss,/height:clamp\(470px/);
+// Project the top and bottom edges through the CSS perspective for the smallest mobile stage.
+for(let offset=-3.5;offset<=3.5;offset+=.025){
+ const g=wheelTransform(offset);if(g.opacity<=0)continue;
+ const radians=g.rotate*Math.PI/180;
+ for(const edge of [-102.5,102.5]){
+  const y=g.y+edge*g.scale*Math.cos(radians),z=g.z+edge*g.scale*Math.sin(radians);
+  const projected=y*1050/(1050-z);
+  assert.ok(Math.abs(projected)<235-12,"Visible wheel card stays within the mobile stage: "+offset);
+ }
+}
+console.log("OK: compact heading and unclipped projected wheel on mobile.");

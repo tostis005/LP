@@ -12,8 +12,8 @@ export function wheelSlots(position:number,count:number){
  return [...nearest.values()].sort((a,b)=>a.slot-b.slot);
 }
 export function wheelTransform(offset:number){
- const distance=Math.abs(offset),angle=Math.min(distance*.49,1.43);
- return {y:Math.sign(offset)*Math.sin(angle)*225,z:(Math.cos(angle)-1)*160,rotate:-Math.sign(offset)*angle*22,scale:1-distance*.045,opacity:Math.max(0,1-Math.max(0,distance-2.25)*1.25),layer:100-Math.round(distance*20)};
+ const distance=Math.abs(offset),angle=Math.min(distance*.55,1.43);
+ return {y:Math.sign(offset)*Math.sin(angle)*165,z:(Math.cos(angle)-1)*185,rotate:-Math.sign(offset)*angle*24,scale:1-distance*.065,opacity:Math.max(0,1-Math.max(0,distance-2.25)*1.25),layer:100-Math.round(distance*20)};
 }
 export function wheelDestination(position:number,velocity:number){
  return Math.round(position+Math.max(-8,Math.min(8,velocity*250)));

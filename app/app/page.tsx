@@ -96,21 +96,19 @@ function CustomerHome({account}:{account:Account}){
  const remaining=closest&&closestProgram?Math.max(0,closestProgram.reward_cost-closest.balance):0;
  if(cached)return <CachedCustomerSpace embedded/>;
  return <div className="customer-first-layout">
-  <div className="customer-home-greeting">
-   <span className="customer-overline">TUS RECOMPENSAS</span>
-   <h2>Hola{firstName?", "+firstName:""}<span className="customer-greeting-dot">.</span></h2>
-   <p>{cards.length} {cards.length===1?"tarjeta":"tarjetas"}{readyRewards>0?" · "+readyRewards+" "+(readyRewards===1?"premio disponible":"premios disponibles"):""}</p>
+  <div className="customer-home-greeting customer-list-heading customer-home-compact">
+   <div><h2>Hola{firstName?", "+firstName:""}<span className="customer-greeting-dot">.</span></h2>{readyRewards>0&&<p>{readyRewards} {readyRewards===1?"premio disponible":"premios disponibles"}</p>}</div>
+   <Link href="/app/descubrir"><Plus size={16}/> Explorar</Link>
   </div>
+  {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button> · <a href="/offline">Ver tarjetas guardadas</a></div>}
+  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<CustomerCardDeck cards={cards} programs={programs} milestones={milestones} offerCounts={offerCounts}/>}
+
   {closest&&closestProgram&&<section className="customer-spotlight" aria-label="Tu próxima recompensa">
    <div className="customer-spotlight-head"><span>{remaining===0?"PREMIO LISTO":remaining===1?"CASI LO TIENES":"SIGUE SUMANDO"}</span><Gift size={21}/></div>
    <h3>{remaining===0?"¡Ya puedes canjear tu premio!":remaining===1?"Te falta solo 1 sello":"Te faltan "+remaining+" sellos"} en {closest.businesses.name}</h3>
    <p>{closestProgram.reward_label}</p>
    <div className="customer-spotlight-foot"><span>{Math.min(closest.balance,closestProgram.reward_cost)}/{closestProgram.reward_cost} sellos</span><Link href={"/app?card="+encodeURIComponent(closest.id)} onClick={()=>window.dispatchEvent(new CustomEvent("kreyv:open-card",{detail:closest.id}))}>Ver tarjeta <ArrowUpRight size={17}/></Link></div>
   </section>}
-  <div className="customer-list-heading"><div><h2>Mis tarjetas</h2><span className="customer-swipe-hint">Desliza para girar · toca para abrir</span></div><Link href="/app/descubrir"><Plus size={16}/> Explorar</Link></div>
-  {error&&<div className="alert error" role="alert">{error} <button type="button" className="inline-action" onClick={()=>void load()}>Reintentar</button> · <a href="/offline">Ver tarjetas guardadas</a></div>}
-  {loading?<KreyviLoading compact label="Cargando tus tarjetas"/>:cards.length===0?<div className="empty-state"><div className="empty-symbol"><Compass size={28}/></div><h3>Aún no tienes tarjetas</h3><p>Busca un negocio y añade su tarjeta para empezar a acumular recompensas.</p><Link className="button button-dark" href="/app/descubrir">Buscar negocios <ArrowUpRight size={17}/></Link></div>:<CustomerCardDeck cards={cards} programs={programs} milestones={milestones} offerCounts={offerCounts}/>}
-
   {movements.length>0&&<section className="customer-activity-section" aria-label="Últimos movimientos">
    <h2>Actividad reciente</h2>
    <div className="customer-activity-list">{movements.map(m=><div className="activity-row" key={m.id}><div className={"activity-icon "+(m.kind==="earn"?"positive":"negative")}>{m.kind==="earn"?<Plus size={19}/>:<Gift size={19}/>}</div><div><strong>{cards.find(c=>c.business_id===m.business_id)?.businesses.name||"Negocio"}</strong><span>{m.kind==="earn"?"Compra registrada":m.kind==="redeem"?"Recompensa canjeada":"Corrección de movimiento"} · {dateShort(m.created_at)}</span></div><b className={m.amount_delta>0?"positive-text":"negative-text"}>{m.amount_delta>0?"+":""}{units(m.amount_delta,prog(m.business_id)?.type,cards.find(c=>c.business_id===m.business_id)?.businesses.currency)}</b></div>)}</div>

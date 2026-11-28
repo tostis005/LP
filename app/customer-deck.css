@@ -2,7 +2,7 @@
 .customer-wallet-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--color-text-2)}
 .customer-wallet-controls>div{display:flex;gap:7px}.customer-wallet-controls button{width:44px;height:44px;display:grid;place-items:center;border:1px solid #e7d4ca;background:var(--color-surface);border-radius:14px;color:var(--color-brand)}
 .customer-wallet-controls button:disabled{opacity:.4}
-.customer-wallet-stack{position:relative;height:510px;max-width:100%;perspective:1050px;isolation:isolate;touch-action:pan-x;user-select:none;-webkit-user-select:none;overflow:hidden;border-radius:26px;background:radial-gradient(ellipse at center,#e8d9d3 0%,#f8f2ed 65%,transparent 100%);cursor:grab}
+.customer-wallet-stack{position:relative;height:550px;max-width:100%;perspective:1050px;isolation:isolate;touch-action:pan-x;user-select:none;-webkit-user-select:none;overflow:visible;border-radius:26px;background:radial-gradient(ellipse at center,#e8d9d34d 0%,transparent 72%);cursor:grab}
 .customer-wallet-stack.is-dragging{cursor:grabbing}.customer-wallet-stack.is-single{height:245px;touch-action:pan-y;background:transparent}
 .customer-wallet-tab{position:absolute;top:50%;left:5%;width:90%;height:218px;display:flex;flex-direction:column;text-align:left;padding:13px 15px 12px;gap:8px;border:1px solid rgba(255,255,255,.30);border-radius:23px;background-size:cover;background-position:center;box-shadow:0 0 0 1px #35132136,0 6px 6px -2px #35132155,0 16px 27px -7px #35132170,inset 0 1px 0 #ffffff28;overflow:hidden;will-change:transform;backface-visibility:hidden;transform-origin:center;cursor:grab;touch-action:pan-x;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
 .customer-wallet-tab:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:21px;background:linear-gradient(165deg,#ffffff22,transparent 35%,#00000012);z-index:0}
@@ -14,10 +14,20 @@
 .customer-wallet-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #ffffff50;padding-top:8px;font-size:12px;font-weight:700;min-width:0}.customer-wallet-card-foot span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.customer-wallet-card-foot img{width:63px;height:auto;background:#fffef0ed;border-radius:7px;padding:4px;flex-shrink:0}
 .customer-wallet-tab:focus-visible,.customer-wallet-controls button:focus-visible{outline:3px solid #d69a58;outline-offset:3px}
 .workspace-customer .customer-wallet-deck .qr-modal-backdrop{position:fixed;inset:0;isolation:auto;max-width:none;transform:none}
-@media(max-width:600px){.customer-wallet-stack{height:470px}.customer-wallet-tab{height:205px;left:5%;width:90%;padding:11px 12px 10px}.customer-wallet-card-head{padding:6px 7px}.workspace-customer .customer-wallet-deck .qr-modal{max-height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom))}}
+@media(max-width:600px){.customer-wallet-stack{height:clamp(470px, calc(100dvh - 220px - env(safe-area-inset-bottom, 0px)), 530px)}.customer-wallet-tab{height:205px;left:5%;width:90%;padding:11px 12px 10px}.customer-wallet-card-head{padding:6px 7px}.workspace-customer .customer-wallet-deck .qr-modal{max-height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom))}}
 
 .customer-wallet-lower-label{display:none}.customer-wallet-tab.is-below .customer-wallet-lower-label{display:flex;position:absolute;inset:auto 10px 10px;align-items:center;gap:9px;padding:7px 9px;border:1px solid #ffffff55;border-radius:12px;background:inherit;background-image:none;box-shadow:0 -1px 5px #00000028;z-index:3}.customer-wallet-lower-label .customer-wallet-logo{width:30px;height:30px}.customer-wallet-lower-label strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.customer-wallet-lower-label>svg{flex:none}
 
 /* Keep every intermediate position visible even in a dense wheel card. */
 .customer-wallet-card-body .stamp-grid.is-dense{grid-template-columns:repeat(var(--stamp-columns),minmax(0,23px));justify-content:center;gap:3px}
 .customer-wallet-card-body .stamp-grid.is-very-dense{grid-template-columns:repeat(var(--stamp-columns),minmax(0,16px));justify-content:center;gap:2px}
+
+/* Cards are the first content: compact greeting and safe wheel clearance. */
+.workspace-customer .workspace-content:has(.customer-home-compact){padding-top:4px}
+.customer-first-layout .customer-home-compact{margin:2px auto 8px;max-width:460px;min-height:40px;gap:12px}
+.customer-first-layout .customer-home-compact h2{font-size:clamp(23px,5vw,28px);line-height:1.15;margin:0;overflow-wrap:anywhere}
+.customer-first-layout .customer-home-compact p{font-size:12px;margin:4px 0 0}
+.customer-first-layout .customer-home-compact a{flex-shrink:0;min-height:44px}
+.customer-wallet-controls{margin-bottom:0;padding-inline:4px}
+.customer-wallet-controls button{border-radius:12px}
+.customer-first-layout .customer-spotlight{margin-top:8px}

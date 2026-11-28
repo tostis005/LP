@@ -70,8 +70,8 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
  }
  function open(card:Card){cancel();update(cards.findIndex(c=>c.id===card.id));setOpenId(card.id);}
  const selected=cards.find(c=>c.id===openId);
- return <section className="customer-wallet-deck" aria-label="Rueda vertical de tarjetas">
-  <div className="customer-wallet-controls"><span aria-live={dragging?"off":"polite"}>{current+1} de {count} tarjetas</span><div><button type="button" aria-label="Tarjeta anterior" onClick={()=>move(-1)} disabled={count<2}><ChevronUp size={21}/></button><button type="button" aria-label="Siguiente tarjeta" onClick={()=>move(1)} disabled={count<2}><ChevronDown size={21}/></button></div></div>
+ return <section className="customer-wallet-deck" aria-label="Mis tarjetas: rueda vertical">
+  <div className="customer-wallet-controls"><span aria-live={dragging?"off":"polite"}>{current+1} de {count}</span><div><button type="button" aria-label="Tarjeta anterior" onClick={()=>move(-1)} disabled={count<2}><ChevronUp size={21}/></button><button type="button" aria-label="Siguiente tarjeta" onClick={()=>move(1)} disabled={count<2}><ChevronDown size={21}/></button></div></div>
   <div ref={stage} className={"customer-wallet-stack"+(dragging?" is-dragging":"")+(count===1?" is-single":"")} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={e=>pointerEnd(e)} onPointerCancel={e=>pointerEnd(e,true)} onLostPointerCapture={e=>{if(drag.current?.capture===e.target)pointerEnd(e,true);}} onDragStart={e=>e.preventDefault()} onClickCapture={e=>{if(e.detail!==0&&Date.now()<suppress.current){e.preventDefault();e.stopPropagation();}}} onKeyDown={e=>{if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();move(e.key==="ArrowDown"?1:-1);}}}>
    {wheelSlots(position,count).map(({index,offset})=>{
     const card=cards[index],b=card.businesses,p=program(card),g=wheelTransform(offset),color=b.accent_color||"#5e1a2b",photo=cardBackgroundUrl(b.card_background);
