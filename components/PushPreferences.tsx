@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import {Bell,BellOff,CheckCircle2,ShieldCheck} from "lucide-react";
 import {showActionToast} from "@/lib/action-toast";
+import {devicePushSubscription,deviceCardRequest} from "@/lib/client/device-card-qr";
 
 type Preference={business_id:string;business_name:string;opted_in:boolean};
 type Config={enabled:boolean;publicKey:string};
@@ -58,6 +59,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
  const [items,setItems]=useState<Preference[]>([]);
  const [supported,setSupported]=useState(false),[deviceActive,setDeviceActive]=useState(false);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
+ const [transactionEnabled,setTransactionEnabled]=useState<boolean|null>(null);
  const [error,setError]=useState(""),[notice,setNotice]=useState("");
  useEffect(()=>{
   let mounted=true;
@@ -79,6 +81,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
      if(sub&&Notification.permission==="granted"&&c.enabled){
       // Volver a vincular el móvil a la cuenta activa sin pedir permisos nuevos.
       await register(sub);
+      const pref=await deviceCardRequest({action:"preference",endpoint:sub.endpoint});if(mounted)setTransactionEnabled(pref.enabled??null);
      }
      if(mounted)setDeviceActive(!!sub&&Notification.permission==="granted");
     }
@@ -102,6 +105,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
    const reg=await navigator.serviceWorker.ready;
    let sub=await ensureSubscription(reg,config.publicKey);
    setDeviceActive(true);
+   const pref=await deviceCardRequest({action:"preference",endpoint:sub.endpoint});setTransactionEnabled(pref.enabled??null);
    try{
     await sendTest(sub);
    }catch(e){
@@ -109,6 +113,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
     if(!(e instanceof PushRequestError)||![404,409,410].includes(e.status))throw e;
     sub=await ensureSubscription(reg,config.publicKey,true);
     await sendTest(sub);
+    const renewed=await deviceCardRequest({action:"preference",endpoint:sub.endpoint});setTransactionEnabled(renewed.enabled??null);
    }
    setNotice("Notificación de prueba enviada.");
    showActionToast("Prueba de notificaciones enviada.");
@@ -116,6 +121,15 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
    if(typeof Notification!=="undefined"&&Notification.permission!=="granted")setDeviceActive(false);
    setError((e as Error).message);
   }finally{setBusy(false);}
+ }
+ async function toggleTransaction(checked:boolean){
+  setBusy(true);setError("");setNotice("");
+  try{
+   const sub=await devicePushSubscription();if(!sub)throw Error("Activa primero las notificaciones en este móvil.");
+   const pref=await deviceCardRequest({action:"preference",endpoint:sub.endpoint,enabled:checked});
+   if(typeof pref.enabled!=="boolean")throw Error("No se pudo guardar esta preferencia.");
+   setTransactionEnabled(pref.enabled);showActionToast("Preferencia de avisos de compras guardada.");
+  }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }
  async function toggle(item:Preference){
   setBusy(true);setError("");setNotice("");
@@ -140,6 +154,7 @@ export function PushPreferences({showBusinesses=true}:{showBusinesses?:boolean}=
      onClick={testNotification}><Bell size={16}/>{busy?"Enviando...":"Enviar prueba"}</button>
     {deviceActive&&<span className="muted" role="status">Avisos permitidos en este móvil</span>}
    </div>}
+   {deviceActive&&transactionEnabled!==null&&<label className="check-control"><input type="checkbox" checked={transactionEnabled} disabled={busy} onChange={e=>void toggleTransaction(e.target.checked)}/><span><strong>Avisos de compras y recompensas</strong><small>Sellos, puntos, cashback y premios en este móvil. Independientes de las promociones.</small></span></label>}
    {showBusinesses&&items.length>0&&<div className="form-stack">
     {items.map(item=><div key={item.business_id} className="check-control">
      <input type="checkbox" id={"push-consent-"+item.business_id} checked={item.opted_in}

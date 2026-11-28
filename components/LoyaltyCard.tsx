@@ -8,9 +8,19 @@ import {money,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {emptyMilestones,type MilestoneDetails} from "@/lib/milestones";
 import {MerchantCard} from "@/components/StampCard";
+import {deviceCardQr} from "@/lib/client/device-card-qr";
 export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose,milestones=emptyMilestones,transitionFrom,transitionTarget}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void;milestones?:MilestoneDetails;transitionFrom?:DOMRect;transitionTarget?:()=>HTMLElement|null}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
+ const [deviceToken,setDeviceToken]=useState<string|null>(null);
+ useEffect(()=>{
+  if(!open)return;
+  let live=true;
+  setDeviceToken(null);
+  const refresh=()=>{void deviceCardQr(membership.id).then(token=>{if(live)setDeviceToken(token);}).catch(()=>{});};
+  refresh();window.addEventListener("online",refresh);window.addEventListener("focus",refresh);
+  return()=>{live=false;window.removeEventListener("online",refresh);window.removeEventListener("focus",refresh);};
+ },[open,membership.id]);
  type HistoryRow={id:string;kind:string;amount_delta:number;created_at:string;reversed:boolean;reward_label:string|null;purchase_cents:number|null};
  const [visits,setVisits]=useState<HistoryRow[]>([]),[historyPage,setHistoryPage]=useState(0),[historyMore,setHistoryMore]=useState(false),[historyError,setHistoryError]=useState(""),[historyLoading,setHistoryLoading]=useState(false);
  const qrCloseRef=useRef<HTMLButtonElement>(null);
@@ -129,7 +139,8 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   }catch{setConsentError("No se pudo guardar la imagen. Puedes seguir utilizando el QR desde la app.");}
  }
  const origin="https://kreyviapp.com";
- const qrUrl=origin+"/t/"+membership.card_token;
+ const qrUrl=origin+"/t/"+(deviceToken||membership.card_token);
+ const exportQrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
  const cardVisual=<MerchantCard business={business} program={program} balance={membership.balance} qrValue={qrUrl} milestones={milestones.rules}/>;
  const detailVisual=<MerchantCard business={business} program={program} balance={membership.balance} milestones={milestones.rules}/>;
@@ -148,7 +159,7 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
    <span className="qr-enlarge-hint"><Maximize2 size={16}/> Mostrar mi QR en caja</span>
   </button>
  {/* The export uses a separate standards-compliant QR, not the compact preview. */}
- <span hidden data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={582} level="M" marginSize={4}/></span>
+ <span hidden data-card-qr={membership.id}><QRCodeSVG value={exportQrUrl} size={582} level="M" marginSize={4}/></span>
  <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Guardar imagen con QR</button>
 
  </section>

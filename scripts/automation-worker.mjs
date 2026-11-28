@@ -37,10 +37,16 @@ async function mailCycle(){
  }));
  if(results.some(r=>r.status==="rejected"))console.warn("CRM: sincronización no disponible; se reintentará en el siguiente ciclo.");
 }
+async function transactionCycle(){
+ const time=String(Date.now()),signature=createHmac("sha256",process.env.PGPASSWORD).update("transaction-push-v1:"+time).digest("hex");
+ const response=await fetch("http://web:3000/api/local/push/transaction-worker",{method:"POST",headers:{"x-transaction-worker-time":time,"x-transaction-worker-signature":signature},redirect:"error",signal:AbortSignal.timeout(55000)});
+ if(!response.ok)throw Error("Transaction push HTTP "+response.status);
+ const data=await response.json();if(data.processed)console.log("Avisos de compras procesados:",data.processed);
+}
 try{
  console.log("Procesador de avisos de KREYV activo");
  while(running){
-  await Promise.allSettled([cycle().catch(error=>{console.error("No se ha podido procesar el lote de automatizaciones",error?.code||"error");}),mailCycle()]);
+  await Promise.allSettled([cycle().catch(error=>{console.error("No se ha podido procesar el lote de automatizaciones",error?.code||"error");}),mailCycle(),transactionCycle().catch(()=>console.warn("Avisos de compras: reintento en el siguiente ciclo."))]);
   if(running)await pause(60_000);
  }
 }finally{await pool.end();}

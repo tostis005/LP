@@ -3,7 +3,7 @@ import {ApiError} from "@/lib/server/db";
 
 export type PushDelivery={
  delivery_id:string;endpoint:string;p256dh:string;auth:string;
- title:string;body_text:string;business_name:string;offer_id?:string|null;
+ title:string;body_text:string;business_name:string;offer_id?:string|null;membership_id?:string|null;
 };
 
 export function pushConfigured(){
@@ -38,10 +38,10 @@ export async function sendWebPush(item:PushDelivery){
   body:item.body_text,
   icon:"/kreyv-notification-icon-v2-192.png",
   badge:"/kreyv-notification-badge-v2-96.png",
-  url:item.offer_id?"/app/novedades/"+item.offer_id:"/app",
+  url:item.offer_id?"/app/novedades/"+item.offer_id:item.membership_id?"/app?card="+encodeURIComponent(item.membership_id):"/app",
   tag:"loyally-"+item.delivery_id
  });
  await webpush.sendNotification({endpoint:item.endpoint,keys:{p256dh:item.p256dh,auth:item.auth}},
   // Mantener el aviso hasta 24 h si Android retrasa la entrega por ahorro de batería.
-  payload,{TTL:86400,urgency:"normal"});
+  payload,{TTL:86400,urgency:item.membership_id?"high":"normal",timeout:5000});
 }
