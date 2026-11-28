@@ -38,3 +38,14 @@ assert.match(card,/ctx.drawImage\(image,249,438,582,582\)/,"Export does not add 
 assert.match(card,/size=\{200\} level="M" marginSize=\{2\}/,"Compact on-screen preview");
 assert.match(card,/hidden data-card-qr=\{membership.id\}><QRCodeSVG[^>]+marginSize=\{4\}/,"Full quiet zone in exported QR");
 assert.match(card,/size=\{480\} level="M" marginSize=\{4\}/,"Full quiet zone in dedicated scan view");
+
+assert.doesNotMatch(card,/className="customer-card-detail-stats"/,"Do not repeat reward, balance and target below the card");
+assert.match(card,/const detailVisual=<MerchantCard[^;]+milestones=/);
+assert.doesNotMatch(card,/const detailVisual=<MerchantCard[^;]+qrValue=/,"Show only one on-screen personal QR");
+assert.match(card,/preview\.animate\(/,"Animate actual card geometry on open and close");
+assert.match(card,/prefers-reduced-motion/);
+assert.match(card,/customer_card_history/);
+const deck=src("components/CustomerCardDeck.tsx");
+assert.match(deck,/setTransitionFrom\(element\.getBoundingClientRect\(\)\)/);
+assert.match(deck,/transitionTarget=\{\(\)=>transitionTarget\(selected\.id\)\}/);
+console.log("OK: compact card detail and reversible transition from the selected wheel card.");

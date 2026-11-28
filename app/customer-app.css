@@ -753,3 +753,30 @@ body:has(.customer-cached-space) .loyalty-global-bottom-nav,body:has(.customer-c
 .customer-cached-space .cached-card-qr svg{max-width:100%;height:auto;background:#fff;border-radius:12px;padding:8px}
 .customer-cached-space .cached-card-back{margin-bottom:16px}
 .customer-cached-space .cached-space-footer{display:flex;justify-content:center;margin-top:28px}
+
+/* A compact card detail, with the card itself animated from the wheel. */
+.workspace-customer .qr-modal.customer-card-detail-panel{padding:18px 20px calc(36px + env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;background:var(--color-bg)}
+.customer-card-detail-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;min-height:40px}
+.workspace-customer .customer-card-detail-header h2{font-size:17px;margin:0;letter-spacing:-.02em}
+.workspace-customer .customer-card-detail-header .modal-close{position:static;width:40px;height:40px;flex:none;margin:0}
+.workspace-customer .customer-card-detail-panel .merchant-card-detail{margin:0 auto 16px;max-width:460px;position:relative;z-index:2}
+.customer-card-detail-body{display:flex;flex-direction:column;gap:14px}
+.customer-card-qr-section{display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 12px 12px;background:var(--color-surface);border:1px solid var(--color-bg-2);border-radius:20px}
+.workspace-customer .customer-card-qr-section .qr-enlarge-button{margin:0;gap:7px;width:100%;font-weight:700}
+.workspace-customer .customer-card-qr-section .qr-box{width:min(180px,100%);margin:0}
+.workspace-customer .customer-card-qr-section .qr-enlarge-hint{display:flex;align-items:center;gap:5px;color:var(--color-brand)}
+.workspace-customer .customer-card-qr-section .download-card-action{min-height:38px;margin:0;padding:8px 14px;font-size:12px;max-width:100%}
+.customer-card-detail-body .customer-card-visits{margin:4px 0 0}
+.customer-card-milestones{border:1px solid var(--color-bg-2);border-radius:14px;padding:12px 14px;background:var(--color-surface)}
+.customer-card-milestones summary{font-weight:700;cursor:pointer}
+.customer-card-milestones p{font-size:13px;margin:8px 0;color:var(--color-text-2)}
+@media(max-width:700px){.workspace-customer .qr-modal.customer-card-detail-panel{padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(28px + env(safe-area-inset-bottom,0px))}.workspace-customer .customer-card-detail-header .modal-close{position:static}}
+@keyframes customer-card-screen-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes customer-card-backdrop-in{from{background-color:transparent}to{background-color:#2b152191}}
+@media(prefers-reduced-motion:no-preference){
+ .customer-card-detail-backdrop{animation:customer-card-backdrop-in .24s ease-out}
+ .customer-card-detail-panel .customer-card-detail-header,.customer-card-detail-body{animation:customer-card-screen-in .32s .06s both}
+ .customer-card-detail-backdrop.is-closing{pointer-events:none;animation:customer-card-backdrop-in .24s ease-in reverse both}
+ .customer-card-detail-backdrop.is-closing .customer-card-detail-header,.customer-card-detail-backdrop.is-closing .customer-card-detail-body{animation:customer-card-screen-in .18s ease-in reverse both}
+ .workspace-customer .customer-card-detail-backdrop.is-closing .customer-card-detail-panel{background:transparent;box-shadow:none;border-color:transparent;overflow:visible}
+}

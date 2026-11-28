@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState} from "react";
+import {useEffect,useLayoutEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {QRCodeSVG} from "qrcode.react";
 import {Download, Maximize2, QrCode, X} from "lucide-react";
@@ -8,12 +8,36 @@ import {money,units} from "@/lib/format";
 import {db} from "@/lib/supabase";
 import {emptyMilestones,type MilestoneDetails} from "@/lib/milestones";
 import {MerchantCard} from "@/components/StampCard";
-export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose,milestones=emptyMilestones}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void;milestones?:MilestoneDetails}){
+export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose,milestones=emptyMilestones,transitionFrom,transitionTarget}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void;milestones?:MilestoneDetails;transitionFrom?:DOMRect;transitionTarget?:()=>HTMLElement|null}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
  type HistoryRow={id:string;kind:string;amount_delta:number;created_at:string;reversed:boolean;reward_label:string|null;purchase_cents:number|null};
  const [visits,setVisits]=useState<HistoryRow[]>([]),[historyPage,setHistoryPage]=useState(0),[historyMore,setHistoryMore]=useState(false),[historyError,setHistoryError]=useState(""),[historyLoading,setHistoryLoading]=useState(false);
  const qrCloseRef=useRef<HTMLButtonElement>(null);
+ const detailCloseRef=useRef<HTMLButtonElement>(null),previewRef=useRef<HTMLDivElement>(null),merchantRef=useRef<HTMLDivElement>(null);
+ const animationRef=useRef<Animation|null>(null),closeTimer=useRef<ReturnType<typeof setTimeout>|null>(null),closingRef=useRef(false);
+ const [closing,setClosing]=useState(false);
+ function cardTransform(from:DOMRect,to:DOMRect){
+  return "translate("+(from.left-to.left)+"px,"+(from.top-to.top)+"px) scale("+(from.width/to.width)+","+(from.height/to.height)+")";
+ }
+ function source(){return transitionTarget?.()||merchantRef.current;}
+ useLayoutEffect(()=>{
+  if(!open)return;
+  closingRef.current=false;setClosing(false);
+  const preview=previewRef.current,from=transitionFrom||source()?.getBoundingClientRect();
+  if(preview&&typeof preview.animate==="function"&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+   const to=preview.getBoundingClientRect();
+   const transform=from&&from.width>0&&from.height>0&&to.width>0&&to.height>0?cardTransform(from,to):"translateY(24px) scale(.94)";
+   animationRef.current=preview.animate([{transform,transformOrigin:"top left"},{transform:"none",transformOrigin:"top left"}],{duration:330,easing:"cubic-bezier(.22,.75,.25,1)"});
+  }
+  detailCloseRef.current?.focus({preventScroll:true});
+  return()=>{animationRef.current?.cancel();if(closeTimer.current!==null)clearTimeout(closeTimer.current);};
+ },[open,membership.id]);
+ useEffect(()=>{
+  if(!open||expandedQr)return;
+  const onEscape=(event:KeyboardEvent)=>{if(event.key==="Escape"){event.preventDefault();closeCard();}};
+  window.addEventListener("keydown",onEscape);return()=>window.removeEventListener("keydown",onEscape);
+ },[open,expandedQr,membership.id]);
  useEffect(()=>{
   if(!open)return;
   let live=true;
@@ -46,13 +70,27 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   window.addEventListener("keydown",onEscape);
   return()=>{document.body.style.overflow=previousOverflow;window.removeEventListener("keydown",onEscape)};
  },[expandedQr]);
- function closeCard(){
-  setExpandedQr(null);setHistoryPage(0);setOpen(false);onClose?.();
+ function finishClose(){
+  setExpandedQr(null);setHistoryPage(0);setOpen(false);setClosing(false);onClose?.();
+  const target=source();if(target instanceof HTMLElement){const focusTarget=target.matches("button")?target:target.querySelector("button");focusTarget?.focus({preventScroll:true});}
   const url=new URL(window.location.href);
   if(url.pathname==="/app"&&url.searchParams.get("card")===membership.id){
    url.searchParams.delete("card");
    window.history.replaceState(window.history.state,"",url.pathname+url.search+url.hash);
   }
+ }
+ function closeCard(immediate=false){
+  if(closingRef.current&&!immediate)return;
+  if(immediate||window.matchMedia("(prefers-reduced-motion: reduce)").matches){finishClose();return;}
+  closingRef.current=true;setClosing(true);
+  const preview=previewRef.current,target=source()?.getBoundingClientRect();
+  if(preview&&typeof preview.animate==="function"){
+   animationRef.current?.cancel();
+   const from=preview.getBoundingClientRect();
+   const transform=target&&target.width>0&&target.height>0&&from.width>0&&from.height>0?cardTransform(target,from):"translateY(24px) scale(.94)";
+   animationRef.current=preview.animate([{transform:"none",transformOrigin:"top left"},{transform,transformOrigin:"top left"}],{duration:240,easing:"cubic-bezier(.4,0,.6,1)",fill:"forwards"});
+  }
+  closeTimer.current=setTimeout(finishClose,240);
  }
  async function downloadCard(){
   const qr=document.querySelector('[data-card-qr="'+membership.id+'"] svg');
@@ -92,33 +130,27 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  const qrUrl=origin+"/t/"+membership.card_token;
  const rewardQrUrl=voucher?origin+"/p/"+voucher.token:"";
  const cardVisual=<MerchantCard business={business} program={program} balance={membership.balance} qrValue={qrUrl} milestones={milestones.rules}/>;
+ const detailVisual=<MerchantCard business={business} program={program} balance={membership.balance} milestones={milestones.rules}/>;
  return <>{!modalOnly&&<div className={"loyalty-card-item"+(compact?" customer-deck-item":"")}>
- <div className="merchant-card-button">{cardVisual}<button type="button" className="merchant-card-hitbox" onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}/></div>
+ <div className="merchant-card-button" ref={merchantRef}>{cardVisual}<button type="button" className="merchant-card-hitbox" onClick={()=>setOpen(true)} aria-label={"Ver tarjeta de "+business.name}/></div>
  {!compact&&<button type="button" className="loyalty-wallet-open" onClick={()=>setOpen(true)}><QrCode size={17}/> Ver tarjeta y QR</button>}
  {offersCount>0&&<Link className="kreyv-loyalty-offers" href={"/app/novedades?business="+business.id}>Ver ofertas de este negocio ({offersCount})</Link>}
  </div>}
- {open&&<div className="modal-backdrop qr-modal-backdrop" onMouseDown={closeCard}><div className="modal-card qr-modal" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
- <button className="modal-close" aria-label="Cerrar" onClick={closeCard}><X size={20}/></button>
- <div className="eyebrow">MI TARJETA</div><h2>{business.name}</h2>
- <div className="loyally-modal-card-preview merchant-card-detail">{cardVisual}</div>
- <div className="customer-card-detail-stats">
-  <div><small>Premio</small><strong>{program?.reward_label||"Recompensa"}</strong></div>
-  <div><small>Saldo</small><strong>{units(membership.balance,program?.type,business.currency)}</strong></div>
-  <div><small>Regla</small><strong>{program?.type==="stamps"?program.reward_cost+" sellos":program?.type==="points"?"Puntos":"Cashback"}</strong></div>
- </div>
- {(milestones.rules.length>0||milestones.grants.length>0)&&<section className="customer-card-visits"><h3>Premios intermedios</h3>{milestones.rules.map(r=><p key={r.position}>Sello {r.position} · {r.label}</p>)}{milestones.grants.filter(g=>g.available).map(g=><div key={g.id} className="reward-claim-panel"><strong>{g.label}</strong><p>Premio disponible. Muestra tu QR personal en caja para canjearlo.</p></div>)}{milestones.grants.some(g=>g.redeemed)&&<p className="muted">{milestones.grants.filter(g=>g.redeemed).length} premios intermedios canjeados</p>}</section>}
- <button type="button" className="customer-show-qr" onClick={()=>setExpandedQr("card")}><QrCode size={20}/> Mostrar mi QR en caja</button>
- <div className="customer-detail-secondary">
-  <p>También puedes guardar el QR como imagen.</p>
- </div>
- <button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("card")} aria-label={"Ampliar QR de "+business.name}>
-  <span className="qr-box"><QRCodeSVG value={qrUrl} size={200} level="M" marginSize={2}/></span>
-  <span className="qr-enlarge-hint"><Maximize2 size={16}/> Toca el QR para ampliarlo</span>
- </button>
+ {open&&<div className={"modal-backdrop qr-modal-backdrop customer-card-detail-backdrop"+(closing?" is-closing":"")} onMouseDown={()=>closeCard()}><div className="modal-card qr-modal customer-card-detail-panel" role="dialog" aria-modal="true" aria-label={"Tarjeta y QR de "+business.name} onMouseDown={e=>e.stopPropagation()}>
+ <div className="customer-card-detail-header"><h2>Tu tarjeta</h2><button ref={detailCloseRef} type="button" className="modal-close" aria-label="Cerrar" onClick={()=>closeCard()}><X size={20}/></button></div>
+ <div ref={previewRef} className="loyally-modal-card-preview merchant-card-detail">{detailVisual}</div>
+ <div className="customer-card-detail-body">
+ <section className="customer-card-qr-section" aria-label="QR personal">
+  <button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("card")} aria-label={"Ampliar QR de "+business.name}>
+   <span className="qr-box"><QRCodeSVG value={qrUrl} size={200} level="M" marginSize={2}/></span>
+   <span className="qr-enlarge-hint"><Maximize2 size={16}/> Mostrar mi QR en caja</span>
+  </button>
  {/* The export uses a separate standards-compliant QR, not the compact preview. */}
  <span hidden data-card-qr={membership.id}><QRCodeSVG value={qrUrl} size={582} level="M" marginSize={4}/></span>
  <button type="button" className="button button-outline download-card-action" onClick={downloadCard}><Download size={17}/> Guardar imagen con QR</button>
- <p className="tiny-note">{program?.type==="cashback"?"Puedes utilizar tu saldo en el establecimiento.":program?.reward_label||"Tu recompensa te espera."}</p>
+
+ </section>
+ {(milestones.rules.length>0||milestones.grants.length>0)&&<details className="customer-card-milestones" open={milestones.grants.some(g=>g.available)||undefined}><summary>Premios intermedios</summary>{milestones.rules.map(r=><p key={r.position}>Sello {r.position} · {r.label}</p>)}{milestones.grants.filter(g=>g.available).map(g=><div key={g.id} className="reward-claim-panel"><strong>{g.label}</strong><p>Premio disponible. Muestra tu QR personal en caja para canjearlo.</p></div>)}{milestones.grants.some(g=>g.redeemed)&&<p className="muted">{milestones.grants.filter(g=>g.redeemed).length} premios intermedios canjeados</p>}</details>}
  {voucher&&<div className="reward-claim-panel"><div className="eyebrow">¡PREMIO DESBLOQUEADO!</div><strong>{voucher.reward_label}</strong><p>Enseña este segundo QR en el comercio. Solo se puede canjear una vez.</p><button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("reward")} aria-label="Ampliar QR del premio">
   <span className="qr-box"><QRCodeSVG value={rewardQrUrl} size={180} level="M" marginSize={2}/></span>
   <span className="qr-enlarge-hint"><Maximize2 size={16}/> Ampliar QR del premio</span>
@@ -130,9 +162,9 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
   </div>)}</div>}
   {(historyPage>0||historyMore)&&<div className="owner-data-pagination"><button type="button" className="button button-outline button-sm" disabled={historyPage===0||historyLoading} onClick={()=>setHistoryPage(n=>n-1)}>Anterior</button><span>Página {historyPage+1}</span><button type="button" className="button button-outline button-sm" disabled={!historyMore||historyLoading} onClick={()=>setHistoryPage(n=>n+1)}>Siguiente</button></div>}
  </section>
- <Link className="button button-outline button-full" href={"/app/ajustes?business="+encodeURIComponent(business.id)} onClick={closeCard}>Gestionar notificaciones de esta tarjeta</Link>
+ <Link className="button button-outline button-full" href={"/app/ajustes?business="+encodeURIComponent(business.id)} onClick={()=>closeCard(true)}>Gestionar notificaciones de esta tarjeta</Link>
  {consentError&&<div className="alert error">{consentError}</div>}
- </div></div>}
+ </div></div></div>}
  {open&&expandedQr&&<div className="qr-fullscreen-overlay" onMouseDown={()=>setExpandedQr(null)}>
   <section className="qr-fullscreen-content" role="dialog" aria-modal="true"
    aria-label={expandedQr==="reward"?"QR de canje de "+business.name:"QR de la tarjeta de "+business.name}
