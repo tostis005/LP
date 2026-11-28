@@ -1,6 +1,7 @@
 import {safeJoinTarget} from "@/lib/public-url";
 import { actorFromRequest,asActor,authPool,cookieToken,hashToken,ApiError,checkOrigin,responseError } from "@/lib/server/db";
 import { hashPassword,passwordMatches,validateEmail,emailToken,rateLimit,createSession,extendSession,setSessionCookie,clearSessionCookie,publicUser,smtpReady } from "@/lib/server/auth";
+import {trustedPushEndpoint} from "@/lib/server/web-push";
 export const runtime="nodejs";
 
 export async function POST(request:Request) {
@@ -19,6 +20,7 @@ export async function POST(request:Request) {
       return actor&&expires?setSessionCookie(response,cookieToken(request),expires):response;
     }
     if(action==="signOut") {
+      if(actor&&typeof input.push_endpoint==="string"&&trustedPushEndpoint(input.push_endpoint))await authPool.query("SELECT public.unregister_web_push_subscription($1::uuid,$2::text)",[actor.id,input.push_endpoint]);
       const token=cookieToken(request);
       if(token)await authPool.query("DELETE FROM auth.sessions WHERE token_hash=$1",[hashToken(token)]);
       const response=clearSessionCookie(Response.json({data:{},error:null}));

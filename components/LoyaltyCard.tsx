@@ -12,14 +12,15 @@ import {deviceCardQr} from "@/lib/client/device-card-qr";
 export function LoyaltyCard({membership,business,program,offersCount=0,compact=false,autoOpen=false,modalOnly=false,onClose,milestones=emptyMilestones,transitionFrom,transitionTarget}:{membership:Membership;business:Business;program?:Program;offersCount?:number;compact?:boolean;autoOpen?:boolean;modalOnly?:boolean;onClose?:()=>void;milestones?:MilestoneDetails;transitionFrom?:DOMRect;transitionTarget?:()=>HTMLElement|null}){
  const [open,setOpen]=useState(autoOpen),[consentError,setConsentError]=useState(""),[voucher,setVoucher]=useState<{token:string;reward_label:string}|null>(null);
  const [expandedQr,setExpandedQr]=useState<"card"|"reward"|null>(null);
- const [deviceToken,setDeviceToken]=useState<string|null>(null);
+ const [deviceToken,setDeviceToken]=useState<string|null>(null),[deviceQrPending,setDeviceQrPending]=useState(autoOpen);
  useEffect(()=>{
   if(!open)return;
   let live=true;
-  setDeviceToken(null);
-  const refresh=()=>{void deviceCardQr(membership.id).then(token=>{if(live)setDeviceToken(token);}).catch(()=>{});};
+  setDeviceToken(null);setDeviceQrPending(true);
+  const refresh=()=>{void deviceCardQr(membership.id).then(token=>{if(live)setDeviceToken(token);}).catch(()=>{}).finally(()=>{if(live)setDeviceQrPending(false);});};
+  const timer=window.setTimeout(()=>{if(live)setDeviceQrPending(false);},2500);
   refresh();window.addEventListener("online",refresh);window.addEventListener("focus",refresh);
-  return()=>{live=false;window.removeEventListener("online",refresh);window.removeEventListener("focus",refresh);};
+  return()=>{live=false;clearTimeout(timer);window.removeEventListener("online",refresh);window.removeEventListener("focus",refresh);};
  },[open,membership.id]);
  type HistoryRow={id:string;kind:string;amount_delta:number;created_at:string;reversed:boolean;reward_label:string|null;purchase_cents:number|null};
  const [visits,setVisits]=useState<HistoryRow[]>([]),[historyPage,setHistoryPage]=useState(0),[historyMore,setHistoryMore]=useState(false),[historyError,setHistoryError]=useState(""),[historyLoading,setHistoryLoading]=useState(false);
@@ -154,8 +155,8 @@ export function LoyaltyCard({membership,business,program,offersCount=0,compact=f
  <div ref={previewRef} className="loyally-modal-card-preview merchant-card-detail">{detailVisual}</div>
  <div className="customer-card-detail-body">
  <section className="customer-card-qr-section" aria-label="QR personal">
-  <button type="button" className="qr-enlarge-button" onClick={()=>setExpandedQr("card")} aria-label={"Ampliar QR de "+business.name}>
-   <span className="qr-box"><QRCodeSVG value={qrUrl} size={200} level="M" marginSize={2}/></span>
+  <button type="button" className="qr-enlarge-button" disabled={deviceQrPending} onClick={()=>setExpandedQr("card")} aria-label={"Ampliar QR de "+business.name}>
+   <span className="qr-box">{deviceQrPending?<span role="status" style={{display:"grid",placeItems:"center",aspectRatio:"1",padding:12}}>Preparando QR…</span>:<QRCodeSVG value={qrUrl} size={200} level="M" marginSize={2}/>}</span>
    <span className="qr-enlarge-hint"><Maximize2 size={16}/> Mostrar mi QR en caja</span>
   </button>
  {/* The export uses a separate standards-compliant QR, not the compact preview. */}

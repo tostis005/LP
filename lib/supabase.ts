@@ -4,6 +4,7 @@
 // Todas las operaciones pasan por el backend local, que aplica RLS en PostgreSQL.
 export type User={id:string;email?:string;user_metadata?:{full_name?:string;whatsapp?:string;card_notifications_opt_in?:boolean}};
 import {clearOfflineAccount} from "@/lib/client/offline";
+import {devicePushSubscription} from "@/lib/client/device-card-qr";
 import {showActionToast} from "@/lib/action-toast";
 const mutatingRpcs=new Set([
  "manager_add_stamp_milestone","manager_disable_stamp_milestone","staff_claim_stamp_milestone",
@@ -68,7 +69,7 @@ class Query implements PromiseLike<Result>{
 const auth={
  getUser:async()=>post<{user:User|null}>("/api/local/auth",{action:"getUser"}),
  getSession:async()=>post<{session:{access_token:string;user:User}|null}>("/api/local/auth",{action:"getSession"}),
- signOut:async()=>{const r=await post("/api/local/auth",{action:"signOut"});if(!r.error)clearOfflineAccount();return r},
+ signOut:async()=>{const sub=await devicePushSubscription().catch(()=>null);const r=await post("/api/local/auth",{action:"signOut",push_endpoint:sub?.endpoint});if(!r.error)clearOfflineAccount();return r},
  signInWithPassword:async(data:{email:string;password:string})=>{const r=await post("/api/local/auth",{action:"signInWithPassword",...data});if(!r.error)clearOfflineAccount();return r},
  signUp:async(data:{email:string;password:string;options?:{data?:{full_name?:string;whatsapp?:string;birth_date?:string;gender?:string;platform_marketing_opt_in?:boolean;platform_push_opt_in?:boolean;card_notifications_opt_in?:boolean;return_to?:string};emailRedirectTo?:string}})=>post<{user:User|null;session:unknown}>("/api/local/auth",{action:"signUp",email:data.email,password:data.password,full_name:data.options?.data?.full_name,whatsapp:data.options?.data?.whatsapp,birth_date:data.options?.data?.birth_date,gender:data.options?.data?.gender,platform_marketing_opt_in:data.options?.data?.platform_marketing_opt_in===true,platform_push_opt_in:data.options?.data?.platform_push_opt_in===true,card_notifications_opt_in:data.options?.data?.card_notifications_opt_in===true,return_to:data.options?.data?.return_to}),
  resetPasswordForEmail:async(email:string,_options?:{redirectTo?:string})=>post("/api/local/auth",{action:"resetPasswordForEmail",email}),
