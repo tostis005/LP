@@ -73,3 +73,7 @@ assert.equal(events[1].opened,appOrigin+page,"La notificación debe abrir el det
 assert.equal(focused,1);
 
 console.log("OK: dos tipos, envío en una confirmación, precio limpio, logo Android y apertura directa del aviso.");
+
+const invalidations=[];worker.clients.matchAll=async()=>[{postMessage:data=>invalidations.push(data)}];
+listeners.push({data:{json:()=>({title:"Sellos",body:"Nuevo saldo",url:"/app?card="+id})},waitUntil(task){display=task}});
+await display;assert.equal(invalidations.length,1);assert.equal(invalidations[0].type,"KREYVI_CARD_CHANGED");assert.deepEqual(Object.keys(invalidations[0]),["type"],"Push only invalidates, never supplies trusted customer data.");

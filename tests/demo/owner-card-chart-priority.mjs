@@ -28,7 +28,7 @@ assert.match(css,/\.stamp-visual-rebalanced \.stamp-grid[\s\S]*?10cqw/);
 assert.match(css,/\.stamp-visual-rebalanced \.stamp-qr-white[\s\S]*?max-width:195px/);
 assert.match(customer,/<MerchantCard business=\{business\} program=\{program\} balance=\{membership.balance\} qrValue=\{qrUrl\}/);
 assert.match(customer,/merchant-card-detail">\{detailVisual\}/,"The expanded card uses the same merchant design without repeating the QR");
-assert.match(customer,/const detailVisual=<MerchantCard business=\{business\} program=\{program\} balance=\{membership.balance\} milestones=\{milestones.rules\}/);
+assert.match(customer,/const detailVisual=<MerchantCard business=\{business\} program=\{program\} balance=\{membership.balance\} milestones=\{currentMilestones.rules\} animateEarned/);
 assert.match(customer,/className="customer-card-qr-section"[\s\S]*?<QRCodeSVG value=\{qrUrl\}/,"The personal QR remains visible in its own scan section");
 assert.doesNotMatch(customer,/className="customer-card-detail-stats"/,"Do not duplicate the card's information");
 assert.match(owner,/<MerchantCard business=\{biz\} program=\{prog\}/);

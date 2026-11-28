@@ -7,3 +7,12 @@
 .stamp-grid .stamp-milestone-mark.is-earned{position:absolute;right:1%;bottom:1%;width:43%;height:43%;border-radius:50%;background:#f5d78f;color:#57361c;box-shadow:0 0 0 1px #fff9e7;transform:rotate(8deg);z-index:1}
 .stamp-grid .stamp-milestone-mark.is-earned svg{width:72%;height:72%}
 .stamp-grid.is-dense .stamp-milestone-mark.is-earned,.stamp-grid.is-very-dense .stamp-milestone-mark.is-earned{width:51%;height:51%}
+
+/* Animate only slots that changed from empty to filled; never replay old stamps on mount. */
+@media(prefers-reduced-motion:no-preference){
+ .stamp-grid .stamp-slot.is-newly-earned{animation:stamp-arrival .62s cubic-bezier(.18,.8,.32,1.15) var(--stamp-arrival-delay,0ms) both;position:relative;z-index:2}
+ .stamp-grid .stamp-slot.is-newly-earned>svg,.stamp-grid .stamp-slot.is-newly-earned>img{animation:stamp-ink .45s ease-out var(--stamp-arrival-delay,0ms) both}
+ .live-balance-pop{display:inline-block;animation:stamp-arrival .55s cubic-bezier(.18,.8,.32,1.15) both}
+}
+@keyframes stamp-arrival{0%{opacity:.48;transform:scale(.72)}55%{opacity:1;transform:scale(1.16);box-shadow:0 0 0 4px #f2ca7e80}100%{opacity:1;transform:scale(1);box-shadow:none}}
+@keyframes stamp-ink{0%{opacity:0;transform:scale(1.55) rotate(-15deg)}65%{opacity:1;transform:scale(.9) rotate(3deg)}100%{opacity:1;transform:none}}

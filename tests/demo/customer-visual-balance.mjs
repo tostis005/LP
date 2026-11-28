@@ -125,3 +125,14 @@ assert.deepEqual(Array.from(orderingModule.exports.visibleWalletCards(fixture),c
 assert.equal(fixture[2].balance,10);assert.equal(fixture.length,3);
 assert.match(home,/Tarjetas retiradas/);assert.match(home,/customer_hidden:false/);assert.match(read("components/LoyaltyCard.tsx"),/Quitar de Mis tarjetas/);assert.match(read("app/unirse/[slug]/page.tsx"),/existingHidden&&membershipId\?await db\(\).rpc\("customer_set_card_display"/);assert.match(read("components/CachedCustomerSpace.tsx"),/visibleWalletCards/);
 console.log("OK: favorites first, soft hide, re-add existing membership, cached visibility.");
+
+const balanceCode=ts.transpileModule(read("lib/client/balance-pulse.ts"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const balanceModule={exports:{}};runInNewContext(balanceCode,{module:balanceModule,exports:balanceModule.exports,require:()=>({})});
+const {earnedIncrease,newStampIndex}=balanceModule.exports;
+assert.equal(earnedIncrease(7,9),2);assert.equal(earnedIncrease(9,7),0);assert.equal(earnedIncrease(7,7),0);
+assert.deepEqual(Array.from({length:10},(_,i)=>i).filter(i=>newStampIndex(i,7,9)),[7,8]);
+const live=read("lib/client/live-card-balances.ts");
+assert.match(live,/schedule\(delay\)/);assert.match(live,/document.visibilityState==="hidden"/);assert.match(live,/KREYVI_CARD_CHANGED/);assert.match(live,/\.eq\("customer_id",userId\)/);
+assert.match(home,/cardStateChanged\(cards,rows\)\)await load\(true\)/);assert.match(home,/if\(quiet\)return/);
+assert.match(read("components/LoyaltyCard.tsx"),/qr-live-balance/);assert.match(read("components/StampMarks.tsx"),/is-newly-earned/);assert.match(read("components/stamp-milestones.css"),/prefers-reduced-motion:no-preference/);
+console.log("OK: foreground balance refresh, push invalidation, newly earned stamps only, fullscreen feedback.");

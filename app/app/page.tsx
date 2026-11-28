@@ -1,12 +1,13 @@
 "use client";
 import {KreyviLoading} from "@/components/KreyviLoading";
-import {useCallback,useEffect,useState} from "react";
+import {useCallback,useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import {ArrowUpRight,Compass,Gift,Plus,Eye,EyeOff} from "lucide-react";
 import {AppFrame, type Account} from "@/components/AppFrame";
 import {CustomerCardDeck} from "@/components/CustomerCardDeck";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
 import {visibleWalletCards} from "@/lib/customer-card-order";
+import {cardStateChanged,useLiveCardBalances} from "@/lib/client/live-card-balances";
 import "../customer-deck.css";
 import {db} from "@/lib/supabase";
 import type {MilestoneDetails} from "@/lib/milestones";
@@ -39,13 +40,16 @@ function CustomerHome({account}:{account:Account}){
    }).catch(()=>{});
   return()=>{live=false};
  },[account.user.id]);
- const load=useCallback(async()=>{
+ const loadingRef=useRef(false);
+ const load=useCallback(async(quiet=false)=>{
+  if(loadingRef.current)return;
+  loadingRef.current=true;
   const saved=offlineCards();
-  if(saved?.id===account.user.id){setCards(saved.cards);setPrograms(saved.programs);setMilestones(saved.milestones||{});setMovements(saved.movements||[]);setLoading(false);if(!navigator.onLine){setCached(true);return;}}
-  else setLoading(true);setError("");
+  if(!quiet&&saved?.id===account.user.id){setCards(saved.cards);setPrograms(saved.programs);setMilestones(saved.milestones||{});setMovements(saved.movements||[]);setLoading(false);if(!navigator.onLine){setCached(true);loadingRef.current=false;return;}}
+  else if(!quiet)setLoading(true);if(!quiet)setError("");
   try{
    const res=await db().from("loyalty_memberships").select("*,businesses(*)")
-    .eq("customer_id",account.user.id).order("created_at",{ascending:false});
+    .eq("customer_id",account.user.id).order("created_at",{ascending:false}).limit(500);
    if(res.error)throw res.error;
    let rows=(res.data||[]) as CardRow[];
    if(rows.some(card=>!card.businesses)){
@@ -79,13 +83,15 @@ function CustomerHome({account}:{account:Account}){
    }
    setCached(false);
   }catch{
+   if(quiet)return;
    if(saved?.id===account.user.id){setCards(saved.cards);setPrograms(saved.programs);setMilestones(saved.milestones||{});setMovements(saved.movements||[]);setCached(true);return;}
    setError("No hemos podido cargar tus tarjetas. Comprueba la conexión e inténtalo de nuevo.");
    setCards([]);setPrograms([]);setMovements([]);
-  }finally{setLoading(false);}
+  }finally{loadingRef.current=false;setLoading(false);}
  },[account.user.id]);
  useEffect(()=>{load();const refresh=()=>{void load()};window.addEventListener("online",refresh);window.addEventListener("offline",refresh);return()=>{window.removeEventListener("online",refresh);window.removeEventListener("offline",refresh)}},[load]);
  useEffect(()=>{if(!cached)return;const timer=window.setInterval(()=>{if(navigator.onLine&&document.visibilityState!=="hidden")void load()},15000);return()=>window.clearInterval(timer)},[cached,load]);
+ useLiveCardBalances(account.user.id,!loading&&!cached,async rows=>{if(cardStateChanged(cards,rows))await load(true);});
  const updateDisplay=useCallback((id:string,patch:Partial<Pick<Membership,"customer_favorite"|"customer_hidden">>)=>{
   setCards(prev=>prev.map(c=>c.id===id?{...c,...patch}:c));
   const saved=offlineCards();if(saved?.id===account.user.id)saveCards({...saved,cards:saved.cards.map(c=>c.id===id?{...c,...patch}:c)});

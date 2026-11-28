@@ -7,6 +7,7 @@ import {Compass,MapPin,Navigation,Search,ArrowUpRight,Check,Gift,SlidersHorizont
 import {AppFrame,type Account} from "@/components/AppFrame";
 import {StampMark} from "@/components/StampMarks";
 import {db} from "@/lib/supabase";
+import {cardStateChanged,useLiveCardBalances} from "@/lib/client/live-card-balances";
 import type {Location,Business,Program,Membership} from "@/lib/types";
 import {MerchantCard} from "@/components/StampCard";
 import {LoyaltyCard} from "@/components/LoyaltyCard";
@@ -42,6 +43,7 @@ function Discover({account}:{account:Account}){
  }load()},[account.user.id]);
  useEffect(()=>{const listener=(event:Event)=>{const {id,...patch}=(event as CustomEvent<{id:string;customer_favorite?:boolean;customer_hidden?:boolean}>).detail;setMembersById(prev=>{const m=prev[id];return m?{...prev,[id]:{...m,...patch}}:prev;});};window.addEventListener("kreyvi:card-display-changed",listener);return()=>window.removeEventListener("kreyvi:card-display-changed",listener);},[]);
  useEffect(()=>{setMyCards(Object.fromEntries(Object.values(membersById).filter(x=>!x.customer_hidden).map(x=>[x.business_id,x.id])));},[membersById]);
+ useLiveCardBalances(account.user.id,!!openCardId,rows=>{if(!cardStateChanged(Object.values(membersById),rows))return;const byId=new Map(rows.map(r=>[r.id,r]));setMembersById(prev=>Object.fromEntries(Object.entries(prev).map(([id,m])=>[id,{...m,...byId.get(id)}])));});
  const hiddenBusinesses=new Set(Object.values(membersById).filter(x=>x.customer_hidden).map(x=>x.business_id));
  function locate(){
   if(!navigator.geolocation){setError("Tu navegador no puede consultar la ubicación.");return}

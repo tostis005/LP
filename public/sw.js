@@ -64,7 +64,7 @@ self.addEventListener("push",event=>{
   console.warn("Icono push no disponible; mostrando notificación de texto",error);
   return self.registration.showNotification(title,{body,tag,data:{url}});
  });
- event.waitUntil(display());
+ event.waitUntil(Promise.all([display(),url.startsWith("/app?card=")?self.clients.matchAll({type:"window",includeUncontrolled:true}).then(tabs=>{for(const tab of tabs)tab.postMessage({type:"KREYVI_CARD_CHANGED"});}).catch(()=>{}):Promise.resolve()]));
 });
 // Al tocar una notificación abre directamente su detalle; si ya hay una ventana
 // abierta se prioriza la ruta solicitada, no una pantalla antigua en primer plano.

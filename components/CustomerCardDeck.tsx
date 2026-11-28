@@ -7,7 +7,7 @@ import {readableCardText} from "@/lib/customer-card-contrast";
 import {logoImageUrl} from "@/lib/asset-images";
 import {cardBackgroundUrl} from "@/lib/card-images";
 import {emptyMilestones,type MilestoneDetails} from "@/lib/milestones";
-import {StampGrid} from "@/components/StampMarks";
+import {StampGrid,LiveBalanceValue} from "@/components/StampMarks";
 import {units} from "@/lib/format";
 import {wheelStep,wrapIndex,wheelSlots,wheelTransform,wheelDestination,wheelRadius} from "@/lib/customer-wheel";
 import type {Business,Membership,Program} from "@/lib/types";
@@ -101,7 +101,7 @@ export function CustomerCardDeck({cards,programs,milestones,offerCounts}:{cards:
     const text=readableCardText(color,b.card_text_color||"#fff",!!photo&&!/^\/brand\/card-designs\/gallery-(food|vivid)-/.test(photo)),stamps=p?.type==="stamps";
     return <button type="button" key={card.id} className={"customer-wallet-tab"+(index===current?" is-front":"")+(offset>.55?" is-below":"")} style={{backgroundColor:color,color:text,backgroundImage:photo?(/^\/brand\/card-designs\/gallery-(food|vivid)-/.test(photo)?"linear-gradient(0deg,transparent,transparent)":/^\/brand\/card-designs\/(showcase|gallery)-/.test(photo)?"linear-gradient(135deg,#0002,#0001)":"linear-gradient(135deg,#0007,#0004)")+",url("+photo+")":undefined,transform:"translate3d(0,calc(-50% + "+g.y+"px),"+g.z+"px) rotateX("+g.rotate+"deg) scale("+g.scale+")",zIndex:g.layer,opacity:g.opacity,pointerEvents:g.opacity<.05?"none":undefined}} data-wallet-card={card.id} onClick={e=>open(card,e.currentTarget)} tabIndex={index===current?0:-1} aria-label={"Abrir tarjeta de "+b.name}>
      <span className="customer-wallet-card-head"><span className="customer-wallet-logo">{b.logo_url?<img src={logoImageUrl(b.logo_url,192)} alt="" draggable={false}/>:<Gift size={22}/>}</span><strong style={{fontFamily:cardTitleFont(b.card_title_font)}}>{b.name}</strong>{card.customer_favorite&&<Star size={17} fill="#f2ca7e" color="#f2ca7e" aria-label="Destacada"/>}<ArrowUpRight size={19}/></span>
-     <div className="customer-wallet-card-body">{stamps&&(p.reward_cost<=12||(p.reward_cost<=30&&details(card).rules.length>0))?<StampGrid total={p.reward_cost} earned={card.balance} kind={b.stamp_icon} imageUrl={b.stamp_image_url} color={b.stamp_color} milestones={details(card).rules}/>:<strong className="customer-wallet-balance">{stamps?Math.min(card.balance,p.reward_cost)+" / "+p.reward_cost+" sellos":units(card.balance,p?.type,b.currency)}</strong>}</div>
+     <div className="customer-wallet-card-body">{stamps&&(p.reward_cost<=12||(p.reward_cost<=30&&details(card).rules.length>0))?<StampGrid total={p.reward_cost} earned={card.balance} kind={b.stamp_icon} imageUrl={b.stamp_image_url} color={b.stamp_color} milestones={details(card).rules} animateEarned/>:<strong className="customer-wallet-balance"><LiveBalanceValue balance={card.balance} animate>{stamps?Math.min(card.balance,p.reward_cost)+" / "+p.reward_cost+" sellos":units(card.balance,p?.type,b.currency)}</LiveBalanceValue></strong>}</div>
      <span className="customer-wallet-card-foot"><span>{p?.reward_label||"Tu próxima recompensa"}</span><img src="/brand/kreyv-pegada-vino-mostaza-claro.svg" alt="Kreyvi" draggable={false}/></span>
      <span className="customer-wallet-lower-label"><span className="customer-wallet-logo">{b.logo_url?<img src={logoImageUrl(b.logo_url,192)} alt="" draggable={false}/>:<Gift size={18}/>}</span><strong style={{fontFamily:cardTitleFont(b.card_title_font)}}>{b.name}</strong><ArrowUpRight size={16}/></span>
     </button>;
